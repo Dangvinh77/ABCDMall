@@ -1,0 +1,425 @@
+.
+├── DOC
+│   └── README.md
+├── README.md
+├── apps
+│   ├── ai-service
+│   │   ├── Dockerfile
+│   │   ├── ai
+│   │   │   ├── __init__.py
+│   │   │   ├── llm.py
+│   │   │   ├── main.py
+│   │   │   ├── main_backup.py
+│   │   │   ├── model.py
+│   │   │   ├── rag.py
+│   │   │   └── worker.py
+│   │   ├── data
+│   │   │   ├── plant_knowledge.json
+│   │   │   └── plants_data.json
+│   │   ├── models
+│   │   │   ├── class_to_idx.json
+│   │   │   └── vit_moe_best.pth
+│   │   ├── requirements.txt
+│   │   └── temp
+│   ├── backend
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   ├── eslint.config.mjs
+│   │   ├── nest-cli.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── app.controller.spec.ts
+│   │   │   ├── app.controller.ts
+│   │   │   ├── app.module.ts
+│   │   │   ├── app.service.ts
+│   │   │   ├── common
+│   │   │   │   ├── decorators
+│   │   │   │   │   └── roles.decorator.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   └── roles.guard.ts
+│   │   │   │   └── rabbitmq
+│   │   │   │       └── rabbitmq.module.ts
+│   │   │   ├── main.ts
+│   │   │   └── modules
+│   │   │       ├── admin
+│   │   │       │   ├── admin.controller.ts
+│   │   │       │   ├── admin.module.ts
+│   │   │       │   ├── admin.service.ts
+│   │   │       │   └── dto
+│   │   │       │       ├── Admin user.dto.ts
+│   │   │       │       ├── get-report.dto.ts
+│   │   │       │       └── reply-feedback.dto.ts
+│   │   │       ├── ai-scan
+│   │   │       │   ├── ai-scan.consumer.ts
+│   │   │       │   ├── ai-scan.controller.ts
+│   │   │       │   ├── ai-scan.module.ts
+│   │   │       │   ├── ai-scan.service.ts
+│   │   │       │   └── image
+│   │   │       │       └── 110.jpg
+│   │   │       ├── auth
+│   │   │       │   ├── auth.controller.spec.ts
+│   │   │       │   ├── auth.controller.ts
+│   │   │       │   ├── auth.module.ts
+│   │   │       │   ├── auth.service.spec.ts
+│   │   │       │   ├── auth.service.ts
+│   │   │       │   ├── dto
+│   │   │       │   │   ├── login.dto.ts
+│   │   │       │   │   ├── register.dto.ts
+│   │   │       │   │   ├── reset-password.dto.ts
+│   │   │       │   │   ├── set-password.dto.ts
+│   │   │       │   │   └── verify-otp.dto.ts
+│   │   │       │   ├── guards
+│   │   │       │   │   ├── facebook-auth.guard.ts
+│   │   │       │   │   ├── google-auth.guard.ts
+│   │   │       │   │   └── jwt-auth.guard.ts
+│   │   │       │   └── strategies
+│   │   │       │       ├── facebook.strategy.ts
+│   │   │       │       ├── google.strategy.ts
+│   │   │       │       └── jwt.strategy.ts
+│   │   │       ├── my-garden
+│   │   │       │   ├── dto
+│   │   │       │   │   └── my-garden.dto.ts
+│   │   │       │   ├── my-garden.controller.ts
+│   │   │       │   ├── my-garden.module.ts
+│   │   │       │   └── my-garden.service.ts
+│   │   │       ├── orders
+│   │   │       │   ├── dto
+│   │   │       │   │   └── order.dto.ts
+│   │   │       │   ├── orders.controller.ts
+│   │   │       │   ├── orders.module.ts
+│   │   │       │   └── orders.service.ts
+│   │   │       ├── plants
+│   │   │       │   ├── plants.controller.ts
+│   │   │       │   ├── plants.module.ts
+│   │   │       │   └── plants.service.ts
+│   │   │       ├── products
+│   │   │       │   ├── dto
+│   │   │       │   │   └── product.dto.ts
+│   │   │       │   ├── products.controller.ts
+│   │   │       │   ├── products.module.ts
+│   │   │       │   └── products.service.ts
+│   │   │       ├── users
+│   │   │       │   ├── users.controller.ts
+│   │   │       │   ├── users.module.ts
+│   │   │       │   ├── users.service.spec.ts
+│   │   │       │   └── users.service.ts
+│   │   │       └── weather
+│   │   │           ├── Weather.controller.ts
+│   │   │           ├── Weather.module.ts
+│   │   │           ├── Weather.service.ts
+│   │   │           └── dto
+│   │   │               └── Get weather.dto.ts
+│   │   ├── test
+│   │   │   ├── app.e2e-spec.ts
+│   │   │   └── jest-e2e.json
+│   │   ├── tsconfig.build.json
+│   │   └── tsconfig.json
+│   ├── mobile
+│   │   ├── App.tsx
+│   │   ├── app
+│   │   │   ├── _layout.tsx
+│   │   │   ├── about.tsx
+│   │   │   ├── add-product.tsx
+│   │   │   ├── admin.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── AuthHeader.tsx
+│   │   │   │   ├── forgot-password.tsx
+│   │   │   │   ├── login.tsx
+│   │   │   │   ├── otp-verification.tsx
+│   │   │   │   ├── register.tsx
+│   │   │   │   ├── reset-password.tsx
+│   │   │   │   └── set-password.tsx
+│   │   │   ├── buy-detail.tsx
+│   │   │   ├── checkout.tsx
+│   │   │   ├── community.tsx
+│   │   │   ├── feedback.tsx
+│   │   │   ├── garden-detail.tsx
+│   │   │   ├── garden-setup.tsx
+│   │   │   ├── index.tsx
+│   │   │   ├── my-cart.tsx
+│   │   │   ├── my-garden.tsx
+│   │   │   ├── my-orders.tsx
+│   │   │   ├── my-shop.tsx
+│   │   │   ├── notification.tsx
+│   │   │   ├── onboarding.tsx
+│   │   │   ├── payment.tsx
+│   │   │   ├── product-detail.tsx
+│   │   │   ├── profile.tsx
+│   │   │   ├── scan.tsx
+│   │   │   ├── setting.tsx
+│   │   │   ├── shop.tsx
+│   │   │   ├── success-order.tsx
+│   │   │   ├── tips.tsx
+│   │   │   ├── treeDic.tsx
+│   │   │   ├── upgrade.tsx
+│   │   │   ├── user.tsx
+│   │   │   └── weather.tsx
+│   │   ├── app.json
+│   │   ├── assets
+│   │   │   ├── android-icon-background.png
+│   │   │   ├── android-icon-foreground.png
+│   │   │   ├── android-icon-monochrome.png
+│   │   │   ├── favicon.png
+│   │   │   ├── icon.png
+│   │   │   └── splash-icon.png
+│   │   ├── components
+│   │   │   └── ui
+│   │   │       ├── Button.tsx
+│   │   │       ├── Footer.tsx
+│   │   │       └── Input.tsx
+│   │   ├── data
+│   │   │   └── treeData.ts
+│   │   ├── expo-env.d.ts
+│   │   ├── expo-router.d.ts
+│   │   ├── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   └── web
+│       ├── Dockerfile
+│       ├── README.md
+│       ├── eslint.config.mjs
+│       ├── next-env.d.ts
+│       ├── next.config.ts
+│       ├── package.json
+│       ├── postcss.config.mjs
+│       ├── public
+│       │   ├── file.svg
+│       │   ├── globe.svg
+│       │   ├── next.svg
+│       │   ├── vercel.svg
+│       │   └── window.svg
+│       ├── src
+│       │   ├── app
+│       │   │   ├── (auth)
+│       │   │   │   └── callback
+│       │   │   │       └── page.tsx
+│       │   │   ├── (main)
+│       │   │   │   ├── (auth)
+│       │   │   │   │   ├── forgot-password
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── layout.tsx
+│       │   │   │   │   ├── login
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── profile
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   └── register
+│       │   │   │   │       └── page.tsx
+│       │   │   │   ├── about
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── community
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── encyclopedia
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── layout.tsx
+│       │   │   │   ├── my-garden
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── page.tsx
+│       │   │   │   ├── payment
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── privacy
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── scan
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── shop
+│       │   │   │   │   ├── cart
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── checkout
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── orders
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── page.tsx
+│       │   │   │   │   └── product
+│       │   │   │   │       └── [id]
+│       │   │   │   │           └── page.tsx
+│       │   │   │   ├── terms
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── upgrade
+│       │   │   │   │   └── page.tsx
+│       │   │   │   └── weather
+│       │   │   │       └── page.tsx
+│       │   │   ├── admin
+│       │   │   │   └── dashboard
+│       │   │   │       └── page.tsx
+│       │   │   ├── favicon.ico
+│       │   │   ├── globals.css
+│       │   │   ├── icon.png
+│       │   │   ├── layout.tsx
+│       │   │   └── providers.tsx
+│       │   ├── components
+│       │   │   ├── AboutPage.tsx
+│       │   │   ├── CommunityPage.tsx
+│       │   │   ├── LandingPage.tsx
+│       │   │   ├── Payment.tsx
+│       │   │   ├── Scanner.tsx
+│       │   │   ├── TreeDictionary.tsx
+│       │   │   ├── UpdatePlan.tsx
+│       │   │   ├── UserProfile.tsx
+│       │   │   ├── WeatherPage.tsx
+│       │   │   ├── admin
+│       │   │   │   ├── Dashboard.tsx
+│       │   │   │   ├── Feedbacks.tsx
+│       │   │   │   ├── Reports.tsx
+│       │   │   │   ├── Users.tsx
+│       │   │   │   ├── mockData.tsx
+│       │   │   │   └── utils.tsx
+│       │   │   ├── auth
+│       │   │   │   ├── Callback.tsx
+│       │   │   │   ├── ForgotPasswordForm.tsx
+│       │   │   │   ├── LoginForm.tsx
+│       │   │   │   ├── RegisterForm.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── common
+│       │   │   │   ├── Button.tsx
+│       │   │   │   ├── Card.tsx
+│       │   │   │   ├── Input.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── index.ts
+│       │   │   ├── landing
+│       │   │   │   ├── FeatureCard.tsx
+│       │   │   │   ├── FeaturesSection.tsx
+│       │   │   │   ├── FloatingCards.tsx
+│       │   │   │   ├── HeroSection.tsx
+│       │   │   │   ├── HeroStats.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── layout
+│       │   │   │   ├── Footer.tsx
+│       │   │   │   ├── Header.tsx
+│       │   │   │   ├── Navbar.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── my-garden
+│       │   │   │   ├── MyGardenPage.tsx
+│       │   │   │   ├── overview
+│       │   │   │   │   └── GardenOverview.tsx
+│       │   │   │   ├── result
+│       │   │   │   │   └── ResultView.tsx
+│       │   │   │   ├── tracking
+│       │   │   │   │   └── TrackingView.tsx
+│       │   │   │   └── upload
+│       │   │   │       ├── AnalyzingView.tsx
+│       │   │   │       └── UploadView.tsx
+│       │   │   └── shop
+│       │   │       ├── CartPage.tsx
+│       │   │       ├── CheckoutPage.tsx
+│       │   │       ├── MyOrderPage.tsx
+│       │   │       ├── ProductDetailPage.tsx
+│       │   │       ├── ShopPage.tsx
+│       │   │       └── mockData.ts
+│       │   ├── constants
+│       │   │   └── shop.constants.ts
+│       │   ├── context
+│       │   │   ├── AuthContext.tsx
+│       │   │   └── CartContext.tsx
+│       │   ├── hooks
+│       │   │   ├── index.ts
+│       │   │   ├── useAuth.tsx
+│       │   │   ├── useMyGarden.ts
+│       │   │   └── useScan.ts
+│       │   ├── lib
+│       │   │   ├── index.ts
+│       │   │   └── utils.ts
+│       │   ├── services
+│       │   │   ├── disease.service.ts
+│       │   │   ├── index.ts
+│       │   │   ├── plant.service.ts
+│       │   │   └── scan.service.ts
+│       │   └── utils
+│       │       └── animation.tsx
+│       └── tsconfig.json
+├── deploy.sh
+├── img
+│   ├── 1.jpg
+│   ├── 2.jpg
+│   ├── 3.jpg
+│   ├── 4.jpg
+│   ├── 5.jpg
+│   ├── 6.jpg
+│   ├── 7.jpg
+│   ├── 8.jpg
+│   ├── 9.jpg
+│   ├── chatbot.png
+│   ├── mygarden.png
+│   ├── mygarden1.png
+│   ├── sodo1.png
+│   ├── test
+│   ├── thoitiet.png
+│   ├── thoitiet1.png
+│   ├── wiki.png
+│   └── wiki1.png
+├── infra
+│   └── docker-compose
+│       └── docker-compose.yml
+├── package.json
+├── packages
+│   ├── database
+│   │   ├── package.json
+│   │   ├── project_tree.txt
+│   │   ├── src
+│   │   │   ├── index.ts
+│   │   │   ├── schemas
+│   │   │   │   ├── Weather-rule.schema.ts
+│   │   │   │   ├── chat-history.schema.ts
+│   │   │   │   ├── disease.schema.ts
+│   │   │   │   ├── feedback.schema.ts
+│   │   │   │   ├── my-garden.schema.ts
+│   │   │   │   ├── order.schema.ts
+│   │   │   │   ├── payment.schema.ts
+│   │   │   │   ├── plant.schema.ts
+│   │   │   │   ├── product.schema.ts
+│   │   │   │   ├── scan-history.schema.ts
+│   │   │   │   └── user.schema.ts
+│   │   │   └── seeds
+│   │   │       ├── main.seed.ts
+│   │   │       ├── orders.seed.ts
+│   │   │       ├── products.seed.ts
+│   │   │       └── weather-rules.seed.ts
+│   │   └── tsconfig.json
+│   ├── shared
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── api
+│   │   │   │   ├── admin.api.ts
+│   │   │   │   ├── auth.api.ts
+│   │   │   │   ├── axios-client.ts
+│   │   │   │   ├── my-garden.api.ts
+│   │   │   │   ├── order.api.ts
+│   │   │   │   ├── plant.api.ts
+│   │   │   │   ├── product.api.ts
+│   │   │   │   ├── scan.api.ts
+│   │   │   │   ├── token-manager.ts
+│   │   │   │   ├── user.api.ts
+│   │   │   │   └── weather.api.ts
+│   │   │   ├── constants
+│   │   │   │   ├── api.constants.ts
+│   │   │   │   ├── app.constants.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── index.ts
+│   │   │   ├── schemas
+│   │   │   │   ├── auth.schema.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── types
+│   │   │   │   ├── admin.types.ts
+│   │   │   │   ├── api.types.ts
+│   │   │   │   ├── disease.types.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── my-garden.types.ts
+│   │   │   │   ├── order.types.ts
+│   │   │   │   ├── plant.types.ts
+│   │   │   │   ├── product.types.ts
+│   │   │   │   ├── scan-history.types.ts
+│   │   │   │   ├── user.types.ts
+│   │   │   │   └── weather.types.ts
+│   │   │   └── utils
+│   │   │       ├── cn.utils.ts
+│   │   │       ├── format.utils.ts
+│   │   │       ├── index.ts
+│   │   │       └── validation.utils.ts
+│   │   └── tsconfig.json
+│   └── tsconfig
+│       ├── package.json
+│       └── tsconfig.base.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── project_tree.txt
+└── tsconfig.json
+
+105 directories, 318 files
