@@ -72,3 +72,5 @@ packages/
 
 # Generated diagrams or exports
 *.generated.*
+
+.fake
