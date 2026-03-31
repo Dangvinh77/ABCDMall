@@ -60,11 +60,34 @@ ABCD-Mall-Solution/
    cd backend/ABCD.WebAPI
 ```
 
-Cấu hình MongoDB Connection String trong appsettings.json
+Không commit credentials thật vào repo. Dùng một trong hai cách local sau:
+
+```bash
+1. Tạo BACKEND/ABCDMall.WebAPI/appsettings.Development.json từ BACKEND/ABCDMall.WebAPI/appsettings.Development.example.json
+2. Hoặc set environment variable hệ thống `ConnectionStrings__MongoDb`
+```
+
+Giá trị cần điền:
+
+```bash
+ConnectionStrings__MongoDb=your-real-mongodb-connection-string
+```
+
+Hoặc:
+
+```json
+{
+  "ConnectionStrings": {
+    "MongoDb": "your-real-mongodb-connection-string"
+  }
+}
+```
 
 ```bash
 dotnet watchrun
 ```
+
+File `BACKEND/.env.example` chỉ là file mẫu tham khảo, backend hiện tại không tự load `.env`.
 
 ### 2. Cài đặt Frontend
 

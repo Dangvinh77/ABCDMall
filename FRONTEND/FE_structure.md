@@ -1,142 +1,87 @@
-# 🌐 ABCD Mall Client
+# ABCD Mall Client
 
-A **Feature-based** React frontend for the ABCD Mall management system, designed to work seamlessly with the ABCD Mall Modulith Backend.
+Frontend structure for the ABCD Mall client, organized around a feature-first approach that maps cleanly to the backend modulith.
 
----
+## Current frontend stack
 
-## 🚀 Tech Stack
+- Vite 8
+- React 19
+- TypeScript 5
+- Tailwind CSS 4
+- ESLint 9
 
-- ⚡ Vite - Next Generation Frontend Tooling
-- ⚛️ React 18 (TypeScript)
-- 🎨 Tailwind CSS - Utility-first CSS framework
-- 🛡️ Axios - HTTP Client with Interceptors for JWT
-- 🎢 React Router 6 - Client-side routing
-- 🐻 Zustand - Lightweight State Management
-- 📝 React Hook Form + Zod - Form handling & validation
-- 📁 Project FE Structure
-
----
-
-## 📁 Project FE Structure
+## Target folder structure
 
 ```bash
 abcd-mall-client/
 ├── src/
-│   ├── core/                       # NỀN TẢNG (Giao tiếp Backend & Auth)
-│   │   ├── api/                    # Axios Client & Global Interceptors
-│   │   ├── hooks/                  # Global Hooks (useAuth, useTheme)
+│   ├── core/                       # Foundation layer: app-wide wiring and shared runtime concerns
+│   │   ├── api/                    # Axios/fetch client, interceptors, request config
+│   │   ├── hooks/                  # Global hooks such as useAuth, useTheme
 │   │   └── layouts/                # MainLayout, AdminLayout, ShopLayout
 │   │
-│   ├── features/                   # CÁC MODULE CHỨC NĂNG (Modulith-like)
-│   │   ├── auth/                   # Đăng nhập & Phân quyền Admin/Manager
-│   │   ├── movies/                 # Xem phim & Đặt vé (Guest)
-│   │   ├── shops/                  # Quản lý Shops & Products
-│   │   └── feedbacks/              # Gửi phản hồi (Guest)
+│   ├── features/                   # Business modules aligned with backend bounded contexts
+│   │   ├── auth/                   # Login, session, role-based access
+│   │   ├── movies/                 # Movie catalog, showtimes, booking flow
+│   │   ├── shops/                  # Shops, products, manager operations
+│   │   └── feedbacks/              # Guest feedback and contact flows
 │   │
-│   ├── components/                 # UI Components dùng chung (Button, Modal...)
-│   ├── pages/                      # Điểm cuối của Routing (Page Components)
-│   ├── routes/                     # Cấu hình Public/Private Routes
-│   └── store/                      # Global State (Zustand)
+│   ├── components/                 # Shared presentational UI components
+│   ├── pages/                      # Route-level page components
+│   ├── routes/                     # Router config, guards, route definitions
+│   └── store/                      # Global client state such as Zustand stores
 │
-├── .env                            # Chứa VITE_API_URL
-└── vite.config.ts                  # Cấu hình Vite & Alias
+├── .env                            # Contains VITE_API_URL
+└── vite.config.ts                  # Vite config and path aliases
 ```
 
-## 📁 Example for each feature: features/movies
+## Module convention
+
+Each feature should encapsulate its own API calls, UI, state, types, and helper logic when needed.
 
 ```bash
 src/features/movies/
-├── api/                        # 1. Giao tiếp Backend
-│   ├── movieApi.ts             # Gọi API lấy danh sách phim, chi tiết phim
-│   └── bookingApi.ts           # Gọi API đặt vé, kiểm tra trạng thái ghế
-│
-├── components/                 # 2. Các UI Components đặc thù của Movie
-│   ├── MovieCard.tsx           # Thẻ hiển thị phim ở trang chủ
-│   ├── MovieList.tsx           # Danh sách phim có filter
-│   ├── SeatMap/                # Folder riêng cho sơ đồ ghế (vì nó phức tạp)
-│   │   ├── Seat.tsx            # Component từng cái ghế (Trống/Đã đặt/Đang chọn)
-│   │   └── SeatGrid.tsx        # Lưới hiển thị toàn bộ sơ đồ ghế
-│   └── BookingSummary.tsx      # Bảng tóm tắt thông tin vé trước khi thanh toán
-│
-├── hooks/                      # 3. Logic xử lý (Custom Hooks)
-│   ├── useMovies.ts            # Hook quản lý fetch danh sách phim, loading, error
-│   └── useBooking.ts           # Hook xử lý chọn ghế, kiểm tra trùng ghế (Concurrency)
-│
-├── types/                      # 4. Định nghĩa kiểu dữ liệu (TypeScript)
-│   └── index.ts                # IMovie, IShowtime, ISeat, IBookingRequest
-│
-├── utils/                      # 5. Hàm bổ trợ riêng cho Movie
-│   └── priceCalculator.ts      # Tính tổng tiền dựa trên loại ghế/ngày chiếu
-│
-└── index.ts                    # 6. Public API của Module (Cực kỳ quan trọng)
+├── api/                            # API calls for movies and booking
+├── components/                     # Movie-specific UI pieces
+├── hooks/                          # Feature-level hooks
+├── types/                          # TypeScript contracts
+├── utils/                          # Local helpers
+└── index.ts                        # Public exports for the feature
 ```
 
-## 🧠 Architecture Principles
+Suggested internal pattern:
 
-Frontend áp dụng tư duy Feature-First:
+- `api/`: backend communication for that feature only
+- `components/`: reusable UI inside the feature
+- `hooks/`: stateful orchestration and async flow
+- `types/`: DTOs, view models, request and response types
+- `utils/`: pure helpers with no React dependency
+- `index.ts`: controlled public entry point
 
-- Encapsulation: Mỗi folder trong features/ tự quản lý api, components, types và hooks riêng của nó.
-- Independence: Module movies không phụ thuộc trực tiếp vào module shops.
-- Global Core: Các logic về JWT và Axios được tập trung ở core/ để xử lý việc tự động gắn Token vào Header khi Admin/Manager đăng nhập.
-- Concurrency UX: Xử lý trạng thái Loading/Optimistic UI để hỗ trợ Backend trong việc đặt vé đồng thời.
+## Layer responsibilities
 
-## 🎯 Key Features (Frontend Side)
+- `core/` holds app-wide concerns shared by multiple modules.
+- `features/` owns business logic and should be the main place for domain-specific code.
+- `components/` stays generic and reusable across features.
+- `pages/` composes layouts and feature components into route screens.
+- `routes/` centralizes public/private route definitions and guards.
+- `store/` contains truly global client state, not feature-local state.
 
-### 🎬 Movie Booking (Guest)
+## Import guidance
 
-Hiển thị danh sách phim và suất chiếu.
-Sơ đồ ghế ngồi Real-time: Chọn ghế trực quan, xử lý lỗi khi ghế đã bị người khác đặt (từ phản hồi Backend).
-Thanh toán giả lập với trạng thái xử lý mượt mà.
+- Prefer `@/` aliases for imports from `src`.
+- Keep cross-feature imports limited.
+- Import through each feature's `index.ts` when exposing reusable feature APIs.
 
-### 🛒 Mall & Shop Explorer
+## Environment
 
-Xem sơ đồ mặt bằng Mall.
-Tìm kiếm Shop, xem menu Food Court (Không cần Login).
-Dashboard cho Shop Manager: Quản lý riêng biệt thông tin shop của mình.
-
-### 💬 Feedback System (Guest)
-
-Form gửi phản hồi nhanh cho từng Shop/Phim mà không cần tài khoản.
-
-### 🔐 Auth & Authorization
-
-Phân quyền giao diện dựa trên Role (Admin thấy toàn bộ, Manager thấy 1 shop, Guest thấy trang Client).
-
-## ⚙️ Setup & Run
-
-### 1️⃣ Clone project
-
-```bash
-git clone https://github.com/your-repo/abcd-mall-client.git
-cd abcd-mall-client
-```
-
-### 2️⃣ Install dependencies
-
-```bash
-npm install
-```
-
-### 3️⃣ Configure Environment
-
-Tạo file .env tại thư mục gốc:
+Create a local `.env` file in the frontend root:
 
 ```bash
 VITE_API_URL=https://localhost:7001/api/v1
 ```
 
-### 4️⃣ Run development server
+## Notes
 
-```bash
-npm run dev
-```
-
-## 🛠️ Integration Notes
-
-- API Mapping: Mọi request trong features/\*/api phải khớp với các Endpoint trong dự án .NET WebAPI.
-- Handling Concurrency: Khi Backend trả về lỗi Conflict (409) do trùng ghế, Frontend sẽ hiển thị thông báo yêu cầu người dùng chọn lại ghế khác.
-- Token Storage: JWT được lưu an toàn trong LocalStorage hoặc HttpOnly Cookie (tùy cấu hình) và được quản lý bởi useAuth hook.
-
-👨‍💻 Author: Group 2
-
-⭐ Notes: Cấu trúc này giúp chúng ta dễ dàng mở rộng thêm module mới mà không cần cấu trúc lại toàn bộ ứng dụng.
+- The folder skeleton above has been scaffolded under `src/`.
+- Existing starter files such as `App.tsx` can be migrated gradually into this structure.

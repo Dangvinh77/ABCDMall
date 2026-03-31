@@ -41,6 +41,8 @@ coverage/
 
 .env.local
 .env.*.local
+.env
+**/.env
 *.local
 
 # Backend: .NET / Visual Studio
@@ -58,6 +60,7 @@ TestResults/
 *.VC.db
 
 # ASP.NET / user secrets local overrides
+appsettings.Development.json
 appsettings.Local.json
 appsettings.*.Local.json
 secrets.json
