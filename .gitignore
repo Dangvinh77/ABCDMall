@@ -1,76 +1,65 @@
-# OS and editor files
+# ==========================================
+# OS & Editor Files
+# ==========================================
 .DS_Store
 Thumbs.db
 Desktop.ini
-
-.vscode/*
+.vscode/
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea/
-.vs/
+*.sln.docstates
 
-*.suo
+# ==========================================
+# Backend: .NET / C#
+# ==========================================
+# Thư mục build (Quan trọng nhất)
+[Bb]in/
+[Oo]bj/
+out/
+publish/
+
+# Các file tạm của VS
+.vs/
 *.user
 *.userosscache
-*.sln.docstates
-*.rsuser
-*.swp
-*.swo
-*.tmp
+*.suo
+*.cache
+*.pdb
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# NuGet Packages
+packages/
+*.nupkg
+# Không ignore file lock để đồng bộ phiên bản thư viện
+# !project.assets.json 
 
-# Frontend: Node.js / React / Vite / TypeScript / Tailwind
+# ==========================================
+# Frontend: React / TypeScript / Node
+# ==========================================
 node_modules/
 dist/
 dist-ssr/
 .vite/
-coverage/
 *.tsbuildinfo
-
 .npm/
 .pnpm-store/
 .yarn/
 
+# ==========================================
+# Environment & Secrets
+# ==========================================
+.env
 .env.local
 .env.*.local
-.env
 **/.env
-*.local
-
-# Backend: .NET / Visual Studio
-bin/
-obj/
-out/
-publish/
-artifacts/
-TestResults/
-
-*.cache
-*.pdb
-*.mdb
-*.opendb
-*.VC.db
-
-# ASP.NET / user secrets local overrides
-appsettings.Development.json
-appsettings.Local.json
-appsettings.*.Local.json
 secrets.json
+# Chỉ ignore nếu mỗi người dùng một cấu hình DB khác nhau hoàn toàn
+# appsettings.Development.json 
 
-# NuGet
-packages/
-*.nupkg
-*.snupkg
-
-# Generated diagrams or exports
-*.generated.*
-
-.fake
+# ==========================================
+# Logs & Misc
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+.fake/
