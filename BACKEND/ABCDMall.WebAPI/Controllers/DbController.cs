@@ -7,9 +7,9 @@ namespace ABCDMall.WebAPI.Controllers
     [ApiController]
     public class DbController : ControllerBase
     {
-        private readonly MongoContext _context;
+        private readonly MongoDbContext _context;
 
-        public DbController(MongoContext context)
+        public DbController(MongoDbContext context)
         {
             _context = context;
         }
