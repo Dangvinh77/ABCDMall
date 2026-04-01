@@ -1,4 +1,4 @@
-﻿namespace ABCDMall.WebAPI.Services
+﻿namespace ABCDMall.Shared.MongoDB
 {
     public class MongoDbSetting
     {

@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace ABCDMall.WebAPI.Services
+namespace ABCDMall.Shared.MongoDB
 {
-    public class MongoDbService
+    public class MongoDbContext
     {
         private readonly IMongoDatabase _database;
 
-        public MongoDbService(IOptions<MongoDbSetting> settings)
+        public MongoDbContext(IOptions<MongoDbSetting> settings)
         {
             var client = new MongoClient(settings.Value.ConnectionString);
             _database = client.GetDatabase(settings.Value.DatabaseName);
