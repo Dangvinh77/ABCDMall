@@ -1,427 +1,425 @@
 .
-├── BACKEND
-│   ├── ABCDMall.Modules
-│   │   ├── Feedbacks
-│   │   │   ├── ABCDMall.Modules.Feedbacks.Application
-│   │   │   │   ├── ABCDMall.Modules.Feedbacks.Application.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   ├── ABCDMall.Modules.Feedbacks.Domain
-│   │   │   │   ├── ABCDMall.Modules.Feedbacks.Domain.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   └── ABCDMall.Modules.Feedbacks.Infrastructure
-│   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj
-│   │   │       ├── bin
-│   │   │       │   └── Debug
-│   │   │       │       └── net8.0
-│   │   │       └── obj
-│   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.dgspec.json
-│   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.props
-│   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.targets
-│   │   │           ├── Debug
-│   │   │           │   └── net8.0
-│   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfo.cs
-│   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfoInputs.cache
-│   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GlobalUsings.g.cs
-│   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.assets.cache
-│   │   │           │       ├── ref
-│   │   │           │       └── refint
-│   │   │           ├── project.assets.json
-│   │   │           └── project.nuget.cache
-│   │   ├── FoodCourt
-│   │   │   ├── ABCDMall.Modules.FoodCourt.Application
-│   │   │   │   ├── ABCDMall.Modules.FoodCourt.Application.csproj
-│   │   │   │   ├── Class1.cs
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.nuget.g.targets
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   ├── ABCDMall.Modules.FoodCourt.Domain
-│   │   │   │   ├── ABCDMall.Modules.FoodCourt.Domain.csproj
-│   │   │   │   ├── Class1.cs
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.g.targets
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   └── ABCDMall.Modules.FoodCourt.Infrastructure
-│   │   │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj
-│   │   │       ├── Class1.cs
-│   │   │       └── obj
-│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.nuget.dgspec.json
-│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.nuget.g.props
-│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.nuget.g.targets
-│   │   │           ├── project.assets.json
-│   │   │           └── project.nuget.cache
-│   │   ├── Marketing
-│   │   │   ├── ABCDMall.Modules.Marketing.Application
-│   │   │   │   ├── ABCDMall.Modules.Marketing.Application.csproj
-│   │   │   │   ├── Class1.cs
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.g.targets
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   ├── ABCDMall.Modules.Marketing.Domain
-│   │   │   │   ├── ABCDMall.Modules.Marketing.Domain.csproj
-│   │   │   │   ├── Class1.cs
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.g.targets
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   └── ABCDMall.Modules.Marketing.Infrastructure
-│   │   │       ├── ABCDMall.Modules.Marketing.Infrastructure.csproj
-│   │   │       ├── Class1.cs
-│   │   │       └── obj
-│   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.dgspec.json
-│   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.g.props
-│   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.g.targets
-│   │   │           ├── project.assets.json
-│   │   │           └── project.nuget.cache
-│   │   ├── Movies
-│   │   │   ├── ABCDMall.Modules.Movies.Application
-│   │   │   │   ├── ABCDMall.Modules.Movies.Application.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   ├── ABCDMall.Modules.Movies.Domain
-│   │   │   │   ├── ABCDMall.Modules.Movies.Domain.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   └── ABCDMall.Modules.Movies.Infrastructure
-│   │   │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj
-│   │   │       ├── bin
-│   │   │       │   └── Debug
-│   │   │       │       └── net8.0
-│   │   │       └── obj
-│   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.dgspec.json
-│   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.props
-│   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.targets
-│   │   │           ├── Debug
-│   │   │           │   └── net8.0
-│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfo.cs
-│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfoInputs.cache
-│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.GlobalUsings.g.cs
-│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.assets.cache
-│   │   │           │       ├── ref
-│   │   │           │       └── refint
-│   │   │           ├── project.assets.json
-│   │   │           └── project.nuget.cache
-│   │   ├── Shops
-│   │   │   ├── ABCDMall.Modules.Shops.Application
-│   │   │   │   ├── ABCDMall.Modules.Shops.Application.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   ├── ABCDMall.Modules.Shops.Domain
-│   │   │   │   ├── ABCDMall.Modules.Shops.Domain.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   └── ABCDMall.Modules.Shops.Infrastructure
-│   │   │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj
-│   │   │       ├── bin
-│   │   │       │   └── Debug
-│   │   │       │       └── net8.0
-│   │   │       └── obj
-│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.dgspec.json
-│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.props
-│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.targets
-│   │   │           ├── Debug
-│   │   │           │   └── net8.0
-│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfo.cs
-│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfoInputs.cache
-│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GlobalUsings.g.cs
-│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.assets.cache
-│   │   │           │       ├── ref
-│   │   │           │       └── refint
-│   │   │           ├── project.assets.json
-│   │   │           └── project.nuget.cache
-│   │   ├── Users
-│   │   │   ├── ABCDMall.Modules.Users.Application
-│   │   │   │   ├── ABCDMall.Modules.Users.Application.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   ├── ABCDMall.Modules.Users.Domain
-│   │   │   │   ├── ABCDMall.Modules.Users.Domain.csproj
-│   │   │   │   ├── bin
-│   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
-│   │   │   │   └── obj
-│   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.dgspec.json
-│   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.props
-│   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.targets
-│   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.AssemblyInfo.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.AssemblyInfoInputs.cache
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GlobalUsings.g.cs
-│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.assets.cache
-│   │   │   │       │       ├── ref
-│   │   │   │       │       └── refint
-│   │   │   │       ├── project.assets.json
-│   │   │   │       └── project.nuget.cache
-│   │   │   └── ABCDMall.Modules.Users.Infrastructure
-│   │   │       ├── ABCDMall.Modules.Users.Infrastructure.csproj
-│   │   │       ├── bin
-│   │   │       │   └── Debug
-│   │   │       │       └── net8.0
-│   │   │       └── obj
-│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.dgspec.json
-│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.props
-│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.targets
-│   │   │           ├── Debug
-│   │   │           │   └── net8.0
-│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfo.cs
-│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfoInputs.cache
-│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GlobalUsings.g.cs
-│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.assets.cache
-│   │   │           │       ├── ref
-│   │   │           │       └── refint
-│   │   │           ├── project.assets.json
-│   │   │           └── project.nuget.cache
-│   │   └── UtilityMap
-│   │       ├── ABCDMall.Modules.UtilityMap.Application
-│   │       │   ├── ABCDMall.Modules.UtilityMap.Application.csproj
-│   │       │   ├── Class1.cs
-│   │       │   └── obj
-│   │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.nuget.dgspec.json
-│   │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.nuget.g.props
-│   │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.nuget.g.targets
-│   │       │       ├── project.assets.json
-│   │       │       └── project.nuget.cache
-│   │       ├── ABCDMall.Modules.UtilityMap.Domain
-│   │       │   ├── ABCDMall.Modules.UtilityMap.Domain.csproj
-│   │       │   ├── Class1.cs
-│   │       │   └── obj
-│   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.dgspec.json
-│   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.g.props
-│   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.g.targets
-│   │       │       ├── project.assets.json
-│   │       │       └── project.nuget.cache
-│   │       └── ABCDMall.Modules.UtilityMap.Infrastructure
-│   │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj
-│   │           ├── Class1.cs
-│   │           └── obj
-│   │               ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.nuget.dgspec.json
-│   │               ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.nuget.g.props
-│   │               ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.nuget.g.targets
-│   │               ├── project.assets.json
-│   │               └── project.nuget.cache
-│   ├── ABCDMall.Shared
-│   │   ├── ABCDMall.Shared.csproj
-│   │   ├── bin
-│   │   │   └── Debug
-│   │   │       └── net8.0
-│   │   └── obj
-│   │       ├── ABCDMall.Shared.csproj.nuget.dgspec.json
-│   │       ├── ABCDMall.Shared.csproj.nuget.g.props
-│   │       ├── ABCDMall.Shared.csproj.nuget.g.targets
-│   │       ├── Debug
-│   │       │   └── net8.0
-│   │       │       ├── ABCDMall.Shared.AssemblyInfo.cs
-│   │       │       ├── ABCDMall.Shared.AssemblyInfoInputs.cache
-│   │       │       ├── ABCDMall.Shared.GeneratedMSBuildEditorConfig.editorconfig
-│   │       │       ├── ABCDMall.Shared.GlobalUsings.g.cs
-│   │       │       ├── ABCDMall.Shared.assets.cache
-│   │       │       ├── ref
-│   │       │       └── refint
-│   │       ├── project.assets.json
-│   │       └── project.nuget.cache
-│   ├── ABCDMall.WebAPI
-│   │   ├── ABCDMall.WebAPI.csproj
-│   │   ├── ABCDMall.WebAPI.http
-│   │   ├── Controllers
-│   │   │   └── WeatherForecastController.cs
-│   │   ├── Program.cs
-│   │   ├── Properties
-│   │   │   └── launchSettings.json
-│   │   ├── WeatherForecast.cs
-│   │   ├── appsettings.Development.example.json
-│   │   ├── appsettings.json
-│   │   ├── bin
-│   │   │   └── Debug
-│   │   │       └── net8.0
-│   │   └── obj
-│   │       ├── ABCDMall.WebAPI.csproj.nuget.dgspec.json
-│   │       ├── ABCDMall.WebAPI.csproj.nuget.g.props
-│   │       ├── ABCDMall.WebAPI.csproj.nuget.g.targets
-│   │       ├── Debug
-│   │       │   └── net8.0
-│   │       │       ├── ABCDMall.WebAPI.AssemblyInfo.cs
-│   │       │       ├── ABCDMall.WebAPI.AssemblyInfoInputs.cache
-│   │       │       ├── ABCDMall.WebAPI.GeneratedMSBuildEditorConfig.editorconfig
-│   │       │       ├── ABCDMall.WebAPI.GlobalUsings.g.cs
-│   │       │       ├── ABCDMall.WebAPI.assets.cache
-│   │       │       ├── ABCDMall.WebAPI.csproj.AssemblyReference.cache
-│   │       │       ├── ref
-│   │       │       └── refint
-│   │       ├── project.assets.json
-│   │       └── project.nuget.cache
-│   ├── ABCDMall.sln
-│   ├── BE_structure.md
-│   └── General_Rule.md
-├── FRONTEND
-│   ├── FE_structure.md
-│   ├── eslint.config.js
-│   ├── index.html
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── pnpm-lock.yaml
-│   ├── public
-│   │   ├── favicon.svg
-│   │   └── icons.svg
-│   ├── src
-│   │   ├── App.css
-│   │   ├── App.tsx
-│   │   ├── assets
-│   │   │   ├── hero.png
-│   │   │   ├── react.svg
-│   │   │   └── vite.svg
-│   │   ├── components
-│   │   ├── core
-│   │   │   ├── api
-│   │   │   │   └── types
-│   │   │   ├── hooks
-│   │   │   └── layouts
-│   │   ├── features
-│   │   │   ├── auth
-│   │   │   ├── feedbacks
-│   │   │   ├── movies
-│   │   │   └── shops
-│   │   ├── index.css
-│   │   ├── main.tsx
-│   │   ├── pages
-│   │   ├── routes
-│   │   └── store
-│   ├── tsconfig.app.json
-│   ├── tsconfig.json
-│   ├── tsconfig.node.json
-│   └── vite.config.ts
+├── DOC
+│   └── README.md
 ├── README.md
-├── mermaid-diagram.png
+├── apps
+│   ├── ai-service
+│   │   ├── Dockerfile
+│   │   ├── ai
+│   │   │   ├── __init__.py
+│   │   │   ├── llm.py
+│   │   │   ├── main.py
+│   │   │   ├── main_backup.py
+│   │   │   ├── model.py
+│   │   │   ├── rag.py
+│   │   │   └── worker.py
+│   │   ├── data
+│   │   │   ├── plant_knowledge.json
+│   │   │   └── plants_data.json
+│   │   ├── models
+│   │   │   ├── class_to_idx.json
+│   │   │   └── vit_moe_best.pth
+│   │   ├── requirements.txt
+│   │   └── temp
+│   ├── backend
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   ├── eslint.config.mjs
+│   │   ├── nest-cli.json
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── app.controller.spec.ts
+│   │   │   ├── app.controller.ts
+│   │   │   ├── app.module.ts
+│   │   │   ├── app.service.ts
+│   │   │   ├── common
+│   │   │   │   ├── decorators
+│   │   │   │   │   └── roles.decorator.ts
+│   │   │   │   ├── guards
+│   │   │   │   │   └── roles.guard.ts
+│   │   │   │   └── rabbitmq
+│   │   │   │       └── rabbitmq.module.ts
+│   │   │   ├── main.ts
+│   │   │   └── modules
+│   │   │       ├── admin
+│   │   │       │   ├── admin.controller.ts
+│   │   │       │   ├── admin.module.ts
+│   │   │       │   ├── admin.service.ts
+│   │   │       │   └── dto
+│   │   │       │       ├── Admin user.dto.ts
+│   │   │       │       ├── get-report.dto.ts
+│   │   │       │       └── reply-feedback.dto.ts
+│   │   │       ├── ai-scan
+│   │   │       │   ├── ai-scan.consumer.ts
+│   │   │       │   ├── ai-scan.controller.ts
+│   │   │       │   ├── ai-scan.module.ts
+│   │   │       │   ├── ai-scan.service.ts
+│   │   │       │   └── image
+│   │   │       │       └── 110.jpg
+│   │   │       ├── auth
+│   │   │       │   ├── auth.controller.spec.ts
+│   │   │       │   ├── auth.controller.ts
+│   │   │       │   ├── auth.module.ts
+│   │   │       │   ├── auth.service.spec.ts
+│   │   │       │   ├── auth.service.ts
+│   │   │       │   ├── dto
+│   │   │       │   │   ├── login.dto.ts
+│   │   │       │   │   ├── register.dto.ts
+│   │   │       │   │   ├── reset-password.dto.ts
+│   │   │       │   │   ├── set-password.dto.ts
+│   │   │       │   │   └── verify-otp.dto.ts
+│   │   │       │   ├── guards
+│   │   │       │   │   ├── facebook-auth.guard.ts
+│   │   │       │   │   ├── google-auth.guard.ts
+│   │   │       │   │   └── jwt-auth.guard.ts
+│   │   │       │   └── strategies
+│   │   │       │       ├── facebook.strategy.ts
+│   │   │       │       ├── google.strategy.ts
+│   │   │       │       └── jwt.strategy.ts
+│   │   │       ├── my-garden
+│   │   │       │   ├── dto
+│   │   │       │   │   └── my-garden.dto.ts
+│   │   │       │   ├── my-garden.controller.ts
+│   │   │       │   ├── my-garden.module.ts
+│   │   │       │   └── my-garden.service.ts
+│   │   │       ├── orders
+│   │   │       │   ├── dto
+│   │   │       │   │   └── order.dto.ts
+│   │   │       │   ├── orders.controller.ts
+│   │   │       │   ├── orders.module.ts
+│   │   │       │   └── orders.service.ts
+│   │   │       ├── plants
+│   │   │       │   ├── plants.controller.ts
+│   │   │       │   ├── plants.module.ts
+│   │   │       │   └── plants.service.ts
+│   │   │       ├── products
+│   │   │       │   ├── dto
+│   │   │       │   │   └── product.dto.ts
+│   │   │       │   ├── products.controller.ts
+│   │   │       │   ├── products.module.ts
+│   │   │       │   └── products.service.ts
+│   │   │       ├── users
+│   │   │       │   ├── users.controller.ts
+│   │   │       │   ├── users.module.ts
+│   │   │       │   ├── users.service.spec.ts
+│   │   │       │   └── users.service.ts
+│   │   │       └── weather
+│   │   │           ├── Weather.controller.ts
+│   │   │           ├── Weather.module.ts
+│   │   │           ├── Weather.service.ts
+│   │   │           └── dto
+│   │   │               └── Get weather.dto.ts
+│   │   ├── test
+│   │   │   ├── app.e2e-spec.ts
+│   │   │   └── jest-e2e.json
+│   │   ├── tsconfig.build.json
+│   │   └── tsconfig.json
+│   ├── mobile
+│   │   ├── App.tsx
+│   │   ├── app
+│   │   │   ├── _layout.tsx
+│   │   │   ├── about.tsx
+│   │   │   ├── add-product.tsx
+│   │   │   ├── admin.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── AuthHeader.tsx
+│   │   │   │   ├── forgot-password.tsx
+│   │   │   │   ├── login.tsx
+│   │   │   │   ├── otp-verification.tsx
+│   │   │   │   ├── register.tsx
+│   │   │   │   ├── reset-password.tsx
+│   │   │   │   └── set-password.tsx
+│   │   │   ├── buy-detail.tsx
+│   │   │   ├── checkout.tsx
+│   │   │   ├── community.tsx
+│   │   │   ├── feedback.tsx
+│   │   │   ├── garden-detail.tsx
+│   │   │   ├── garden-setup.tsx
+│   │   │   ├── index.tsx
+│   │   │   ├── my-cart.tsx
+│   │   │   ├── my-garden.tsx
+│   │   │   ├── my-orders.tsx
+│   │   │   ├── my-shop.tsx
+│   │   │   ├── notification.tsx
+│   │   │   ├── onboarding.tsx
+│   │   │   ├── payment.tsx
+│   │   │   ├── product-detail.tsx
+│   │   │   ├── profile.tsx
+│   │   │   ├── scan.tsx
+│   │   │   ├── setting.tsx
+│   │   │   ├── shop.tsx
+│   │   │   ├── success-order.tsx
+│   │   │   ├── tips.tsx
+│   │   │   ├── treeDic.tsx
+│   │   │   ├── upgrade.tsx
+│   │   │   ├── user.tsx
+│   │   │   └── weather.tsx
+│   │   ├── app.json
+│   │   ├── assets
+│   │   │   ├── android-icon-background.png
+│   │   │   ├── android-icon-foreground.png
+│   │   │   ├── android-icon-monochrome.png
+│   │   │   ├── favicon.png
+│   │   │   ├── icon.png
+│   │   │   └── splash-icon.png
+│   │   ├── components
+│   │   │   └── ui
+│   │   │       ├── Button.tsx
+│   │   │       ├── Footer.tsx
+│   │   │       └── Input.tsx
+│   │   ├── data
+│   │   │   └── treeData.ts
+│   │   ├── expo-env.d.ts
+│   │   ├── expo-router.d.ts
+│   │   ├── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   └── web
+│       ├── Dockerfile
+│       ├── README.md
+│       ├── eslint.config.mjs
+│       ├── next-env.d.ts
+│       ├── next.config.ts
+│       ├── package.json
+│       ├── postcss.config.mjs
+│       ├── public
+│       │   ├── file.svg
+│       │   ├── globe.svg
+│       │   ├── next.svg
+│       │   ├── vercel.svg
+│       │   └── window.svg
+│       ├── src
+│       │   ├── app
+│       │   │   ├── (auth)
+│       │   │   │   └── callback
+│       │   │   │       └── page.tsx
+│       │   │   ├── (main)
+│       │   │   │   ├── (auth)
+│       │   │   │   │   ├── forgot-password
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── layout.tsx
+│       │   │   │   │   ├── login
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── profile
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   └── register
+│       │   │   │   │       └── page.tsx
+│       │   │   │   ├── about
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── community
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── encyclopedia
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── layout.tsx
+│       │   │   │   ├── my-garden
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── page.tsx
+│       │   │   │   ├── payment
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── privacy
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── scan
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── shop
+│       │   │   │   │   ├── cart
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── checkout
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── orders
+│       │   │   │   │   │   └── page.tsx
+│       │   │   │   │   ├── page.tsx
+│       │   │   │   │   └── product
+│       │   │   │   │       └── [id]
+│       │   │   │   │           └── page.tsx
+│       │   │   │   ├── terms
+│       │   │   │   │   └── page.tsx
+│       │   │   │   ├── upgrade
+│       │   │   │   │   └── page.tsx
+│       │   │   │   └── weather
+│       │   │   │       └── page.tsx
+│       │   │   ├── admin
+│       │   │   │   └── dashboard
+│       │   │   │       └── page.tsx
+│       │   │   ├── favicon.ico
+│       │   │   ├── globals.css
+│       │   │   ├── icon.png
+│       │   │   ├── layout.tsx
+│       │   │   └── providers.tsx
+│       │   ├── components
+│       │   │   ├── AboutPage.tsx
+│       │   │   ├── CommunityPage.tsx
+│       │   │   ├── LandingPage.tsx
+│       │   │   ├── Payment.tsx
+│       │   │   ├── Scanner.tsx
+│       │   │   ├── TreeDictionary.tsx
+│       │   │   ├── UpdatePlan.tsx
+│       │   │   ├── UserProfile.tsx
+│       │   │   ├── WeatherPage.tsx
+│       │   │   ├── admin
+│       │   │   │   ├── Dashboard.tsx
+│       │   │   │   ├── Feedbacks.tsx
+│       │   │   │   ├── Reports.tsx
+│       │   │   │   ├── Users.tsx
+│       │   │   │   ├── mockData.tsx
+│       │   │   │   └── utils.tsx
+│       │   │   ├── auth
+│       │   │   │   ├── Callback.tsx
+│       │   │   │   ├── ForgotPasswordForm.tsx
+│       │   │   │   ├── LoginForm.tsx
+│       │   │   │   ├── RegisterForm.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── common
+│       │   │   │   ├── Button.tsx
+│       │   │   │   ├── Card.tsx
+│       │   │   │   ├── Input.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── index.ts
+│       │   │   ├── landing
+│       │   │   │   ├── FeatureCard.tsx
+│       │   │   │   ├── FeaturesSection.tsx
+│       │   │   │   ├── FloatingCards.tsx
+│       │   │   │   ├── HeroSection.tsx
+│       │   │   │   ├── HeroStats.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── layout
+│       │   │   │   ├── Footer.tsx
+│       │   │   │   ├── Header.tsx
+│       │   │   │   ├── Navbar.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── my-garden
+│       │   │   │   ├── MyGardenPage.tsx
+│       │   │   │   ├── overview
+│       │   │   │   │   └── GardenOverview.tsx
+│       │   │   │   ├── result
+│       │   │   │   │   └── ResultView.tsx
+│       │   │   │   ├── tracking
+│       │   │   │   │   └── TrackingView.tsx
+│       │   │   │   └── upload
+│       │   │   │       ├── AnalyzingView.tsx
+│       │   │   │       └── UploadView.tsx
+│       │   │   └── shop
+│       │   │       ├── CartPage.tsx
+│       │   │       ├── CheckoutPage.tsx
+│       │   │       ├── MyOrderPage.tsx
+│       │   │       ├── ProductDetailPage.tsx
+│       │   │       ├── ShopPage.tsx
+│       │   │       └── mockData.ts
+│       │   ├── constants
+│       │   │   └── shop.constants.ts
+│       │   ├── context
+│       │   │   ├── AuthContext.tsx
+│       │   │   └── CartContext.tsx
+│       │   ├── hooks
+│       │   │   ├── index.ts
+│       │   │   ├── useAuth.tsx
+│       │   │   ├── useMyGarden.ts
+│       │   │   └── useScan.ts
+│       │   ├── lib
+│       │   │   ├── index.ts
+│       │   │   └── utils.ts
+│       │   ├── services
+│       │   │   ├── disease.service.ts
+│       │   │   ├── index.ts
+│       │   │   ├── plant.service.ts
+│       │   │   └── scan.service.ts
+│       │   └── utils
+│       │       └── animation.tsx
+│       └── tsconfig.json
+├── deploy.sh
+├── img
+│   ├── 1.jpg
+│   ├── 2.jpg
+│   ├── 3.jpg
+│   ├── 4.jpg
+│   ├── 5.jpg
+│   ├── 6.jpg
+│   ├── 7.jpg
+│   ├── 8.jpg
+│   ├── 9.jpg
+│   ├── chatbot.png
+│   ├── mygarden.png
+│   ├── mygarden1.png
+│   ├── sodo1.png
+│   ├── test
+│   ├── thoitiet.png
+│   ├── thoitiet1.png
+│   ├── wiki.png
+│   └── wiki1.png
+├── infra
+│   └── docker-compose
+│       └── docker-compose.yml
 ├── package.json
-└── project_tree.txt
+├── packages
+│   ├── database
+│   │   ├── package.json
+│   │   ├── project_tree.txt
+│   │   ├── src
+│   │   │   ├── index.ts
+│   │   │   ├── schemas
+│   │   │   │   ├── Weather-rule.schema.ts
+│   │   │   │   ├── chat-history.schema.ts
+│   │   │   │   ├── disease.schema.ts
+│   │   │   │   ├── feedback.schema.ts
+│   │   │   │   ├── my-garden.schema.ts
+│   │   │   │   ├── order.schema.ts
+│   │   │   │   ├── payment.schema.ts
+│   │   │   │   ├── plant.schema.ts
+│   │   │   │   ├── product.schema.ts
+│   │   │   │   ├── scan-history.schema.ts
+│   │   │   │   └── user.schema.ts
+│   │   │   └── seeds
+│   │   │       ├── main.seed.ts
+│   │   │       ├── orders.seed.ts
+│   │   │       ├── products.seed.ts
+│   │   │       └── weather-rules.seed.ts
+│   │   └── tsconfig.json
+│   ├── shared
+│   │   ├── package.json
+│   │   ├── src
+│   │   │   ├── api
+│   │   │   │   ├── admin.api.ts
+│   │   │   │   ├── auth.api.ts
+│   │   │   │   ├── axios-client.ts
+│   │   │   │   ├── my-garden.api.ts
+│   │   │   │   ├── order.api.ts
+│   │   │   │   ├── plant.api.ts
+│   │   │   │   ├── product.api.ts
+│   │   │   │   ├── scan.api.ts
+│   │   │   │   ├── token-manager.ts
+│   │   │   │   ├── user.api.ts
+│   │   │   │   └── weather.api.ts
+│   │   │   ├── constants
+│   │   │   │   ├── api.constants.ts
+│   │   │   │   ├── app.constants.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── index.ts
+│   │   │   ├── schemas
+│   │   │   │   ├── auth.schema.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── types
+│   │   │   │   ├── admin.types.ts
+│   │   │   │   ├── api.types.ts
+│   │   │   │   ├── disease.types.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── my-garden.types.ts
+│   │   │   │   ├── order.types.ts
+│   │   │   │   ├── plant.types.ts
+│   │   │   │   ├── product.types.ts
+│   │   │   │   ├── scan-history.types.ts
+│   │   │   │   ├── user.types.ts
+│   │   │   │   └── weather.types.ts
+│   │   │   └── utils
+│   │   │       ├── cn.utils.ts
+│   │   │       ├── format.utils.ts
+│   │   │       ├── index.ts
+│   │   │       └── validation.utils.ts
+│   │   └── tsconfig.json
+│   └── tsconfig
+│       ├── package.json
+│       └── tsconfig.base.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── project_tree.txt
+└── tsconfig.json
 
-174 directories, 251 files
+105 directories, 318 files
