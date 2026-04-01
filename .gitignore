@@ -54,7 +54,7 @@ dist-ssr/
 **/.env
 secrets.json
 # Chỉ ignore nếu mỗi người dùng một cấu hình DB khác nhau hoàn toàn
-# appsettings.Development.json 
+appsettings.Development.json 
 
 # ==========================================
 # Logs & Misc
