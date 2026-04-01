@@ -17,4 +17,8 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
+	</ItemGroup>
+
 </Project>
