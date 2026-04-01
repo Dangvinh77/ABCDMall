@@ -24,6 +24,16 @@ export interface Movie {
   cinemas?: Cinema[];
 }
 
+function expandMovies(source: Movie[], total: number, suffix: string): Movie[] {
+  return Array.from({ length: total }, (_, index) => {
+    const movie = source[index % source.length];
+    return {
+      ...movie,
+      id: `${movie.id}-${suffix}-${index + 1}`,
+    };
+  });
+}
+
 export const cinemasList: Cinema[] = [
   {
     id: 'abcd-mall',
@@ -55,7 +65,7 @@ export const cinemasList: Cinema[] = [
   },
 ];
 
-export const nowShowingMovies: Movie[] = [
+const nowShowingSeed: Movie[] = [
   {
     id: 'hanh-trinh-vu-tru',
     title: 'Hành Trình Vũ Trụ',
@@ -122,7 +132,7 @@ export const nowShowingMovies: Movie[] = [
   },
 ];
 
-export const comingSoonMovies: Movie[] = [
+const comingSoonSeed: Movie[] = [
   {
     id: 'vuong-quoc-than-thoai',
     title: 'Vương Quốc Thần Thoại',
@@ -175,6 +185,10 @@ export const comingSoonMovies: Movie[] = [
       'https://images.unsplash.com/photo-1758525862263-af89b090fb56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb21lZHklMjBtb3ZpZSUyMGhhcHB5fGVufDF8fHx8MTc3NDY4OTM1MHww&ixlib=rb-4.1.0&q=80&w=1080',
   },
 ];
+
+export const nowShowingMovies: Movie[] = expandMovies(nowShowingSeed, 6, 'now');
+
+export const comingSoonMovies: Movie[] = expandMovies(comingSoonSeed, 6, 'soon');
 
 export const allMovies: Movie[] = [...nowShowingMovies, ...comingSoonMovies];
 
