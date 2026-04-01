@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace ABCDMall.WebAPI.Services
 {
@@ -6,7 +7,7 @@ namespace ABCDMall.WebAPI.Services
     {
         private readonly IMongoDatabase _database;
 
-        public MongoDbService(IOptions<MongoDbSettings> settings)
+        public MongoDbService(IOptions<MongoDbSetting> settings)
         {
             var client = new MongoClient(settings.Value.ConnectionString);
             _database = client.GetDatabase(settings.Value.DatabaseName);
