@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Film,
   Popcorn,
-  Ticket,
   Clock,
+  CalendarDays,
   TrendingUp,
   Sparkles,
   ChevronRight,
@@ -16,38 +16,57 @@ import { Tabs, TabsList, TabsTrigger } from '../component/ui/tabs'
 import { MovieCard } from './MovieCard'
 import { PromoCard } from './PromoCard'
 import { nowShowingMovies, comingSoonMovies } from '../data/movie'
+import { getDefaultBookingDate } from '../data/promotions'
 
 const promos = [
   {
-    title: 'Ưu đãi cuối tuần',
-    description: 'Giảm giá cho tất cả suất chiếu T7-CN',
+    id: 'f1',
+    title: 'Weekend special',
+    description: 'Extra savings for Saturday and Sunday showtimes',
     discount: '30% OFF',
     color: 'bg-gradient-to-br from-purple-600 to-purple-800',
+    imageUrl: 'https://unsplash.com/photos/DUPLnKwg69w/download?force=true&w=1200',
   },
   {
-    title: 'Combo bắp nước',
-    description: 'Mua combo tiết kiệm 50.000đ',
+    id: 'p6',
+    title: 'Popcorn combo',
+    description: 'Save 50,000 VND on your snack combo',
     discount: '50K',
     color: 'bg-gradient-to-br from-pink-600 to-pink-800',
+    imageUrl: 'https://unsplash.com/photos/wzAf9AAtVSI/download?force=true&w=1200',
   },
   {
-    title: 'Member đặc biệt',
-    description: 'Đăng ký thành viên nhận voucher',
+    id: 'p7',
+    title: 'Birthday gift',
+    description: 'Birthday reward unlocked during checkout',
     discount: 'FREE',
     color: 'bg-gradient-to-br from-cyan-600 to-cyan-800',
+    imageUrl: 'https://unsplash.com/photos/PxM8aeJbzvk/download?force=true&w=1200',
   },
 ]
 
 export function MovieHomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [heroIndex, setHeroIndex] = useState(0)
   const [nowShowingIndex, setNowShowingIndex] = useState(nowShowingMovies.length)
   const [comingSoonIndex, setComingSoonIndex] = useState(comingSoonMovies.length)
   const [isNowShowingTransitionEnabled, setIsNowShowingTransitionEnabled] = useState(true)
   const [isComingSoonTransitionEnabled, setIsComingSoonTransitionEnabled] = useState(true)
   const navigate = useNavigate()
+  const location = useLocation()
+  const heroMovies = nowShowingMovies.slice(0, 3)
+  const defaultBookingDate = getDefaultBookingDate()
 
   const nowShowingTrack = [...nowShowingMovies, ...nowShowingMovies, ...nowShowingMovies]
   const comingSoonTrack = [...comingSoonMovies, ...comingSoonMovies, ...comingSoonMovies]
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setHeroIndex((current) => (current + 1) % heroMovies.length)
+    }, 5200)
+
+    return () => window.clearInterval(intervalId)
+  }, [heroMovies.length])
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -93,6 +112,27 @@ export function MovieHomePage() {
 
   const handleNextComingSoon = () => {
     setComingSoonIndex((current) => current + 1)
+  }
+
+  const handlePrevHero = () => {
+    setHeroIndex((current) => (current - 1 + heroMovies.length) % heroMovies.length)
+  }
+
+  const handleNextHero = () => {
+    setHeroIndex((current) => (current + 1) % heroMovies.length)
+  }
+
+  const handleOpenShowtimes = (movieId?: string) => {
+    const params = new URLSearchParams(location.search)
+    params.set('date', params.get('date') ?? defaultBookingDate)
+
+    if (movieId) {
+      params.set('movie', movieId)
+    } else {
+      params.delete('movie')
+    }
+
+    navigate(`/showtimes?${params.toString()}`)
   }
 
   const handleNowShowingTransitionEnd = () => {
@@ -209,7 +249,7 @@ export function MovieHomePage() {
                 ABCD Cinema
               </h1>
               <p className="mt-1 text-xs text-gray-400 sm:text-sm">
-                Đặt vé online - Nhanh chóng và tiện lợi
+                Online movie booking made fast and easy
               </p>
             </div>
           </div>
@@ -217,31 +257,37 @@ export function MovieHomePage() {
           <nav className="flex items-center gap-2 sm:gap-4">
             <Button
               variant="ghost"
+              onClick={() => handleOpenShowtimes()}
               className="hidden h-10 px-3 text-base font-semibold text-gray-200 hover:bg-white/20 hover:text-white md:inline-flex"
             >
               <Clock className="mr-2 size-4" />
-              Lịch chiếu
+              Showtimes
             </Button>
             <Button
               variant="ghost"
               className="hidden h-10 px-3 text-base font-semibold text-gray-200 hover:bg-white/20 hover:text-white md:inline-flex"
             >
               <Popcorn className="mr-2 size-4" />
-              Đồ ăn
-            </Button>
-            <Button className="h-10 rounded-xl bg-gradient-to-r from-violet-700 via-fuchsia-600 to-pink-500 px-4 text-sm font-bold text-white shadow-lg shadow-fuchsia-950/35 hover:from-violet-600 hover:via-fuchsia-500 hover:to-pink-400 sm:h-11 sm:px-6 sm:text-base">
-              <Ticket className="mr-2 size-4" />
-              <span className="hidden sm:inline">Vé của tôi</span>
-              <span className="sm:hidden">Vé</span>
+              Snacks
             </Button>
           </nav>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/55 via-slate-950/30 to-pink-900/55" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_80%_30%,rgba(34,211,238,0.14),transparent_22%),radial-gradient(circle_at_50%_55%,rgba(236,72,153,0.12),transparent_30%)]" />
+      <section className="relative min-h-[30rem] overflow-hidden md:min-h-[34rem]">
+        {heroMovies.map((movie, index) => (
+          <img
+            key={movie.id}
+            src={movie.imageUrl}
+            alt={movie.title}
+            className={`absolute inset-0 h-72 w-full object-cover object-center transition-all duration-[1400ms] ease-out sm:h-80 md:h-[34rem] ${
+              index === heroIndex ? 'scale-105 opacity-55' : 'scale-110 opacity-0'
+            }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,6,23,0.9)_0%,rgba(2,6,23,0.72)_38%,rgba(15,23,42,0.42)_62%,rgba(2,6,23,0.82)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(244,114,182,0.18),transparent_24%),radial-gradient(circle_at_80%_28%,rgba(34,211,238,0.16),transparent_24%),radial-gradient(circle_at_50%_80%,rgba(192,38,211,0.14),transparent_32%)]" />
         <div
           className="absolute left-[8%] top-[-10%] h-[140%] w-40 bg-gradient-to-b from-fuchsia-300/0 via-fuchsia-300/18 to-fuchsia-300/0 blur-3xl"
           style={{ animation: 'cinema-beam 9s ease-in-out infinite' }}
@@ -262,20 +308,14 @@ export function MovieHomePage() {
           className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/10 blur-3xl"
           style={{ animation: 'cinema-float 12s ease-in-out infinite', animationDelay: '0.4s' }}
         />
-        <img
-          src="https://images.unsplash.com/photo-1515100235140-6cb3498e8031?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjaW5lbWElMjB0aGVhdGVyJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzc0Njg5MzQ4fDA&ixlib=rb-4.1.0&q=80&w=1080"
-          alt="Cinema"
-          className="h-72 w-full scale-[1.18] object-cover opacity-50 sm:h-80 md:h-96"
-          style={{ animation: 'cinema-drift 12s ease-in-out infinite alternate' }}
-        />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.02)_0%,rgba(2,6,23,0.26)_65%,rgba(2,6,23,0.72)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-[radial-gradient(circle_at_center,_rgba(244,114,182,0.18),_transparent_65%)] blur-2xl" />
         <div className="absolute inset-0 flex items-center">
           <div className="container mx-auto px-4">
-            <div className="max-w-2xl space-y-4 sm:space-y-6" style={{ animation: 'cinema-reveal 750ms ease-out both' }}>
+            <div className="hidden max-w-2xl space-y-4 sm:space-y-6" style={{ animation: 'cinema-reveal 750ms ease-out both' }}>
               <Badge className="border border-yellow-300/50 bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_24px_rgba(249,115,22,0.28)]">
                 <Sparkles className="mr-1 size-3" />
-                Trải nghiệm điện ảnh đỉnh cao
+                Premium cinema experience
               </Badge>
               <div className="inline-flex items-center gap-3">
                 <span className="h-px w-10 bg-gradient-to-r from-transparent to-fuchsia-300/80" />
@@ -284,35 +324,109 @@ export function MovieHomePage() {
                 </span>
               </div>
               <h2 className="bg-[linear-gradient(90deg,#fff7ed_0%,#f472b6_16%,#ffffff_36%,#22d3ee_60%,#c084fc_82%,#fff7ed_100%)] bg-[length:260%_260%] bg-clip-text text-2xl font-black uppercase tracking-[0.08em] text-transparent drop-shadow-[0_0_24px_rgba(34,211,238,0.2)] sm:text-3xl md:text-4xl" style={{ animation: 'cinema-title-glow 4.2s ease-in-out infinite, cinema-gradient-shift 5s ease-in-out infinite' }}>
-                Đặt vé xem phim
+                Book movie tickets
                 <br />
                 <span className="inline-block bg-gradient-to-r from-fuchsia-300 via-violet-100 to-cyan-300 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(192,38,211,0.28)]">
-                  Cực kỳ dễ dàng
+                  Made effortless
                 </span>
               </h2>
               <p className="max-w-xl text-base text-gray-300/95 drop-shadow-[0_6px_24px_rgba(0,0,0,0.35)] sm:text-lg">
-                Hệ thống đặt vé online tại ABCD Mall - Chọn phim, chọn suất, chọn ghế chỉ trong vài
-                giây
+                ABCD Mall's booking system lets you choose your movie, showtime, and seats in just a few
+                seconds
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4">
                 <Button
                   size="lg"
+                  onClick={() => handleOpenShowtimes()}
                   className="rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 shadow-[0_0_30px_rgba(192,38,211,0.3)] hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600"
                   style={{ animation: 'cinema-pulse 3s ease-in-out infinite' }}
                 >
-                  Khám phá ngay
+                  Explore now
                   <ChevronRight className="ml-2 size-4" />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={() => handleOpenShowtimes()}
                   className="rounded-xl border-white/20 bg-white/5 text-white backdrop-blur-sm hover:border-white/30 hover:bg-white/10"
                 >
-                  Xem lịch chiếu
+                  View showtimes
+                </Button>
+              </div>
+            </div>
+            <div className="max-w-2xl space-y-4 sm:space-y-6" style={{ animation: 'cinema-reveal 750ms ease-out both' }}>
+              <Badge className="border border-yellow-300/50 bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_24px_rgba(249,115,22,0.28)]">
+                <Sparkles className="mr-1 size-3" />
+                Featured this week
+              </Badge>
+              <div className="inline-flex items-center gap-3">
+                <span className="h-px w-10 bg-gradient-to-r from-transparent to-fuchsia-300/80" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.45em] text-fuchsia-100/70 sm:text-xs">
+                  Featured Premiere
+                </span>
+              </div>
+              <h2 className="bg-[linear-gradient(90deg,#fff7ed_0%,#f472b6_16%,#ffffff_36%,#22d3ee_60%,#c084fc_82%,#fff7ed_100%)] bg-[length:260%_260%] bg-clip-text text-3xl font-black uppercase tracking-[0.08em] text-transparent drop-shadow-[0_0_24px_rgba(34,211,238,0.2)] sm:text-4xl md:text-5xl" style={{ animation: 'cinema-title-glow 4.2s ease-in-out infinite, cinema-gradient-shift 5s ease-in-out infinite' }}>
+                {heroMovies[heroIndex].title}
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-200/90">
+                <Badge className="border border-white/10 bg-white/10 text-white">{heroMovies[heroIndex].genre}</Badge>
+                <Badge className="border border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-100">{heroMovies[heroIndex].duration}</Badge>
+                <Badge className="border border-cyan-400/30 bg-cyan-500/10 text-cyan-100">{heroMovies[heroIndex].ageRating}</Badge>
+              </div>
+              <p className="max-w-xl text-base text-gray-300/95 drop-shadow-[0_6px_24px_rgba(0,0,0,0.35)] sm:text-lg">
+                {heroMovies[heroIndex].description}
+              </p>
+              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300/90">
+                <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5">Director: {heroMovies[heroIndex].director}</span>
+                <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5">Rating: {heroMovies[heroIndex].rating}/10</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => handleOpenShowtimes(heroMovies[heroIndex].id)}
+                  className="group rounded-2xl border border-cyan-300/35 bg-[linear-gradient(135deg,rgba(34,211,238,0.22),rgba(168,85,247,0.14))] px-6 text-white shadow-[0_0_34px_rgba(34,211,238,0.16)] backdrop-blur-md hover:border-cyan-200/60 hover:bg-[linear-gradient(135deg,rgba(34,211,238,0.32),rgba(236,72,153,0.18))]"
+                >
+                  <CalendarDays className="mr-2 size-4 text-cyan-100 transition-transform duration-300 group-hover:-rotate-6" />
+                  View showtimes
+                  <ChevronRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </div>
             </div>
           </div>
+        </div>
+        <div className="absolute inset-x-0 bottom-4 z-10 sm:bottom-5 md:bottom-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute left-1 top-1/2 size-11 -translate-y-1/2 rounded-full bg-transparent text-white/45 hover:bg-white/8 hover:text-white/75 sm:left-2 sm:size-12 md:left-3 md:size-14"
+            onClick={handlePrevHero}
+          >
+            <ChevronLeft className="size-6 sm:size-7 md:size-8" />
+          </Button>
+          <div className="flex items-center justify-center gap-2">
+            {heroMovies.map((movie, index) => (
+              <button
+                key={movie.id}
+                type="button"
+                onClick={() => setHeroIndex(index)}
+                aria-label={`Chuyen den banner ${index + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === heroIndex ? 'w-9 bg-white/70' : 'w-2 bg-white/22 hover:bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-1 top-1/2 size-11 -translate-y-1/2 rounded-full bg-transparent text-white/45 hover:bg-white/8 hover:text-white/75 sm:right-2 sm:size-12 md:right-3 md:size-14"
+            onClick={handleNextHero}
+          >
+            <ChevronRight className="size-6 sm:size-7 md:size-8" />
+          </Button>
         </div>
       </section>
 
@@ -334,20 +448,24 @@ export function MovieHomePage() {
           <div className="mb-6 flex items-center justify-between sm:mb-8" style={{ animation: 'cinema-reveal 700ms ease-out both', animationDelay: '120ms' }}>
             <div>
               <div className="mb-2 h-px w-14 bg-gradient-to-r from-yellow-400/80 to-transparent" />
-              <h2 className="bg-gradient-to-r from-yellow-200 via-orange-100 to-pink-200 bg-clip-text text-2xl font-black uppercase tracking-[0.12em] text-transparent sm:text-3xl" style={{ animation: 'cinema-section-glow 5.8s ease-in-out infinite' }}>Ưu đãi dành cho bạn</h2>
+              <h2 className="bg-gradient-to-r from-yellow-200 via-orange-100 to-pink-200 bg-clip-text text-2xl font-black uppercase tracking-[0.12em] text-transparent sm:text-3xl" style={{ animation: 'cinema-section-glow 5.8s ease-in-out infinite' }}>Offers for you</h2>
               <p className="text-sm text-gray-400 sm:text-base">
-                Tiết kiệm ngay với các chương trình khuyến mãi
+                Save more with curated promotions and perks
               </p>
             </div>
-            <Button variant="ghost" className="text-purple-400 hover:text-purple-300">
-              Xem tất cả  
+            <Button variant="ghost" className="text-purple-400 hover:text-purple-300" onClick={() => navigate('/promotions')}> 
+              View all  
               <ChevronRight className="ml-1 size-4" />
             </Button>
           </div>
 
           <div className="grid gap-4 sm:gap-6 md:grid-cols-3" style={{ animation: 'cinema-reveal 800ms ease-out both', animationDelay: '180ms' }}>
-            {promos.map((promo, index) => (
-              <PromoCard key={index} {...promo} />
+            {promos.map((promo) => (
+              <PromoCard
+                key={promo.id}
+                {...promo}
+                onClick={() => navigate(`/promotions?promo=${promo.id}`)}
+              />
             ))}
           </div>
           </div>
@@ -355,7 +473,7 @@ export function MovieHomePage() {
       </section>
 
       {/* Now Showing Section */}
-      <section className="relative py-10 sm:py-12">
+      <section id="now-showing-section" className="relative py-10 sm:py-12">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-x-0 top-4 h-px bg-gradient-to-r from-transparent via-fuchsia-400/25 to-transparent" />
           <div
@@ -375,18 +493,18 @@ export function MovieHomePage() {
               <TrendingUp className="size-7 text-purple-500 sm:size-8" />
               <div>
                 <div className="mb-2 h-px w-14 bg-gradient-to-r from-fuchsia-400/80 to-transparent" />
-                <h2 className="bg-gradient-to-r from-fuchsia-200 via-violet-100 to-cyan-200 bg-clip-text text-2xl font-black uppercase tracking-[0.12em] text-transparent sm:text-3xl" style={{ animation: 'cinema-section-glow 5.4s ease-in-out infinite' }}>Đang chiếu</h2>
-                <p className="text-sm text-gray-400">Những bộ phim hot nhất hiện nay</p>
+                <h2 className="bg-gradient-to-r from-fuchsia-200 via-violet-100 to-cyan-200 bg-clip-text text-2xl font-black uppercase tracking-[0.12em] text-transparent sm:text-3xl" style={{ animation: 'cinema-section-glow 5.4s ease-in-out infinite' }}>Now showing</h2>
+                <p className="text-sm text-gray-400">The hottest movies playing right now</p>
               </div>
             </div>
 
             <div className="overflow-x-auto pb-1 text-gray-200">
               <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
                 <TabsList className="border border-white/10 bg-white/5 shadow-[0_12px_30px_rgba(15,23,42,0.28)] backdrop-blur-md">
-                  <TabsTrigger value="all">Tất cả</TabsTrigger>
-                  <TabsTrigger value="action">Hành động</TabsTrigger>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="action">Action</TabsTrigger>
                   <TabsTrigger value="scifi">Sci-Fi</TabsTrigger>
-                  <TabsTrigger value="horror">Kinh dị</TabsTrigger>
+                  <TabsTrigger value="horror">Horror</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -429,7 +547,13 @@ export function MovieHomePage() {
               }}
             >
               {nowShowingTrack.map((movie, index) => (
-                <MovieCard key={`${movie.id}-track-${index}`} {...movie} onClick={() => navigate(`/movie/${movie.id}`)} />
+                <MovieCard
+                  key={`${movie.id}-track-${index}`}
+                  {...movie}
+                  onClick={() => navigate(`/movie/${movie.id}${location.search}`)}
+                  actionLabel="View showtimes"
+                  actionOnClick={() => handleOpenShowtimes(movie.id)}
+                />
               ))}
             </div>
           </div>
@@ -458,12 +582,12 @@ export function MovieHomePage() {
               <Sparkles className="size-7 text-cyan-500 sm:size-8" />
               <div>
                 <div className="mb-2 h-px w-14 bg-gradient-to-r from-cyan-400/80 to-transparent" />
-                <h2 className="bg-gradient-to-r from-cyan-200 via-sky-100 to-fuchsia-200 bg-clip-text text-2xl font-black uppercase tracking-[0.12em] text-transparent sm:text-3xl" style={{ animation: 'cinema-section-glow 6.1s ease-in-out infinite' }}>Sắp chiếu</h2>
-                <p className="text-sm text-gray-400">Đừng bỏ lỡ những bom tấn sắp ra mắt</p>
+                <h2 className="bg-gradient-to-r from-cyan-200 via-sky-100 to-fuchsia-200 bg-clip-text text-2xl font-black uppercase tracking-[0.12em] text-transparent sm:text-3xl" style={{ animation: 'cinema-section-glow 6.1s ease-in-out infinite' }}>Coming soon</h2>
+                <p className="text-sm text-gray-400">Do not miss the next big premieres</p>
               </div>
             </div>
             <Button variant="ghost" className="text-cyan-400 hover:text-cyan-300">
-              Xem thêm
+              Explore more
               <ChevronRight className="ml-1 size-4" />
             </Button>
           </div>
@@ -505,7 +629,15 @@ export function MovieHomePage() {
               }}
             >
               {comingSoonTrack.map((movie, index) => (
-                <MovieCard key={`${movie.id}-track-${index}`} {...movie} onClick={() => navigate(`/movie/${movie.id}`)} />
+                <MovieCard
+                  key={`${movie.id}-track-${index}`}
+                  {...movie}
+                  onClick={() => navigate(`/movie/${movie.id}${location.search}`)}
+                  actionLabel={movie.isComingSoon ? 'View details' : 'View showtimes'}
+                  actionOnClick={() =>
+                    movie.isComingSoon ? navigate(`/movie/${movie.id}${location.search}`) : handleOpenShowtimes(movie.id)
+                  }
+                />
               ))}
             </div>
           </div>
@@ -521,43 +653,51 @@ export function MovieHomePage() {
             <div className="grid gap-8 px-6 py-8 sm:grid-cols-2 md:grid-cols-4 lg:px-8">
             <div className="relative">
               <div className="mb-4 h-1 w-12 rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400" />
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Về ABCD Cinema</h3>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">About ABCD Cinema</h3>
               <p className="text-sm leading-7 text-gray-400">
-                Hệ thống đặt vé online tại ABCD Mall - Mang đến trải nghiệm xem phim tuyệt vời nhất
+                ABCD Mall's online booking platform brings a smooth, stylish, and convenient movie-going experience.
               </p>
             </div>
             <div className="relative">
               <div className="mb-4 h-1 w-12 rounded-full bg-white/10 sm:hidden" />
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Liên kết nhanh</h3>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Quick links</h3>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li>Lịch chiếu</li>
-                <li>Giá vé</li>
-                <li>Khuyến mãi</li>
-                <li>Tin tức</li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenShowtimes()}
+                    className="transition-colors hover:text-gray-200"
+                  >
+                    Showtimes
+                  </button>
+                </li>
+                <li>Ticket prices</li>
+                <li>Promotions</li>
+                <li>News</li>
               </ul>
             </div>
             <div className="relative">
               <div className="mb-4 h-1 w-12 rounded-full bg-white/10 sm:hidden" />
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Hỗ trợ</h3>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Support</h3>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li>Câu hỏi thường gặp</li>
-                <li>Chính sách</li>
-                <li>Điều khoản</li>
-                <li>Liên hệ</li>
+                <li>FAQ</li>
+                <li>Policies</li>
+                <li>Terms</li>
+                <li>Contact</li>
               </ul>
             </div>
             <div className="relative">
               <div className="mb-4 h-1 w-12 rounded-full bg-white/10 sm:hidden" />
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Liên hệ</h3>
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">Contact</h3>
               <ul className="space-y-3 text-sm text-gray-400">
                 <li>Email: info@abcdcinema.vn</li>
                 <li>Hotline: 1900 xxxx</li>
-                <li>ABCD Mall, TP.HCM</li>
+                <li>ABCD Mall, Ho Chi Minh City</li>
               </ul>
             </div>
             </div>
             <div className="border-t border-white/10 px-6 py-5 text-center text-sm text-gray-500 lg:px-8">
-              © 2026 ABCD Cinema. Đặt vé online - Nhanh chóng và tiện lợi.
+              &copy; 2026 ABCD Cinema. Online movie booking made fast and easy.
             </div>
           </div>
         </div>
@@ -565,3 +705,12 @@ export function MovieHomePage() {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
