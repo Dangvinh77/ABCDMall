@@ -6,13 +6,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Feedbacks.Application.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GeneratedMSBuildEditorConfig.editorconfig
@@ -26,13 +26,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Feedbacks.Domain.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GeneratedMSBuildEditorConfig.editorconfig
@@ -46,13 +46,13 @@
 │   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj
 │   │   │       ├── bin
 │   │   │       │   └── Debug
-│   │   │       │       └── net8.0
+│   │   │       │       └── net9.0
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.props
 │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.targets
 │   │   │           ├── Debug
-│   │   │           │   └── net8.0
+│   │   │           │   └── net9.0
 │   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfo.cs
 │   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfoInputs.cache
 │   │   │           │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
@@ -123,13 +123,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Movies.Application.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GeneratedMSBuildEditorConfig.editorconfig
@@ -143,13 +143,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Movies.Domain.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GeneratedMSBuildEditorConfig.editorconfig
@@ -163,13 +163,13 @@
 │   │   │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj
 │   │   │       ├── bin
 │   │   │       │   └── Debug
-│   │   │       │       └── net8.0
+│   │   │       │       └── net9.0
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.props
 │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.targets
 │   │   │           ├── Debug
-│   │   │           │   └── net8.0
+│   │   │           │   └── net9.0
 │   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfo.cs
 │   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfoInputs.cache
 │   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
@@ -184,13 +184,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Shops.Application.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GeneratedMSBuildEditorConfig.editorconfig
@@ -204,13 +204,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Shops.Domain.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GeneratedMSBuildEditorConfig.editorconfig
@@ -224,13 +224,13 @@
 │   │   │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj
 │   │   │       ├── bin
 │   │   │       │   └── Debug
-│   │   │       │       └── net8.0
+│   │   │       │       └── net9.0
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.props
 │   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.targets
 │   │   │           ├── Debug
-│   │   │           │   └── net8.0
+│   │   │           │   └── net9.0
 │   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfo.cs
 │   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfoInputs.cache
 │   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
@@ -245,13 +245,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Users.Application.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Application.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Application.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GeneratedMSBuildEditorConfig.editorconfig
@@ -265,13 +265,13 @@
 │   │   │   │   ├── ABCDMall.Modules.Users.Domain.csproj
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
-│   │   │   │   │       └── net8.0
+│   │   │   │   │       └── net9.0
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
-│   │   │   │       │   └── net8.0
+│   │   │   │       │   └── net9.0
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GeneratedMSBuildEditorConfig.editorconfig
@@ -285,13 +285,13 @@
 │   │   │       ├── ABCDMall.Modules.Users.Infrastructure.csproj
 │   │   │       ├── bin
 │   │   │       │   └── Debug
-│   │   │       │       └── net8.0
+│   │   │       │       └── net9.0
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.props
 │   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.targets
 │   │   │           ├── Debug
-│   │   │           │   └── net8.0
+│   │   │           │   └── net9.0
 │   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfo.cs
 │   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfoInputs.cache
 │   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
@@ -333,13 +333,13 @@
 │   │   ├── ABCDMall.Shared.csproj
 │   │   ├── bin
 │   │   │   └── Debug
-│   │   │       └── net8.0
+│   │   │       └── net9.0
 │   │   └── obj
 │   │       ├── ABCDMall.Shared.csproj.nuget.dgspec.json
 │   │       ├── ABCDMall.Shared.csproj.nuget.g.props
 │   │       ├── ABCDMall.Shared.csproj.nuget.g.targets
 │   │       ├── Debug
-│   │       │   └── net8.0
+│   │       │   └── net9.0
 │   │       │       ├── ABCDMall.Shared.AssemblyInfo.cs
 │   │       │       ├── ABCDMall.Shared.AssemblyInfoInputs.cache
 │   │       │       ├── ABCDMall.Shared.GeneratedMSBuildEditorConfig.editorconfig
@@ -362,13 +362,13 @@
 │   │   ├── appsettings.json
 │   │   ├── bin
 │   │   │   └── Debug
-│   │   │       └── net8.0
+│   │   │       └── net9.0
 │   │   └── obj
 │   │       ├── ABCDMall.WebAPI.csproj.nuget.dgspec.json
 │   │       ├── ABCDMall.WebAPI.csproj.nuget.g.props
 │   │       ├── ABCDMall.WebAPI.csproj.nuget.g.targets
 │   │       ├── Debug
-│   │       │   └── net8.0
+│   │       │   └── net9.0
 │   │       │       ├── ABCDMall.WebAPI.AssemblyInfo.cs
 │   │       │       ├── ABCDMall.WebAPI.AssemblyInfoInputs.cache
 │   │       │       ├── ABCDMall.WebAPI.GeneratedMSBuildEditorConfig.editorconfig
