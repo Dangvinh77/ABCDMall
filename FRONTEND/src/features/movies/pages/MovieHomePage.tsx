@@ -17,6 +17,7 @@ import { MovieCard } from './MovieCard'
 import { PromoCard } from './PromoCard'
 import { nowShowingMovies, comingSoonMovies } from '../data/movie'
 import { getDefaultBookingDate } from '../data/promotions'
+import { moviePaths } from '../routes/moviePaths'
 
 const promos = [
   {
@@ -132,7 +133,7 @@ export function MovieHomePage() {
       params.delete('movie')
     }
 
-    navigate(`/showtimes?${params.toString()}`)
+    navigate(`${moviePaths.showtimes()}?${params.toString()}`)
   }
 
   const handleNowShowingTransitionEnd = () => {
@@ -453,7 +454,7 @@ export function MovieHomePage() {
                 Save more with curated promotions and perks
               </p>
             </div>
-            <Button variant="ghost" className="text-purple-400 hover:text-purple-300" onClick={() => navigate('/promotions')}> 
+            <Button variant="ghost" className="text-purple-400 hover:text-purple-300" onClick={() => navigate(moviePaths.promotions())}> 
               View all  
               <ChevronRight className="ml-1 size-4" />
             </Button>
@@ -464,7 +465,7 @@ export function MovieHomePage() {
               <PromoCard
                 key={promo.id}
                 {...promo}
-                onClick={() => navigate(`/promotions?promo=${promo.id}`)}
+                onClick={() => navigate(`${moviePaths.promotions()}?promo=${promo.id}`)}
               />
             ))}
           </div>
@@ -550,7 +551,7 @@ export function MovieHomePage() {
                 <MovieCard
                   key={`${movie.id}-track-${index}`}
                   {...movie}
-                  onClick={() => navigate(`/movie/${movie.id}${location.search}`)}
+                  onClick={() => navigate(`${moviePaths.detail(movie.id)}${location.search}`)}
                   actionLabel="View showtimes"
                   actionOnClick={() => handleOpenShowtimes(movie.id)}
                 />
@@ -632,10 +633,10 @@ export function MovieHomePage() {
                 <MovieCard
                   key={`${movie.id}-track-${index}`}
                   {...movie}
-                  onClick={() => navigate(`/movie/${movie.id}${location.search}`)}
+                  onClick={() => navigate(`${moviePaths.detail(movie.id)}${location.search}`)}
                   actionLabel={movie.isComingSoon ? 'View details' : 'View showtimes'}
                   actionOnClick={() =>
-                    movie.isComingSoon ? navigate(`/movie/${movie.id}${location.search}`) : handleOpenShowtimes(movie.id)
+                    movie.isComingSoon ? navigate(`${moviePaths.detail(movie.id)}${location.search}`) : handleOpenShowtimes(movie.id)
                   }
                 />
               ))}
