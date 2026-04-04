@@ -1,7 +1,7 @@
-import { MovieHomePage } from './features/movies/pages/MovieHomePage';
+import { AppRoutes } from './routes/AppRoutes';
 
 function App() {
-  return <MovieHomePage />;
+  return <AppRoutes />;
 }
 
 export default App
