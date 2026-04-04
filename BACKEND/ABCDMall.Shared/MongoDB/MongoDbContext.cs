@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace ABCDMall.Shared.MongoDB
@@ -17,6 +18,19 @@ namespace ABCDMall.Shared.MongoDB
         {
             var collectionName = typeof(T).Name + "s";
             return _database.GetCollection<T>(collectionName);
+        }
+        public async Task<bool> CheckConnection()
+        {
+            try
+            {
+                // Lệnh Ping gửi tới MongoDB
+                await _database.RunCommandAsync((Command<BsonDocument>)"{ping:1}");
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

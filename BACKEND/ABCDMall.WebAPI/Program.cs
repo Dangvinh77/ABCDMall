@@ -8,8 +8,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Register MongoDB context
+builder.Services.AddSingleton<MongoDbContext>();
 // Load MongoDB settings
-builder.Services.AddSingleton<MongoContext>();
+builder.Services.Configure<MongoDbSetting>(
+    builder.Configuration.GetSection("ConnectDB"));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
