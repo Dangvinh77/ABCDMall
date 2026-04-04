@@ -27,7 +27,6 @@ abcd-mall-client/
 │   │   └── feedbacks/              # Guest feedback and contact flows
 │   │
 │   ├── components/                 # Shared presentational UI components
-│   ├── pages/                      # Route-level page components
 │   ├── routes/                     # Router config, guards, route definitions
 │   └── store/                      # Global client state such as Zustand stores
 │
@@ -45,6 +44,7 @@ src/features/movies/
 ├── components/                     # Movie-specific UI pieces
 ├── hooks/                          # Feature-level hooks
 ├── types/                          # TypeScript contracts
+├── pages/                          # layouts and feature components
 ├── utils/                          # Local helpers
 └── index.ts                        # Public exports for the feature
 ```
@@ -55,6 +55,7 @@ Suggested internal pattern:
 - `components/`: reusable UI inside the feature
 - `hooks/`: stateful orchestration and async flow
 - `types/`: DTOs, view models, request and response types
+- `pages/` composes layouts and feature components into route screens.
 - `utils/`: pure helpers with no React dependency
 - `index.ts`: controlled public entry point
 
@@ -63,7 +64,6 @@ Suggested internal pattern:
 - `core/` holds app-wide concerns shared by multiple modules.
 - `features/` owns business logic and should be the main place for domain-specific code.
 - `components/` stays generic and reusable across features.
-- `pages/` composes layouts and feature components into route screens.
 - `routes/` centralizes public/private route definitions and guards.
 - `store/` contains truly global client state, not feature-local state.
 
