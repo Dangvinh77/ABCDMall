@@ -22,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<FoodPage />} />
         <Route path="/food/:slug" element={<FoodDetailPage />} />
+        <Route path="/mall/:mall/:slug" element={<FoodDetailPage />} />
       </Routes>
     
   );

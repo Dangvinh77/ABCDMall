@@ -18,7 +18,17 @@ export const api = {
     });
     return res.json();
   },
-
   
 };
 
+export const uploadImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("http://localhost:5184/api/food/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  return res.json();
+};
