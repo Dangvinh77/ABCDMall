@@ -25,6 +25,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { Button } from '../component/ui/button';
+import { moviePaths } from '../routes/moviePaths';
 type FilterKey = 'all' | 'ticket' | 'combo' | 'member' | 'bank' | 'weekend';
 
 interface Promo {
@@ -312,7 +313,7 @@ function PromoCard({
             Details
           </button>
           <button
-            onClick={() => navigate(`/showtimes?promo=${promo.id}`)}
+            onClick={() => navigate(`${moviePaths.showtimes()}?promo=${promo.id}`)}
             className="group/btn flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-all duration-200"
             style={{
               background: `linear-gradient(135deg, ${promo.accentFrom}cc, ${promo.accentTo}cc)`,
@@ -410,7 +411,7 @@ export function PromotionsPage() {
       <nav className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#060818]/90 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(moviePaths.home())}
             className="flex items-center gap-2 group"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg shadow-purple-900/30">
@@ -423,7 +424,7 @@ export function PromotionsPage() {
             <span className="hidden text-xs text-gray-500 sm:block">Promotions page</span>
             <Button
               size="sm"
-              onClick={() => navigate('/showtimes')}
+              onClick={() => navigate(moviePaths.showtimes())}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 shadow-md shadow-purple-900/30"
             >
               <Ticket className="mr-1.5 size-3.5" />
@@ -507,7 +508,7 @@ export function PromotionsPage() {
             <div className="flex flex-wrap gap-3">
               <Button
                 size="lg"
-                onClick={() => navigate('/showtimes')}
+                onClick={() => navigate(moviePaths.showtimes())}
                 className="h-12 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 px-7 text-base font-bold shadow-2xl shadow-purple-900/50 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500"
               >
                 <Film className="mr-2 size-5" />
@@ -648,7 +649,7 @@ export function PromotionsPage() {
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Button
                       size="lg"
-                      onClick={() => navigate(`/showtimes?promo=${selectedPromo.id}`)}
+                      onClick={() => navigate(`${moviePaths.showtimes()}?promo=${selectedPromo.id}`)}
                       className="h-12 px-6 text-sm font-bold text-white shadow-xl"
                       style={{
                         background: `linear-gradient(135deg, ${selectedPromo.accentFrom}, ${selectedPromo.accentTo})`,
