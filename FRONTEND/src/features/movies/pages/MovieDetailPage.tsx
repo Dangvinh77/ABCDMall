@@ -19,6 +19,7 @@ import { getScheduleDataForDate, getScheduleDates, formatScheduleDateParam } fro
 import { getDefaultBookingDate } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
+import { moviePaths } from '../routes/moviePaths';
 
 const HALL_TYPE_COLORS: Record<string, string> = {
   '2D': 'bg-gray-700 text-gray-200',
@@ -57,7 +58,7 @@ export function MovieDetailPage() {
     params.set('hallType', hallType);
     params.set('date', bookingDate);
 
-    return `/movie/${movieId}/booking?${params.toString()}`;
+    return `${moviePaths.booking(movieId ?? '')}?${params.toString()}`;
   };
 
   const buildShowtimesUrl = () => {
@@ -65,14 +66,14 @@ export function MovieDetailPage() {
     params.set('movie', scheduleMovieId ?? movieId ?? '');
     params.set('date', bookingDate);
 
-    return `/showtimes?${params.toString()}`;
+    return `${moviePaths.showtimes()}?${params.toString()}`;
   };
 
   const buildMovieDateUrl = (dateParam: string) => {
     const params = new URLSearchParams(location.search);
     params.set('date', dateParam);
 
-    return `/movie/${movieId}?${params.toString()}`;
+    return `${moviePaths.detail(movieId ?? '')}?${params.toString()}`;
   };
 
   if (!movie) {
@@ -85,7 +86,7 @@ export function MovieDetailPage() {
             The movie you are looking for does not exist or has been removed.
           </p>
           <Button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(moviePaths.home())}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
             <ArrowLeft className="mr-2 size-4" />
@@ -112,7 +113,7 @@ export function MovieDetailPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/')}
+                onClick={() => navigate(moviePaths.home())}
                 className="text-gray-300 hover:text-white"
               >
                 <ArrowLeft className="mr-2 size-4" />
