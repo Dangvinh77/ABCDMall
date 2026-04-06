@@ -27,6 +27,7 @@ import {
   type Showtime,
 } from '../data/schedules';
 import { vnd } from '../data/booking';
+import { moviePaths } from '../routes/moviePaths';
 const HALL_CONFIGS: Record<HallType, { label: string; bg: string; text: string; border: string; glow: string }> = {
   '2D': {
     label: '2D',
@@ -426,14 +427,12 @@ export function SchedulePage() {
 
   function handleBook(movieId: string, cinemaId: string, time: string, hallType: HallType) {
     const promoQuery = selectedPromoId ? `&promo=${encodeURIComponent(selectedPromoId)}` : '';
-    navigate(
-      `/movie/${movieId}/booking?cinema=${cinemaId}&showtime=${encodeURIComponent(time)}&hallType=${encodeURIComponent(hallType)}&date=${selectedDate}${promoQuery}`,
-    );
+    navigate(`${moviePaths.booking(movieId)}?cinema=${cinemaId}&showtime=${encodeURIComponent(time)}&hallType=${encodeURIComponent(hallType)}&date=${selectedDate}${promoQuery}`);
   }
 
   function handleMovieClick(movieId: string) {
     const promoQuery = selectedPromoId ? `&promo=${encodeURIComponent(selectedPromoId)}` : '';
-    navigate(`/movie/${movieId}?date=${selectedDate}${promoQuery}`);
+    navigate(`${moviePaths.detail(movieId)}?date=${selectedDate}${promoQuery}`);
   }
 
   const selectedCinemaLabel = allCinemas.find((c) => c.id === selectedCinema)?.name ?? 'All cinemas';
@@ -447,7 +446,7 @@ export function SchedulePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/')}
+                onClick={() => navigate(moviePaths.home())}
                 className="text-gray-300 hover:text-white"
               >
                 <ArrowLeft className="mr-1.5 size-4" />
@@ -467,7 +466,7 @@ export function SchedulePage() {
             </div>
 
             <Button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(moviePaths.home())}
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               <Ticket className="mr-1.5 size-4" />
@@ -739,10 +738,10 @@ export function SchedulePage() {
               <span className="text-sm text-gray-600">ABCD Mall</span>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-600">
-              <button onClick={() => navigate('/promotions')} className="transition-colors hover:text-gray-300">
+              <button onClick={() => navigate(moviePaths.promotions())} className="transition-colors hover:text-gray-300">
                 Promotions
               </button>
-              <button onClick={() => navigate('/')} className="transition-colors hover:text-gray-300">
+              <button onClick={() => navigate(moviePaths.home())} className="transition-colors hover:text-gray-300">
                 Home
               </button>
               <span>&copy; 2026 ABCD Cinema</span>
