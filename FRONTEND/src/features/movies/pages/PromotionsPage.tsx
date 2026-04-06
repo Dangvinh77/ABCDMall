@@ -998,7 +998,7 @@ export function PromotionsPage() {
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
               size="lg"
-              onClick={() => navigate('/showtimes')}
+              onClick={() => navigate(moviePaths.showtimes())}
               className="h-14 min-w-[220px] bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 px-10 text-base font-bold shadow-2xl shadow-purple-900/60 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 transition-all duration-300 hover:shadow-purple-800/60"
             >
               <Ticket className="mr-2 size-5" />
