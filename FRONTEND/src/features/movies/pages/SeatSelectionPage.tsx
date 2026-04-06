@@ -31,6 +31,7 @@ import {
 } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
+import { moviePaths } from '../routes/moviePaths';
 type SeatStatus = 'available' | 'booked' | 'selected';
 
 interface Seat {
@@ -303,7 +304,7 @@ export function SeatSelectionPage() {
     }
 
     navigate(
-      `/movie/${movieId}/checkout?${params.toString()}`,
+     `${moviePaths.checkout(movieId ?? '')}?${params.toString()}`,
       {
         state: {
           seats: selected.map((s) => ({ id: s.id, type: s.type })),
@@ -374,7 +375,7 @@ export function SeatSelectionPage() {
         <div className="text-center">
           <h2 className="mb-4 text-2xl font-bold text-white">Booking details not found</h2>
           <Button
-            onClick={() => navigate('/')}
+            onClick={() => navigate(moviePaths.home())}
             className="bg-gradient-to-r from-purple-600 to-pink-600"
           >
             Go to homepage
@@ -389,7 +390,7 @@ export function SeatSelectionPage() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <button
-            onClick={() => navigate(`/movie/${movieId}?${new URLSearchParams({ ...(promoId ? { promo: promoId } : {}), date: bookingDate }).toString()}`)}
+            onClick={() => navigate(`${moviePaths.detail(movieId ?? '')}?${new URLSearchParams({ ...(promoId ? { promo: promoId } : {}), date: bookingDate }).toString()}`)}
             className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all hover:bg-white/[0.06] hover:text-white"
           >
             <ArrowLeft className="size-4" />
