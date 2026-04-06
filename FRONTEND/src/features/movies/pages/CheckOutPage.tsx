@@ -45,6 +45,7 @@ import {
 } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
+import { moviePaths } from '../routes/moviePaths';
 interface FormValues {
   fullName: string;
   email: string;
@@ -444,7 +445,7 @@ export function CheckoutPage() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate('/')}
+              onClick={() => navigate(moviePaths.home())}
               className="flex-1 border-white/10 text-white hover:bg-white/[0.06]"
             >
               <Home className="mr-2 size-5" />
