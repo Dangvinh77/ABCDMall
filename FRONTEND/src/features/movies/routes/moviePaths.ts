@@ -1,6 +1,7 @@
 export const moviePaths = {
   home: () => '/movies',
   promotions: () => '/movies/promotions',
+  admin: () => '/movies/admin',
   showtimes: () => '/movies/showtimes',
   detail: (movieId: string) => `/movies/${movieId}`,
   booking: (movieId: string) => `/movies/${movieId}/booking`,
