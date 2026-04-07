@@ -331,6 +331,7 @@ return (
             <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
               <img
                 src={`${getImageUrl(food.imageUrl)}?t=${Date.now()}`}
+                
                 className="max-w-full max-h-full object-contain 
                            group-hover:scale-110 transition"
               />

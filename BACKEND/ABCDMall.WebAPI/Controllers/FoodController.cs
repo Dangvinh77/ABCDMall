@@ -187,6 +187,12 @@ public async Task<IActionResult> Update(
         var data = await _service.SearchAsync(keyword);
         return Ok(data);
     }
-
+    // delete
+    [HttpDelete("{id}")] 
+    public async Task<IActionResult> Delete(string id) 
+    { 
+        await _service.DeleteAsync(id); 
+        return Ok("Deleted successfully"); 
+    }
 
 }

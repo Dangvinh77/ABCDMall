@@ -10,7 +10,7 @@ import { Footer } from "./core/layouts/Footer";
 
 function App() {
   return (
-    <Router>
+    //<Router>
       <div className="flex flex-col min-h-screen">
         {/* Phần nội dung chính: Chứa tất cả các Routes */}
         <div className="flex-grow">
@@ -35,7 +35,7 @@ function App() {
         {/* Chân trang luôn hiển thị ở dưới cùng nhờ vào flex-grow ở trên */}
         <Footer />
       </div>
-    </Router>
+  //  </Router>
   );
 }
 
