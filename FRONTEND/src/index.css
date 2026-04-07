@@ -1,4 +1,23 @@
 @import "tailwindcss";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+/* CẤU HÌNH GIAO DIỆN CHO PHẦN MALL (KHÔNG ĐỤNG TỚI PHẦN MOVIE) */
+@theme {
+  /* Bảng màu thương hiệu ABCD Mall */
+  --color-mall-primary: #FF416C;
+  --color-mall-secondary: #FF4B2B;
+  --color-mall-accent: #FFD166;
+  --color-mall-dark: #2D3142;
+  --color-mall-light: #F8F9FA;
+
+  /* Hiệu ứng chuyển động (Animation) */
+  --animate-fade-in-up: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-slow: pulse 15s ease-in-out infinite;
+
+  /* Khung hình chuyển động (Keyframes) */
+  @keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* Bạn có thể thêm các custom CSS khác của dự án ở dưới này nếu có */
