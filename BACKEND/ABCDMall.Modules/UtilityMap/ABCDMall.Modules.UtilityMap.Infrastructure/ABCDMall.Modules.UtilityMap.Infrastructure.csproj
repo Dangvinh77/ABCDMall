@@ -6,4 +6,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="3.7.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ABCDMall.Modules.UtilityMap.Domain\ABCDMall.Modules.UtilityMap.Domain.csproj" />
+    <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
+    <ProjectReference Include="..\ABCDMall.Modules.UtilityMap.Application\ABCDMall.Modules.UtilityMap.Application.csproj" />
+  </ItemGroup>
+
 </Project>

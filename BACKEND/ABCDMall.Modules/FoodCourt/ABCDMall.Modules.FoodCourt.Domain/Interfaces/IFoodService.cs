@@ -1,5 +1,6 @@
-using ABCDMall.Modules.FoodCourt.Application.DTOs;
+using ABCDMall.Shared.DTOs;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
+
 
 public interface IFoodService
 {

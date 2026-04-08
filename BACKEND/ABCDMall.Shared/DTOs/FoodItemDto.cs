@@ -1,4 +1,4 @@
-namespace ABCDMall.Modules.FoodCourt.Application.DTOs;
+namespace ABCDMall.Shared.DTOs;
 
 public class FoodItemDto
 {

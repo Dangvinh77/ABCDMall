@@ -1,4 +1,4 @@
-using ABCDMall.Modules.FoodCourt.Application.Interfaces;
+using ABCDMall.Modules.FoodCourt.Domain.Interfaces;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
 using MongoDB.Driver;
 

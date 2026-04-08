@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using ABCDMall.Modules.FoodCourt.Application.Interfaces;
-using ABCDMall.Modules.FoodCourt.Application.DTOs;
+using ABCDMall.Modules.FoodCourt.Domain.Interfaces;
+using ABCDMall.Shared.DTOs;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
 using ABCDMall.Modules.FoodCourt.Application.Helpers;
 
@@ -50,8 +50,8 @@ public async Task<IActionResult> Create(
     var item = new FoodItem
     {
         Id = Guid.NewGuid().ToString(),
-        Name = dto.Name,
-        Description = dto.Description,
+        Name = dto.Name ?? string.Empty,
+        Description = dto.Description ?? string.Empty,
         ImageUrl = imageUrl
     };
 
