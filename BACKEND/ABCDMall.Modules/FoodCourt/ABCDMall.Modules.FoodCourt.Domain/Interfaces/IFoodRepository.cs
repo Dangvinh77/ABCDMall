@@ -1,6 +1,5 @@
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
-
-namespace ABCDMall.Modules.FoodCourt.Application.Interfaces;
+namespace ABCDMall.Modules.FoodCourt.Domain.Interfaces;
 
 public interface IFoodRepository
 {

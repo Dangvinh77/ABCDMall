@@ -1,8 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// 1. Chỉ import Routes và Route (Bỏ BrowserRouter)
+import { Routes, Route } from "react-router-dom";
 
 // Imports từ nhánh Minh/foodcourt
 import FoodPage from "./features/food/pages/FoodPage";
 import FoodDetailPage from "./features/food/pages/FoodDetailPage";
+import { MapPage } from './features/directory/MapPage';
 
 // Imports từ nhánh fe-shop
 import { HomePage } from "./pages/home/HomePage";
@@ -10,32 +12,31 @@ import { Footer } from "./core/layouts/Footer";
 
 function App() {
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        {/* Phần nội dung chính: Chứa tất cả các Routes */}
-        <div className="flex-grow">
-          <Routes>
-            {/* Trang chủ */}
-            <Route path="/" element={<HomePage />} />
+    // 2. Xóa thẻ <Router> bao quanh, chỉ giữ lại cấu trúc Layout
+    <div className="flex flex-col min-h-screen">
+      {/* Phần nội dung chính (mở rộng linh hoạt để đẩy Footer xuống đáy) */}
+      <div className="flex-grow">
+        <Routes>
+          {/* Trang chủ */}
+          <Route path="/" element={<HomePage />} />
 
-            {/* Các Routes thuộc tính năng Food Court (đã gộp) */}
-            <Route path="/food-court" element={<FoodPage />} />
-            <Route path="/food/:slug" element={<FoodDetailPage />} />
-            <Route path="/mall/:mall/:slug" element={<FoodDetailPage />} />
+          {/* Các Routes thuộc tính năng Food Court */}
+          <Route path="/food-court" element={<FoodPage />} />
+          <Route path="/food/:slug" element={<FoodDetailPage />} />
+          <Route path="/mall/:mall/:slug" element={<FoodDetailPage />} />
 
-            {/* Các trang khác đang phát triển */}
-            <Route path="/shops" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Cửa hàng (Sắp ra mắt)</div>} />
-            <Route path="/movies" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Đặt vé phim (Sắp ra mắt)</div>} />
-            <Route path="/gallery" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Thư viện (Sắp ra mắt)</div>} />
-            <Route path="/map" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Sơ đồ (Sắp ra mắt)</div>} />
-            <Route path="/contact" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Liên hệ (Sắp ra mắt)</div>} />
-          </Routes>
-        </div>
-
-        {/* Chân trang luôn hiển thị ở dưới cùng nhờ vào flex-grow ở trên */}
-        <Footer />
+          {/* Các trang giả lập khác */}
+          <Route path="/shops" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Cửa hàng (Sắp ra mắt)</div>} />
+          <Route path="/movies" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Đặt vé phim (Sắp ra mắt)</div>} />
+          <Route path="/gallery" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Thư viện (Sắp ra mắt)</div>} />
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/contact" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Liên hệ (Sắp ra mắt)</div>} />
+        </Routes>
       </div>
-    </Router>
+
+      {/* Chân trang luôn hiển thị ở dưới cùng */}
+      <Footer />
+    </div>
   );
 }
 

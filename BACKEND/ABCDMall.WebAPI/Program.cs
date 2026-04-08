@@ -1,8 +1,9 @@
 using ABCDMall.Shared.MongoDB;
-using ABCDMall.Modules.FoodCourt.Application.Interfaces;
+using ABCDMall.Modules.FoodCourt.Domain.Interfaces;
 using ABCDMall.Modules.FoodCourt.Application.Services;
 using ABCDMall.Modules.FoodCourt.Infrastructure.Repositories;
 using MongoDB.Driver;
+using ABCDMall.Modules.UtilityMap.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // Register MongoDB context
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton<MongoContext>();
 
 // Load MongoDB settings
 builder.Services.Configure<MongoDbSetting>(
@@ -22,6 +23,8 @@ builder.Services.Configure<MongoDbSetting>(
 // Food Court
 builder.Services.AddScoped<IFoodRepository, FoodRepository>();
 builder.Services.AddScoped<IFoodService, FoodService>();
+
+builder.Services.AddUtilityMapModule();
 
 builder.Services.AddCors(options =>
 {
