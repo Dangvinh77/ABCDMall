@@ -1,0 +1,58 @@
+.
+├── FE_structure.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── pnpm-lock.yaml
+├── project_tree.txt
+├── public
+│   ├── favicon.svg
+│   └── icons.svg
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── assets
+│   │   ├── hero.png
+│   │   ├── react.svg
+│   │   └── vite.svg
+│   ├── components
+│   ├── core
+│   │   ├── api
+│   │   │   └── types
+│   │   ├── hooks
+│   │   └── layouts
+│   ├── features
+│   │   ├── auth
+│   │   ├── directory
+│   │   │   └── components
+│   │   ├── feedbacks
+│   │   ├── food-court
+│   │   │   ├── api
+│   │   │   ├── components
+│   │   │   └── types
+│   │   ├── marketing
+│   │   │   └── componnents
+│   │   ├── movies
+│   │   └── shops
+│   │       ├── api
+│   │       ├── components
+│   │       └── types
+│   ├── index.css
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── food-court
+│   │   │   └── FoodCourtPage.tsx
+│   │   ├── home
+│   │   │   └── HomePage.tsx
+│   │   └── shops
+│   │       ├── ShopDetailPage.tsx
+│   │       └── ShopPage.tsx
+│   ├── routes
+│   └── store
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+32 directories, 24 files

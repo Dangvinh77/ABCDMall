@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+<ItemGroup>
+  <ProjectReference Include="..\ABCDMall.Modules.FoodCourt.Domain\ABCDMall.Modules.FoodCourt.Domain.csproj" />
+</ItemGroup>
+
 </Project>

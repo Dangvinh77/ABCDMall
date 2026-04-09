@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- PHẢI có cả 2 -->
+    <ProjectReference Include="..\ABCDMall.Modules.FoodCourt.Domain\ABCDMall.Modules.FoodCourt.Domain.csproj" />
+    <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
+
+    <PackageReference Include="MongoDB.Driver" Version="3.7.1" />
+  </ItemGroup>
+
 </Project>

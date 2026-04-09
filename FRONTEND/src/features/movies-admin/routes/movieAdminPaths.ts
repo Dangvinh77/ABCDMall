@@ -1,0 +1,15 @@
+export const movieAdminPaths = {
+  home: () => '/movies/admin',
+  dashboard: () => '/movies/admin',
+  movies: () => '/movies/admin/movies',
+  showtimes: () => '/movies/admin/showtimes',
+  seats: () => '/movies/admin/seats',
+  bookings: () => '/movies/admin/bookings',
+  payments: () => '/movies/admin/payments',
+  emails: () => '/movies/admin/emails',
+  guests: () => '/movies/admin/guests',
+  settings: () => '/movies/admin/settings',
+  promotions: () => '/movies/admin/promotions',
+  logs: () => '/movies/admin/logs',
+  users: () => '/movies/admin/users',
+};
