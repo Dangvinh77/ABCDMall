@@ -1004,7 +1004,6 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.ApplyConfigurationsFromAssembly(typeof(MoviesAssemblyMarker).Assembly);
     modelBuilder.ApplyConfigurationsFromAssembly(typeof(UsersAssemblyMarker).Assembly);
-    modelBuilder.ApplyConfigurationsFromAssembly(typeof(FoodCourtAssemblyMarker).Assembly);
 }
 ```
 
@@ -1043,8 +1042,7 @@ Module nào sở hữu bảng nào phải rõ:
 - Users sở hữu:
   - users.Users
   - users.Roles
-- FoodCourt sở hữu:
-  - foodcourt.*
+
 
 Movies chỉ tham chiếu `UserId` khi cần, không tự sửa bảng `users`.
 
@@ -1071,7 +1069,6 @@ Ví dụ:
 
 - `MoviesDbContext`
 - `UsersDbContext`
-- `FoodCourtDbContext`
 
 Ưu điểm:
 
