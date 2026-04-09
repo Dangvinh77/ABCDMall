@@ -7,7 +7,7 @@ A **Modulith Architecture** based backend system for managing a shopping mall, i
 ## 🚀 Tech Stack
 
 - ⚙️ ASP.NET Core Web API
-- 🍃 MongoDB
+- 🛢️ SQL Server
 - 🔐 JWT Authentication
 - 🧩 Modulith Architecture (Modular Monolith)
 
@@ -24,22 +24,22 @@ ABCD-Mall-Modulith/
 │   │   ├── ABCD.Modules.Movies/    # MODULE ĐẶT VÉ
 │   │   │   ├── Domain/             # Movie, Showtime, Seat
 │   │   │   ├── Application/        # Logic đặt vé Guest & Xử lý trùng ghế
-│   │   │   └── Infrastructure/     # MongoDB: MovieCollection
+│   │   │   └── Infrastructure/     # Database,Interface, Repository của Movies
 │   │   │
 │   │   ├── ABCD.Modules.Shops/     # MODULE CỬA HÀNG (Dành cho Shop Manager)
 │   │   │   ├── Domain/             # Shop, Product, FoodCourt
 │   │   │   ├── Application/        # Logic quản lý thông tin & sản phẩm
-│   │   │   └── Infrastructure/     # MongoDB: ShopCollection
+│   │   │   └── Infrastructure/     # Database,Interface, Repository của Shops
 │   │   │
 │   │   ├── ABCD.Modules.Feedbacks/ # MODULE FEEDBACK (Dùng chung cho cả Mall)
 │   │   │   ├── Domain/             # Feedback Entity
 │   │   │   ├── Application/        # Logic nhận Feedback từ Guest
-│   │   │   └── Infrastructure/     # MongoDB: FeedbackCollection
+│   │   │   └── Infrastructure/     # Database,Interface, Repository của Feedbacks
 │   │   │
 │   │   └── ABCD.Modules.Users/     # MODULE AUTH (Admin & Shop Manager)
 │   │
 │   └── Shared/                     # DÙNG CHUNG TOÀN HỆ THỐNG
-│       └── ABCD.Shared/            # MongoDbContext, BaseEntity, JWT Helper, DTOs chung
+│       └── ABCD.Shared/            # AppDbContext, BaseEntity, JWT Helper, DTOs chung
 ```
 
 ---
@@ -83,7 +83,7 @@ This project follows a **Modular Monolith (Modulith)** architecture:
 ### 1️⃣ Clone project
 
 ```bash
-git clone https://github.com/your-repo/ABCD-Mall-Solution.git
+git clone https://github.com/Dangvinh77/ABCDMall.git
 cd ABCD-Mall-Solution
 ```
 
@@ -94,10 +94,9 @@ Update connection string in: **appsettings.json**
 Example:
 
 ```bash
-"MongoDbSettings": {
-  "ConnectionString": "mongodb://localhost:27017",
-  "DatabaseName": "ABCDMallDb"
-}
+"ConnectionStrings": {
+  "ConnectDB": "Server=<server_name>;Database=ABCDMall;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+},
 ```
 
 3️⃣ Run project

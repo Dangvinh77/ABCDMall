@@ -1,14 +1,13 @@
-## ⚙️ Thiết lập kết nối MongoDB
+## ⚙️ Thiết lập kết nối SQL Server(Local)
 
 Tạo một file tên appsettings.**Development**.json (thêm Development) đặt cùng đường dẫn với appsettings.json
 
-copy
+Thay thế value của **<server_name>** phù hợp với Servername của máy
 
 ```bash
 {
-  "ConnectDB": {
-    "ConnectionString": "mongodb+srv://<username>:<password>@<cluster-url>/<database>?retryWrites=true&w=majority",
-    "DatabaseName": "ABCDMall"
+  "ConnectionStrings": {
+    "ConnectDB": "Server=<server_name>;Database=ABCDMall;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
   },
   "Logging": {
     "LogLevel": {
@@ -20,7 +19,34 @@ copy
 }
 ```
 
-Thay thế value của key **"ConnectionString"** được ghim trong **Zalo**
+### 💡 Tip tìm Server name của máy
+
+Vào **Terminal**, nhập
+
+```bash
+sc query type= service | findstr /I "SQL"
+```
+
+Kết quả trả về sẽ như sau:
+
+```bash
+SERVICE_NAME: MSSQL$HARORISQLSERVER
+DISPLAY_NAME: SQL Server (HARORISQLSERVER)
+SERVICE_NAME: SQLAgent$HARORISQLSERVER
+DISPLAY_NAME: SQL Server Agent (HARORISQLSERVER)
+SERVICE_NAME: SQLBrowser
+DISPLAY_NAME: SQL Server Browser
+SERVICE_NAME: SQLTELEMETRY$HARORISQLSERVER
+DISPLAY_NAME: SQL Server CEIP service (HARORISQLSERVER)
+SERVICE_NAME: SQLWriter
+DISPLAY_NAME: SQL Server VSS Writer
+```
+
+#### Phần đi kèm prefix <code>$</code> (E.g. HARORISQLSERVER) chính là **{Server Name}**
+
+```bash
+<server_name> = .\\{Server Name}
+```
 
 ## ⚙️ Gọi/Tạo bảng trong Modules
 
@@ -37,22 +63,47 @@ public class Movie {
 }
 ```
 
-### 2. Tại dự án ABCD.Modules.Movies.Infrastructure (Nơi "Bảng" Movies thực sự tồn tại)
+### 2. Tại dự án ABCD.Shared
 
-Ví dụ đường dẫn chứa Repository/Services/Interface là:
-**ABCD.Modules.Movies.Infrastructure/Repository/MovieRepository.cs**
+#### Đường dẫn chứa Entity(Model) là: **./ABCDMall.Shared/Persistence/AppDbContext.cs**
+
+**Bổ dung Entity(Model) tương ứng tạo bên Domain:**
 
 ```bash
-public class MovieRepository : IMovieRepository {
-    private readonly IMongoCollection<Movie> _movies;
+public DbSet<T> <Entity> {get;set;}
+```
 
-    public MovieRepository(MongoDbContext context) {
-        // Đây chính là nơi bạn xác định Collection "Movies" cho module này
-        _movies = context.GetCollection<Movie>("Movies");
-    }
+**Minh họa:**
 
-    public async Task<List<Movie>> GetAllAsync() {
-        return await _movies.Find(_ => true).ToListAsync();
+```bash
+namespace ABCD.Shared.Persistence
+{
+    public class AppDbContext : DbContext
+    {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        // --- Module Movies ---
+        public DbSet<Movie> Movies { get; set; }
+        public DbSet<Showtime> Showtimes { get; set; }
+        public DbSet<Seat> Seats { get; set; }
+
+        // --- Module Shops ---
+        public DbSet<Shop> Shops { get; set; }
+        public DbSet<Product> Products { get; set; }
+
+        // --- Module Feedbacks ---
+        public DbSet<Feedback> Feedbacks { get; set; }
+
+        // --- Module Users ---
+        public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Mẹo: Nên chia cấu hình Fluent API theo module để file này gọn hơn
+            // Ví dụ: modelBuilder.ApplyConfiguration(new MovieConfiguration());
+        }
     }
 }
 ```
@@ -60,7 +111,7 @@ public class MovieRepository : IMovieRepository {
 ### 3. Tóm tắt quy tắc đứng ở đâu làm gì:
 
 1. **Muốn định nghĩa các cột/trường (Entity)**: Đứng ở dự án Module.Domain.
-2. **Muốn tạo bảng/truy vấn dữ liệu (Collection/Repository)**: Đứng ở dự án Module.Infrastructure.
+2. **Muốn tương tác dữ liệu và thực thể (Migration/Interface/Repository)**: Đứng ở dự án Module.Infrastructure.
 3. **Muốn xử lý logic hay tính toán**: Đứng ở dự án Module.Application.
 4. **Muốn tạo API Endpoint cho Front-end gọi**: Đứng ở dự án WebAPI.
 

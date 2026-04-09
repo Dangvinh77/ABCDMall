@@ -1,4 +1,5 @@
-using ABCDMall.Shared.MongoDB;
+using ABCDMall.Shared.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,11 +9,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// Register MongoDB context
-builder.Services.AddSingleton<MongoDbContext>();
-// Load MongoDB settings
-builder.Services.Configure<MongoDbSetting>(
-    builder.Configuration.GetSection("ConnectDB"));
+builder.Services.AddDbContext<AppDbContext>(
+    options =>
+    {
+        options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectDB"));
+    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
