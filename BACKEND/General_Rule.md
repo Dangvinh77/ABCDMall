@@ -48,6 +48,25 @@ DISPLAY_NAME: SQL Server VSS Writer
 <server_name> = .\\{Server Name}
 ```
 
+### 💡 Tip test kết nối với DB
+
+Vào **Package Console Manager**, nhập
+
+```bash
+Update-database
+```
+
+Hoặc **Terminal**, nhập
+
+```bash
+dotnet ef database update
+```
+
+#### Chạy dự án ABCDMall.API
+Test Swagger UI tại endpoint 
+
+![GET](https://img.shields.io/badge/GET-blue)
+`/Db/test-db`
 ## ⚙️ Gọi/Tạo bảng trong Modules
 
 ### 1. Tại dự án ABCD.Modules.Movies.Domain (Định nghĩa thực thể)
