@@ -1,7 +1,8 @@
 using ABCDMall.Shared.DTOs;
-using ABCDMall.Modules.FoodCourt.Domain.Interfaces;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
 using ABCDMall.Modules.FoodCourt.Application.Helpers;
+using ABCDMall.Modules.FoodCourt.Domain.Interfaces;       
+using ABCDMall.Modules.FoodCourt.Application.Interfaces;
 
 namespace ABCDMall.Modules.FoodCourt.Application.Services;
 
@@ -23,7 +24,7 @@ public class FoodService : IFoodService
     }
 
     // ================= GET BY ID =================
-    public async Task<FoodItemDto?> GetByIdAsync(string id)
+    public async Task<FoodItemDto?> GetByIdAsync(int id)
     {
         var item = await _repo.GetByIdAsync(id);
         if (item == null) return null;
@@ -52,7 +53,7 @@ public class FoodService : IFoodService
     }
 
     // ================= UPDATE =================
-    public async Task<bool> UpdateAsync(string id, FoodItemDto dto)
+    public async Task<bool> UpdateAsync(int id, FoodItemDto dto)
     {
         var existing = await _repo.GetByIdAsync(id);
         if (existing == null) return false;
@@ -62,7 +63,7 @@ public class FoodService : IFoodService
         existing.Description = dto.Description ?? string.Empty;
 
         // 🔥 FIX CHÍNH: luôn update slug theo name mới
-       // existing.Slug = SlugHelper.GenerateSlug(dto.Name);
+        // existing.Slug = SlugHelper.GenerateSlug(dto.Name);
 
         existing.Slug = string.IsNullOrEmpty(dto.Slug)
             ? SlugHelper.GenerateSlug(dto.Name)
@@ -73,7 +74,7 @@ public class FoodService : IFoodService
     }
 
     // ================= DELETE =================
-    public async Task<bool> DeleteAsync(string id)
+    public async Task<bool> DeleteAsync(int id)
     {
         var existing = await _repo.GetByIdAsync(id);
         if (existing == null) return false;
@@ -100,7 +101,7 @@ public class FoodService : IFoodService
     private static FoodItemDto Map(FoodItem x) => new()
     {
         Id = x.Id,
-        Name = x.Name ?? string.Empty,
+        Name = x.Name,
         ImageUrl = x.ImageUrl,
         Slug = x.Slug,
         Description = x.Description

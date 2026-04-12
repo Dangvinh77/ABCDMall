@@ -1,13 +1,10 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+
 
 namespace ABCDMall.Modules.UtilityMap.Domain.Entities;
 
 public class FloorPlan
 {
-    [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = string.Empty;
+    public int Id { get; set; }
     
     // Tên tầng (Ví dụ: "L1", "L2", "L3", "L4")
     public string FloorLevel { get; set; } = string.Empty; 

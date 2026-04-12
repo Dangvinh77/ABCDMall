@@ -1,32 +1,33 @@
-using ABCDMall.Shared.MongoDB;
 using ABCDMall.Modules.UtilityMap.Domain.Entities;
-using ABCDMall.Modules.UtilityMap.Domain.Interfaces; // Phải using cái này để thấy IMapRepository
-using MongoDB.Driver;
+using ABCDMall.Modules.UtilityMap.Domain.Interfaces;
+using ABCDMall.Shared.Persistence;
+using Microsoft.EntityFrameworkCore;
 
-// THAY ĐỔI: Namespace phải trỏ về Infrastructure.Repositories
 namespace ABCDMall.Modules.UtilityMap.Infrastructure.Repositories;
 
 public class MapRepository : IMapRepository
 {
-    private readonly IMongoCollection<FloorPlan> _floorPlans;
+    private readonly AppDbContext _context;
 
-    public MapRepository(MongoContext context) 
+    public MapRepository(AppDbContext context)
     {
-        _floorPlans = context.GetCollection<FloorPlan>("FloorPlans");
+        _context = context;
     }
 
     public async Task<FloorPlan?> GetFloorPlanAsync(string floorLevel)
     {
-        return await _floorPlans.Find(x => x.FloorLevel == floorLevel).FirstOrDefaultAsync();
+        return await _context.FloorPlans
+            .FirstOrDefaultAsync(x => x.FloorLevel == floorLevel);
     }
 
     public async Task<List<FloorPlan>> GetAllFloorsAsync()
     {
-        return await _floorPlans.Find(_ => true).ToListAsync();
+        return await _context.FloorPlans.ToListAsync();
     }
 
     public async Task CreateFloorPlanAsync(FloorPlan floorPlan)
     {
-        await _floorPlans.InsertOneAsync(floorPlan);
+        _context.FloorPlans.Add(floorPlan);
+        await _context.SaveChangesAsync();
     }
 }
