@@ -6,4 +6,36 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.72" />
+    <PackageReference Include="MailKit" Version="4.15.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.14" />
+    <PackageReference Include="MimeKit" Version="4.15.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Integrations\Email\" />
+    <Folder Include="Integrations\Payments\" />
+    <Folder Include="BackgroundService\" />
+    <Folder Include="Repositories\" />
+    <Folder Include="Seed\" />
+    <Folder Include="Persistence\Booking\Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
+    <ProjectReference Include="..\..\Shops\ABCDMall.Modules.Shops.Application\ABCDMall.Modules.Shops.Application.csproj" />
+    <ProjectReference Include="..\ABCDMall.Modules.Movies.Domain\ABCDMall.Modules.Movies.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

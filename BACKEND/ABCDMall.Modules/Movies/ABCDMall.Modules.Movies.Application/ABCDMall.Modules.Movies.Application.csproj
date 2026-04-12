@@ -5,5 +5,30 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+	
+
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+  </ItemGroup>
+	
+
+
+  <ItemGroup>
+    <Folder Include="DTOs\Bookings\" />
+    <Folder Include="DTOs\Payments\" />
+    <Folder Include="Mappings\" />
+    <Folder Include="Services\Bookings\" />
+    <Folder Include="Services\Promotions\" />
+    <Folder Include="Services\Payments\" />
+  </ItemGroup>
+	
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\ABCDMall.Modules.Movies.Domain\ABCDMall.Modules.Movies.Domain.csproj" />
+  </ItemGroup>
 
 </Project>
