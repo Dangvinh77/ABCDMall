@@ -1046,6 +1046,7 @@ Module nào sở hữu bảng nào phải rõ:
 - FoodCourt sở hữu:
   - foodcourt.*
 
+
 Movies chỉ tham chiếu `UserId` khi cần, không tự sửa bảng `users`.
 
 ## 12. Đề xuất AppDbContext để tránh conflict
