@@ -29,7 +29,8 @@
     <Folder Include="BackgroundService\" />
     <Folder Include="Repositories\" />
     <Folder Include="Seed\" />
-    <Folder Include="Persistence\Booking\Migrations\" />
+    <Folder Include="Repositories\" />
+    <Folder Include="Seed\" />
   </ItemGroup>
 
   <ItemGroup>

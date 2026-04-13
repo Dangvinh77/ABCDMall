@@ -1,4 +1,5 @@
-﻿using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
+using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
+using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,18 +12,26 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("MoviesBookingConnection")
-            ?? throw new InvalidOperationException("Connection string 'MoviesBookingConnection' was not found.");
+        var connectionString = configuration.GetConnectionString("ABCDMallMoviesDBConnection")
+            ?? throw new InvalidOperationException("Connection string 'ABCDMallMoviesDBConnection' was not found.");
+
+
+        services.AddDbContext<MoviesCatalogDbContext>(options =>
+        {
+            options.UseSqlServer(connectionString, sql =>
+            {
+                sql.MigrationsAssembly(typeof(MoviesCatalogDbContext).Assembly.FullName);
+                sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesCatalog", MoviesCatalogDbContext.DefaultSchema);
+            });
+        });
 
         services.AddDbContext<MoviesBookingDbContext>(options =>
         {
-            options.UseSqlServer(
-                connectionString,
-                sql =>
-                {
-                    sql.MigrationsAssembly(typeof(MoviesBookingDbContext).Assembly.FullName);
-                    sql.MigrationsHistoryTable("__EFMigrationsHistory", MoviesBookingDbContext.DefaultSchema);
-                });
+            options.UseSqlServer(connectionString, sql =>
+            {
+                sql.MigrationsAssembly(typeof(MoviesBookingDbContext).Assembly.FullName);
+                sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesBooking", MoviesBookingDbContext.DefaultSchema);
+            });
         });
 
         return services;

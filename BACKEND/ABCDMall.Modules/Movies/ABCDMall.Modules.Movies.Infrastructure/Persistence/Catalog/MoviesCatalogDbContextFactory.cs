@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
+namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 
-public class MoviesBookingDbContextFactory : IDesignTimeDbContextFactory<MoviesBookingDbContext>
+public class MoviesCatalogDbContextFactory : IDesignTimeDbContextFactory<MoviesCatalogDbContext>
 {
-    public MoviesBookingDbContext CreateDbContext(string[] args)
+    public MoviesCatalogDbContext CreateDbContext(string[] args)
     {
         var currentDirectory = Directory.GetCurrentDirectory();
 
@@ -34,15 +34,8 @@ public class MoviesBookingDbContextFactory : IDesignTimeDbContextFactory<MoviesB
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         IConfiguration configuration = new ConfigurationBuilder()
-            //.SetBasePath(webApiBasePath) co tac dung la no se tim file appsettings.json trong thu muc webApiBasePath truoc,
-            //neu khong tim thay thi no moi tim trong thu muc hien tai cua MoviesBookingDbContextFactory
             .SetBasePath(webApiBasePath)
-            //  .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false) co tac dung la no se tim file appsettings.json trong thu muc webApiBasePath,
-            //  neu khong tim thay thi no se nem loi va dung do,
-            //  optional: false se chi ra rang file appsettings.json la bat buoc phai co,
-            //  reloadOnChange: false se chi ra rang no se khong tu dong tai lai cau hinh neu file appsettings.json bi thay doi trong luc thiet ke
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-            //  .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false) co tac dung la no se tim file appsettings.{environment}.json trong thu muc webApiBasePath,
             .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: false)
             .AddEnvironmentVariables()
             .Build();
@@ -50,19 +43,18 @@ public class MoviesBookingDbContextFactory : IDesignTimeDbContextFactory<MoviesB
         var connectionString = configuration.GetConnectionString("ABCDMallMoviesDBConnection")
             ?? throw new InvalidOperationException(
                 "Connection string 'ABCDMallMoviesDBConnection' was not found.");
-
-        var optionsBuilder = new DbContextOptionsBuilder<MoviesBookingDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<MoviesCatalogDbContext>();
 
         optionsBuilder.UseSqlServer(
             connectionString,
             sql =>
             {
-                sql.MigrationsAssembly(typeof(MoviesBookingDbContext).Assembly.FullName);
+                sql.MigrationsAssembly(typeof(MoviesCatalogDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
-                    "__EFMigrationsHistory_MoviesBooking",
-                    MoviesBookingDbContext.DefaultSchema);
+                    "__EFMigrationsHistory_MoviesCatalog",
+                    MoviesCatalogDbContext.DefaultSchema);
             });
 
-        return new MoviesBookingDbContext(optionsBuilder.Options);
+        return new MoviesCatalogDbContext(optionsBuilder.Options);
     }
 }

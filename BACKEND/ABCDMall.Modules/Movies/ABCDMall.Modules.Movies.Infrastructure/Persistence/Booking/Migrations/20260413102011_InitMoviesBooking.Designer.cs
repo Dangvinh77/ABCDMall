@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
 {
     [DbContext(typeof(MoviesBookingDbContext))]
-    [Migration("20260411094551_InitMoviesBooking")]
+    [Migration("20260413102011_InitMoviesBooking")]
     partial class InitMoviesBooking
     {
         /// <inheritdoc />
