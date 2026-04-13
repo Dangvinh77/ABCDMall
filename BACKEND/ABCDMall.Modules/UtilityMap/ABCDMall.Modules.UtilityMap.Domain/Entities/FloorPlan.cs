@@ -22,6 +22,7 @@ public class FloorPlan
 // Class phụ để lưu tọa độ từng shop trên bản đồ
 public class MapLocation
 {
+    public int Id { get; set; }
     public string ShopId { get; set; } = string.Empty; 
     public string ShopName { get; set; } = string.Empty;
     public string LocationSlot { get; set; } = string.Empty; // Mã lô: L1-05
