@@ -1,18 +1,22 @@
-﻿using ABCDMall.Shared.Persistence;
+﻿using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
+using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 namespace ABCDMall.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class DbController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly MoviesCatalogDbContext _catalogContext;
+        private readonly MoviesBookingDbContext _bookingContext;
 
-        public DbController(AppDbContext context)
+        public DbController(
+            MoviesCatalogDbContext catalogContext,
+            MoviesBookingDbContext bookingContext)
         {
-            _context = context;
+            _catalogContext = catalogContext;
+            _bookingContext = bookingContext;
         }
 
         [HttpGet("test-db")]
@@ -20,32 +24,42 @@ namespace ABCDMall.WebAPI.Controllers
         {
             try
             {
-                // 1. Kiểm tra xem có thể kết nối tới SQL Server không
-                bool canConnect = await _context.Database.CanConnectAsync();
+                var canConnectCatalog = await _catalogContext.Database.CanConnectAsync();
+                var canConnectBooking = await _bookingContext.Database.CanConnectAsync();
 
-                if (!canConnect)
+                if (!canConnectCatalog || !canConnectBooking)
                 {
                     return StatusCode(500, new
                     {
                         status = "Error",
-                        message = "Không thể kết nối tới SQL Server. Hãy kiểm tra lại Connection String hoặc Server."
+                        message = "Khong the ket noi toi SQL Server hoac mot trong cac DbContext khong truy cap duoc database.",
+                        catalogConnected = canConnectCatalog,
+                        bookingConnected = canConnectBooking
                     });
                 }
 
-                // 2. (Tùy chọn) Kiểm tra xem đã có bảng nào chưa (đã chạy Migration chưa)
-                // Ví dụ kiểm tra bảng Movies
-                var databaseName = _context.Database.GetDbConnection().Database;
+                var catalogDatabaseName = _catalogContext.Database.GetDbConnection().Database;
+                var bookingDatabaseName = _bookingContext.Database.GetDbConnection().Database;
 
                 return Ok(new
                 {
                     status = "Success",
-                    message = $"Kết nối thành công tới Database: [{databaseName}]",
+                    message = "Ket noi database thanh cong.",
+                    catalog = new
+                    {
+                        database = catalogDatabaseName,
+                        schema = MoviesCatalogDbContext.DefaultSchema
+                    },
+                    booking = new
+                    {
+                        database = bookingDatabaseName,
+                        schema = MoviesBookingDbContext.DefaultSchema
+                    },
                     timestamp = DateTime.Now
                 });
             }
             catch (Exception ex)
             {
-                // Trả về chi tiết lỗi nếu có (lỗi sai pass, sai server, timeout...)
                 return StatusCode(500, new
                 {
                     status = "Exception",

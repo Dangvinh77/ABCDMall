@@ -24,4 +24,8 @@
 	  <ProjectReference Include="..\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Infrastructure\ABCDMall.Modules.FoodCourt.Infrastructure.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="wwwroot\uploads\" />
+	</ItemGroup>
+
 </Project>
