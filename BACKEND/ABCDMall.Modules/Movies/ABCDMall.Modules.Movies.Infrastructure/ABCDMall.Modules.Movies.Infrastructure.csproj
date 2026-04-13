@@ -24,11 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Integrations\Email\" />
-    <Folder Include="Integrations\Payments\" />
-    <Folder Include="BackgroundService\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Seed\" />
+    <Folder Include="Intergrations\Email\" />
+    <Folder Include="Intergrations\Payments\" />
     <Folder Include="Repositories\" />
     <Folder Include="Seed\" />
   </ItemGroup>
