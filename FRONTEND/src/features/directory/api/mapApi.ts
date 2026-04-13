@@ -1,17 +1,10 @@
-import { FloorPlan } from "../types/map.types";
-
-const BASE_URL = 'http://localhost:5173'; 
+import { api } from '@/core/api/api';
+import { FloorPlan } from '../types/map.types';
 
 export const mapApi = {
-  getAllFloors: async (): Promise<FloorPlan[]> => {
-    const response = await fetch(`${BASE_URL}/map/floors`);
-    if (!response.ok) throw new Error('Không thể tải danh sách tầng');
-    return response.json();
-  },
+  getAllFloors: (): Promise<FloorPlan[]> =>
+    api.get('/map/floors'),
 
-  getFloorPlan: async (floorLevel: string): Promise<FloorPlan> => {
-    const response = await fetch(`${BASE_URL}/map/floors/${floorLevel}`);
-    if (!response.ok) throw new Error('Không thể tải dữ liệu sơ đồ tầng');
-    return response.json();
-  }
+  getFloorPlan: (floorLevel: string): Promise<FloorPlan> =>
+    api.get(`/map/floors/${encodeURIComponent(floorLevel)}`),
 };

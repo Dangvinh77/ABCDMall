@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <ItemGroup>
+<ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules.UtilityMap.Domain\ABCDMall.Modules.UtilityMap.Domain.csproj" />
-  </ItemGroup>
+    <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
+</ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>

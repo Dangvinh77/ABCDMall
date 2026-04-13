@@ -1,16 +1,17 @@
 export interface MapLocation {
-  shopId: string;
+  id: number;
   shopName: string;
-  locationSlot: string; // Ví dụ: L1-05
-  x_Coordinate: number; // Tọa độ X (%)
-  y_Coordinate: number; // Tọa độ Y (%)
+  locationSlot: string;
+  shopUrl: string;
+  x: number;
+  y: number;
   storefrontImageUrl: string;
 }
 
 export interface FloorPlan {
-  id: string;
-  floorLevel: string; // Ví dụ: "L1", "L2"
+  id: number;
+  floorLevel: string;
   description: string;
-  blueprintImageUrl: string; // Ảnh mặt bằng SVG/PNG
+  blueprintImageUrl: string;
   locations: MapLocation[];
 }

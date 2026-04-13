@@ -7,6 +7,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Feedbacks.Application.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.props
@@ -18,8 +21,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Feedbacks.Application.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Feedbacks.Application.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   ├── ABCDMall.Modules.Feedbacks.Domain
@@ -27,6 +37,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Feedbacks.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.props
@@ -38,8 +51,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Feedbacks.Domain.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Feedbacks.Domain.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure
@@ -47,6 +67,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.dll
+│   │   │   │   │           └── ABCDMall.Modules.Feedbacks.Infrastructure.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.props
@@ -58,8 +81,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Feedbacks.Infrastructure.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Feedbacks.Infrastructure.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   └── ABCDMall.Modules.Movies.Infrastructure
@@ -68,6 +98,8 @@
 │   │   │   │   ├── ABCDMall.Modules.FoodCourt.Application.csproj
 │   │   │   │   ├── Helpers
 │   │   │   │   │   └── SlugHelper.cs
+│   │   │   │   ├── Interfaces
+│   │   │   │   │   └── IFoodService.cs
 │   │   │   │   ├── Services
 │   │   │   │   │   └── FoodService.cs
 │   │   │   │   ├── bin
@@ -78,6 +110,8 @@
 │   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Application.pdb
 │   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
 │   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │   │   │   │           ├── ABCDMall.Modules.UtilityMap.Domain.pdb
 │   │   │   │   │           ├── ABCDMall.Shared.dll
 │   │   │   │   │           └── ABCDMall.Shared.pdb
 │   │   │   │   └── obj
@@ -109,29 +143,24 @@
 │   │   │   │   ├── Entities
 │   │   │   │   │   └── FoodItem.cs
 │   │   │   │   ├── Interfaces
-│   │   │   │   │   ├── IFoodRepository.cs
-│   │   │   │   │   └── IFoodService.cs
+│   │   │   │   │   └── IFoodRepository.cs
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
 │   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.deps.json
 │   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
-│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
-│   │   │   │   │           ├── ABCDMall.Shared.dll
-│   │   │   │   │           └── ABCDMall.Shared.pdb
+│   │   │   │   │           └── ABCDMall.Modules.FoodCourt.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.g.props
 │   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.g.targets
 │   │   │   │       ├── Debug
 │   │   │   │       │   └── net9.0
-│   │   │   │       │       ├── ABCDMall.C57F51D7.Up2Date
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.AssemblyInfo.cs
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.AssemblyInfoInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.assets.cache
-│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.AssemblyReference.cache
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.CoreCompileInputs.cache
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.FileListAbsolute.txt
 │   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.dll
@@ -145,16 +174,21 @@
 │   │   │   │       └── project.nuget.cache
 │   │   │   └── ABCDMall.Modules.FoodCourt.Infrastructure
 │   │   │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj
+│   │   │       ├── DependencyInjection.cs
 │   │   │       ├── Repositories
 │   │   │       │   └── FoodRepository.cs
 │   │   │       ├── bin
 │   │   │       │   └── Debug
 │   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Application.pdb
 │   │   │       │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
 │   │   │       │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
 │   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.deps.json
 │   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.dll
 │   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.pdb
+│   │   │       │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.UtilityMap.Domain.pdb
 │   │   │       │           ├── ABCDMall.Shared.dll
 │   │   │       │           └── ABCDMall.Shared.pdb
 │   │   │       └── obj
@@ -187,6 +221,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Marketing.Application.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.g.props
@@ -198,8 +235,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Marketing.Application.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Marketing.Application.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   ├── ABCDMall.Modules.Marketing.Domain
@@ -207,6 +251,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Marketing.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.g.props
@@ -218,8 +265,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Marketing.Domain.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Marketing.Domain.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   └── ABCDMall.Modules.Marketing.Infrastructure
@@ -227,6 +281,9 @@
 │   │   │       ├── bin
 │   │   │       │   └── Debug
 │   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Marketing.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Marketing.Infrastructure.dll
+│   │   │       │           └── ABCDMall.Modules.Marketing.Infrastructure.pdb
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.g.props
@@ -238,8 +295,15 @@
 │   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.GlobalUsings.g.cs
 │   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.sourcelink.json
 │   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Marketing.Infrastructure.dll
 │   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Marketing.Infrastructure.dll
 │   │   │           ├── project.assets.json
 │   │   │           └── project.nuget.cache
 │   │   ├── Movies
@@ -248,6 +312,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Movies.Application.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.props
@@ -259,8 +326,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Movies.Application.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Movies.Application.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   ├── ABCDMall.Modules.Movies.Domain
@@ -268,6 +342,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Movies.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.props
@@ -279,8 +356,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Movies.Domain.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Movies.Domain.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   └── ABCDMall.Modules.Movies.Infrastructure
@@ -288,6 +372,9 @@
 │   │   │       ├── bin
 │   │   │       │   └── Debug
 │   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Movies.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │       │           └── ABCDMall.Modules.Movies.Infrastructure.pdb
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.props
@@ -299,8 +386,15 @@
 │   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.GlobalUsings.g.cs
 │   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Movies.Infrastructure.sourcelink.json
 │   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Movies.Infrastructure.dll
 │   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Movies.Infrastructure.dll
 │   │   │           ├── project.assets.json
 │   │   │           └── project.nuget.cache
 │   │   ├── Shops
@@ -309,6 +403,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Shops.Application.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.props
@@ -320,8 +417,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Shops.Application.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Shops.Application.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   ├── ABCDMall.Modules.Shops.Domain
@@ -329,6 +433,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Shops.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.props
@@ -340,8 +447,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Shops.Domain.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Shops.Domain.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   └── ABCDMall.Modules.Shops.Infrastructure
@@ -349,6 +463,9 @@
 │   │   │       ├── bin
 │   │   │       │   └── Debug
 │   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Shops.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │       │           └── ABCDMall.Modules.Shops.Infrastructure.pdb
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.props
@@ -360,9 +477,15 @@
 │   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GlobalUsings.g.cs
 │   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.assets.cache
-│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.sourcelink.json
 │   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Shops.Infrastructure.dll
 │   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Shops.Infrastructure.dll
 │   │   │           ├── project.assets.json
 │   │   │           └── project.nuget.cache
 │   │   ├── Users
@@ -371,6 +494,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Users.Application.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.props
@@ -382,8 +508,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Users.Application.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Users.Application.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   ├── ABCDMall.Modules.Users.Domain
@@ -391,6 +524,9 @@
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Users.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.props
@@ -402,8 +538,15 @@
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GlobalUsings.g.cs
 │   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.sourcelink.json
 │   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Users.Domain.dll
 │   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Users.Domain.dll
 │   │   │   │       ├── project.assets.json
 │   │   │   │       └── project.nuget.cache
 │   │   │   └── ABCDMall.Modules.Users.Infrastructure
@@ -411,6 +554,9 @@
 │   │   │       ├── bin
 │   │   │       │   └── Debug
 │   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Users.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │       │           └── ABCDMall.Modules.Users.Infrastructure.pdb
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.props
@@ -422,18 +568,29 @@
 │   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
 │   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GlobalUsings.g.cs
 │   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.sourcelink.json
 │   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Users.Infrastructure.dll
 │   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Users.Infrastructure.dll
 │   │   │           ├── project.assets.json
 │   │   │           └── project.nuget.cache
 │   │   └── UtilityMap
 │   │       ├── ABCDMall.Modules.UtilityMap.Application
 │   │       │   ├── ABCDMall.Modules.UtilityMap.Application.csproj
+│   │       │   ├── Interfaces
+│   │       │   │   └── IMapService.cs
 │   │       │   ├── Services
 │   │       │   │   └── MapService.cs
 │   │       │   ├── bin
 │   │       │   │   └── Debug
 │   │       │   │       └── net9.0
+│   │       │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │       │   │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
 │   │       │   │           ├── ABCDMall.Modules.UtilityMap.Application.deps.json
 │   │       │   │           ├── ABCDMall.Modules.UtilityMap.Application.dll
 │   │       │   │           ├── ABCDMall.Modules.UtilityMap.Application.pdb
@@ -468,31 +625,27 @@
 │   │       ├── ABCDMall.Modules.UtilityMap.Domain
 │   │       │   ├── ABCDMall.Modules.UtilityMap.Domain.csproj
 │   │       │   ├── Entities
-│   │       │   │   └── FloorPlan.cs
+│   │       │   │   ├── FloorPlan.cs
+│   │       │   │   └── MapLocation.cs
 │   │       │   ├── Interfaces
-│   │       │   │   ├── IMapRepository.cs
-│   │       │   │   └── IMapService.cs
+│   │       │   │   └── IMapRepository.cs
 │   │       │   ├── bin
 │   │       │   │   └── Debug
 │   │       │   │       └── net9.0
 │   │       │   │           ├── ABCDMall.Modules.UtilityMap.Domain.deps.json
 │   │       │   │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
-│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Domain.pdb
-│   │       │   │           ├── ABCDMall.Shared.dll
-│   │       │   │           └── ABCDMall.Shared.pdb
+│   │       │   │           └── ABCDMall.Modules.UtilityMap.Domain.pdb
 │   │       │   └── obj
 │   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.dgspec.json
 │   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.g.props
 │   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.g.targets
 │   │       │       ├── Debug
 │   │       │       │   └── net9.0
-│   │       │       │       ├── ABCDMall.23D44F9B.Up2Date
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.AssemblyInfo.cs
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.AssemblyInfoInputs.cache
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.GeneratedMSBuildEditorConfig.editorconfig
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.GlobalUsings.g.cs
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.assets.cache
-│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.AssemblyReference.cache
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.CoreCompileInputs.cache
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.FileListAbsolute.txt
 │   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.dll
@@ -512,6 +665,8 @@
 │   │           ├── bin
 │   │           │   └── Debug
 │   │           │       └── net9.0
+│   │           │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │           │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
 │   │           │           ├── ABCDMall.Modules.UtilityMap.Application.dll
 │   │           │           ├── ABCDMall.Modules.UtilityMap.Application.pdb
 │   │           │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
@@ -548,12 +703,23 @@
 │   ├── ABCDMall.Shared
 │   │   ├── ABCDMall.Shared.csproj
 │   │   ├── DTOs
-│   │   │   └── FoodItemDto.cs
+│   │   │   ├── FoodItemDto.cs
+│   │   │   └── MapLocationDto.cs
+│   │   ├── Migrations
+│   │   │   ├── 20260413063936_InitSqlServer.Designer.cs
+│   │   │   ├── 20260413063936_InitSqlServer.cs
+│   │   │   ├── 20260413083857_SeedMapData.Designer.cs
+│   │   │   ├── 20260413083857_SeedMapData.cs
+│   │   │   └── AppDbContextModelSnapshot.cs
 │   │   ├── Persistence
 │   │   │   └── AppDbContext.cs
 │   │   ├── bin
 │   │   │   └── Debug
 │   │   │       └── net9.0
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Domain.pdb
 │   │   │           ├── ABCDMall.Shared.deps.json
 │   │   │           ├── ABCDMall.Shared.dll
 │   │   │           ├── ABCDMall.Shared.pdb
@@ -564,6 +730,7 @@
 │   │       ├── ABCDMall.Shared.csproj.nuget.g.targets
 │   │       ├── Debug
 │   │       │   └── net9.0
+│   │       │       ├── ABCDMall.7B9D00A2.Up2Date
 │   │       │       ├── ABCDMall.Shared.AssemblyInfo.cs
 │   │       │       ├── ABCDMall.Shared.AssemblyInfoInputs.cache
 │   │       │       ├── ABCDMall.Shared.GeneratedMSBuildEditorConfig.editorconfig
@@ -590,11 +757,12 @@
 │   │   │   ├── FoodController.cs
 │   │   │   └── UtilityMap
 │   │   │       └── MapController.cs
+│   │   ├── MapDataSeeder.cs
 │   │   ├── Program.cs
 │   │   ├── Properties
 │   │   │   └── launchSettings.json
 │   │   ├── appsettings.Development.example.json
-│   │   ├── appsettings.json
+│   │   ├── appsettings.Development.json
 │   │   ├── bin
 │   │   │   └── Debug
 │   │   │       └── net9.0
@@ -621,7 +789,6 @@
 │   │   │           ├── ABCDMall.WebAPI.staticwebassets.runtime.json
 │   │   │           ├── Azure.Core.dll
 │   │   │           ├── Azure.Identity.dll
-│   │   │           ├── DnsClient.dll
 │   │   │           ├── Humanizer.dll
 │   │   │           ├── Microsoft.Bcl.AsyncInterfaces.dll
 │   │   │           ├── Microsoft.CodeAnalysis.CSharp.Workspaces.dll
@@ -646,11 +813,7 @@
 │   │   │           ├── Microsoft.OpenApi.dll
 │   │   │           ├── Microsoft.SqlServer.Server.dll
 │   │   │           ├── Microsoft.Win32.SystemEvents.dll
-│   │   │           ├── MongoDB.Bson.dll
-│   │   │           ├── MongoDB.Driver.dll
 │   │   │           ├── Mono.TextTemplating.dll
-│   │   │           ├── SharpCompress.dll
-│   │   │           ├── Snappier.dll
 │   │   │           ├── Swashbuckle.AspNetCore.Swagger.dll
 │   │   │           ├── Swashbuckle.AspNetCore.SwaggerGen.dll
 │   │   │           ├── Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -668,9 +831,8 @@
 │   │   │           ├── System.Security.Cryptography.ProtectedData.dll
 │   │   │           ├── System.Security.Permissions.dll
 │   │   │           ├── System.Windows.Extensions.dll
-│   │   │           ├── ZstdSharp.dll
 │   │   │           ├── appsettings.Development.example.json
-│   │   │           ├── appsettings.json
+│   │   │           ├── appsettings.Development.json
 │   │   │           ├── cs
 │   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
 │   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
@@ -809,7 +971,12 @@
 │   │       │   ├── 17c3e6c7-1419-4ffe-b113-e9163f4c3991.png
 │   │       │   ├── 280e8844-a9da-4346-8c31-269b6a3fd451.png
 │   │       │   ├── 80787752-ccc8-4063-9135-dfd2fe7ffcb0.png
-│   │       │   └── e66b7fc0-1690-4024-b26a-761eabfe3eb0.jpg
+│   │       │   ├── e66b7fc0-1690-4024-b26a-761eabfe3eb0.jpg
+│   │       │   └── maps
+│   │       │       ├── floor-tang1.png
+│   │       │       ├── floor-tang2.png
+│   │       │       ├── floor-tang3.png
+│   │       │       └── floor-tang4.png
 │   │       └── uploads
 │   │           ├── 18537f78-70ea-47cd-ae3e-dbdd52cba06b.png
 │   │           ├── 1dd530de-c84d-42a8-b7bb-962b58b197c5.png
@@ -830,8 +997,7 @@
 │   ├── Movies_Collection_structure.md
 │   ├── movies_collection_erd_mermaid.md
 │   ├── movies_collection_indexes_checklist.md
-│   ├── movies_collection_relationship.md
-│   └── project_tree.txt
+│   └── movies_collection_relationship.md
 ├── FRONTEND
 │   ├── FE_structure.md
 │   ├── General_Rule.md
@@ -869,6 +1035,8 @@
 │   │   │   │   │   └── mapApi.ts
 │   │   │   │   ├── components
 │   │   │   │   │   └── InteractiveMap.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useMap.ts
 │   │   │   │   └── types
 │   │   │   │       └── map.types.ts
 │   │   │   ├── feedbacks
@@ -927,9 +1095,12 @@
 │   │   │   │       ├── MoviesAdminRoutes.tsx
 │   │   │   │       └── movieAdminPaths.ts
 │   │   │   └── shops
+│   │   │       ├── ShopDetailPage.tsx
 │   │   │       ├── api
+│   │   │       │   └── shopMockData.ts
 │   │   │       ├── components
 │   │   │       └── types
+│   │   │           └── shop.types.ts
 │   │   ├── index.css
 │   │   ├── main.tsx
 │   │   ├── pages
@@ -953,4 +1124,4 @@
 ├── package.json
 └── project_tree.txt
 
-315 directories, 639 files
+320 directories, 805 files

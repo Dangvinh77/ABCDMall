@@ -31,7 +31,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 6. Cấu hình Middleware
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();       
+    await ABCDMall.WebAPI.MapDataSeeder.SeedAsync(db);      
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

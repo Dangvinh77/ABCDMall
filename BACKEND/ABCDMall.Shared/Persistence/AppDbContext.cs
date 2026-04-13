@@ -7,21 +7,21 @@ namespace ABCDMall.Shared.Persistence;
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+     public DbSet<FoodItem> FoodItems { get; set; }   
 
     // --- Module FoodCourt ---
-    public DbSet<FoodItem> FoodItems { get; set; }
-
-    // --- Module UtilityMap ---
     public DbSet<FloorPlan> FloorPlans { get; set; }
+    public DbSet<MapLocation> MapLocations { get; set; }
 
-    // --- Các module khác sẽ thêm vào đây khi làm ---
-    // public DbSet<Movie> Movies { get; set; }
-    // public DbSet<Shop> Shops { get; set; }
-    // public DbSet<User> Users { get; set; }
-    // public DbSet<Feedback> Feedbacks { get; set; }
+ protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-    }
+    // Cấu hình quan hệ FloorPlan → MapLocation
+    modelBuilder.Entity<MapLocation>()
+        .HasOne(m => m.FloorPlan)
+        .WithMany(f => f.Locations)
+        .HasForeignKey(m => m.FloorPlanId)
+        .OnDelete(DeleteBehavior.Cascade);
+}
 }
