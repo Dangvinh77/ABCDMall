@@ -1,8 +1,8 @@
-namespace ABCDMall.Modules.Movies.Application.DTOs.Promotions
+namespace ABCDMall.Modules.Movies.Application.DTOs.Promotions;
+
+public sealed class EvaluatePromotionComboDto
 {
-    public sealed class EvaluatePromotionComboDto
-    {
-        public string ComboCode { get; set; } = string.Empty;
-        public int Quantity { get; set; }
-    }
+    // ComboId duoc tra ve tu endpoint /api/snack-combos va gui nguoc lai khi evaluate.
+    public Guid ComboId { get; set; }
+    public int Quantity { get; set; }
 }

@@ -10,5 +10,6 @@ public enum PromotionRuleType
     BusinessDate = 5,
     PaymentProvider = 6,
     Combo = 7,
-    CouponCode = 8
+    CouponCode = 8,
+    BirthdayMonth = 9
 }

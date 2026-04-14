@@ -5,6 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DependencyInjection.cs" />
+  </ItemGroup>
 	
 
 
@@ -21,8 +25,13 @@
     <Folder Include="DTOs\Payments\" />
     <Folder Include="Mappings\" />
     <Folder Include="Services\Bookings\" />
-    <Folder Include="Services\Promotions\" />
     <Folder Include="Services\Payments\" />
+  </ItemGroup>
+	
+
+
+  <ItemGroup>
+    <None Include="DependencyInjection.cs" />
   </ItemGroup>
 	
 

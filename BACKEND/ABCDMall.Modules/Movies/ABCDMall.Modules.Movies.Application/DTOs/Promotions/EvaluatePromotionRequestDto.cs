@@ -1,17 +1,32 @@
-namespace ABCDMall.Modules.Movies.Application.DTOs.Promotions
+namespace ABCDMall.Modules.Movies.Application.DTOs.Promotions;
+
+public sealed class EvaluatePromotionRequestDto
 {
-    public sealed class EvaluatePromotionRequestDto
-    {
-        public Guid? PromotionId { get; set; }
-        public string PromotionCode { get; set; } = string.Empty;
-        public decimal OrderAmount { get; set; }
-        public int SeatCount { get; set; }
-        public string SeatType { get; set; } = string.Empty;
-        public DateTimeOffset? ShowtimeAtUtc { get; set; }
-        public DateOnly? BusinessDate { get; set; }
-        public string PaymentProvider { get; set; } = string.Empty;
-        public string CouponCode { get; set; } = string.Empty;
-        public IReadOnlyCollection<EvaluatePromotionComboDto> Combos { get; set; } =
-            Array.Empty<EvaluatePromotionComboDto>();
-    }
+    // PromotionId la khoa chuan de backend load dung promotion can evaluate.
+    public Guid PromotionId { get; set; }
+
+    // ShowtimeId giu dung contract chung voi Dev 1.
+    public Guid ShowtimeId { get; set; }
+
+    // Danh sach ghe duoc gui len de test rule seat-count va reserve shape request cho Day 4.
+    public IReadOnlyCollection<Guid> SeatInventoryIds { get; set; } = Array.Empty<Guid>();
+
+    // SeatTypes phuc vu nhom rule theo loai ghe, vi du couple seat.
+    public IReadOnlyCollection<string> SeatTypes { get; set; } = Array.Empty<string>();
+    public string? PaymentProvider { get; set; }
+
+    // Birthday duoc dung cho nhom khuyen mai sinh nhat.
+    public DateOnly? Birthday { get; set; }
+    public decimal SeatSubtotal { get; set; }
+    public decimal ComboSubtotal { get; set; }
+
+    // SnackCombos chua comboId va quantity de rule Combo co the evaluate.
+    public IReadOnlyCollection<EvaluatePromotionComboDto> SnackCombos { get; set; } = Array.Empty<EvaluatePromotionComboDto>();
+    public string? CouponCode { get; set; }
+
+    // BusinessDate giup backend xac dinh booking co nam vao cuoi tuan hay khong.
+    public DateOnly? BusinessDate { get; set; }
+
+    // GuestCustomerId la thong tin toi thieu de enforce MaxRedemptionsPerCustomer.
+    public Guid? GuestCustomerId { get; set; }
 }

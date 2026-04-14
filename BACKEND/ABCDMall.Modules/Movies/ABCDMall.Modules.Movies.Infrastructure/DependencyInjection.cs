@@ -1,5 +1,7 @@
+using ABCDMall.Modules.Movies.Application.Services.Promotions;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
+using ABCDMall.Modules.Movies.Infrastructure.Repositories.Promotions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +14,9 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // Dev 1 va Dev 2 dung chung file DI nay, nhung moi ben chi dang ky thanh phan thuoc ownership cua minh.
         var connectionString = configuration.GetConnectionString("ABCDMallMoviesDBConnection")
             ?? throw new InvalidOperationException("Connection string 'ABCDMallMoviesDBConnection' was not found.");
-
 
         services.AddDbContext<MoviesCatalogDbContext>(options =>
         {
@@ -33,6 +35,8 @@ public static class DependencyInjection
                 sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesBooking", MoviesBookingDbContext.DefaultSchema);
             });
         });
+
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
 
         return services;
     }
