@@ -1,2 +1,2 @@
-import { ShopDetailFeature } from '../../features/shops//ShopDetailPage';
+import { ShopDetailFeature } from '../../features/shops/ShopDetailFeature';
 export const ShopDetailPage = () => <ShopDetailFeature />;

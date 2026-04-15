@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\ABCDMall.Modules.Shops.Domain\ABCDMall.Modules.Shops.Domain.csproj" />
+    <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

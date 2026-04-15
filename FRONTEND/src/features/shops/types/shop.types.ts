@@ -1,10 +1,12 @@
-// FRONTEND/src/features/shops/types/shop.types.ts
-
 export interface Product {
   id: string;
   name: string;
   price: number;
+  oldPrice?: number;
+  discountPercent?: number; 
   imageUrl: string;
+  isFeatured?: boolean; 
+  isDiscounted?: boolean; 
 }
 
 export interface Voucher {
@@ -17,7 +19,7 @@ export interface Voucher {
 
 export interface ShopDetail {
   id: string;
-  slug: string; // ví dụ: "uniqlo"
+  slug: string;
   name: string;
   slogan: string;
   locationSlot: string;

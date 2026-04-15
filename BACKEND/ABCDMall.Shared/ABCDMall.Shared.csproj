@@ -17,6 +17,7 @@
 <ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Domain\ABCDMall.Modules.FoodCourt.Domain.csproj" />
     <ProjectReference Include="..\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Domain\ABCDMall.Modules.UtilityMap.Domain.csproj" />
+    <ProjectReference Include="..\ABCDMall.Modules\Shops\ABCDMall.Modules.Shops.Domain\ABCDMall.Modules.Shops.Domain.csproj" />
 </ItemGroup>
 
 </Project>

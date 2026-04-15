@@ -1,6 +1,7 @@
 ﻿using ABCDMall.Modules.FoodCourt.Domain.Entities;
 using ABCDMall.Modules.UtilityMap.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using ABCDMall.Modules.Shops.Domain.Entities;
 
 namespace ABCDMall.Shared.Persistence;
 
@@ -12,6 +13,10 @@ public class AppDbContext : DbContext
     // --- Module FoodCourt ---
     public DbSet<FloorPlan> FloorPlans { get; set; }
     public DbSet<MapLocation> MapLocations { get; set; }
+
+    public DbSet<Shop> Shops { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Voucher> Vouchers { get; set; }
 
  protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
