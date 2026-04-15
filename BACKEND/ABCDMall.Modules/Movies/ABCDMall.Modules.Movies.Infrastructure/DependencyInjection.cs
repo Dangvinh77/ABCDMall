@@ -1,7 +1,11 @@
+using ABCDMall.Modules.Movies.Application.Services.Movies;
 using ABCDMall.Modules.Movies.Application.Services.Promotions;
+using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
+using ABCDMall.Modules.Movies.Infrastructure.Repositories.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Promotions;
+using ABCDMall.Modules.Movies.Infrastructure.Repositories.Screening;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +40,9 @@ public static class DependencyInjection
             });
         });
 
+        services.AddScoped<IMovieRepository, MovieRepository>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
 
         return services;
     }

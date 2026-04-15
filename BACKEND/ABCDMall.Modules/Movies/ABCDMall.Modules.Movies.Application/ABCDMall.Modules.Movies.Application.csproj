@@ -7,12 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="DependencyInjection.cs" />
-  </ItemGroup>
-	
-
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
   </ItemGroup>
@@ -22,16 +16,9 @@
   <ItemGroup>
     <Folder Include="DTOs\Bookings\" />
     <Folder Include="DTOs\Payments\" />
-    <Folder Include="DTOs\Payments\" />
     <Folder Include="Mappings\" />
     <Folder Include="Services\Bookings\" />
     <Folder Include="Services\Payments\" />
-  </ItemGroup>
-	
-
-
-  <ItemGroup>
-    <None Include="DependencyInjection.cs" />
   </ItemGroup>
 	
 
