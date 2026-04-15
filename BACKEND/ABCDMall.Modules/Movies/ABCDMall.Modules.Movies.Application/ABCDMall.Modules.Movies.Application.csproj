@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\Payments\**" />
+    <EmbeddedResource Remove="Services\Payments\**" />
+    <None Remove="Services\Payments\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="DependencyInjection.cs" />
   </ItemGroup>
 	
@@ -20,12 +26,9 @@
 
 
   <ItemGroup>
-    <Folder Include="DTOs\Bookings\" />
     <Folder Include="DTOs\Payments\" />
     <Folder Include="DTOs\Payments\" />
     <Folder Include="Mappings\" />
-    <Folder Include="Services\Bookings\" />
-    <Folder Include="Services\Payments\" />
   </ItemGroup>
 	
 

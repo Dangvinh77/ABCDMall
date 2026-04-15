@@ -1,0 +1,19 @@
+Day 4 quote proposal - 15 file package
+
+This package is flattened for easier ZIP readers.
+Each file below shows its intended target path in the real solution.
+
+1. 01_BookingQuoteComboItemDto.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingQuoteComboItemDto.cs
+2. 02_BookingQuoteLineDto.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingQuoteLineDto.cs
+3. 03_BookingQuotePromotionDto.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingQuotePromotionDto.cs
+4. 04_BookingQuoteRequestDto.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingQuoteRequestDto.cs
+5. 05_BookingQuoteResponseDto.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingQuoteResponseDto.cs
+6. 06_ShowtimeQuoteSnapshot.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/Models/ShowtimeQuoteSnapshot.cs
+7. 07_SeatInventoryQuoteSnapshot.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/Models/SeatInventoryQuoteSnapshot.cs
+8. 08_IShowtimeReadRepository.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/IShowtimeReadRepository.cs
+9. 09_ISeatInventoryReadRepository.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/ISeatInventoryReadRepository.cs
+10. 10_IBookingQuoteService.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/IBookingQuoteService.cs
+11. 11_BookingQuoteRequestDtoValidator.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/Validators/BookingQuoteRequestDtoValidator.cs
+12. 12_BookingQuoteService.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/BookingQuoteService.cs
+13. 13_CatalogReadRepository.cs -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Infrastructure/Repositories/Bookings/CatalogReadRepository.cs
+14. 14_BookingsController.cs -> ABCDMall.WebAPI/Controllers/BookingsController.cs
