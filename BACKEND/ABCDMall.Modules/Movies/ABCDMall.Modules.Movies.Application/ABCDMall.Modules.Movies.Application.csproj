@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -13,31 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="DependencyInjection.cs" />
-  </ItemGroup>
-	
-
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
   </ItemGroup>
-	
-
 
   <ItemGroup>
-    <Folder Include="DTOs\Payments\" />
     <Folder Include="DTOs\Payments\" />
     <Folder Include="Mappings\" />
   </ItemGroup>
-	
-
-
-  <ItemGroup>
-    <None Include="DependencyInjection.cs" />
-  </ItemGroup>
-	
-
 
   <ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules.Movies.Domain\ABCDMall.Modules.Movies.Domain.csproj" />

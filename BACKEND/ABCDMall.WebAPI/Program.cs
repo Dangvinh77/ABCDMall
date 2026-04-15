@@ -21,7 +21,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddMoviesApplication();
+var autoMapperLicenseKey = builder.Configuration["AutoMapper:LicenseKey"];
+
+builder.Services.AddMoviesApplication(autoMapperLicenseKey);
 builder.Services.AddMoviesInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -46,6 +48,7 @@ await using (var scope = app.Services.CreateAsyncScope())
     {
         var catalogDbContext = scope.ServiceProvider.GetRequiredService<MoviesCatalogDbContext>();
         await catalogDbContext.Database.MigrateAsync();
+        await CatalogSeed.SeedAsync(catalogDbContext);
 
         var bookingDbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
         await bookingDbContext.Database.MigrateAsync();
