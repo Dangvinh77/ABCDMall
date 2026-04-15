@@ -43,4 +43,12 @@ public static class SlugHelper
 
         return text;
     }
+
+    public static string NormalizeImage(string url)
+{
+    if (string.IsNullOrEmpty(url)) return "";
+
+    return url.Replace("./img", "/img");
+}
+
 }

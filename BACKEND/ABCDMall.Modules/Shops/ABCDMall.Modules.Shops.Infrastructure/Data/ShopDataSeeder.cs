@@ -26,8 +26,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Uniqlo", Slug = "uniqlo", Floor = "Tầng 1", LocationSlot = "1-01",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/9/92/UNIQLO_logo.svg",
-        CoverImageUrl = "https://im.uniqlo.com/global-cms/spa/res3ed3924df508b9cdb36ed77daae56891fr.jpg",
+        LogoUrl = "/img/uniqlo/logo.png",
+        CoverImageUrl = "/img/uniqlo/out.jpg",
         Description = "Thương hiệu thời trang bán lẻ đến từ Nhật Bản, nổi tiếng với triết lý LifeWear.",
         Slogan = "LifeWear - Simple Made Better", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -44,8 +44,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Adidas", Slug = "adidas", Floor = "Tầng 1", LocationSlot = "1-11",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg",
-        CoverImageUrl = "https://brand.assets.adidas.com/image/upload/f_auto,q_auto,fl_lossy/if_w_gt_1920,w_1920/enUS/Images/running-ss24-supernova-launch-hp-mh-large-d_tcm221-1111666.jpg",
+        LogoUrl = "/img/adidas/logo.png",
+        CoverImageUrl = "/img/adidas/out.webp",
         Description = "Thương hiệu thể thao hàng đầu thế giới với các dòng Originals, Performance.",
         Slogan = "Impossible is Nothing", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -61,8 +61,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Nike", Slug = "nike", Floor = "Tầng 1", LocationSlot = "1-07",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg",
-        CoverImageUrl = "https://c.static-nike.com/a/images/f_auto/dpr_1.0,cs_srgb/w_1824,c_limit/d2757270-ec18-4cc3-9b25-b88a91a9c3fb/nike-just-do-it.jpg",
+        LogoUrl = "/img/nike/logo.webp",
+        CoverImageUrl = "/img/nike/out.jpg",
         Description = "Thương hiệu giày và thời trang thể thao lớn nhất thế giới, truyền cảm hứng cho mọi vận động viên.",
         Slogan = "Just Do It", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -77,8 +77,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Levi's", Slug = "levis", Floor = "Tầng 1", LocationSlot = "1-02",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/1/1b/Levi%27s_logo.svg",
-        CoverImageUrl = "https://www.levi.com.vn/wp-content/uploads/2023/09/Levis-VN-Banner-Desktop.jpg",
+        LogoUrl = "/img/levi/logo.png",
+        CoverImageUrl = "/img/levi/out.jpg",
         Description = "Biểu tượng của thời trang Denim toàn cầu. Những chiếc quần jeans Levi's là minh chứng cho sự tự do và cá tính.",
         Slogan = "Quality Never Goes Out of Style", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -93,8 +93,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Charles & Keith", Slug = "charles-keith", Floor = "Tầng 1", LocationSlot = "1-06",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/e/ee/Charles_and_Keith_Logo.svg",
-        CoverImageUrl = "https://www.charleskeith.vn/on/demandware.static/-/Library-Sites-CharlesKeithVN/default/dw18b84e0c/images/campaign/2024/spring/spring-2024-campaign-desktop.jpg",
+        LogoUrl = "/img/C&K/logo.jpg",
+        CoverImageUrl = "/img/C&K/out.jpg",
         Description = "Thương hiệu túi xách, giày dép và phụ kiện cao cấp với thiết kế hiện đại, tinh tế dành riêng cho phái đẹp.",
         Slogan = "Fashion forward footwear and accessories", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -109,8 +109,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Beauty Box", Slug = "beauty-box", Floor = "Tầng 1", LocationSlot = "SB-01",
-        LogoUrl = "https://beautybox.com.vn/web/logo/logo-beautybox.png", // Dùng tạm text logo hoặc icon phù hợp nếu lỗi link
-        CoverImageUrl = "https://beautybox.com.vn/media/wysiwyg/BB-KV-Web-Banner-1920x640_1.jpg",
+        LogoUrl = "/img/beautybox/logo.png", // Dùng tạm text logo hoặc icon phù hợp nếu lỗi link
+        CoverImageUrl = "/img/beautybox/out.jpg",
         Description = "Thiên đường mỹ phẩm chính hãng với hàng ngàn sản phẩm làm đẹp từ các thương hiệu đình đám Hàn Quốc, Âu Mỹ.",
         Slogan = "All Beauty Trends", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -126,8 +126,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "PNJ", Slug = "pnj", Floor = "Tầng 1", LocationSlot = "1-27",
-        LogoUrl = "https://cdn.pnj.io/images/logo/pnj.com.vn.png",
-        CoverImageUrl = "https://cdn.pnj.io/images/promo/193/top-banner-pc.jpg",
+        LogoUrl = "/img/pnj/logo.jpg",
+        CoverImageUrl = "/img/pnj/pnj_out.png",
         Description = "Thương hiệu trang sức hàng đầu Việt Nam, mang lại niềm tự hào cho khách hàng bằng các sản phẩm tinh tế, chất lượng.",
         Slogan = "Niềm tin và Phong cách", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -142,8 +142,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Pedro", Slug = "pedro", Floor = "Tầng 1", LocationSlot = "1-09",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/4/49/Pedro_Logo.png", // Dùng icon phụ nếu không hiển thị
-        CoverImageUrl = "https://media.maisononline.vn/sys_master/images/h6a/h7d/9431326490654/campaign-desktop-banner-pedro.jpg",
+        LogoUrl = "/img/pedro/logo.png", // Dùng icon phụ nếu không hiển thị
+        CoverImageUrl = "/img/pedro/pedro_outdoor.png",
         Description = "Thương hiệu thời trang quốc tế chuyên về giày dép và phụ kiện cao cấp dành cho cả nam và nữ với phong cách lịch lãm, hiện đại.",
         Slogan = "Effortless Essentials", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -158,8 +158,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Casio", Slug = "casio", Floor = "Tầng 1", LocationSlot = "K1-11",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/e/eb/Casio_logo.svg",
-        CoverImageUrl = "https://www.casio.com/content/casio/locales/vn/vi/products/watches/gshock/_jcr_content/root/responsivegrid/container_1027170154/teaser.casiocoreimg.jpeg/1684305886915/g-shock-banner-pc.jpeg",
+        LogoUrl = "/img/casio/logo.png",
+        CoverImageUrl = "/img/casio/out.png",
         Description = "Đại lý phân phối đồng hồ chính hãng Casio Nhật Bản. Chuyên các dòng G-Shock chống sốc, Baby-G năng động và Edifice thanh lịch.",
         Slogan = "Toughness & Technology", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -178,8 +178,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Phương Nam Book City", Slug = "phuong-nam", Floor = "Tầng 2", LocationSlot = "3-01",
-        LogoUrl = "https://nhasachphuongnam.com/images/logos/256/logo-pnc.png",
-        CoverImageUrl = "https://bizweb.dktcdn.net/100/363/355/files/hinh-anh-nha-sach-phuong-nam-khong-gian-van-hoa-doc-dep-mat.jpg",
+        LogoUrl = "/img/phuongnam/logo.jpg",
+        CoverImageUrl = "/img/phuongnam/out.jpg",
         Description = "Không gian văn hóa kết hợp giữa sách, văn phòng phẩm cao cấp và đồ chơi giáo dục. Điểm đến lý tưởng cho người yêu sách.",
         Slogan = "Hành trình tri thức, Gắn kết yêu thương", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -196,8 +196,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Pop Mart", Slug = "pop-mart", Floor = "Tầng 2", LocationSlot = "3-15",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/f/fb/Pop_Mart_logo.svg",
-        CoverImageUrl = "https://cdn.tuoitre.vn/471584752817336320/2024/5/17/img-8386-17159392176461974121287.jpg",
+        LogoUrl = "/img/popmart/logo.jpg",
+        CoverImageUrl = "/img/popmart/out.webp",
         Description = "Thương hiệu đồ chơi nghệ thuật (Art Toy) hàng đầu thế giới với trào lưu Blind Box đình đám. Sở hữu các IP độc quyền hot nhất.",
         Slogan = "To Light Up Passion and Bring Joy", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -213,8 +213,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Miniso", Slug = "miniso", Floor = "Tầng 2", LocationSlot = "3-03A",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/e/ea/Miniso_logo.svg",
-        CoverImageUrl = "https://minisovietnam.com.vn/wp-content/uploads/2023/10/banner-web-1.jpg",
+        LogoUrl = "/img/miniso/logo.jpg",
+        CoverImageUrl = "/img/miniso/out.jpg",
         Description = "Thương hiệu bán lẻ đa quốc gia cung cấp các mặt hàng gia dụng, đồ chơi, mỹ phẩm và đồ dùng tiện ích với thiết kế sáng tạo, giá rẻ.",
         Slogan = "Life is for fun", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -229,8 +229,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Ninomaxx", Slug = "ninomaxx", Floor = "Tầng 2", LocationSlot = "3-31",
-        LogoUrl = "https://ninomaxxconcept.com/wp-content/uploads/2023/02/Logo-Ninomaxx-Concept.png",
-        CoverImageUrl = "https://ninomaxxconcept.com/wp-content/uploads/2023/11/Banner-Web-1920x800-1.jpg",
+        LogoUrl = "/img/NINOMAXX/logo.png",
+        CoverImageUrl = "/img/NINOMAXX/out.jpg",
         Description = "Thương hiệu thời trang ứng dụng (Casual Wear) Việt Nam, tiên phong mang đến phong cách năng động, trẻ trung cho mọi lứa tuổi.",
         Slogan = "Beyond Casual", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -245,8 +245,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Levents", Slug = "levents", Floor = "Tầng 2", LocationSlot = "3-07",
-        LogoUrl = "https://levents.asia/wp-content/uploads/2021/10/logo.png",
-        CoverImageUrl = "https://file.hstatic.net/1000312752/file/111_02c770c068304ddfa0c0ab58da5b81cc.jpg",
+        LogoUrl = "/img/levents/logo.png",
+        CoverImageUrl = "/img/levents/OUT.webp",
         Description = "Thương hiệu thời trang Local Brand dành cho giới trẻ, đi đầu về chất lượng và xu hướng thiết kế Streetwear hiện đại.",
         Slogan = "Levents® - Make Everything Become Popular", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -262,8 +262,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Rabity", Slug = "rabity", Floor = "Tầng 2", LocationSlot = "3-03",
-        LogoUrl = "https://rabity.vn/cdn/shop/files/logo_rabity_1_180x.png",
-        CoverImageUrl = "https://rabity.vn/cdn/shop/files/Banner_Web_2000x800_14_1920x.png",
+        LogoUrl = "/img/rabity/logo.jpg",
+        CoverImageUrl = "/img/rabity/out.jpg",
         Description = "Thương hiệu thời trang trẻ em cao cấp hàng đầu Việt Nam. Chất liệu tự nhiên, an toàn, thoải mái cho bé vui chơi cả ngày.",
         Slogan = "Tự do khám phá", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -278,8 +278,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Boo", Slug = "boo", Floor = "Tầng 2", LocationSlot = "3-08",
-        LogoUrl = "https://boo.vn/wp-content/uploads/2021/04/logo-boo.svg", // Giả sử icon Boo
-        CoverImageUrl = "https://boo.vn/wp-content/uploads/2023/12/BOO-Marvel-Banner-PC.jpg",
+        LogoUrl = "/img/boo/logo.png", // Giả sử icon Boo
+        CoverImageUrl = "/img/boo/out.jpg",
         Description = "Thương hiệu thời trang đường phố tiên phong tại Việt Nam, mang tinh thần trẻ trung, phá cách và luôn cập nhật xu hướng.",
         Slogan = "BOO - Bò Sữa", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -294,8 +294,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "John Henry", Slug = "john-henry", Floor = "Tầng 2", LocationSlot = "3-09",
-        LogoUrl = "https://johnhenry.vn/cdn/shop/files/Logo_JH_White_160x.png",
-        CoverImageUrl = "https://johnhenry.vn/cdn/shop/files/Banner_Web_PC_1_1920x.jpg",
+        LogoUrl = "/img/johnhenry/logo.png",
+        CoverImageUrl = "/img/johnhenry/out.jpg",
         Description = "Thời trang nam phong cách Mỹ, mang đến vẻ ngoài lịch lãm, nam tính nhưng vẫn thoải mái cho dân công sở.",
         Slogan = "American Classic", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -310,8 +310,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Lug.vn", Slug = "lugvn", Floor = "Tầng 2", LocationSlot = "3-12",
-        LogoUrl = "https://lug.vn/v2/img/logo.png",
-        CoverImageUrl = "https://bizweb.dktcdn.net/100/363/355/files/lug-vn-cua-hang-vali-chinh-hang.jpg",
+        LogoUrl = "/img/lug/logo.png",
+        CoverImageUrl = "/img/lug/out.webp",
         Description = "Hệ thống phân phối các thương hiệu vali, balo, túi xách, phụ kiện chính hãng quốc tế lớn nhất Việt Nam.",
         Slogan = "Gói trọn mọi hành trình", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -330,8 +330,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Powerbowl 388", Slug = "powerbowl", Floor = "Tầng 3", LocationSlot = "5-01",
-        LogoUrl = "https://powerbowl.vn/wp-content/uploads/2020/09/logo-powerbowl-01.png", // Text logo thay thế
-        CoverImageUrl = "https://powerbowl.vn/wp-content/uploads/2020/12/127116810_1079374095844426_8373307559135062638_o.jpg",
+        LogoUrl = "/img/powerbowl/logo.png", // Text logo thay thế
+        CoverImageUrl = "/img/powerbowl/out.jpg",
         Description = "Trung tâm giải trí Powerbowl mang đến không gian Bowling hiện đại, khu vui chơi Arcade Games và Billiards đẳng cấp.",
         Slogan = "Entertainment Center", OpenTime = "09:30", CloseTime = "23:00",
         Products = new List<Product>
@@ -345,8 +345,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Vans", Slug = "vans", Floor = "Tầng 3", LocationSlot = "5-04",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/9/9eb/Vans_logo.svg",
-        CoverImageUrl = "https://media.maisononline.vn/sys_master/images/h29/he1/9483162746910/VANS-D1-1920X720.jpg",
+        LogoUrl = "/img/vans/logo.jpg",
+        CoverImageUrl = "/img/vans/out.avif",
         Description = "Vans là thương hiệu giày trượt ván và thời trang đường phố biểu tượng toàn cầu, đại diện cho tinh thần sáng tạo và văn hóa giới trẻ.",
         Slogan = "Off The Wall", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -362,8 +362,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Converse", Slug = "converse", Floor = "Tầng 3", LocationSlot = "5-05",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/3/30/Converse_logo.svg",
-        CoverImageUrl = "https://media.maisononline.vn/sys_master/images/h70/h53/9463567794206/CONVERSE-D1-1920X720.jpg",
+        LogoUrl = "/img/converse/logo.webp",
+        CoverImageUrl = "/img/converse/out.jpg",
         Description = "Converse - Biểu tượng của thời trang đường phố từ năm 1908. Khẳng định cá tính với những thiết kế Chuck Taylor huyền thoại.",
         Slogan = "Create Next", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -382,8 +382,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "Sony Center", Slug = "sony-center", Floor = "Tầng 4", LocationSlot = "6-06",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/c/c4/Sony_logo.svg",
-        CoverImageUrl = "https://sonycenter.sony.com.vn/Data/Sites/1/media/sony-center-vietnam.jpg",
+        LogoUrl = "/img/sonycenter/logo.jpeg",
+        CoverImageUrl = "/img/sonycenter/out.png",
         Description = "Trải nghiệm thế giới công nghệ đỉnh cao từ Sony. Phân phối chính hãng các dòng Tivi Bravia, máy chơi game PlayStation, máy ảnh Alpha và tai nghe.",
         Slogan = "Be Moved", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
@@ -399,8 +399,8 @@ public static class ShopDataSeeder
     new Shop
     {
         Name = "LEGO", Slug = "lego", Floor = "Tầng 4", LocationSlot = "6-02",
-        LogoUrl = "https://upload.wikimedia.org/wikipedia/commons/2/24/LEGO_logo.svg",
-        CoverImageUrl = "https://theme.hstatic.net/1000287106/1000984815/14/banner_aboutus.jpg",
+        LogoUrl = "/img/lego/logo.png",
+        CoverImageUrl = "/img/lego/out.webp",
         Description = "Cửa hàng đồ chơi lắp ráp LEGO chính hãng. Nơi khơi nguồn sáng tạo cho mọi lứa tuổi với hàng ngàn bộ mô hình đa dạng.",
         Slogan = "Play On", OpenTime = "09:30", CloseTime = "22:00",
         Products = new List<Product>
