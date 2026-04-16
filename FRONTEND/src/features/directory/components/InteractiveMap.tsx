@@ -158,7 +158,7 @@ export const InteractiveMap = () => {
                   <img
                     src={`${API_BASE}${selectedPin.storefrontImageUrl}`}
                     alt={selectedPin.shopName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               ) : (
