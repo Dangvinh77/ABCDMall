@@ -21,19 +21,21 @@ export const ShopDetailFeature = () => {
       
       try {
         const response = await fetch(`http://localhost:5184/api/shops/${slug.toLowerCase()}`);
-        
+       
         if (!response.ok) {
           throw new Error('Không tìm thấy cửa hàng');
         }
         
         const data = await response.json();
         setShop(data);
+        
       } catch (err: any) {
         console.error("Lỗi khi gọi API:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
+      
     };
 
     fetchShopData();
@@ -223,7 +225,8 @@ export const ShopDetailFeature = () => {
 
                 <div className="w-20 h-20 md:w-28 md:h-28 mb-4 p-2">
                   <img 
-                    src={brand.logo} 
+                   // src={brand.logo} 
+                    src={getImageUrl(brand.logoUrl)}
                     alt={brand.name} 
                     className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
                   />
