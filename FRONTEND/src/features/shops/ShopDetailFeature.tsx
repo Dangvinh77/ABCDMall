@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ShopDetail } from './types/shop.types';
+import { getImageUrl } from "@/core/utils/image";
 
 export const ShopDetailFeature = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -20,19 +21,21 @@ export const ShopDetailFeature = () => {
       
       try {
         const response = await fetch(`http://localhost:5184/api/shops/${slug.toLowerCase()}`);
-        
+       
         if (!response.ok) {
           throw new Error('Không tìm thấy cửa hàng');
         }
         
         const data = await response.json();
         setShop(data);
+        
       } catch (err: any) {
         console.error("Lỗi khi gọi API:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
+      
     };
 
     fetchShopData();
@@ -64,16 +67,27 @@ export const ShopDetailFeature = () => {
       {/* 1. HERO BANNER - HIỆU ỨNG PARALLAX NHẸ */}
       <div className="relative h-[450px] w-full overflow-hidden group">
         <img 
-          src={shop.coverImageUrl} 
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000" 
+          //src={shop.coverImageUrl} 
+          src={getImageUrl(shop.coverImageUrl)}
+  
           alt="Cover" 
+
+         className="w-full h-full object-contain bg-black transform group-hover:scale-105 transition-transform duration-1000" 
+        
+  
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
         
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-10 w-full px-6 xl:px-0 max-w-[1400px] flex flex-col md:flex-row items-end gap-8 pb-10 z-10">
           {/* Logo Shop */}
           <div className="w-36 h-36 bg-white rounded-[2rem] p-3 shadow-2xl border-4 border-white shrink-0 hover:-translate-y-2 transition-transform duration-300">
-            <img src={shop.logoUrl} className="w-full h-full object-contain" alt="Logo" />
+            <img 
+            //src={shop.logoUrl}
+            src={getImageUrl(shop.logoUrl)}
+            
+            className="w-full h-full object-contain" alt="Logo" />
+
+            
           </div>
           <div className="text-white pb-2 flex-1">
             <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tight drop-shadow-lg">{shop.name}</h1>
@@ -114,7 +128,10 @@ export const ShopDetailFeature = () => {
               {featuredProducts.map(p => (
                 <div key={p.id} className="bg-white rounded-2xl p-3 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-gray-100 group">
                   <div className="aspect-[4/5] rounded-xl overflow-hidden mb-4 relative bg-gray-50">
-                    <img src={p.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name} />
+                    <img 
+                    //src={p.imageUrl}
+                    src={getImageUrl(p.imageUrl)}
+                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name} />
                   </div>
                   <h3 className="font-bold text-gray-800 line-clamp-2 min-h-[3rem] mb-2">{p.name}</h3>
                   <p className="text-gray-900 font-black text-xl">{p.price.toLocaleString()} ₫</p>
@@ -142,7 +159,10 @@ export const ShopDetailFeature = () => {
                   </div>
 
                   <div className="aspect-[4/5] rounded-xl overflow-hidden mb-4 relative bg-gray-50">
-                    <img src={p.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name}/>
+                    <img
+                    //src={p.imageUrl} 
+                    src={getImageUrl(p.imageUrl)}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name}/>
                   </div>
                   <h3 className="font-bold text-gray-800 line-clamp-2 min-h-[3rem] mb-2">{p.name}</h3>
                   <div className="flex items-end gap-2">
@@ -205,7 +225,8 @@ export const ShopDetailFeature = () => {
 
                 <div className="w-20 h-20 md:w-28 md:h-28 mb-4 p-2">
                   <img 
-                    src={brand.logo} 
+                   // src={brand.logo} 
+                    src={getImageUrl(brand.logoUrl)}
                     alt={brand.name} 
                     className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
                   />

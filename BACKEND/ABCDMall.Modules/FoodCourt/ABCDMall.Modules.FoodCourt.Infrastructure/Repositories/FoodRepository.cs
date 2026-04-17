@@ -47,6 +47,7 @@ public class FoodRepository : IFoodRepository
         existing.Description = item.Description;
         existing.MallSlug = item.MallSlug;
         existing.CategorySlug = item.CategorySlug;
+        
 
         await _context.SaveChangesAsync();
     }

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { mockBrandsData } from './api/brandsMockData';
+import { getImageUrl } from "@/core/utils/image";
 
 export const BrandsFeature = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -137,7 +138,8 @@ export const BrandsFeature = () => {
                     
                     <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
                       <img 
-                        src={brand.logoUrl} 
+                        //src={brand.logoUrl} 
+                         src={getImageUrl(brand.logoUrl)}
                         alt={brand.name} 
                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
                       />

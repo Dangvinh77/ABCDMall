@@ -6,7 +6,7 @@ export const InteractiveMap = () => {
   const { floors, activeFloor, switchFloor, loading, error } = useMap();
   const [selectedPin, setSelectedPin] = useState<MapLocation | null>(null);
   const [imgLoaded, setImgLoaded] = useState(false);
-  
+
   // State lưu toạ độ vừa click (Dành cho Dev Mode)
   const [devCoords, setDevCoords] = useState<{ x: number; y: number } | null>(null);
 
@@ -60,8 +60,8 @@ export const InteractiveMap = () => {
             key={floor.id}
             onClick={() => handleFloorSwitch(floor)}
             className={`px-7 py-2.5 rounded-2xl font-bold text-base transition-all duration-300 ${activeFloor.id === floor.id
-                ? 'bg-mall-primary text-white shadow-[0_4px_18px_rgba(255,65,108,0.4)] scale-105'
-                : 'bg-white text-gray-500 border-2 border-gray-100 hover:border-mall-primary/40 hover:text-mall-primary'
+              ? 'bg-mall-primary text-white shadow-[0_4px_18px_rgba(255,65,108,0.4)] scale-105'
+              : 'bg-white text-gray-500 border-2 border-gray-100 hover:border-mall-primary/40 hover:text-mall-primary'
               }`}
           >
             {floor.floorLevel}
@@ -71,7 +71,7 @@ export const InteractiveMap = () => {
 
       {/* NỘI DUNG CHÍNH */}
       <div className="flex flex-col lg:flex-row gap-8">
-        
+
         {/* CỘT TRÁI: BẢN ĐỒ - TĂNG LÊN CHIẾM 3/4 (75%) */}
         <div className="w-full lg:w-3/4 bg-white rounded-[2rem] p-4 shadow-2xl border border-gray-100">
           <div className="mb-3 px-2 flex justify-between items-center">
@@ -79,7 +79,7 @@ export const InteractiveMap = () => {
               <h2 className="text-lg font-extrabold text-mall-dark">{activeFloor.description}</h2>
               <p className="text-sm text-gray-400">{activeFloor.locations.length} cửa hàng</p>
             </div>
-            
+
             {/* Box hiển thị tọa độ góc phải */}
             {devCoords && (
               <div className="bg-gray-800 text-green-400 px-4 py-2 rounded-xl font-mono text-sm shadow-inner">
@@ -89,7 +89,7 @@ export const InteractiveMap = () => {
           </div>
 
           {/* Khung map — Tỷ lệ 3:4 */}
-          <div 
+          <div
             className="relative w-full rounded-[1.5rem] overflow-hidden border border-gray-100 cursor-crosshair bg-slate-50"
             style={{ aspectRatio: '3 / 4' }}
             onClick={handleMapClick}
@@ -119,10 +119,10 @@ export const InteractiveMap = () => {
                 >
                   <div className={`rounded-full border-2 shadow-lg flex items-center justify-center transition-all duration-300
                     ${isCinema ? 'w-10 h-10 text-base bg-gray-800 text-white' : 'w-6 h-6'}
-                    ${isActive 
-                      ? 'bg-yellow-400 border-white scale-150' 
-                      : isCinema 
-                        ? 'border-white hover:scale-110' 
+                    ${isActive
+                      ? 'bg-yellow-400 border-white scale-150'
+                      : isCinema
+                        ? 'border-white hover:scale-110'
                         : 'bg-red-500 border-white hover:scale-125'
                     }`}
                   >
@@ -143,59 +143,65 @@ export const InteractiveMap = () => {
 
         {/* CỘT PHẢI: THÔNG TIN - THU LẠI 1/4 (25%) & THÊM STICKY */}
         <div className="w-full lg:w-1/4 sticky top-8 self-start transition-all duration-300">
-           {selectedPin ? (
-             <div className="bg-white rounded-[2rem] p-6 shadow-2xl border border-gray-100 animate-fade-in-up">
-                
-                {/* Ảnh cover của Shop (nếu có) */}
-                {selectedPin.storefrontImageUrl ? (
-                  <div className="rounded-[1.5rem] overflow-hidden aspect-[4/3] mb-5 shadow-md">
-                    <img
+          {selectedPin ? (
+            <div className="bg-white rounded-[2rem] p-6 shadow-2xl border border-gray-100 animate-fade-in-up">
+
+              {/* Ảnh cover của Shop (nếu có) */}
+              {selectedPin.storefrontImageUrl ? (
+                <div className="rounded-[1.5rem] overflow-hidden aspect-[4/3] mb-5 shadow-md">
+                  {/* <img
                       src={selectedPin.storefrontImageUrl}
                       alt={selectedPin.shopName}
                       className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="rounded-[1.5rem] aspect-[4/3] mb-5 bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center border border-gray-100">
-                    <span className="text-5xl">{selectedPin.shopUrl === '/movies' ? '🍿' : '🏪'}</span>
-                  </div>
-                )}
+                    /> */}
 
-                <div className="text-center px-2">
-                  <span className="inline-block bg-red-50 text-red-500 text-xs font-extrabold px-3 py-1 rounded-full mb-3">
-                    📍 Lô {selectedPin.locationSlot}
-                  </span>
-                  
-                  <h3 className="text-2xl font-black text-gray-800 mb-2">{selectedPin.shopName}</h3>
-                  <p className="text-gray-400 text-sm mb-5">
-                    {activeFloor.floorLevel}
-                  </p>
-
-                  {/* Hiện toạ độ Dev (Bạn có thể xóa phần này khi deploy thật) */}
-                  <div className="mb-6 p-3 bg-gray-50 rounded-xl font-mono text-xs text-gray-500 border border-gray-100 text-left">
-                      <strong>Toạ độ Pin:</strong><br/>
-                      X: {selectedPin.x}<br/>
-                      Y: {selectedPin.y}
-                  </div>
-
-                  {/* Nút Xem Gian Hàng */}
-                  <a
-                    href={selectedPin.shopUrl}
-                    className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center"
-                  >
-                    Xem Gian Hàng &rarr;
-                  </a>
+                  <img
+                    src={`${API_BASE}${selectedPin.storefrontImageUrl}`}
+                    alt={selectedPin.shopName}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-             </div>
-           ) : (
-             <div className="bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 min-h-[300px] flex flex-col items-center justify-center p-8 text-center">
-               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm animate-bounce">
-                 📌
-               </div>
-               <h3 className="text-lg font-bold text-gray-500 mb-2">Chưa chọn cửa hàng</h3>
-               <p className="text-gray-400 text-sm">Bấm vào điểm ghim trên bản đồ để xem thông tin chi tiết.</p>
-             </div>
-           )}
+              ) : (
+                <div className="rounded-[1.5rem] aspect-[4/3] mb-5 bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center border border-gray-100">
+                  <span className="text-5xl">{selectedPin.shopUrl === '/movies' ? '🍿' : '🏪'}</span>
+                </div>
+              )}
+
+              <div className="text-center px-2">
+                <span className="inline-block bg-red-50 text-red-500 text-xs font-extrabold px-3 py-1 rounded-full mb-3">
+                  📍 Lô {selectedPin.locationSlot}
+                </span>
+
+                <h3 className="text-2xl font-black text-gray-800 mb-2">{selectedPin.shopName}</h3>
+                <p className="text-gray-400 text-sm mb-5">
+                  {activeFloor.floorLevel}
+                </p>
+
+                {/* Hiện toạ độ Dev (Bạn có thể xóa phần này khi deploy thật) */}
+                <div className="mb-6 p-3 bg-gray-50 rounded-xl font-mono text-xs text-gray-500 border border-gray-100 text-left">
+                  <strong>Toạ độ Pin:</strong><br />
+                  X: {selectedPin.x}<br />
+                  Y: {selectedPin.y}
+                </div>
+
+                {/* Nút Xem Gian Hàng */}
+                <a
+                  href={selectedPin.shopUrl}
+                  className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center"
+                >
+                  Xem Gian Hàng &rarr;
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 min-h-[300px] flex flex-col items-center justify-center p-8 text-center">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm animate-bounce">
+                📌
+              </div>
+              <h3 className="text-lg font-bold text-gray-500 mb-2">Chưa chọn cửa hàng</h3>
+              <p className="text-gray-400 text-sm">Bấm vào điểm ghim trên bản đồ để xem thông tin chi tiết.</p>
+            </div>
+          )}
         </div>
 
       </div>
