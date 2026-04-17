@@ -32,10 +32,21 @@ import {
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
+import {
+  createBookingHold,
+  fetchPromotions,
+  fetchSeatMap,
+  fetchSnackCombos,
+  resolvePromotionApiIdFromUiId,
+  type BookingHoldModel,
+  type PromotionModel,
+  type SnackComboModel,
+} from '../api/moviesApi';
 type SeatStatus = 'available' | 'booked' | 'selected';
 
 interface Seat {
   id: string;
+  seatInventoryId?: string;
   row: string;
   col: number;
   type: SeatType;
@@ -74,6 +85,26 @@ function buildSeats(): Seat[][] {
       return { id, row, col, type, status };
     })
   );
+}
+
+function buildSeatsFromApi(seatMap: Awaited<ReturnType<typeof fetchSeatMap>>): Seat[][] {
+  const rows = new Map<string, Seat[]>();
+
+  seatMap.seats.forEach((seat) => {
+    const nextSeat: Seat = {
+      id: seat.seatCode,
+      seatInventoryId: seat.seatInventoryId,
+      row: seat.row,
+      col: seat.col,
+      type: seat.seatType,
+      status: seat.status === 'available' ? 'available' : 'booked',
+    };
+    rows.set(seat.row, [...(rows.get(seat.row) ?? []), nextSeat]);
+  });
+
+  return Array.from(rows.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, rowSeats]) => rowSeats.sort((left, right) => left.col - right.col));
 }
 function SeatButton({
   seat,
@@ -179,6 +210,7 @@ export function SeatSelectionPage() {
 
   const cinemaId = searchParams.get('cinema') ?? 'abcd-mall';
   const showtime = searchParams.get('showtime') ?? '19:30';
+  const showtimeId = searchParams.get('showtimeId');
   const hallType = searchParams.get('hallType') ?? '2D';
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? getDefaultBookingDate();
@@ -189,12 +221,66 @@ export function SeatSelectionPage() {
   const [seats, setSeats] = useState<Seat[][]>(buildSeats);
   const [timeLeft, setTimeLeft] = useState(10 * 60);
   const [comboQuantities, setComboQuantities] = useState<Record<string, number>>({});
+  const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
+  const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
     const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(id);
   }, [timeLeft]);
+
+  useEffect(() => {
+    if (!showtimeId) return;
+
+    let active = true;
+    const currentShowtimeId = showtimeId;
+
+    async function loadSeatMapFromApi() {
+      try {
+        // API FETCH NOTE:
+        // Seat selection keeps the original seating UI, but this replaces seat availability with live API seat-map data.
+        const seatMap = await fetchSeatMap(currentShowtimeId);
+        if (active && seatMap.seats.length > 0) {
+          setSeats(buildSeatsFromApi(seatMap));
+        }
+      } catch (error) {
+        console.warn("Seat map API failed; using bundled fallback seats.", error);
+      }
+    }
+
+    void loadSeatMapFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, [showtimeId]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadBookingSeedDataFromApi() {
+      try {
+        const [combos, promotions] = await Promise.all([
+          fetchSnackCombos(),
+          fetchPromotions(true),
+        ]);
+
+        if (active) {
+          setApiSnackCombos(combos);
+          setApiPromotions(promotions);
+        }
+      } catch (error) {
+        console.warn("Booking seed API failed; using bundled fallback data for checkout state.", error);
+      }
+    }
+
+    void loadBookingSeedDataFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const toggleSeat = useCallback((clicked: Seat) => {
     if (clicked.status === 'booked') return;
@@ -248,6 +334,10 @@ export function SeatSelectionPage() {
     () => selectedSnackCombos.reduce((sum, combo) => sum + combo.quantity, 0),
     [selectedSnackCombos]
   );
+  const apiComboIdByCode = useMemo(
+    () => new Map(apiSnackCombos.map((combo) => [combo.code, combo.id])),
+    [apiSnackCombos]
+  );
   const serviceFee = selected.length * SERVICE_FEE;
   const isLow = timeLeft < 120;
   const bookingDateLabel = useMemo(
@@ -282,16 +372,23 @@ export function SeatSelectionPage() {
   const updateComboQuantity = useCallback((comboId: string, nextQuantity: number) => {
     setComboQuantities((prev) => {
       if (nextQuantity <= 0) {
-        const { [comboId]: _removed, ...rest } = prev;
-        return rest;
+        const next = { ...prev };
+        delete next[comboId];
+        return next;
       }
       return { ...prev, [comboId]: Math.min(nextQuantity, 9) };
     });
   }, []);
 
   // Navigate to checkout with booking state
-  const goToCheckout = () => {
+  const goToCheckout = async () => {
     if (selected.length === 0) return;
+
+    if (!showtimeId || selected.some((seat) => !seat.seatInventoryId)) {
+      window.alert("This showtime is not ready for online booking yet. Please choose a live showtime again.");
+      return;
+    }
+
     const params = new URLSearchParams({
       cinema: cinemaId,
       showtime,
@@ -299,19 +396,54 @@ export function SeatSelectionPage() {
       date: bookingDate,
     });
 
+    if (showtimeId) {
+      params.set('showtimeId', showtimeId);
+    }
+
     if (promoId) {
       params.set('promo', promoId);
+    }
+
+    let bookingHold: BookingHoldModel | null = null;
+
+    try {
+      const snackCombos = selectedSnackCombos.map((selection) => {
+        const comboId = apiComboIdByCode.get(selection.id);
+        if (!comboId) {
+          throw new Error(`Missing API combo id for ${selection.id}.`);
+        }
+        return { comboId, quantity: selection.quantity };
+      });
+
+      bookingHold = await createBookingHold({
+        showtimeId,
+        seatInventoryIds: selected.map((seat) => seat.seatInventoryId as string),
+        snackCombos,
+        promotionId: resolvePromotionApiIdFromUiId(apiPromotions, promoId),
+        sessionId: window.sessionStorage.getItem('abcd-cinema-session-id') ?? undefined,
+      });
+
+      params.set('holdId', bookingHold.holdId);
+    } catch (error) {
+      console.warn("Create booking hold API failed; checkout was blocked.", error);
+      window.alert("Unable to hold these seats. Please refresh the showtime and choose available seats again.");
+      return;
     }
 
     navigate(
      `${moviePaths.checkout(movieId ?? '')}?${params.toString()}`,
       {
         state: {
-          seats: selected.map((s) => ({ id: s.id, type: s.type })),
-          subtotal,
+          holdId: bookingHold?.holdId,
+          holdCode: bookingHold?.holdCode,
+          holdExpiresAtUtc: bookingHold?.expiresAtUtc,
+          holdRemainingSeconds: bookingHold?.remainingSeconds,
+          seats: selected.map((s) => ({ id: s.id, type: s.type, seatInventoryId: s.seatInventoryId })),
+          subtotal: bookingHold?.seatSubtotal ?? subtotal,
           serviceFee,
-          total: promoTotals.total,
-          comboSubtotal,
+          total: bookingHold?.grandTotal ?? promoTotals.total,
+          comboSubtotal: bookingHold?.comboSubtotal ?? comboSubtotal,
+          discountAmount: bookingHold?.discountAmount,
           combos: selectedSnackCombos,
           promoId,
           bookingDate,

@@ -49,10 +49,11 @@ await using (var scope = app.Services.CreateAsyncScope())
         var catalogDbContext = scope.ServiceProvider.GetRequiredService<MoviesCatalogDbContext>();
         await catalogDbContext.Database.MigrateAsync();
         await CatalogSeed.SeedAsync(catalogDbContext);
+        await FrontendMoviesSeed.SeedCatalogAsync(catalogDbContext);
 
         var bookingDbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
         await bookingDbContext.Database.MigrateAsync();
-        await MoviesPromotionSeed.SeedAsync(bookingDbContext);
+        await FrontendMoviesSeed.SeedBookingAsync(bookingDbContext);
     }
     catch (Exception ex)
     {

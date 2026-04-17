@@ -15,4 +15,9 @@ public interface IShowtimeRepository
     Task<IReadOnlyList<ShowtimeSeatInventory>> GetSeatMapByShowtimeIdAsync(
         Guid showtimeId,
         CancellationToken cancellationToken = default);
+    Task MarkSeatsBookedAsync(
+        Guid showtimeId,
+        IReadOnlyCollection<Guid> seatInventoryIds,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default);
 }

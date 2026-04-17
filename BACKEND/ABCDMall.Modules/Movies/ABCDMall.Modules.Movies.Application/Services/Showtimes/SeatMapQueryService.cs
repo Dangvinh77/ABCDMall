@@ -1,14 +1,20 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
+using ABCDMall.Modules.Movies.Application.Services.Bookings;
+using ABCDMall.Modules.Movies.Domain.Enums;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Showtimes;
 
 public sealed class SeatMapQueryService : ISeatMapQueryService
 {
     private readonly IShowtimeRepository _showtimeRepository;
+    private readonly IBookingHoldRepository _bookingHoldRepository;
 
-    public SeatMapQueryService(IShowtimeRepository showtimeRepository)
+    public SeatMapQueryService(
+        IShowtimeRepository showtimeRepository,
+        IBookingHoldRepository bookingHoldRepository)
     {
         _showtimeRepository = showtimeRepository;
+        _bookingHoldRepository = bookingHoldRepository;
     }
 
     public async Task<SeatMapResponseDto?> GetByShowtimeIdAsync(Guid showtimeId, CancellationToken cancellationToken = default)
@@ -20,6 +26,10 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
         }
 
         var seats = await _showtimeRepository.GetSeatMapByShowtimeIdAsync(showtimeId, cancellationToken);
+        var activeHoldSeatIds = await _bookingHoldRepository.GetActiveSeatInventoryIdsAsync(
+            showtimeId,
+            DateTime.UtcNow,
+            cancellationToken);
 
         return new SeatMapResponseDto
         {
@@ -36,7 +46,9 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
                     Row = seat.RowLabel,
                     Col = seat.ColumnNumber,
                     SeatType = seat.SeatType.ToString(),
-                    Status = seat.Status.ToString(),
+                    Status = seat.Status == SeatInventoryStatus.Available && activeHoldSeatIds.Contains(seat.Id)
+                        ? "Held"
+                        : seat.Status.ToString(),
                     Price = seat.Price,
                     CoupleGroupCode = seat.CoupleGroupCode
                 })

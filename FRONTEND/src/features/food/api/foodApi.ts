@@ -1,11 +1,11 @@
 import { api } from "../../../core/api/api";
 
-export const getFoods = () => api.get("/food");
+export const getFoods = () => api.get<any[]>("/food");
 
 //export const createFood = (data: any) => api.post("/food", data);
 
 export const getFoodBySlug = (slug: string) =>
-                                                 api.get(`/food/slug/${slug}`);
+                                                 api.get<any>(`/food/slug/${slug}`);
 
 // export const uploadImage = async (file: File) => {
 //   const formData = new FormData();

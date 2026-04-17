@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -13,13 +14,14 @@ import {
   Ticket,
   Play,
 } from 'lucide-react';
-import { getMovieById } from '../data/movie';
 import { vnd } from '../data/booking';
-import { getScheduleDataForDate, getScheduleDates, formatScheduleDateParam } from '../data/schedules';
+import { getScheduleDates, formatScheduleDateParam, type MovieSchedule } from '../data/schedules';
 import { getDefaultBookingDate } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
+import { fallbackMovieDetailUiData, loadMovieDetailUiData } from '../api/movieUiAdapter';
+import type { Movie } from '../data/movie';
 
 const HALL_TYPE_COLORS: Record<string, string> = {
   '2D': 'bg-gray-700 text-gray-200',
@@ -33,17 +35,18 @@ export function MovieDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const movie = movieId ? getMovieById(movieId) : undefined;
-  const scheduleMovieId = movieId ? movieId.replace(/-(now|soon)-\d+$/, '') : undefined;
   const availableDates = getScheduleDates(7);
   const initialBookingDate = searchParams.get('date') ?? getDefaultBookingDate();
   const bookingDate =
     availableDates.find((dateOption) => formatScheduleDateParam(dateOption.date) === initialBookingDate)
       ? initialBookingDate
       : formatScheduleDateParam(availableDates[0].date);
-  const movieSchedule = scheduleMovieId
-    ? getScheduleDataForDate(bookingDate).find((item) => item.movie.id === scheduleMovieId)
-    : undefined;
+  const fallbackData = fallbackMovieDetailUiData(movieId, bookingDate);
+  const [apiMovie, setApiMovie] = useState<Movie | undefined>(fallbackData.movie);
+  const [apiMovieSchedule, setApiMovieSchedule] = useState<MovieSchedule | undefined>(fallbackData.movieSchedule);
+  const movie = apiMovie ?? fallbackData.movie;
+  const movieSchedule = apiMovieSchedule ?? fallbackData.movieSchedule;
+  const scheduleMovieId = movie?.id.replace(/-(now|soon)-\d+$/, '') ?? movieId?.replace(/-(now|soon)-\d+$/, '');
   const bookingDateLabel = new Date(`${bookingDate}T00:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -51,12 +54,15 @@ export function MovieDetailPage() {
     year: 'numeric',
   });
 
-  const buildBookingUrl = (cinemaId: string, showtime: string, hallType: string) => {
+  const buildBookingUrl = (cinemaId: string, showtime: string, hallType: string, showtimeId?: string) => {
     const params = new URLSearchParams(location.search);
     params.set('cinema', cinemaId);
     params.set('showtime', showtime);
     params.set('hallType', hallType);
     params.set('date', bookingDate);
+    if (showtimeId) {
+      params.set('showtimeId', showtimeId);
+    }
 
     return `${moviePaths.booking(movieId ?? '')}?${params.toString()}`;
   };
@@ -75,6 +81,38 @@ export function MovieDetailPage() {
 
     return `${moviePaths.detail(movieId ?? '')}?${params.toString()}`;
   };
+
+  useEffect(() => {
+    if (!movieId) return;
+
+    let active = true;
+    const currentMovieId = movieId;
+
+    async function loadMovieFromApi() {
+      try {
+        // API FETCH NOTE:
+        // Detail keeps the original visual layout but swaps the movie/showtime objects with API-backed data.
+        const data = await loadMovieDetailUiData(currentMovieId, bookingDate);
+        if (!active) return;
+
+        setApiMovie(data.movie);
+        setApiMovieSchedule(data.movieSchedule);
+      } catch (error) {
+        const fallback = fallbackMovieDetailUiData(currentMovieId, bookingDate);
+        if (active) {
+          setApiMovie(fallback.movie);
+          setApiMovieSchedule(fallback.movieSchedule);
+        }
+        console.warn("Movie detail API failed; using bundled fallback data.", error);
+      }
+    }
+
+    void loadMovieFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, [bookingDate, movieId]);
 
   if (!movie) {
     return (
@@ -353,7 +391,7 @@ export function MovieDetailPage() {
                             key={showtime.id}
                             disabled={showtime.availableSeats === 0}
                             onClick={() =>
-                              navigate(buildBookingUrl(cinema.cinemaId, showtime.time, showtime.hallType))
+                              navigate(buildBookingUrl(cinema.cinemaId, showtime.time, showtime.hallType, showtime.id))
                             }
                             className="group relative overflow-hidden rounded-xl border border-gray-600 bg-gray-900/50 px-4 py-2 text-left text-sm font-semibold text-white transition-all hover:border-purple-500/70 hover:bg-purple-500/10 hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:cursor-not-allowed disabled:opacity-40"
                           >
@@ -385,6 +423,7 @@ export function MovieDetailPage() {
                               cinema.cinemaId,
                               firstAvailableShowtime.time,
                               firstAvailableShowtime.hallType,
+                              firstAvailableShowtime.id,
                             ),
                           )
                         }

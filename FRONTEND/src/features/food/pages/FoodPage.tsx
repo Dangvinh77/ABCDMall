@@ -68,7 +68,6 @@
 
 import { useFood } from "../hooks/useFood";
 import { useState } from "react";
-import { uploadImage } from "../../../core/api/api";
 import { useNavigate } from "react-router-dom";
 import { getImageUrl } from "../../../core/utils/image";
 
@@ -81,39 +80,6 @@ export default function FoodPage() {
   const filteredFoods = (foods || []).filter((f) =>
     f.name?.toLowerCase().includes(keyword.toLowerCase())
   );
-
-  const [file, setFile] = useState<File | null>(null);
-  const [imageUrl, setImageUrl] = useState("");
-
-  const handleUpdate = async (food: any) => {
-    try {
-      const formData = new FormData();
-
-      formData.append("name", food.name || "");
-      formData.append("description", food.description || "");
-
-      if (file) {
-        formData.append("file", file);
-      } else if (food.imageUrl) {
-        formData.append("imageUrl", food.imageUrl);
-      }
-
-      const res = await fetch(`http://localhost:5184/api/food/${food.id}`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Update failed");
-
-      const data = await res.json();
-      console.log("UPDATE SUCCESS:", data);
-
-      alert("Updated successfully!");
-    } catch (err) {
-      console.error("UPDATE ERROR:", err);
-      alert("Update failed!");
-    }
-  };
 
 //   return (
 //     <div className="bg-gray-50 min-h-screen">

@@ -85,4 +85,42 @@ public sealed class ShowtimeRepository : IShowtimeRepository
             .ThenBy(seat => seat.ColumnNumber)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task MarkSeatsBookedAsync(
+        Guid showtimeId,
+        IReadOnlyCollection<Guid> seatInventoryIds,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        // DAY5 TEST-ONLY CONFIRM FLOW:
+        // Đánh dấu ghế Booked trực tiếp để test luồng Confirm.
+        // Khi có booking/payment thật, thao tác này nên nằm trong use case xác nhận thanh toán/booking hoàn chỉnh.
+        var distinctSeatInventoryIds = seatInventoryIds.Distinct().ToArray();
+        var seats = await _dbContext.ShowtimeSeatInventories
+            .Where(seat => seat.ShowtimeId == showtimeId && distinctSeatInventoryIds.Contains(seat.Id))
+            .ToListAsync(cancellationToken);
+
+        if (seats.Count != distinctSeatInventoryIds.Length)
+        {
+            throw new InvalidOperationException("Some selected seats were not found for this showtime.");
+        }
+
+        var unavailableSeats = seats
+            .Where(seat => seat.Status != SeatInventoryStatus.Available)
+            .Select(seat => seat.SeatCode)
+            .ToArray();
+
+        if (unavailableSeats.Length > 0)
+        {
+            throw new InvalidOperationException($"Selected seats are no longer available: {string.Join(", ", unavailableSeats)}.");
+        }
+
+        foreach (var seat in seats)
+        {
+            seat.Status = SeatInventoryStatus.Booked;
+            seat.UpdatedAtUtc = utcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

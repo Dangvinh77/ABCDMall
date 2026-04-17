@@ -1,41 +1,65 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
-// Imports từ nhánh Minh/foodcourt
-import FoodPage from "./features/food/pages/FoodPage";
-import FoodDetailPage from "./features/food/pages/FoodDetailPage";
-
-// Imports từ nhánh fe-shop
-import { HomePage } from "./pages/home/HomePage";
 import { Footer } from "./core/layouts/Footer";
+import FoodDetailPage from "./features/food/pages/FoodDetailPage";
+import FoodPage from "./features/food/pages/FoodPage";
+import { MoviesAdminRoutes } from "./features/movies-admin/routes/MoviesAdminRoutes";
+import { MoviesRoutes } from "./features/movies/routes/MovieRoutes";
+import { HomePage } from "./pages/home/HomePage";
 
 function App() {
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen">
-        {/* Phần nội dung chính: Chứa tất cả các Routes */}
-        <div className="flex-grow">
-          <Routes>
-            {/* Trang chủ */}
-            <Route path="/" element={<HomePage />} />
+    <div className="flex min-h-screen flex-col">
+      {/* main.tsx already provides BrowserRouter; keeping App router-free avoids nested-router runtime errors. */}
+      <div className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
 
-            {/* Các Routes thuộc tính năng Food Court (đã gộp) */}
-            <Route path="/food-court" element={<FoodPage />} />
-            <Route path="/food/:slug" element={<FoodDetailPage />} />
-            <Route path="/mall/:mall/:slug" element={<FoodDetailPage />} />
+          <Route path="/food-court" element={<FoodPage />} />
+          <Route path="/food/:slug" element={<FoodDetailPage />} />
+          <Route path="/mall/:mall/:slug" element={<FoodDetailPage />} />
 
-            {/* Các trang khác đang phát triển */}
-            <Route path="/shops" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Cửa hàng (Sắp ra mắt)</div>} />
-            <Route path="/movies" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Đặt vé phim (Sắp ra mắt)</div>} />
-            <Route path="/gallery" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Thư viện (Sắp ra mắt)</div>} />
-            <Route path="/map" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Sơ đồ (Sắp ra mắt)</div>} />
-            <Route path="/contact" element={<div className="p-20 text-center text-2xl font-bold min-h-[50vh]">Trang Liên hệ (Sắp ra mắt)</div>} />
-          </Routes>
-        </div>
+          {/* Movies pages are the live test flow: home -> showtimes -> seats -> checkout. */}
+          <Route path="/movies/admin/*" element={<MoviesAdminRoutes />} />
+          <Route path="/movies/*" element={<MoviesRoutes />} />
 
-        {/* Chân trang luôn hiển thị ở dưới cùng nhờ vào flex-grow ở trên */}
-        <Footer />
+          <Route
+            path="/shops"
+            element={
+              <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
+                Trang Cua hang (Sap ra mat)
+              </div>
+            }
+          />
+          <Route
+            path="/gallery"
+            element={
+              <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
+                Trang Thu vien (Sap ra mat)
+              </div>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
+                Trang So do (Sap ra mat)
+              </div>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
+                Trang Lien he (Sap ra mat)
+              </div>
+            }
+          />
+        </Routes>
       </div>
-    </Router>
+
+      <Footer />
+    </div>
   );
 }
 

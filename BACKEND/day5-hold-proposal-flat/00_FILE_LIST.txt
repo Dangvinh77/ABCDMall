@@ -1,0 +1,48 @@
+Day 5 hold seat proposal - flat ZIP package
+
+Each file below is placed at the ZIP root for easier GPT upload/read.
+The target path shows where the file should go in the real solution.
+
+1. 01_CreateBookingHoldRequestDto.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/CreateBookingHoldRequestDto.cs
+
+2. 02_BookingHoldSeatResponseDto.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingHoldSeatResponseDto.cs
+
+3. 03_BookingHoldResponseDto.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DTOs/Bookings/BookingHoldResponseDto.cs
+
+4. 04_IBookingHoldService.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/IBookingHoldService.cs
+
+5. 05_IBookingHoldRepository.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/IBookingHoldRepository.cs
+
+6. 06_CreateBookingHoldRequestDtoValidator.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/Validators/CreateBookingHoldRequestDtoValidator.cs
+
+7. 07_BookingHoldService.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/Services/Bookings/BookingHoldService.cs
+
+8. 08_BookingHoldRepository.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Infrastructure/Repositories/Bookings/BookingHoldRepository.cs
+
+9. 09_BookingHoldCleanupBackgroundService.cs
+   -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Infrastructure/BackgroundServices/BookingHoldCleanupBackgroundService.cs
+
+10. 10_Application_DependencyInjection.cs
+    -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Application/DependencyInjection.cs
+    Note: full replacement version with Day 5 registrations included.
+
+11. 11_Infrastructure_DependencyInjection.cs
+    -> ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Infrastructure/DependencyInjection.cs
+    Note: full replacement version with Day 5 repository/background service registrations included.
+
+12. 12_BookingsController.cs
+    -> ABCDMall.WebAPI/Controllers/BookingsController.cs
+    Note: full replacement version with quote + hold endpoints included.
+
+Important integration note:
+- This proposal does not update ShowtimeSeatInventory.Status to Reserved.
+- It prevents duplicate active holds by checking BookingHolds/BookingHoldSeats inside a Serializable transaction.
+- If the seat-map API must display held seats as Reserved, sync with Dev 1 first because ShowtimeSeatInventory belongs to Dev 1 ownership.
