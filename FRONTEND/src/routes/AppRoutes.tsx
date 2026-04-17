@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-
-// Pages
+import { Routes, Route } from "react-router-dom";
+import { FaqPage } from "../pages/support/FaqPage";
+import { FeedbackPage } from "../pages/feedbacks/FeedbackPage";
+import { ContactPage } from "../pages/contact/ContactPage";
 import { HomePage } from "../pages/home/HomePage";
 import { MapPage } from "../pages/directory/MapPage";
 import { ShopDetailPage } from "../pages/shops/ShopDetailPage";
@@ -22,6 +23,7 @@ export function AppRoutes() {
       <Route path="/map" element={<MapPage />} />
 
       <Route path="/shops/:slug" element={<ShopDetailPage />} />
+      <Route path="/contact" element={<ContactPage />} />
 
       {/* 4. Food Court (Chuyển từ App.tsx cũ sang) */}
       <Route path="/food-court" element={<FoodPage />} />
@@ -35,6 +37,9 @@ export function AppRoutes() {
       {/* 6. Placeholder cho các trang khác */}
       <Route path="/gallery" element={<div className="p-20 text-center">Gallery Page</div>} />
       <Route path="/contact" element={<div className="p-20 text-center">Contact Page</div>} />
+
+      <Route path="/faq" element={<FaqPage />} />
+      <Route path="/feedback" element={<FeedbackPage />} />
 
       {/* Route Mới cho Thương Hiệu */}
       <Route path="/brands" element={<BrandsPage />} />
