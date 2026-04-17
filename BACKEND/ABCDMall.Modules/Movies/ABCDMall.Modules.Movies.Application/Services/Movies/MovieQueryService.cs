@@ -3,6 +3,7 @@ using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Movies;
 
@@ -10,11 +11,16 @@ public sealed class MovieQueryService : IMovieQueryService
 {
     private readonly IMapper _mapper;
     private readonly IMovieRepository _movieRepository;
+    private readonly ILogger<MovieQueryService> _logger;
 
-    public MovieQueryService(IMovieRepository movieRepository, IMapper mapper)
+    public MovieQueryService(
+        IMovieRepository movieRepository,
+        IMapper mapper,
+        ILogger<MovieQueryService> logger)
     {
         _movieRepository = movieRepository;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<MovieHomeResponseDto> GetHomeAsync(CancellationToken cancellationToken = default)
@@ -41,6 +47,12 @@ public sealed class MovieQueryService : IMovieQueryService
             .ThenBy(movie => movie.Title)
             .Take(10)
             .ToList();
+
+        _logger.LogInformation(
+            "Prepared movies home response with {FeaturedCount} featured, {NowShowingCount} now showing, {ComingSoonCount} coming soon movies.",
+            featuredMovies.Count,
+            nowShowing.Count,
+            comingSoon.Count);
 
         return new MovieHomeResponseDto
         {
@@ -74,13 +86,26 @@ public sealed class MovieQueryService : IMovieQueryService
             .OrderBy(movie => movie.Title)
             .ToList();
 
+        _logger.LogInformation(
+            "Fetched {MovieCount} movies using status filter {StatusFilter}.",
+            filteredMovies.Count,
+            string.IsNullOrWhiteSpace(status) ? "all" : status.Trim());
+
         return _mapper.Map<IReadOnlyList<MovieListItemResponseDto>>(filteredMovies);
     }
 
     public async Task<MovieDetailResponseDto?> GetByIdAsync(Guid movieId, CancellationToken cancellationToken = default)
     {
         var movie = await _movieRepository.GetMovieByIdAsync(movieId, cancellationToken);
-        return movie is null ? null : _mapper.Map<MovieDetailResponseDto>(movie);
+        if (movie is null)
+        {
+            _logger.LogWarning("Movie {MovieId} was not found.", movieId);
+            return null;
+        }
+
+        _logger.LogInformation("Fetched movie detail for movie {MovieId}.", movieId);
+
+        return _mapper.Map<MovieDetailResponseDto>(movie);
     }
 
     public async Task<MovieShowtimesResponseDto?> GetShowtimesByMovieIdAsync(
@@ -91,10 +116,16 @@ public sealed class MovieQueryService : IMovieQueryService
         var movie = await _movieRepository.GetMovieByIdAsync(movieId, cancellationToken);
         if (movie is null)
         {
+            _logger.LogWarning("Movie showtimes were requested for missing movie {MovieId}.", movieId);
             return null;
         }
 
         var showtimes = await _movieRepository.GetShowtimesByMovieIdAsync(movieId, businessDate, cancellationToken);
+        _logger.LogInformation(
+            "Fetched {ShowtimeCount} showtimes for movie {MovieId} with businessDate filter {BusinessDate}.",
+            showtimes.Count,
+            movieId,
+            businessDate?.ToString("yyyy-MM-dd") ?? "all");
 
         return new MovieShowtimesResponseDto
         {

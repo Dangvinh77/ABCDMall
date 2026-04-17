@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABCDMall.WebAPI.Controllers;
@@ -10,13 +11,16 @@ public sealed class ShowtimesController : ControllerBase
 {
     private readonly ISeatMapQueryService _seatMapQueryService;
     private readonly IShowtimeQueryService _showtimeQueryService;
+    private readonly IValidator<ShowtimeListQueryDto> _showtimeListQueryValidator;
 
     public ShowtimesController(
         IShowtimeQueryService showtimeQueryService,
-        ISeatMapQueryService seatMapQueryService)
+        ISeatMapQueryService seatMapQueryService,
+        IValidator<ShowtimeListQueryDto> showtimeListQueryValidator)
     {
         _showtimeQueryService = showtimeQueryService;
         _seatMapQueryService = seatMapQueryService;
+        _showtimeListQueryValidator = showtimeListQueryValidator;
     }
 
     [HttpGet]
@@ -28,6 +32,21 @@ public sealed class ShowtimesController : ControllerBase
         [FromQuery] string? language,
         CancellationToken cancellationToken = default)
     {
+        var query = new ShowtimeListQueryDto
+        {
+            MovieId = movieId,
+            CinemaId = cinemaId,
+            BusinessDate = businessDate,
+            HallType = hallType,
+            Language = language
+        };
+
+        var validationResult = await _showtimeListQueryValidator.ValidateAsync(query, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(ToValidationProblemDetails(validationResult));
+        }
+
         var response = await _showtimeQueryService.GetListAsync(
             movieId,
             cinemaId,
@@ -55,5 +74,15 @@ public sealed class ShowtimesController : ControllerBase
     {
         var response = await _seatMapQueryService.GetByShowtimeIdAsync(showtimeId, cancellationToken);
         return response is null ? NotFound() : Ok(response);
+    }
+
+    private static ValidationProblemDetails ToValidationProblemDetails(FluentValidation.Results.ValidationResult validationResult)
+    {
+        return new ValidationProblemDetails(
+            validationResult.Errors
+                .GroupBy(x => x.PropertyName)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.Select(x => x.ErrorMessage).ToArray()));
     }
 }

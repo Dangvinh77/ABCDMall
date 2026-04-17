@@ -1,3 +1,4 @@
+using ABCDMall.Modules.Movies.Application.Contracts;
 using ABCDMall.Modules.Movies.Application.DTOs.Movies;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
@@ -27,9 +28,9 @@ public sealed class MovieProfile : AutoMapper.Profile
         CreateMap<Showtime, ShowtimeResponseDto>()
             .ForMember(dest => dest.ShowtimeId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.HallType, opt => opt.MapFrom(src => src.Hall != null
-                ? src.Hall.HallType.ToString()
+                ? MoviesContractValueMapper.ToContractValue(src.Hall.HallType)
                 : string.Empty))
-            .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.Language.ToString()))
+            .ForMember(dest => dest.Language, opt => opt.MapFrom(src => MoviesContractValueMapper.ToContractValue(src.Language)))
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
     }
 }

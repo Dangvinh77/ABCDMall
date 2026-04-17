@@ -9,14 +9,17 @@
   - `Hall`
   - `Seat template`
   - `Screening / Showtime`
-  - `Seat map read model`
+- `Seat map read model`
+- `Movies admin CRUD` cho `Catalog + Screening`
 - Tôi không phụ trách:
-  - `Booking hold`
-  - `Booking quote`
-  - `Promotion`
-  - `Payment`
-  - `Ticket issue`
-  - `Outbox / Email`
+- `Booking hold`
+- `Booking quote`
+- `Promotion`
+- `Payment`
+- `Feedback / Review`
+- `Ticket issue`
+- `Outbox / Email`
+- admin management cho booking/promotion/payment
 
 Tài liệu này dùng làm file handoff để mở cuộc trò chuyện mới vẫn tiếp tục làm việc được ngay.
 
@@ -155,6 +158,8 @@ Dev 2 dựa vào đó để làm:
 - `POST /api/bookings/holds`
 - `POST /api/bookings`
 - `POST /api/payments/intents`
+- `GET /api/movies/{movieId}/feedbacks`
+- `POST /api/movies/{movieId}/feedbacks`
 
 #### Rule ownership
 
@@ -313,6 +318,18 @@ Tôi phụ trách:
 - `GET /api/showtimes`
 - `GET /api/showtimes/{showtimeId}`
 - `GET /api/showtimes/{showtimeId}/seat-map`
+- admin APIs cho `Catalog + Screening`:
+  - `GET /api/admin/movies`
+  - `POST /api/admin/movies`
+  - `PUT /api/admin/movies/{movieId}`
+  - `DELETE /api/admin/movies/{movieId}`
+  - `GET /api/admin/showtimes`
+  - `POST /api/admin/showtimes`
+  - `PUT /api/admin/showtimes/{showtimeId}`
+  - `DELETE /api/admin/showtimes/{showtimeId}`
+  - nếu business cần:
+    - `GET/POST/PUT/DELETE /api/admin/cinemas`
+    - `GET/POST/PUT/DELETE /api/admin/halls`
 
 ## 7. Cấu trúc code nên tạo
 
@@ -368,6 +385,7 @@ Code theo flow nghiệp vụ theo thứ tự:
 3. `Showtimes read API`
 4. `Seat-map`
 5. `Query optimization`
+6. `Admin CRUD for Catalog + Screening`
 
 Trước khi vào flow phải làm nền:
 
@@ -581,6 +599,59 @@ Deliverable cuối ngày:
 - read API ổn định hơn
 - sẵn sàng tích hợp frontend và booking flow
 
+## Day 8: Movies Admin CRUD
+
+Mục tiêu:
+
+- có API thật để frontend admin quản lý movie/showtime thay vì chỉ dùng mock
+
+Việc cần làm:
+
+1. tạo admin DTO cho:
+   - movie create/update
+   - showtime create/update
+   - nếu cần tiếp:
+     - cinema create/update
+     - hall create/update
+2. tạo validator cho admin request
+3. code command service/repository cho:
+   - create movie
+   - update movie
+   - delete/soft delete movie
+   - create showtime
+   - update showtime
+   - delete/cancel showtime
+4. mở admin controller riêng:
+   - không trộn vào public `MoviesController`
+   - có route `/api/admin/...`
+5. áp JWT/authorization cho admin endpoints
+
+Deliverable cuối ngày:
+
+- admin portal có thể gọi CRUD movie/showtime thật
+- boundary public/customer không bị bẩn bởi logic admin
+
+## Day 9: Admin hardening
+
+Mục tiêu:
+
+- làm phần admin đủ ổn để frontend admin bắt đầu nối API
+
+Việc cần làm:
+
+1. thêm search/filter/paging cho admin list
+2. chốt soft delete hay hard delete cho movie/showtime
+3. thêm guard:
+   - không cho xóa movie đang có showtime active
+   - không cho sửa hall/showtime phá seat inventory hiện có
+4. thêm logging và test cho admin flows
+5. sync contract với frontend admin
+
+Deliverable cuối ngày:
+
+- admin CRUD đủ rõ để frontend admin bỏ mock dần
+- ownership Dev 1 với phần `Catalog + Screening admin` được khóa rõ
+
 ## 10. Những thứ cần nhớ khi code
 
 ## 10.1 Showtime và seat map là source of truth cho Dev 2
@@ -609,6 +680,8 @@ Deliverable cuối ngày:
 - không tự sửa bảng `Bookings`
 - không tự sửa bảng `Payments`
 - không tự sửa flow quote/booking/payment
+- không tự làm feedback/review flow cho movie
+- không tự làm admin CRUD cho promotions/bookings/payments
 - mọi thay đổi ở boundary phải chốt với Dev 2 trước
 
 ## 10.6 Dapper chỉ dùng đúng chỗ

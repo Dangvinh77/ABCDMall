@@ -24,6 +24,8 @@ public static class FrontendMoviesSeed
 
     public static async Task SeedBookingAsync(MoviesBookingDbContext db, CancellationToken ct = default)
     {
+        // Frontend demo seed owns the full booking-side demo dataset:
+        // snack combos, promotions, and promotion rules.
         var now = DateTime.UtcNow;
         var comboIds = await SeedSnackCombosAsync(db, now, ct);
         await SeedPromotionsAsync(db, comboIds, now, ct);
@@ -272,10 +274,12 @@ public static class FrontendMoviesSeed
             await db.SaveChangesAsync(ct);
         }
 
-        var seatsByHall = await db.HallSeats
+        var hallSeatList = await db.HallSeats
             .Where(x => halls.Select(hall => hall.Id).Contains(x.HallId))
+            .ToListAsync(ct);
+        var seatsByHall = hallSeatList
             .GroupBy(x => x.HallId)
-            .ToDictionaryAsync(x => x.Key, x => x.ToList(), ct);
+            .ToDictionary(x => x.Key, x => x.ToList());
         var seededShowtimes = await db.Showtimes
             .Where(x => movies.Values.Select(movie => movie.Id).Contains(x.MovieId) && cinemas.Values.Select(cinema => cinema.Id).Contains(x.CinemaId))
             .ToListAsync(ct);

@@ -1,6 +1,8 @@
+using ABCDMall.Modules.Movies.Application.Contracts;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
 using ABCDMall.Modules.Movies.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Showtimes;
 
@@ -8,13 +10,16 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
 {
     private readonly IShowtimeRepository _showtimeRepository;
     private readonly IBookingHoldRepository _bookingHoldRepository;
+    private readonly ILogger<SeatMapQueryService> _logger;
 
     public SeatMapQueryService(
         IShowtimeRepository showtimeRepository,
-        IBookingHoldRepository bookingHoldRepository)
+        IBookingHoldRepository bookingHoldRepository,
+        ILogger<SeatMapQueryService> logger)
     {
         _showtimeRepository = showtimeRepository;
         _bookingHoldRepository = bookingHoldRepository;
+        _logger = logger;
     }
 
     public async Task<SeatMapResponseDto?> GetByShowtimeIdAsync(Guid showtimeId, CancellationToken cancellationToken = default)
@@ -22,6 +27,7 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
         var showtime = await _showtimeRepository.GetShowtimeByIdAsync(showtimeId, cancellationToken);
         if (showtime is null)
         {
+            _logger.LogWarning("Seat map was requested for missing showtime {ShowtimeId}.", showtimeId);
             return null;
         }
 
@@ -31,11 +37,17 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
             DateTime.UtcNow,
             cancellationToken);
 
+        _logger.LogInformation(
+            "Fetched seat map for showtime {ShowtimeId} with {SeatCount} seats and {HeldSeatCount} active held seats.",
+            showtimeId,
+            seats.Count,
+            activeHoldSeatIds.Count);
+
         return new SeatMapResponseDto
         {
             ShowtimeId = showtime.Id,
             HallId = showtime.HallId,
-            HallType = showtime.Hall?.HallType.ToString() ?? string.Empty,
+            HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
             Seats = seats
                 .OrderBy(seat => seat.RowLabel)
                 .ThenBy(seat => seat.ColumnNumber)

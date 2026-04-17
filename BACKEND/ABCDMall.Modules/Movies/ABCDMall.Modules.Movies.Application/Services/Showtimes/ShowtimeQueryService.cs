@@ -1,14 +1,20 @@
+using ABCDMall.Modules.Movies.Application.Contracts;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
+using Microsoft.Extensions.Logging;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Showtimes;
 
 public sealed class ShowtimeQueryService : IShowtimeQueryService
 {
     private readonly IShowtimeRepository _showtimeRepository;
+    private readonly ILogger<ShowtimeQueryService> _logger;
 
-    public ShowtimeQueryService(IShowtimeRepository showtimeRepository)
+    public ShowtimeQueryService(
+        IShowtimeRepository showtimeRepository,
+        ILogger<ShowtimeQueryService> logger)
     {
         _showtimeRepository = showtimeRepository;
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<ShowtimeListItemDto>> GetListAsync(
@@ -27,6 +33,15 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
             language,
             cancellationToken);
 
+        _logger.LogInformation(
+            "Fetched {ShowtimeCount} showtimes with filters movieId={MovieId}, cinemaId={CinemaId}, businessDate={BusinessDate}, hallType={HallType}, language={Language}.",
+            showtimes.Count,
+            movieId,
+            cinemaId,
+            businessDate?.ToString("yyyy-MM-dd") ?? "all",
+            hallType ?? "all",
+            language ?? "all");
+
         return showtimes
             .Select(showtime => new ShowtimeListItemDto
             {
@@ -37,10 +52,10 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
                 CinemaName = showtime.Cinema?.Name ?? string.Empty,
                 HallId = showtime.HallId,
                 HallName = showtime.Hall?.Name ?? string.Empty,
-                HallType = showtime.Hall?.HallType.ToString() ?? string.Empty,
+                HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
                 BusinessDate = showtime.BusinessDate,
                 StartAtUtc = showtime.StartAtUtc,
-                Language = showtime.Language.ToString(),
+                Language = MoviesContractValueMapper.ToContractValue(showtime.Language),
                 BasePrice = showtime.BasePrice,
                 Status = showtime.Status.ToString()
             })
@@ -52,8 +67,11 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
         var showtime = await _showtimeRepository.GetShowtimeByIdAsync(showtimeId, cancellationToken);
         if (showtime is null)
         {
+            _logger.LogWarning("Showtime {ShowtimeId} was not found.", showtimeId);
             return null;
         }
+
+        _logger.LogInformation("Fetched showtime detail for showtime {ShowtimeId}.", showtimeId);
 
         return new ShowtimeDetailResponseDto
         {
@@ -68,11 +86,11 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
             HallId = showtime.HallId,
             HallCode = showtime.Hall?.HallCode ?? string.Empty,
             HallName = showtime.Hall?.Name ?? string.Empty,
-            HallType = showtime.Hall?.HallType.ToString() ?? string.Empty,
+            HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
             BusinessDate = showtime.BusinessDate,
             StartAtUtc = showtime.StartAtUtc,
             EndAtUtc = showtime.EndAtUtc,
-            Language = showtime.Language.ToString(),
+            Language = MoviesContractValueMapper.ToContractValue(showtime.Language),
             BasePrice = showtime.BasePrice,
             Status = showtime.Status.ToString()
         };

@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
+using ABCDMall.Modules.Movies.Application.Contracts;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
@@ -46,15 +47,17 @@ public sealed class ShowtimeRepository : IShowtimeRepository
             query = query.Where(showtime => showtime.BusinessDate == businessDate.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(hallType))
+        if (!string.IsNullOrWhiteSpace(hallType)
+            && MoviesContractValueMapper.TryParseHallType(hallType, out var parsedHallType))
         {
             query = query.Where(showtime => showtime.Hall != null
-                && showtime.Hall.HallType.ToString().ToLower() == hallType.Trim().ToLower());
+                && showtime.Hall.HallType == parsedHallType);
         }
 
-        if (!string.IsNullOrWhiteSpace(language))
+        if (!string.IsNullOrWhiteSpace(language)
+            && MoviesContractValueMapper.TryParseLanguageType(language, out var parsedLanguage))
         {
-            query = query.Where(showtime => showtime.Language.ToString().ToLower() == language.Trim().ToLower());
+            query = query.Where(showtime => showtime.Language == parsedLanguage);
         }
 
         return await query

@@ -8,12 +8,15 @@
   - `Promotion`
   - `Payment`
   - `Ticket`
+  - `Feedback / Review`
   - `Outbox / Email`
+  - `Movies admin management` cho `Promotion + SnackCombo + Booking + Payment + Feedback`
 - Tôi không phụ trách:
   - `Movie Catalog`
   - `Cinema / Hall / Seat template`
   - `Showtime generation`
   - `Seat map read API`
+  - admin CRUD cho movie/cinema/hall/showtime
 
 Tài liệu này dùng làm file handoff để mở cuộc trò chuyện mới vẫn tiếp tục làm việc được ngay.
 
@@ -301,6 +304,7 @@ Tôi phụ trách:
 - `movies.Payments`
 - `movies.OutboxEvents`
 - `movies.AuditLogs`
+- `movies.MovieFeedbacks`
 
 ## 6.3 API tôi sở hữu
 
@@ -308,6 +312,8 @@ Tôi phụ trách:
 - `GET /api/movies-promotions/{promotionId}`
 - `POST /api/movies-promotions/evaluate`
 - `GET /api/snack-combos`
+- `GET /api/movies/{movieId}/feedbacks`
+- `POST /api/movies/{movieId}/feedbacks`
 - `POST /api/bookings/holds`
 - `GET /api/bookings/holds/{holdId}`
 - `DELETE /api/bookings/holds/{holdId}`
@@ -318,6 +324,19 @@ Tôi phụ trách:
 - `POST /api/payments/intents`
 - `POST /api/payments/callback/{provider}`
 - `GET /api/payments/{paymentId}`
+- admin APIs cho `Booking + Promotion + Payment + Feedback`:
+  - `GET /api/admin/movies-promotions`
+  - `POST /api/admin/movies-promotions`
+  - `PUT /api/admin/movies-promotions/{promotionId}`
+  - `DELETE /api/admin/movies-promotions/{promotionId}`
+  - `GET /api/admin/snack-combos`
+  - `POST /api/admin/snack-combos`
+  - `PUT /api/admin/snack-combos/{comboId}`
+  - `DELETE /api/admin/snack-combos/{comboId}`
+  - `GET /api/admin/bookings`
+  - `GET /api/admin/payments`
+  - `GET /api/admin/movie-feedbacks`
+  - admin support actions như resend ticket / view audit / feedback moderation
 
 ## 7. Cấu trúc code nên tạo
 
@@ -343,6 +362,7 @@ Tạo:
 - `Entities/BookingItem.cs`
 - `Entities/Payment.cs`
 - `Entities/Ticket.cs`
+- `Entities/MovieFeedback.cs`
 - `Entities/OutboxEvent.cs`
 - `Entities/AuditLog.cs`
 
@@ -353,10 +373,12 @@ Tạo:
 - `DTOs/Promotions/*`
 - `DTOs/Bookings/*`
 - `DTOs/Payments/*`
+- `DTOs/Feedbacks/*`
 - `Mappings/*`
 - `Services/Promotions/*`
 - `Services/Bookings/*`
 - `Services/Payments/*`
+- `Services/Feedbacks/*`
 
 ## 7.3 Infrastructure
 
@@ -381,6 +403,8 @@ Code theo flow nghiệp vụ theo thứ tự:
 4. `Create Booking`
 5. `Payment`
 6. `Ticket + Email + Outbox`
+7. `Feedback / Review flow`
+8. `Admin management for Booking + Promotion + Payment + Feedback`
 
 Trước khi vào flow phải làm nền:
 
@@ -426,6 +450,7 @@ Việc cần làm:
    - `BookingItem`
    - `Payment`
    - `Ticket`
+   - `MovieFeedback`
    - `OutboxEvent`
    - `AuditLog`
 
@@ -653,6 +678,93 @@ Deliverable cuối ngày:
 - flow ổn định hơn
 - sẵn sàng tích hợp frontend
 
+## Day 10: Movies Admin Management
+
+Mục tiêu:
+
+- có API thật cho frontend admin quản lý promotions, snack combos, bookings, payments
+- có chỗ để quản lý feedback nếu admin UI cần
+
+Việc cần làm:
+
+1. tạo admin DTO cho:
+   - promotion create/update
+   - snack combo create/update
+   - booking admin list/detail
+   - payment admin list/detail
+   - feedback admin list/moderation nếu cần
+2. tạo validator cho admin request
+3. code command/query service cho:
+   - create/update/delete promotion
+   - create/update/delete snack combo
+   - booking admin read
+   - payment admin read
+   - resend ticket action
+4. mở admin controller riêng:
+   - `/api/admin/movies-promotions`
+   - `/api/admin/snack-combos`
+   - `/api/admin/bookings`
+   - `/api/admin/payments`
+   - `/api/admin/movie-feedbacks`
+5. áp JWT/authorization cho admin endpoints
+
+Deliverable cuối ngày:
+
+- frontend admin có thể bỏ mock dần ở promotions/combos/bookings/payments
+
+## Day 11: Feedback / Review
+
+Mục tiêu:
+
+- có API thật để mỗi movie có feedback/review từ khách
+
+Việc cần làm:
+
+1. tạo entity + config cho `MovieFeedback`
+2. tạo DTO:
+   - `MovieFeedbackResponseDto`
+   - `CreateMovieFeedbackRequestDto`
+3. tạo validator cho feedback:
+   - rating hợp lệ
+   - nội dung không rỗng
+   - movie tồn tại
+   - nếu business cần thì kiểm tra booking/ticket eligibility
+4. code service/repository feedback
+5. mở API:
+   - `GET /api/movies/{movieId}/feedbacks`
+   - `POST /api/movies/{movieId}/feedbacks`
+
+Deliverable cuối ngày:
+
+- movie detail/frontend có thể load feedback thật
+- khách có thể gửi review thật qua API
+
+## Day 12: Admin hardening
+
+Mục tiêu:
+
+- làm phần admin management đủ ổn cho demo nội bộ hoặc handoff frontend admin
+
+Việc cần làm:
+
+1. thêm search/filter/paging cho admin list
+2. thêm audit log cần thiết cho action admin
+3. chốt support actions:
+   - resend ticket
+   - xem trạng thái booking/payment
+   - override note nếu business cần
+4. test các case:
+   - promotion inactive
+   - combo inactive
+   - booking/payment not found
+   - resend ticket duplicate
+5. sync contract với frontend admin
+
+Deliverable cuối ngày:
+
+- phần admin thuộc ownership Dev 2 có API thật, không chỉ còn mock UI
+- feedback flow ổn định đủ để frontend bắt đầu tích hợp
+
 ## 10. Những thứ cần nhớ khi code
 
 ## 10.1 Booking hold
@@ -687,6 +799,8 @@ Deliverable cuối ngày:
 - không tự sửa bảng `Showtimes`
 - không tự sửa bảng `ShowtimeSeatInventory`
 - không tự đổi response `seat-map`
+- không tự làm admin CRUD cho movie/cinema/hall/showtime
+- feedback phải bám `movieId` và boundary movie của Dev 1, nhưng ownership flow vẫn thuộc Dev 2
 - mọi thay đổi ở boundary phải chốt với Dev 1 trước
 
 ## 10.7 Redis không phải source of truth ở version đầu
@@ -769,7 +883,7 @@ Khi mở cuộc trò chuyện mới, chỉ cần cho model đọc file này và 
 
 Model phải hiểu:
 
-- tôi làm phần `Booking + Promotion + Payment`
+- tôi làm phần `Booking + Promotion + Payment + Feedback`
 - áp dụng `Option B`
 - dùng `MoviesBookingDbContext`
 - code theo flow

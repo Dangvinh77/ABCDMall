@@ -1,12 +1,16 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
+using ABCDMall.Modules.Movies.Application.DTOs.Movies;
 using ABCDMall.Modules.Movies.Application.DTOs.Promotions;
+using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Application.Mappings;
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
 using ABCDMall.Modules.Movies.Application.Services.Bookings.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Movies;
+using ABCDMall.Modules.Movies.Application.Services.Movies.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Promotions;
 using ABCDMall.Modules.Movies.Application.Services.Promotions.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
+using ABCDMall.Modules.Movies.Application.Services.Showtimes.Validators;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +30,9 @@ public static class DependencyInjection
         services.AddScoped<IValidator<BookingQuoteRequestDto>, BookingQuoteRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingHoldRequestDto>, CreateBookingHoldRequestDtoValidator>();
         services.AddScoped<IValidator<EvaluatePromotionRequestDto>, EvaluatePromotionRequestDtoValidator>();
+        services.AddScoped<IValidator<MovieListQueryDto>, MovieListQueryDtoValidator>();
+        services.AddScoped<IValidator<MovieShowtimesQueryDto>, MovieShowtimesQueryDtoValidator>();
+        services.AddScoped<IValidator<ShowtimeListQueryDto>, ShowtimeListQueryDtoValidator>();
 
         services.AddScoped<IBookingQuoteService, BookingQuoteService>();
         services.AddScoped<IBookingHoldService, BookingHoldService>();

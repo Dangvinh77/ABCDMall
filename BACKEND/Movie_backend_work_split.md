@@ -17,6 +17,7 @@ Mục tiêu chia việc:
 - giảm conflict khi code song song
 - frontend có thể tích hợp dần
 - booking flow vẫn ghép được với showtime flow
+- feedbacks/reviews cho từng phim có owner rõ ràng
 
 ## 2. Nguyên tắc chia việc
 
@@ -31,7 +32,7 @@ Không nên chia kiểu:
 Nên chia theo chiều dọc:
 
 - Dev 1: `Catalog + Screening`
-- Dev 2: `Booking + Promotion + Payment`
+- Dev 2: `Booking + Promotion + Payment + Feedback`
 
 ### 2.2 Dùng Option B
 
@@ -99,6 +100,7 @@ Hai dev phải thống nhất trước:
   - `Bookings/Queries/*`
   - `Promotions/*`
   - `Payments/*`
+  - `Feedbacks/*`
 - `BACKEND/ABCDMall.Modules/Movies/ABCDMall.Modules.Movies.Infrastructure`
   - `Persistence/Booking/MoviesBookingDbContext.cs`
   - `Persistence/Booking/Configurations/*`
@@ -106,6 +108,7 @@ Hai dev phải thống nhất trước:
   - `Repositories/Booking/*`
   - `Repositories/Promotions/*`
   - `Repositories/Payments/*`
+  - `Repositories/Feedbacks/*`
   - `Integrations/Payments/*`
   - `Integrations/Email/*`
 
@@ -128,6 +131,8 @@ Dev 1 không sở hữu:
 - booking quote
 - payment
 - promotion redemption
+- booking admin operations
+- payment admin operations
 
 ### 4.1.2 Bảng Dev 1 chịu trách nhiệm
 
@@ -207,7 +212,18 @@ Dev 1 không sở hữu:
 - làm `seat-map`
 - đảm bảo seat inventory đủ để Dev 2 giữ ghế
 
-## 4.2 Dev 2: Booking + Promotion + Payment Owner
+#### Phase D
+
+- làm admin CRUD cho:
+  - movies
+  - cinemas
+  - halls
+  - hall seats
+  - showtimes
+- làm admin read/search/filter cho catalog + screening
+- giữ riêng admin endpoint, không trộn vào public customer API
+
+## 4.2 Dev 2: Booking + Promotion + Payment + Feedback Owner
 
 ### 4.2.1 Responsibility chính
 
@@ -219,12 +235,15 @@ Dev 2 sở hữu toàn bộ phần:
 - checkout
 - payment
 - ticket issue
+- feedback/review của khách cho từng movie
 
 Dev 2 không sở hữu:
 
 - movie catalog
 - cinema/hall setup
 - showtime generation
+- catalog admin CRUD
+- screening admin CRUD
 
 ### 4.2.2 Bảng Dev 2 chịu trách nhiệm
 
@@ -241,6 +260,7 @@ Dev 2 không sở hữu:
 - `movies.Payments`
 - `movies.OutboxEvents`
 - `movies.AuditLogs`
+- `movies.MovieFeedbacks`
 
 ### 4.2.3 Entity Dev 2 code
 
@@ -257,6 +277,7 @@ Dev 2 không sở hữu:
 - `Payment`
 - `OutboxEvent`
 - `AuditLog`
+- `MovieFeedback`
 
 ### 4.2.4 Enum Dev 2 code
 
@@ -274,6 +295,8 @@ Dev 2 không sở hữu:
 - `GET /api/movies-promotions/{promotionId}`
 - `POST /api/movies-promotions/evaluate`
 - `GET /api/snack-combos`
+- `GET /api/movies/{movieId}/feedbacks`
+- `POST /api/movies/{movieId}/feedbacks`
 - `POST /api/bookings/holds`
 - `GET /api/bookings/holds/{holdId}`
 - `DELETE /api/bookings/holds/{holdId}`
@@ -319,6 +342,25 @@ Dev 2 không sở hữu:
 - làm payment intent
 - làm callback
 - phát hành ticket
+
+#### Phase E
+
+- làm admin management cho:
+  - promotions
+  - snack combos
+  - bookings
+  - payments
+  - ticket resend
+  - audit/log operational views
+- làm admin actions cho booking/payment lifecycle nếu business cần
+
+#### Phase F
+
+- làm feedback flow:
+  - movie feedback list
+  - create feedback
+  - validate booking/showtime eligibility nếu business yêu cầu
+  - admin moderation/read nếu cần
 
 ## 5. Shared items cả 2 cùng chốt trước
 
@@ -390,6 +432,11 @@ Dev 1 và Dev 2 phải cùng hiểu chính xác:
 - screening entity configs
 - showtime query handlers
 - movies/showtimes controllers
+- admin controllers cho:
+  - movies
+  - cinemas
+  - halls
+  - showtimes
 
 ### Dev 2 owner
 
@@ -399,6 +446,13 @@ Dev 1 và Dev 2 phải cùng hiểu chính xác:
 - promotions controller
 - bookings controller
 - payments controller
+- feedback services/controllers/repositories
+- admin controllers cho:
+  - promotions
+  - snack combos
+  - bookings
+  - payments
+  - ticket/admin operations
 
 ### Cả hai chỉ chạm khi đã thống nhất
 
@@ -473,12 +527,49 @@ Dev 1 và Dev 2 phải cùng hiểu chính xác:
 - `GET /api/payments/{paymentId}`
 - `GET /api/bookings/{bookingCode}`
 - issue ticket + outbox email
+- `GET /api/movies/{movieId}/feedbacks`
+- `POST /api/movies/{movieId}/feedbacks`
 
 ### Deliverable sprint 3
 
 - checkout hoàn chỉnh
 - payment flow hoàn chỉnh
 - booking success và có vé
+- feedback movie có thể đọc/ghi qua API thật
+
+## Sprint 4
+
+### Dev 1
+
+- admin CRUD:
+  - `POST /api/admin/movies`
+  - `PUT /api/admin/movies/{movieId}`
+  - `DELETE /api/admin/movies/{movieId}`
+  - `POST /api/admin/showtimes`
+  - `PUT /api/admin/showtimes/{showtimeId}`
+  - `DELETE /api/admin/showtimes/{showtimeId}`
+- nếu cần, bổ sung admin APIs cho `cinemas`, `halls`, `hall-seats`
+
+### Dev 2
+
+- admin management:
+  - `POST /api/admin/movies-promotions`
+  - `PUT /api/admin/movies-promotions/{promotionId}`
+  - `DELETE /api/admin/movies-promotions/{promotionId}`
+  - `POST /api/admin/snack-combos`
+  - `PUT /api/admin/snack-combos/{comboId}`
+  - `DELETE /api/admin/snack-combos/{comboId}`
+  - `GET /api/admin/bookings`
+  - `GET /api/admin/payments`
+- admin actions cho support/demo:
+  - resend ticket
+  - view audit/payment/booking status
+  - feedback moderation/read nếu cần
+
+### Deliverable sprint 4
+
+- admin portal có API thật cho phần Movies
+- ownership vẫn tách rõ theo `Catalog + Screening` và `Booking + Promotion + Payment`
 
 ## 8. Quy tắc tránh conflict
 
@@ -546,19 +637,26 @@ Checklist trước khi merge:
 - dựng `MoviesCatalogDbContext`
 - làm catalog + cinema + hall + seat + showtime + seat inventory
 - làm toàn bộ read API cho movies/showtimes/seat-map
+- làm admin CRUD cho catalog + screening
 
 ### Dev 2 nhận
 
 - dựng `MoviesBookingDbContext`
-- làm promotion + snack combo + booking + hold + payment + ticket
-- làm evaluate/quote/booking/payment flow
+- làm promotion + snack combo + booking + hold + payment + ticket + feedback
+- làm evaluate/quote/booking/payment/feedback flow
+- làm admin management cho promotion + snack combo + booking + payment + feedback
 
 ## 11. Kết luận
 
 Cách chia hợp lý nhất cho 2 dev backend trong case này là:
 
 - Dev 1 làm phần dữ liệu nền và read API
-- Dev 2 làm phần transaction và business flow
+- Dev 2 làm phần transaction, business flow và feedback
+
+Nếu mở thêm admin portal cho Movies thì chia tiếp như sau:
+
+- Dev 1 làm admin CRUD cho `Catalog + Screening`
+- Dev 2 làm admin management cho `Booking + Promotion + Payment + Feedback`
 
 Theo `Option B`, đây là cách ít conflict nhất vì:
 
@@ -571,4 +669,3 @@ Nếu muốn mở rộng thêm sau này:
 
 - có thể tách tiếp `Promotion` thành submodule riêng
 - hoặc tách `Payment` thành integration module riêng mà không phá phần catalog/screening
-

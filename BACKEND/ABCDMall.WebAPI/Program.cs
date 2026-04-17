@@ -46,14 +46,17 @@ await using (var scope = app.Services.CreateAsyncScope())
 
     try
     {
+        logger.LogInformation("Starting Movies catalog database migration and seed.");
         var catalogDbContext = scope.ServiceProvider.GetRequiredService<MoviesCatalogDbContext>();
         await catalogDbContext.Database.MigrateAsync();
-        await CatalogSeed.SeedAsync(catalogDbContext);
         await FrontendMoviesSeed.SeedCatalogAsync(catalogDbContext);
+        logger.LogInformation("Movies catalog database migration and seed completed.");
 
+        logger.LogInformation("Starting Movies booking database migration and seed.");
         var bookingDbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
         await bookingDbContext.Database.MigrateAsync();
         await FrontendMoviesSeed.SeedBookingAsync(bookingDbContext);
+        logger.LogInformation("Movies booking database migration and seed completed.");
     }
     catch (Exception ex)
     {
