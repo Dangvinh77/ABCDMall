@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -46,6 +46,8 @@ import {
   type ShowtimeDetailModel,
 } from '../api/moviesApi';
 type SeatStatus = 'available' | 'held' | 'booked' | 'selected';
+const HELD_STATUS_CLASSES =
+  'bg-blue-700/35 border-blue-400 text-blue-100 ring-1 ring-inset ring-blue-300/70 shadow-[0_0_0_1px_rgba(59,130,246,0.2)]';
 
 interface ComboOption {
   id: string;
@@ -80,6 +82,14 @@ const BOOKED_SEATS = new Set([
   'G3', 'G8', 'G9',
   'H3', 'H4', 'H7', 'H8',
 ]);
+
+const HELD_SEATS = new Set([
+  'A5', 'B2',
+  'C6', 'D3',
+  'F9', 'G6',
+  'H9', 'H10',
+]);
+
 function countdown(s: number) {
   const m = Math.floor(s / 60).toString().padStart(2, '0');
   const sec = (s % 60).toString().padStart(2, '0');
@@ -93,7 +103,11 @@ function buildSeats(): Seat[][] {
       const id = `${row}${col}`;
       const type: SeatType =
         row === COUPLE_ROW ? 'couple' : VIP_ROWS.has(row) ? 'vip' : 'regular';
-      const status: SeatStatus = BOOKED_SEATS.has(id) ? 'booked' : 'available';
+      const status: SeatStatus = BOOKED_SEATS.has(id)
+        ? 'booked'
+        : HELD_SEATS.has(id)
+          ? 'held'
+          : 'available';
       return { id, row, col, type, status };
     })
   );
@@ -133,10 +147,9 @@ function SeatButton({
   let variant: string;
   if (seat.status === 'booked') {
     variant =
-      'bg-slate-800/30 border-slate-700/20 cursor-not-allowed opacity-20 text-slate-700';
+      'bg-slate-900 border-slate-500/70 cursor-not-allowed text-slate-200';
   } else if (seat.status === 'held') {
-    variant =
-      'bg-cyan-950/50 border-cyan-700/30 cursor-not-allowed text-cyan-500 opacity-60';
+    variant = `${HELD_STATUS_CLASSES} cursor-not-allowed`;
   } else if (seat.status === 'selected') {
     if (seat.type === 'vip') {
       variant =
@@ -177,20 +190,27 @@ function SeatButton({
 function LegendItem({
   boxClass,
   label,
+  description,
   icon,
 }: {
   boxClass: string;
   label: string;
+  description?: string;
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-[150px] items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
       <div
         className={`h-7 w-7 shrink-0 rounded-lg border flex items-center justify-center text-[9px] font-bold ${boxClass}`}
       >
         {icon}
       </div>
-      <span className="text-xs text-gray-400 whitespace-nowrap">{label}</span>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-gray-200">{label}</p>
+        {description ? (
+          <p className="mt-0.5 text-[11px] leading-4 text-gray-500">{description}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -222,6 +242,54 @@ function findComboOption(comboOptions: ComboOption[], comboId: string) {
   return comboOptions.find((combo) => combo.id === comboId) ?? null;
 }
 
+function mergeSeatMapWithSelection(
+  previousSeats: Seat[][],
+  nextSeats: Seat[][],
+  conflictedSeatIds: Set<string>
+): Seat[][] {
+  const selectedSeatIds = new Set(
+    previousSeats.flat().filter((seat) => seat.status === 'selected').map((seat) => seat.id)
+  );
+
+  return nextSeats.map((row) =>
+    row.map((seat) => {
+      if (conflictedSeatIds.has(seat.id)) {
+        return seat.status === 'available'
+          ? { ...seat, status: 'held' as const }
+          : seat;
+      }
+
+      return seat.status === 'available' && selectedSeatIds.has(seat.id)
+        ? { ...seat, status: 'selected' as const }
+        : seat;
+    })
+  );
+}
+
+function extractSeatCodesFromConflict(message: string) {
+  const match = message.match(/:\s*([^.]*)/);
+  if (!match?.[1]) return [];
+
+  return match[1]
+    .split(',')
+    .map((seat) => seat.trim())
+    .filter(Boolean);
+}
+
+function markSeatsAsHeld(previousSeats: Seat[][], conflictedSeatIds: string[]) {
+  if (conflictedSeatIds.length === 0) return previousSeats;
+
+  const heldSeatIds = new Set(conflictedSeatIds);
+
+  return previousSeats.map((row) =>
+    row.map((seat) =>
+      heldSeatIds.has(seat.id)
+        ? { ...seat, status: 'held' as const }
+        : seat
+    )
+  );
+}
+
 export function SeatSelectionPage() {
   const { movieId } = useParams<{ movieId: string }>();
   const [searchParams] = useSearchParams();
@@ -245,6 +313,9 @@ export function SeatSelectionPage() {
   const [apiMovie, setApiMovie] = useState<MovieDetailModel | null>(null);
   const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
   const [apiQuote, setApiQuote] = useState<BookingQuoteModel | null>(null);
+  const [isSeatMapLoading, setIsSeatMapLoading] = useState(Boolean(showtimeId));
+  const [isShowtimeLoading, setIsShowtimeLoading] = useState(Boolean(showtimeId));
+  const conflictedSeatIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -252,37 +323,56 @@ export function SeatSelectionPage() {
     return () => clearInterval(id);
   }, [timeLeft]);
 
-  useEffect(() => {
-    if (!showtimeId) return;
-
-    let active = true;
-    const currentShowtimeId = showtimeId;
-
-    async function loadSeatMapFromApi() {
-      try {
-        // API FETCH NOTE:
-        // Seat selection keeps the original seating UI, but this replaces seat availability with live API seat-map data.
-        const seatMap = await fetchSeatMap(currentShowtimeId);
-        if (active && seatMap.seats.length > 0) {
-          setSeats(buildSeatsFromApi(seatMap));
-        }
-      } catch (error) {
-        console.warn("Seat map API failed; using bundled fallback seats.", error);
-      }
+  const refreshSeatMap = useCallback(async (options?: { showLoading?: boolean }) => {
+    if (!showtimeId) {
+      setIsSeatMapLoading(false);
+      return false;
     }
 
-    void loadSeatMapFromApi();
+    const showLoading = options?.showLoading ?? true;
+    if (showLoading) {
+      setIsSeatMapLoading(true);
+    }
 
-    return () => {
-      active = false;
-    };
+    try {
+      // API FETCH NOTE:
+      // Seat selection keeps the original seating UI, but this replaces seat availability with live API seat-map data.
+      const seatMap = await fetchSeatMap(showtimeId);
+      if (seatMap.seats.length > 0) {
+        const nextSeats = buildSeatsFromApi(seatMap);
+        setSeats((previousSeats) =>
+          mergeSeatMapWithSelection(previousSeats, nextSeats, conflictedSeatIdsRef.current)
+        );
+        conflictedSeatIdsRef.current = new Set(
+          Array.from(conflictedSeatIdsRef.current).filter((seatId) =>
+            nextSeats.some((row) => row.some((seat) => seat.id === seatId && seat.status !== 'available'))
+          )
+        );
+      }
+      return true;
+    } catch (error) {
+      console.warn("Seat map API failed; using bundled fallback seats.", error);
+      return false;
+    } finally {
+      if (showLoading) {
+        setIsSeatMapLoading(false);
+      }
+    }
   }, [showtimeId]);
 
   useEffect(() => {
-    if (!showtimeId) return;
+    void refreshSeatMap({ showLoading: true });
+  }, [refreshSeatMap]);
+
+  useEffect(() => {
+    if (!showtimeId) {
+      setIsShowtimeLoading(false);
+      return;
+    }
 
     let active = true;
     const currentShowtimeId = showtimeId;
+    setIsShowtimeLoading(true);
 
     async function loadShowtimeContext() {
       try {
@@ -301,6 +391,10 @@ export function SeatSelectionPage() {
         }
       } catch (error) {
         console.warn("Showtime detail API failed on seat page; using route/fallback data.", error);
+      } finally {
+        if (active) {
+          setIsShowtimeLoading(false);
+        }
       }
     }
 
@@ -430,7 +524,9 @@ export function SeatSelectionPage() {
   const displayPosterUrl = apiMovie?.imageUrl ?? apiShowtime?.moviePosterUrl ?? fallbackMovie?.imageUrl;
   const displayCinemaName = apiShowtime?.cinemaName ?? fallbackCinema?.name ?? 'ABCD Cinema';
   const displayCinemaAddress = fallbackCinema?.address ?? apiShowtime?.cinemaName ?? 'ABCD Mall';
-  const displayHallName = apiShowtime?.hallName ?? HALL_NAMES[hallType] ?? hallType;
+  const displayHallName =
+    apiShowtime?.hallName ??
+    (showtimeId && isShowtimeLoading ? null : (HALL_NAMES[hallType] ?? hallType));
   const total = useMemo(
     () => apiQuote?.grandTotal ?? subtotal + serviceFee + comboSubtotal,
     [apiQuote?.grandTotal, comboSubtotal, serviceFee, subtotal]
@@ -543,6 +639,27 @@ export function SeatSelectionPage() {
       params.set('holdId', bookingHold.holdId);
     } catch (error) {
       console.warn("Create booking hold API failed; checkout was blocked.", error);
+      const message = error instanceof Error ? error.message : 'Unable to hold these seats.';
+      const isSeatConflict =
+        message.toLowerCase().includes('already being held') ||
+        message.toLowerCase().includes('already booked');
+
+      if (isSeatConflict) {
+        const conflictedSeats = extractSeatCodesFromConflict(message);
+        const fallbackConflictedSeats = conflictedSeats.length > 0
+          ? conflictedSeats
+          : selected.map((seat) => seat.id);
+
+        conflictedSeatIdsRef.current = new Set([
+          ...Array.from(conflictedSeatIdsRef.current),
+          ...fallbackConflictedSeats,
+        ]);
+        setSeats((previousSeats) => markSeatsAsHeld(previousSeats, fallbackConflictedSeats));
+        setApiQuote(null);
+        void refreshSeatMap({ showLoading: false });
+        return;
+      }
+
       window.alert("Unable to hold these seats. Please refresh the showtime and choose available seats again.");
       return;
     }
@@ -703,7 +820,7 @@ export function SeatSelectionPage() {
                   />
                   <InfoRow
                     icon={<Film className="size-3.5 text-cyan-400" />}
-                    label={displayHallName}
+                    label={displayHallName ?? 'Loading hall information...'}
                   />
                   <InfoRow
                     icon={<MapPin className="size-3 text-gray-600" />}
@@ -764,8 +881,15 @@ export function SeatSelectionPage() {
               </div>
 
               {/* Scroll wrapper for small screens */}
-              <div className="overflow-x-auto">
-                <div className="inline-block min-w-[540px] w-full">
+              {isSeatMapLoading ? (
+                <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] px-4 py-10 text-center">
+                  <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-blue-400/40 border-t-blue-300" />
+                  <p className="mt-4 text-sm font-medium text-white">Loading live seat map...</p>
+                  <p className="mt-1 text-xs text-gray-500">Waiting for the current hall layout and seat availability.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="inline-block min-w-[540px] w-full">
                   {/* Column header */}
                   <div className="mb-3 flex items-center gap-2">
                     <div className="w-7 shrink-0" /> {/* row label spacer */}
@@ -839,35 +963,56 @@ export function SeatSelectionPage() {
                     })}
                   </div>
                 </div>
-              </div>
+                </div>
+              )}
               <div className="mt-8 border-t border-white/[0.05] pt-6">
-                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
-                  <LegendItem
-                    boxClass="bg-slate-700/50 border-slate-600/50 text-slate-500"
-                    label="Available"
-                  />
-                  <LegendItem
-                    boxClass="bg-gradient-to-b from-purple-500 to-pink-600 border-purple-400 shadow-md shadow-purple-500/30"
-                    label="Selected"
-                  />
-                  <LegendItem
-                    boxClass="bg-slate-800/30 border-slate-700/20 opacity-30"
-                    label="Booked"
-                  />
-                  <LegendItem
-                    boxClass="bg-cyan-950/50 border-cyan-700/30 text-cyan-400"
-                    label="Held"
-                  />
-                  <LegendItem
-                    boxClass="bg-amber-950/70 border-amber-600/40 text-amber-400"
-                    label={`VIP (+${Math.round(SEAT_SURCHARGES.vip / 1000)}K)`}
-                    icon={<span>*</span>}
-                  />
-                  <LegendItem
-                    boxClass="bg-rose-950/60 border-rose-600/30 text-rose-400"
-                    label={`Couple seat (+${Math.round(SEAT_SURCHARGES.couple / 1000)}K)`}
-                    icon={<Heart className="size-3 fill-current" />}
-                  />
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-500">
+                      Seat status
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <LegendItem
+                        boxClass="bg-slate-700/50 border-slate-600/50 text-slate-500"
+                        label="Available"
+                        description="Can be selected now"
+                      />
+                      <LegendItem
+                        boxClass="bg-gradient-to-b from-purple-500 to-pink-600 border-purple-400 shadow-md shadow-purple-500/30"
+                        label="Selected"
+                        description="Included in your order"
+                      />
+                      <LegendItem
+                        boxClass="bg-slate-900 border-slate-500/70 text-slate-200"
+                        label="Booked"
+                        description="Already sold"
+                      />
+                      <LegendItem
+                        boxClass={HELD_STATUS_CLASSES}
+                        label="Held"
+                        description="Temporarily locked"
+                      />
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-500">
+                      Seat type
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <LegendItem
+                        boxClass="bg-amber-950/70 border-amber-600/40 text-amber-400"
+                        label={`VIP (+${Math.round(SEAT_SURCHARGES.vip / 1000)}K)`}
+                        description="Premium row surcharge"
+                        icon={<span>*</span>}
+                      />
+                      <LegendItem
+                        boxClass="bg-rose-950/60 border-rose-600/30 text-rose-400"
+                        label={`Couple seat (+${Math.round(SEAT_SURCHARGES.couple / 1000)}K)`}
+                        description="Booked as a linked pair"
+                        icon={<Heart className="size-3 fill-current" />}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -900,7 +1045,7 @@ export function SeatSelectionPage() {
                 </p>
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Film className="size-3 shrink-0 text-cyan-400" />
-                  {displayHallName}
+                  {displayHallName ?? 'Loading hall information...'}
                 </p>
               </div>
             </div>

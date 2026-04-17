@@ -414,7 +414,7 @@ function mapSeatType(value: string): SeatType {
 function mapSeatStatus(value: string): SeatStatus {
   const normalized = value.toLowerCase();
   if (normalized.includes("book")) return "booked";
-  if (normalized.includes("hold")) return "held";
+  if (normalized.includes("hold") || normalized.includes("held")) return "held";
   return "available";
 }
 
@@ -717,20 +717,34 @@ export async function fetchSeatMap(showtimeId: string) {
   // API FETCH NOTE:
   // This is the live seat map fetch. The response includes seatInventoryId values needed by quoteBooking().
   const response = await api.get<SeatMapResponseDto>(`/showtimes/${showtimeId}/seat-map`);
+  const mappedSeats = response.seats.map((seat: SeatMapResponseDto["seats"][number]) => ({
+    seatInventoryId: seat.seatInventoryId,
+    seatCode: seat.seatCode,
+    row: seat.row,
+    col: seat.col,
+    seatType: mapSeatType(seat.seatType),
+    status: mapSeatStatus(seat.status),
+    price: seat.price,
+    coupleGroupCode: seat.coupleGroupCode ?? undefined,
+  }));
+
+  console.debug("[seat-map] fetched", {
+    showtimeId,
+    rawStatuses: Array.from(new Set(response.seats.map((seat) => seat.status))),
+    mappedStatuses: Array.from(new Set(mappedSeats.map((seat) => seat.status))),
+    rawHeldSeats: response.seats
+      .filter((seat) => seat.status.toLowerCase().includes("hold"))
+      .map((seat) => ({ seatCode: seat.seatCode, rawStatus: seat.status })),
+    mappedHeldSeats: mappedSeats
+      .filter((seat) => seat.status === "held")
+      .map((seat) => ({ seatCode: seat.seatCode, mappedStatus: seat.status })),
+  });
+
   return {
     showtimeId: response.showtimeId,
     hallId: response.hallId,
     hallType: response.hallType,
-    seats: response.seats.map((seat: SeatMapResponseDto["seats"][number]) => ({
-      seatInventoryId: seat.seatInventoryId,
-      seatCode: seat.seatCode,
-      row: seat.row,
-      col: seat.col,
-      seatType: mapSeatType(seat.seatType),
-      status: mapSeatStatus(seat.status),
-      price: seat.price,
-      coupleGroupCode: seat.coupleGroupCode ?? undefined,
-    })),
+    seats: mappedSeats,
   } satisfies SeatMapModel;
 }
 
