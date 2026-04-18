@@ -1,6 +1,6 @@
 export type SeatType = 'regular' | 'vip' | 'couple';
 export type PaymentMethod = 'momo' | 'vnpay' | 'visa' | 'atm';
-export type SnackComboId = string;
+export type SnackComboId = 'combo-solo' | 'combo-double' | 'combo-gold';
 export type HallType = '2D' | '3D' | 'IMAX' | '4DX';
 
 export const PRICES: Record<SeatType, number> = {
@@ -71,31 +71,25 @@ export const SNACK_COMBOS: SnackCombo[] = [
 export interface SelectedSeat {
   id: string;
   type: SeatType;
-  seatInventoryId?: string;
 }
 
 export interface SelectedSnackCombo {
-  id: string;
+  id: SnackComboId;
   quantity: number;
 }
 
 export interface BookingState {
-  holdId?: string;
-  holdCode?: string;
-  holdExpiresAtUtc?: string;
-  holdRemainingSeconds?: number;
   seats: SelectedSeat[];
   subtotal: number;
   serviceFee: number;
   total: number;
   comboSubtotal?: number;
-  discountAmount?: number;
   combos?: SelectedSnackCombo[];
   promoId?: string | null;
   bookingDate?: string;
 }
 
-export function getSnackComboById(comboId: string) {
+export function getSnackComboById(comboId: SnackComboId) {
   return SNACK_COMBOS.find((combo) => combo.id === comboId) ?? null;
 }
 

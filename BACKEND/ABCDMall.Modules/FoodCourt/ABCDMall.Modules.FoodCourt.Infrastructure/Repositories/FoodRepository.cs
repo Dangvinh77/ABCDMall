@@ -1,58 +1,62 @@
-using ABCDMall.Modules.FoodCourt.Application.Interfaces;
+using ABCDMall.Modules.FoodCourt.Application.Services.Foods;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
-using MongoDB.Driver;
+using ABCDMall.Modules.FoodCourt.Infrastructure.Persistence.FoodCourt;
+using Microsoft.EntityFrameworkCore;
 
 namespace ABCDMall.Modules.FoodCourt.Infrastructure.Repositories;
 
 public class FoodRepository : IFoodRepository
 {
-    private readonly IMongoCollection<FoodItem> _collection;
+    private readonly FoodCourtDbContext _dbContext;
 
-    public FoodRepository()
+    public FoodRepository(FoodCourtDbContext dbContext)
     {
-          var client = new MongoClient("mongodb+srv://nguyenkiminh1999_db_user:Kimchicucai1@cluster0.eh1snop.mongodb.net/ABCDMall?retryWrites=true&w=majority");
-          var database = client.GetDatabase("ABCDMall");
-
-        _collection = database.GetCollection<FoodItem>("FoodItems");
+        _dbContext = dbContext;
     }
 
-    public async Task<List<FoodItem>> GetAllAsync()
+    public async Task<IReadOnlyList<FoodItem>> GetFoodsAsync(CancellationToken cancellationToken = default)
     {
-        return await _collection.Find(_ => true).ToListAsync();
+        return await _dbContext.FoodItems
+            .AsNoTracking()
+            .OrderBy(x => x.Name)
+            .ToListAsync(cancellationToken);
     }
 
-//Slug
-    public async Task<FoodItem?> GetBySlugAsync(string slug)
+    public async Task<FoodItem?> GetFoodBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
-        return await _collection
-            .Find(x => x.Slug == slug)
-            .FirstOrDefaultAsync();
+        return await _dbContext.FoodItems
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Slug == slug, cancellationToken);
     }
 
-public async Task<FoodItem?> GetByIdAsync(string id)
-{
-    return await _collection
-        .Find(x => x.Id == id)
-        .FirstOrDefaultAsync();
-}
-
-//Create
-    public async Task CreateAsync(FoodItem item)
+    public async Task<FoodItem?> GetFoodByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        await _collection.InsertOneAsync(item);
+        return await _dbContext.FoodItems
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-// Update
-    public async Task UpdateAsync(string id, FoodItem item)
+    public async Task CreateFoodAsync(FoodItem item, CancellationToken cancellationToken = default)
     {
-    await _collection.ReplaceOneAsync(x => x.Id == id, item);
+        await _dbContext.FoodItems.AddAsync(item, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-//Delete
-    public async Task DeleteAsync(string id)
+    public async Task UpdateFoodAsync(string id, FoodItem item, CancellationToken cancellationToken = default)
     {
-    await _collection.DeleteOneAsync(x => x.Id == id);
+        _dbContext.FoodItems.Update(item);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task DeleteFoodAsync(string id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _dbContext.FoodItems.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entity is null)
+        {
+            return;
+        }
 
+        _dbContext.FoodItems.Remove(entity);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

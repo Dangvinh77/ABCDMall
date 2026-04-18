@@ -25,6 +25,10 @@
 	  <ProjectReference Include="..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
 	  <ProjectReference Include="..\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Application\ABCDMall.Modules.FoodCourt.Application.csproj" />
 	  <ProjectReference Include="..\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Infrastructure\ABCDMall.Modules.FoodCourt.Infrastructure.csproj" />
+	  <ProjectReference Include="..\ABCDMall.Modules\Shops\ABCDMall.Modules.Shops.Application\ABCDMall.Modules.Shops.Application.csproj" />
+	  <ProjectReference Include="..\ABCDMall.Modules\Shops\ABCDMall.Modules.Shops.Infrastructure\ABCDMall.Modules.Shops.Infrastructure.csproj" />
+	  <ProjectReference Include="..\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Application\ABCDMall.Modules.UtilityMap.Application.csproj" />
+	  <ProjectReference Include="..\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Infrastructure\ABCDMall.Modules.UtilityMap.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

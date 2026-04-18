@@ -1,78 +1,86 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import AdminManagement from "../features/auth/pages/AdminManagement";
-import Dashboard from "../features/auth/pages/Dashboard";
-import ForgotPassword from "../features/auth/pages/ForgotPassword";
-import Login from "../features/auth/pages/Login";
-import Profile from "../features/auth/pages/Profile";
-import Register from "../features/auth/pages/Register";
-import RentalAreasAdmin from "../features/auth/pages/RentalAreasAdmin";
-import RevenueStatistics from "../features/auth/pages/RevenueStatistics";
-import ShopInfo from "../features/auth/pages/ShopInfo";
-import UserManagement from "../features/auth/pages/UserManagement";
-import FoodDetailPage from "../features/food/pages/FoodDetailPage";
-import FoodPage from "../features/food/pages/FoodPage";
-import { MoviesAdminRoutes } from "../features/movies-admin/routes/MoviesAdminRoutes";
-import { MoviesRoutes } from "../features/movies/routes/MovieRoutes";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
+
+const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagement"));
+const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
+const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
+const Login = lazy(() => import("../features/auth/pages/Login"));
+const Profile = lazy(() => import("../features/auth/pages/Profile"));
+const Register = lazy(() => import("../features/auth/pages/Register"));
+const RentalAreasAdmin = lazy(() => import("../features/auth/pages/RentalAreasAdmin"));
+const RevenueStatistics = lazy(() => import("../features/auth/pages/RevenueStatistics"));
+const ShopInfo = lazy(() => import("../features/auth/pages/ShopInfo"));
+const UserManagement = lazy(() => import("../features/auth/pages/UserManagement"));
+const FoodRoutes = lazy(() => import("../features/food/routes/FoodRoutes").then((module) => ({ default: module.FoodRoutes })));
+const MoviesAdminRoutes = lazy(() =>
+  import("../features/movies-admin/routes/MoviesAdminRoutes").then((module) => ({ default: module.MoviesAdminRoutes })),
+);
+const MoviesRoutes = lazy(() => import("../features/movies/routes/MovieRoutes").then((module) => ({ default: module.MoviesRoutes })));
+const ShopsRoutes = lazy(() => import("../features/shops/routes/ShopsRoutes").then((module) => ({ default: module.ShopsRoutes })));
+const AmenitiesPage = lazy(() => import("../pages/amenities/AmenitiesPage").then((module) => ({ default: module.AmenitiesPage })));
+const BrandsPage = lazy(() => import("../pages/brands/BrandsPage").then((module) => ({ default: module.BrandsPage })));
+const ContactPage = lazy(() => import("../pages/contact/ContactPage").then((module) => ({ default: module.ContactPage })));
+const MapPage = lazy(() => import("../pages/directory/MapPage").then((module) => ({ default: module.MapPage })));
+const FeedbackPage = lazy(() => import("../pages/feedbacks/FeedbackPage").then((module) => ({ default: module.FeedbackPage })));
+const FaqPage = lazy(() => import("../pages/support/FaqPage").then((module) => ({ default: module.FaqPage })));
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center px-6 py-20 text-center text-gray-500">
+      Dang tai noi dung...
+    </div>
+  );
+}
+
+function LegacyFoodRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={slug ? `/food-court/${slug}` : "/food-court"} replace />;
+}
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/shop-info" element={<ShopInfo />} />
-      <Route path="/admin-management" element={<AdminManagement />} />
-      <Route path="/admin-management/users" element={<UserManagement />} />
-      <Route path="/admin-management/revenue" element={<RevenueStatistics />} />
-      <Route path="/rental-areas" element={<RentalAreasAdmin />} />
-      <Route path="/users" element={<Navigate to="/admin-management/users" replace />} />
-      <Route path="/revenue-statistics" element={<Navigate to="/admin-management/revenue" replace />} />
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/shop-info" element={<ShopInfo />} />
+        <Route path="/admin-management" element={<AdminManagement />} />
+        <Route path="/admin-management/users" element={<UserManagement />} />
+        <Route path="/admin-management/revenue" element={<RevenueStatistics />} />
+        <Route path="/rental-areas" element={<RentalAreasAdmin />} />
+        <Route path="/users" element={<Navigate to="/admin-management/users" replace />} />
+        <Route path="/revenue-statistics" element={<Navigate to="/admin-management/revenue" replace />} />
 
-      <Route path="/food-court" element={<FoodPage />} />
-      <Route path="/food/:slug" element={<FoodDetailPage />} />
-      <Route path="/mall/:mall/:slug" element={<FoodDetailPage />} />
+        <Route path="/food-court/*" element={<FoodRoutes />} />
+        <Route path="/food/:slug" element={<LegacyFoodRedirect />} />
+        <Route path="/mall/:mall/:slug" element={<LegacyFoodRedirect />} />
 
-      <Route path="/movies/*" element={<MoviesRoutes />} />
-      <Route path="/movies/admin/*" element={<MoviesAdminRoutes />} />
+        <Route path="/movies/*" element={<MoviesRoutes />} />
+        <Route path="/movies/admin/*" element={<MoviesAdminRoutes />} />
 
-      <Route
-        path="/shops"
-        element={
-          <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
-            Trang Cua hang (Sap ra mat)
-          </div>
-        }
-      />
-      <Route
-        path="/gallery"
-        element={
-          <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
-            Trang Thu vien (Sap ra mat)
-          </div>
-        }
-      />
-      <Route
-        path="/map"
-        element={
-          <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
-            Trang So do (Sap ra mat)
-          </div>
-        }
-      />
-      <Route
-        path="/contact"
-        element={
-          <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
-            Trang Lien he (Sap ra mat)
-          </div>
-        }
-      />
+        <Route path="/shops/*" element={<ShopsRoutes />} />
+        <Route
+          path="/gallery"
+          element={
+            <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
+              Trang Thu vien (Sap ra mat)
+            </div>
+          }
+        />
+        <Route path="/map" element={<MapPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/brands" element={<BrandsPage />} />
+        <Route path="/amenities" element={<AmenitiesPage />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
 
-      <Route path="*" element={<div>404 Not Found</div>} />
-    </Routes>
+        <Route path="*" element={<div>404 Not Found</div>} />
+      </Routes>
+    </Suspense>
   );
 }

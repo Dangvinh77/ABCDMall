@@ -5,7 +5,7 @@ export const useFood = () => {
   const [foods, setFoods] = useState<any[]>([]);
 
   useEffect(() => {
-    getFoods().then(setFoods);
+    getFoods().then((data: any) => setFoods(data));
   }, []);
 
   return { foods };

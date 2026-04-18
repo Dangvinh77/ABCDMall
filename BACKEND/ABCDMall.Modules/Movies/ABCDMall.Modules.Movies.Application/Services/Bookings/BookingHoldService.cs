@@ -140,6 +140,51 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
 
         }
 
+        public async Task<BookingHoldResponseDto?> ConfirmAsync(Guid holdId, CancellationToken cancellationToken = default)
+        {
+            var now = DateTime.UtcNow;
+            var hold = await _bookingHoldRepository.GetByIdAsync(holdId, cancellationToken);
+            if (hold is null)
+            {
+                return null;
+            }
+
+            if (hold.Status == BookingHoldStatus.Converted)
+            {
+                return Map(hold);
+            }
+
+            if (hold.Status != BookingHoldStatus.Active)
+            {
+                throw new InvalidOperationException($"Booking hold is already {hold.Status}.");
+            }
+
+            if (hold.ExpiresAtUtc <= now)
+            {
+                await _bookingHoldRepository.ExpireAsync(now, cancellationToken);
+                throw new InvalidOperationException("Booking hold has expired.");
+            }
+
+            var seatInventoryIds = hold.Seats
+                .Select(seat => seat.SeatInventoryId)
+                .Distinct()
+                .ToArray();
+
+            await _showtimeRepository.MarkSeatsBookedAsync(
+                hold.ShowtimeId,
+                seatInventoryIds,
+                now,
+                cancellationToken);
+
+            var confirmedHold = await _bookingHoldRepository.ConfirmAsync(holdId, now, cancellationToken);
+            if (confirmedHold is null)
+            {
+                throw new InvalidOperationException("Booking hold not found.");
+            }
+
+            return Map(confirmedHold);
+        }
+
         public async Task<BookingHoldResponseDto?> GetByIdAsync(Guid holdId, CancellationToken cancellationToken = default)
         {
             var hold = await _bookingHoldRepository.GetByIdAsync(holdId, cancellationToken);//lấy thông tin hold theo id, gọi repository để truy vấn database

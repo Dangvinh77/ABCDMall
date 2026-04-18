@@ -110,6 +110,27 @@ public sealed class BookingsController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
+    [HttpPost("holds/{holdId:guid}/confirm")]
+    public async Task<ActionResult<BookingHoldResponseDto>> ConfirmHold(
+        Guid holdId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _bookingHoldService.ConfirmAsync(holdId, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Unable to confirm booking hold.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+    }
+
     [HttpDelete("holds/{holdId:guid}")]
     public async Task<IActionResult> ReleaseHold(
         Guid holdId,

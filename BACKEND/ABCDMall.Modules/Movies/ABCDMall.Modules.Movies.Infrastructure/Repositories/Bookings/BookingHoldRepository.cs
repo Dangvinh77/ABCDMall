@@ -54,6 +54,31 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings
                 .Include(x => x.Seats) //lấy luôn danh sách các ghế liên quan đến booking hold này để tránh việc phải truy vấn thêm lần nữa khi cần thông tin về ghế
                 .FirstOrDefaultAsync(x => x.Id == holdId, cancellationToken);//tìm booking hold có id trùng với holdId, nếu không tìm thấy sẽ trả về null
         }
+
+        public async Task<BookingHold?> ConfirmAsync(
+            Guid holdId,
+            DateTime utcNow,
+            CancellationToken cancellationToken = default)
+        {
+            var hold = await _dbContext.BookingHolds
+                .Include(x => x.Seats)
+                .FirstOrDefaultAsync(x => x.Id == holdId, cancellationToken);
+
+            if (hold is null)
+            {
+                return null;
+            }
+
+            if (hold.Status == BookingHoldStatus.Active)
+            {
+                hold.Status = BookingHoldStatus.Converted;
+                hold.UpdatedAtUtc = utcNow;
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            return hold;
+        }
+
         public async Task<bool> ReleaseAsync(
         Guid holdId,
         DateTime utcNow,

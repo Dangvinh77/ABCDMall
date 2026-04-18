@@ -34,4 +34,8 @@ internal sealed class FakeBookingHoldRepository : IBookingHoldRepository
         return Task.FromResult(emptySet);
     }
 
+    public Task<BookingHold?> ConfirmAsync(Guid holdId, DateTime utcNow, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
 }

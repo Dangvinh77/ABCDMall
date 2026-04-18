@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../component/ui/button';
 import { moviePaths } from '../routes/moviePaths';
-import { loadPromotionsUiData } from '../api/movieUiAdapter';
 type FilterKey = 'all' | 'ticket' | 'combo' | 'member' | 'bank' | 'weekend';
 
 interface Promo {
@@ -365,57 +364,30 @@ export function PromotionsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
-  const [allPromos, setAllPromos] = useState<Promo[]>(ALL_PROMOS);
   const gridRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const selectedPromoId = searchParams.get('promo');
   const selectedPromo = useMemo(
-    () => allPromos.find((promo) => promo.id === selectedPromoId) ?? null,
-    [allPromos, selectedPromoId]
+    () => ALL_PROMOS.find((promo) => promo.id === selectedPromoId) ?? null,
+    [selectedPromoId]
   );
-  const featuredPromos = allPromos.slice(0, 3);
-  const effectiveFilter =
-    selectedPromo && activeFilter !== 'all' && !selectedPromo.category.includes(activeFilter)
-      ? getPrimaryFilter(selectedPromo)
-      : activeFilter;
 
   const filteredPromos =
-    effectiveFilter === 'all'
-      ? allPromos
-      : allPromos.filter((p) => p.category.includes(effectiveFilter));
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadPromotionsFromApi() {
-      try {
-        // API FETCH NOTE:
-        // Promotions keep the original marketing page UI; this only replaces the promo list with API data.
-        const data = await loadPromotionsUiData();
-        if (active && data.length > 0) {
-          setAllPromos(data);
-        }
-      } catch (error) {
-        console.warn("Promotions API failed; using bundled fallback data.", error);
-      }
-    }
-
-    void loadPromotionsFromApi();
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    activeFilter === 'all'
+      ? ALL_PROMOS
+      : ALL_PROMOS.filter((p) => p.category.includes(activeFilter));
 
   useEffect(() => {
     if (!selectedPromo) return;
 
-    const timeoutId = window.setTimeout(() => {
+    if (activeFilter !== 'all' && !selectedPromo.category.includes(activeFilter)) {
+      setActiveFilter(getPrimaryFilter(selectedPromo));
+    }
+
+    window.setTimeout(() => {
       detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [selectedPromo]);
+  }, [activeFilter, selectedPromo]);
 
   const scrollToGrid = () => {
     gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -586,7 +558,7 @@ export function PromotionsPage() {
 
           {/* 3 featured cards */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredPromos.map((promo) => (
+            {FEATURED.map((promo) => (
               <PromoCard
                 key={promo.id}
                 promo={promo}
@@ -796,7 +768,7 @@ export function PromotionsPage() {
           {/* Filter tabs */}
           <div className="mb-8 flex flex-wrap gap-2">
             {FILTERS.map((f) => {
-              const active = effectiveFilter === f.key;
+              const active = activeFilter === f.key;
               return (
                 <button
                   key={f.key}

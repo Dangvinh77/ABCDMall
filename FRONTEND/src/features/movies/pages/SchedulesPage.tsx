@@ -28,7 +28,6 @@ import {
 } from '../data/schedules';
 import { vnd } from '../data/booking';
 import { moviePaths } from '../routes/moviePaths';
-import { loadSchedulesUiData } from '../api/movieUiAdapter';
 const HALL_CONFIGS: Record<HallType, { label: string; bg: string; text: string; border: string; glow: string }> = {
   '2D': {
     label: '2D',
@@ -102,7 +101,7 @@ interface ShowtimeChipProps {
   showtime: Showtime;
   movieId: string;
   cinemaId: string;
-  onBook: (movieId: string, cinemaId: string, time: string, hallType: HallType, showtimeId: string) => void;
+  onBook: (movieId: string, cinemaId: string, time: string, hallType: HallType) => void;
 }
 
 function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipProps) {
@@ -114,7 +113,7 @@ function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipP
   return (
     <button
       disabled={isFull}
-      onClick={() => onBook(movieId, cinemaId, st.time, st.hallType, st.id)}
+      onClick={() => onBook(movieId, cinemaId, st.time, st.hallType)}
       style={
         !isFull
           ? { '--chip-glow': cfg.glow } as CSSProperties
@@ -158,7 +157,7 @@ function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipP
 interface CinemaGroupProps {
   cinemaSchedule: MovieSchedule['cinemaSchedules'][number];
   movieId: string;
-  onBook: (movieId: string, cinemaId: string, time: string, hallType: HallType, showtimeId: string) => void;
+  onBook: (movieId: string, cinemaId: string, time: string, hallType: HallType) => void;
 }
 
 function CinemaGroup({ cinemaSchedule: cs, movieId, onBook }: CinemaGroupProps) {
@@ -190,7 +189,7 @@ function CinemaGroup({ cinemaSchedule: cs, movieId, onBook }: CinemaGroupProps) 
 
 interface MovieScheduleBlockProps {
   ms: MovieSchedule;
-  onBook: (movieId: string, cinemaId: string, time: string, hallType: HallType, showtimeId: string) => void;
+  onBook: (movieId: string, cinemaId: string, time: string, hallType: HallType) => void;
   onMovieClick: (movieId: string) => void;
 }
 
@@ -359,9 +358,6 @@ export function SchedulePage() {
   const [activeHallTypes, setActiveHallTypes] = useState<Set<HallType>>(new Set());
   const [activeLanguages, setActiveLanguages] = useState<Set<Language>>(new Set());
   const [showStickyBar, setShowStickyBar] = useState(false);
-  const [apiScheduleData, setApiScheduleData] = useState<MovieSchedule[]>(() =>
-    getScheduleDataForDate(formatScheduleDateParam(dates[selectedDateIdx].date)),
-  );
 
   const heroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -376,34 +372,7 @@ export function SchedulePage() {
   }, []);
   const currentDate = dates[selectedDateIdx];
   const selectedDate = formatScheduleDateParam(currentDate.date);
-  const dailyScheduleData = apiScheduleData;
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadSchedulesFromApi() {
-      try {
-        // API FETCH NOTE:
-        // The original schedule cards/filters stay untouched; this replaces the schedule array with API data.
-        const data = await loadSchedulesUiData(selectedDate, selectedMovieId);
-        if (!active) return;
-        if (data.length > 0) {
-          setApiScheduleData(data);
-        }
-      } catch (error) {
-        if (active) {
-          setApiScheduleData(getScheduleDataForDate(selectedDate));
-        }
-        console.warn("Schedules API failed; using bundled fallback data.", error);
-      }
-    }
-
-    void loadSchedulesFromApi();
-
-    return () => {
-      active = false;
-    };
-  }, [selectedDate, selectedMovieId]);
+  const dailyScheduleData = getScheduleDataForDate(selectedDate);
 
   const filteredSchedules = dailyScheduleData
     .map((ms) => ({
@@ -456,9 +425,9 @@ export function SchedulePage() {
     setActiveLanguages(new Set());
   }
 
-  function handleBook(movieId: string, cinemaId: string, time: string, hallType: HallType, showtimeId: string) {
+  function handleBook(movieId: string, cinemaId: string, time: string, hallType: HallType) {
     const promoQuery = selectedPromoId ? `&promo=${encodeURIComponent(selectedPromoId)}` : '';
-    navigate(`${moviePaths.booking(movieId)}?cinema=${cinemaId}&showtime=${encodeURIComponent(time)}&hallType=${encodeURIComponent(hallType)}&date=${selectedDate}&showtimeId=${encodeURIComponent(showtimeId)}${promoQuery}`);
+    navigate(`${moviePaths.booking(movieId)}?cinema=${cinemaId}&showtime=${encodeURIComponent(time)}&hallType=${encodeURIComponent(hallType)}&date=${selectedDate}${promoQuery}`);
   }
 
   function handleMovieClick(movieId: string) {

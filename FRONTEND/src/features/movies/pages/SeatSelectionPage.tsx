@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import {
   SERVICE_FEE,
   HALL_NAMES,
   SNACK_COMBOS,
+  getSnackComboById,
   getSeatPrice,
   SEAT_SURCHARGES,
   vnd,
@@ -24,43 +25,17 @@ import {
   type SeatType,
 } from '../data/booking';
 import {
+  evaluatePromotion,
   getDefaultBookingDate,
+  getPromotionFinalTotal,
 } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
-import {
-  createBookingHold,
-  fetchMovieDetail,
-  fetchPromotions,
-  fetchSeatMap,
-  fetchSnackCombos,
-  fetchShowtimeDetail,
-  quoteBooking,
-  resolvePromotionApiIdFromUiId,
-  type BookingHoldModel,
-  type BookingQuoteModel,
-  type MovieDetailModel,
-  type PromotionModel,
-  type SnackComboModel,
-  type ShowtimeDetailModel,
-} from '../api/moviesApi';
-type SeatStatus = 'available' | 'held' | 'booked' | 'selected';
-const HELD_STATUS_CLASSES =
-  'bg-blue-700/35 border-blue-400 text-blue-100 ring-1 ring-inset ring-blue-300/70 shadow-[0_0_0_1px_rgba(59,130,246,0.2)]';
-
-interface ComboOption {
-  id: string;
-  apiId?: string;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-}
+type SeatStatus = 'available' | 'booked' | 'selected';
 
 interface Seat {
   id: string;
-  seatInventoryId?: string;
   row: string;
   col: number;
   type: SeatType;
@@ -82,14 +57,6 @@ const BOOKED_SEATS = new Set([
   'G3', 'G8', 'G9',
   'H3', 'H4', 'H7', 'H8',
 ]);
-
-const HELD_SEATS = new Set([
-  'A5', 'B2',
-  'C6', 'D3',
-  'F9', 'G6',
-  'H9', 'H10',
-]);
-
 function countdown(s: number) {
   const m = Math.floor(s / 60).toString().padStart(2, '0');
   const sec = (s % 60).toString().padStart(2, '0');
@@ -103,34 +70,10 @@ function buildSeats(): Seat[][] {
       const id = `${row}${col}`;
       const type: SeatType =
         row === COUPLE_ROW ? 'couple' : VIP_ROWS.has(row) ? 'vip' : 'regular';
-      const status: SeatStatus = BOOKED_SEATS.has(id)
-        ? 'booked'
-        : HELD_SEATS.has(id)
-          ? 'held'
-          : 'available';
+      const status: SeatStatus = BOOKED_SEATS.has(id) ? 'booked' : 'available';
       return { id, row, col, type, status };
     })
   );
-}
-
-function buildSeatsFromApi(seatMap: Awaited<ReturnType<typeof fetchSeatMap>>): Seat[][] {
-  const rows = new Map<string, Seat[]>();
-
-  seatMap.seats.forEach((seat) => {
-    const nextSeat: Seat = {
-      id: seat.seatCode,
-      seatInventoryId: seat.seatInventoryId,
-      row: seat.row,
-      col: seat.col,
-      type: seat.seatType,
-      status: seat.status,
-    };
-    rows.set(seat.row, [...(rows.get(seat.row) ?? []), nextSeat]);
-  });
-
-  return Array.from(rows.entries())
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([, rowSeats]) => rowSeats.sort((left, right) => left.col - right.col));
 }
 function SeatButton({
   seat,
@@ -147,9 +90,7 @@ function SeatButton({
   let variant: string;
   if (seat.status === 'booked') {
     variant =
-      'bg-slate-900 border-slate-500/70 cursor-not-allowed text-slate-200';
-  } else if (seat.status === 'held') {
-    variant = `${HELD_STATUS_CLASSES} cursor-not-allowed`;
+      'bg-slate-800/30 border-slate-700/20 cursor-not-allowed opacity-20 text-slate-700';
   } else if (seat.status === 'selected') {
     if (seat.type === 'vip') {
       variant =
@@ -178,7 +119,7 @@ function SeatButton({
   return (
     <button
       onClick={onClick}
-      disabled={seat.status === 'booked' || seat.status === 'held'}
+      disabled={seat.status === 'booked'}
       className={`${base} ${variant}`}
       aria-label={`Seat ${seat.id}`}
       title={`${seat.id} - ${seat.type === 'regular' ? 'Regular' : seat.type === 'vip' ? 'VIP' : 'Couple'} - ${vnd(getSeatPrice(hallType, seat.type))}`}
@@ -190,27 +131,20 @@ function SeatButton({
 function LegendItem({
   boxClass,
   label,
-  description,
   icon,
 }: {
   boxClass: string;
   label: string;
-  description?: string;
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex min-w-[150px] items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
+    <div className="flex items-center gap-2">
       <div
         className={`h-7 w-7 shrink-0 rounded-lg border flex items-center justify-center text-[9px] font-bold ${boxClass}`}
       >
         {icon}
       </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-gray-200">{label}</p>
-        {description ? (
-          <p className="mt-0.5 text-[11px] leading-4 text-gray-500">{description}</p>
-        ) : null}
-      </div>
+      <span className="text-xs text-gray-400 whitespace-nowrap">{label}</span>
     </div>
   );
 }
@@ -238,58 +172,6 @@ function getSelectedSnackCombos(comboQuantities: Record<string, number>): Select
     .map(([id, quantity]) => ({ id: id as SelectedSnackCombo['id'], quantity }));
 }
 
-function findComboOption(comboOptions: ComboOption[], comboId: string) {
-  return comboOptions.find((combo) => combo.id === comboId) ?? null;
-}
-
-function mergeSeatMapWithSelection(
-  previousSeats: Seat[][],
-  nextSeats: Seat[][],
-  conflictedSeatIds: Set<string>
-): Seat[][] {
-  const selectedSeatIds = new Set(
-    previousSeats.flat().filter((seat) => seat.status === 'selected').map((seat) => seat.id)
-  );
-
-  return nextSeats.map((row) =>
-    row.map((seat) => {
-      if (conflictedSeatIds.has(seat.id)) {
-        return seat.status === 'available'
-          ? { ...seat, status: 'held' as const }
-          : seat;
-      }
-
-      return seat.status === 'available' && selectedSeatIds.has(seat.id)
-        ? { ...seat, status: 'selected' as const }
-        : seat;
-    })
-  );
-}
-
-function extractSeatCodesFromConflict(message: string) {
-  const match = message.match(/:\s*([^.]*)/);
-  if (!match?.[1]) return [];
-
-  return match[1]
-    .split(',')
-    .map((seat) => seat.trim())
-    .filter(Boolean);
-}
-
-function markSeatsAsHeld(previousSeats: Seat[][], conflictedSeatIds: string[]) {
-  if (conflictedSeatIds.length === 0) return previousSeats;
-
-  const heldSeatIds = new Set(conflictedSeatIds);
-
-  return previousSeats.map((row) =>
-    row.map((seat) =>
-      heldSeatIds.has(seat.id)
-        ? { ...seat, status: 'held' as const }
-        : seat
-    )
-  );
-}
-
 export function SeatSelectionPage() {
   const { movieId } = useParams<{ movieId: string }>();
   const [searchParams] = useSearchParams();
@@ -297,25 +179,16 @@ export function SeatSelectionPage() {
 
   const cinemaId = searchParams.get('cinema') ?? 'abcd-mall';
   const showtime = searchParams.get('showtime') ?? '19:30';
-  const showtimeId = searchParams.get('showtimeId');
   const hallType = searchParams.get('hallType') ?? '2D';
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? getDefaultBookingDate();
 
-  const fallbackMovie = movieId ? getMovieById(movieId) : undefined;
-  const fallbackCinema = cinemasList.find((c) => c.id === cinemaId);
+  const movie = movieId ? getMovieById(movieId) : undefined;
+  const cinema = cinemasList.find((c) => c.id === cinemaId);
 
   const [seats, setSeats] = useState<Seat[][]>(buildSeats);
   const [timeLeft, setTimeLeft] = useState(10 * 60);
   const [comboQuantities, setComboQuantities] = useState<Record<string, number>>({});
-  const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
-  const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
-  const [apiMovie, setApiMovie] = useState<MovieDetailModel | null>(null);
-  const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
-  const [apiQuote, setApiQuote] = useState<BookingQuoteModel | null>(null);
-  const [isSeatMapLoading, setIsSeatMapLoading] = useState(Boolean(showtimeId));
-  const [isShowtimeLoading, setIsShowtimeLoading] = useState(Boolean(showtimeId));
-  const conflictedSeatIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -323,116 +196,8 @@ export function SeatSelectionPage() {
     return () => clearInterval(id);
   }, [timeLeft]);
 
-  const refreshSeatMap = useCallback(async (options?: { showLoading?: boolean }) => {
-    if (!showtimeId) {
-      setIsSeatMapLoading(false);
-      return false;
-    }
-
-    const showLoading = options?.showLoading ?? true;
-    if (showLoading) {
-      setIsSeatMapLoading(true);
-    }
-
-    try {
-      // API FETCH NOTE:
-      // Seat selection keeps the original seating UI, but this replaces seat availability with live API seat-map data.
-      const seatMap = await fetchSeatMap(showtimeId);
-      if (seatMap.seats.length > 0) {
-        const nextSeats = buildSeatsFromApi(seatMap);
-        setSeats((previousSeats) =>
-          mergeSeatMapWithSelection(previousSeats, nextSeats, conflictedSeatIdsRef.current)
-        );
-        conflictedSeatIdsRef.current = new Set(
-          Array.from(conflictedSeatIdsRef.current).filter((seatId) =>
-            nextSeats.some((row) => row.some((seat) => seat.id === seatId && seat.status !== 'available'))
-          )
-        );
-      }
-      return true;
-    } catch (error) {
-      console.warn("Seat map API failed; using bundled fallback seats.", error);
-      return false;
-    } finally {
-      if (showLoading) {
-        setIsSeatMapLoading(false);
-      }
-    }
-  }, [showtimeId]);
-
-  useEffect(() => {
-    void refreshSeatMap({ showLoading: true });
-  }, [refreshSeatMap]);
-
-  useEffect(() => {
-    if (!showtimeId) {
-      setIsShowtimeLoading(false);
-      return;
-    }
-
-    let active = true;
-    const currentShowtimeId = showtimeId;
-    setIsShowtimeLoading(true);
-
-    async function loadShowtimeContext() {
-      try {
-        const detail = await fetchShowtimeDetail(currentShowtimeId);
-        if (!active) return;
-
-        setApiShowtime(detail);
-
-        try {
-          const movieDetail = await fetchMovieDetail(detail.movieId);
-          if (active) {
-            setApiMovie(movieDetail);
-          }
-        } catch (error) {
-          console.warn("Movie detail API failed on seat page; using showtime snapshot instead.", error);
-        }
-      } catch (error) {
-        console.warn("Showtime detail API failed on seat page; using route/fallback data.", error);
-      } finally {
-        if (active) {
-          setIsShowtimeLoading(false);
-        }
-      }
-    }
-
-    void loadShowtimeContext();
-
-    return () => {
-      active = false;
-    };
-  }, [showtimeId]);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadBookingSeedDataFromApi() {
-      try {
-        const [combos, promotions] = await Promise.all([
-          fetchSnackCombos(),
-          fetchPromotions(true),
-        ]);
-
-        if (active) {
-          setApiSnackCombos(combos);
-          setApiPromotions(promotions);
-        }
-      } catch (error) {
-        console.warn("Booking seed API failed; using bundled fallback data for checkout state.", error);
-      }
-    }
-
-    void loadBookingSeedDataFromApi();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const toggleSeat = useCallback((clicked: Seat) => {
-    if (clicked.status === 'booked' || clicked.status === 'held') return;
+    if (clicked.status === 'booked') return;
 
     setSeats((prev) => {
       if (clicked.type === 'couple') {
@@ -446,8 +211,7 @@ export function SeatSelectionPage() {
           row.map((s) =>
             s.row === clicked.row &&
             (s.col === clicked.col || s.col === pairCol) &&
-            s.status !== 'booked' &&
-            s.status !== 'held'
+            s.status !== 'booked'
               ? { ...s, status: next }
               : s
           )
@@ -472,38 +236,19 @@ export function SeatSelectionPage() {
     () => getSelectedSnackCombos(comboQuantities),
     [comboQuantities]
   );
-  const comboOptions = useMemo<ComboOption[]>(
-    () =>
-      apiSnackCombos.length > 0
-        ? apiSnackCombos.map((combo) => ({
-            id: combo.code,
-            apiId: combo.id,
-            name: combo.name,
-            description: combo.description,
-            price: combo.price,
-          }))
-        : SNACK_COMBOS.map((combo) => ({
-            id: combo.id,
-            name: combo.name,
-            description: combo.description,
-            price: combo.promoPrice ?? combo.price,
-            originalPrice: combo.promoPrice ? combo.price : undefined,
-          })),
-    [apiSnackCombos]
-  );
   const comboSubtotal = useMemo(
     () =>
       selectedSnackCombos.reduce((sum, selection) => {
-        const combo = findComboOption(comboOptions, selection.id);
+        const combo = getSnackComboById(selection.id);
         return combo ? sum + combo.price * selection.quantity : sum;
       }, 0),
-    [comboOptions, selectedSnackCombos]
+    [selectedSnackCombos]
   );
   const comboCount = useMemo(
     () => selectedSnackCombos.reduce((sum, combo) => sum + combo.quantity, 0),
     [selectedSnackCombos]
   );
-  const serviceFee = apiQuote?.serviceFeeTotal ?? selected.length * SERVICE_FEE;
+  const serviceFee = selected.length * SERVICE_FEE;
   const isLow = timeLeft < 120;
   const bookingDateLabel = useMemo(
     () =>
@@ -515,93 +260,38 @@ export function SeatSelectionPage() {
       }),
     [bookingDate]
   );
-  const selectedPromotion = useMemo(() => {
-    const promotionApiId = resolvePromotionApiIdFromUiId(apiPromotions, promoId);
-    return apiPromotions.find((promotion) => promotion.id === promotionApiId) ?? null;
-  }, [apiPromotions, promoId]);
-  const displayMovie = apiMovie ?? fallbackMovie;
-  const displayMovieTitle = apiMovie?.title ?? apiShowtime?.movieTitle ?? fallbackMovie?.title ?? 'ABCD Cinema';
-  const displayPosterUrl = apiMovie?.imageUrl ?? apiShowtime?.moviePosterUrl ?? fallbackMovie?.imageUrl;
-  const displayCinemaName = apiShowtime?.cinemaName ?? fallbackCinema?.name ?? 'ABCD Cinema';
-  const displayCinemaAddress = fallbackCinema?.address ?? apiShowtime?.cinemaName ?? 'ABCD Mall';
-  const displayHallName =
-    apiShowtime?.hallName ??
-    (showtimeId && isShowtimeLoading ? null : (HALL_NAMES[hallType] ?? hallType));
-  const total = useMemo(
-    () => apiQuote?.grandTotal ?? subtotal + serviceFee + comboSubtotal,
-    [apiQuote?.grandTotal, comboSubtotal, serviceFee, subtotal]
+  const promoEvaluation = useMemo(
+    () =>
+      evaluatePromotion({
+        promoId,
+        seats: selected.map((seat) => ({ id: seat.id, type: seat.type })),
+        subtotal,
+        serviceFee,
+        hallType,
+        showtime,
+        bookingDate,
+        snackCombos: selectedSnackCombos,
+      }),
+    [bookingDate, hallType, promoId, selected, selectedSnackCombos, serviceFee, showtime, subtotal]
   );
-
-  useEffect(() => {
-    if (!showtimeId || selected.length === 0 || selected.some((seat) => !seat.seatInventoryId)) {
-      setApiQuote(null);
-      return;
-    }
-
-    let active = true;
-    const currentShowtimeId = showtimeId;
-
-    async function refreshQuote() {
-      try {
-        const snackCombos = selectedSnackCombos
-          .map((selection) => {
-            const combo = findComboOption(comboOptions, selection.id);
-            if (!combo?.apiId) {
-              return null;
-            }
-
-            return {
-              comboId: combo.apiId,
-              quantity: selection.quantity,
-            };
-          })
-          .filter((combo): combo is { comboId: string; quantity: number } => combo !== null);
-
-        const quote = await quoteBooking({
-          showtimeId: currentShowtimeId,
-          seatInventoryIds: selected.map((seat) => seat.seatInventoryId as string),
-          snackCombos,
-          promotionId: resolvePromotionApiIdFromUiId(apiPromotions, promoId),
-        });
-
-        if (active) {
-          setApiQuote(quote);
-        }
-      } catch (error) {
-        if (active) {
-          setApiQuote(null);
-        }
-        console.warn("Booking quote API failed on seat page; using local fallback totals.", error);
-      }
-    }
-
-    void refreshQuote();
-
-    return () => {
-      active = false;
-    };
-  }, [apiPromotions, comboOptions, promoId, selected, selectedSnackCombos, showtimeId]);
+  const promoTotals = useMemo(
+    () => getPromotionFinalTotal(subtotal + serviceFee, promoEvaluation, selectedSnackCombos),
+    [promoEvaluation, selectedSnackCombos, serviceFee, subtotal]
+  );
 
   const updateComboQuantity = useCallback((comboId: string, nextQuantity: number) => {
     setComboQuantities((prev) => {
       if (nextQuantity <= 0) {
-        const next = { ...prev };
-        delete next[comboId];
-        return next;
+        const { [comboId]: _removed, ...rest } = prev;
+        return rest;
       }
       return { ...prev, [comboId]: Math.min(nextQuantity, 9) };
     });
   }, []);
 
   // Navigate to checkout with booking state
-  const goToCheckout = async () => {
+  const goToCheckout = () => {
     if (selected.length === 0) return;
-
-    if (!showtimeId || selected.some((seat) => !seat.seatInventoryId)) {
-      window.alert("This showtime is not ready for online booking yet. Please choose a live showtime again.");
-      return;
-    }
-
     const params = new URLSearchParams({
       cinema: cinemaId,
       showtime,
@@ -609,75 +299,19 @@ export function SeatSelectionPage() {
       date: bookingDate,
     });
 
-    if (showtimeId) {
-      params.set('showtimeId', showtimeId);
-    }
-
     if (promoId) {
       params.set('promo', promoId);
-    }
-
-    let bookingHold: BookingHoldModel | null = null;
-
-    try {
-      const snackCombos = selectedSnackCombos.map((selection) => {
-        const comboId = findComboOption(comboOptions, selection.id)?.apiId;
-        if (!comboId) {
-          throw new Error(`Missing API combo id for ${selection.id}.`);
-        }
-        return { comboId, quantity: selection.quantity };
-      });
-
-      bookingHold = await createBookingHold({
-        showtimeId,
-        seatInventoryIds: selected.map((seat) => seat.seatInventoryId as string),
-        snackCombos,
-        promotionId: resolvePromotionApiIdFromUiId(apiPromotions, promoId),
-        sessionId: window.sessionStorage.getItem('abcd-cinema-session-id') ?? undefined,
-      });
-
-      params.set('holdId', bookingHold.holdId);
-    } catch (error) {
-      console.warn("Create booking hold API failed; checkout was blocked.", error);
-      const message = error instanceof Error ? error.message : 'Unable to hold these seats.';
-      const isSeatConflict =
-        message.toLowerCase().includes('already being held') ||
-        message.toLowerCase().includes('already booked');
-
-      if (isSeatConflict) {
-        const conflictedSeats = extractSeatCodesFromConflict(message);
-        const fallbackConflictedSeats = conflictedSeats.length > 0
-          ? conflictedSeats
-          : selected.map((seat) => seat.id);
-
-        conflictedSeatIdsRef.current = new Set([
-          ...Array.from(conflictedSeatIdsRef.current),
-          ...fallbackConflictedSeats,
-        ]);
-        setSeats((previousSeats) => markSeatsAsHeld(previousSeats, fallbackConflictedSeats));
-        setApiQuote(null);
-        void refreshSeatMap({ showLoading: false });
-        return;
-      }
-
-      window.alert("Unable to hold these seats. Please refresh the showtime and choose available seats again.");
-      return;
     }
 
     navigate(
      `${moviePaths.checkout(movieId ?? '')}?${params.toString()}`,
       {
         state: {
-          holdId: bookingHold?.holdId,
-          holdCode: bookingHold?.holdCode,
-          holdExpiresAtUtc: bookingHold?.expiresAtUtc,
-          holdRemainingSeconds: bookingHold?.remainingSeconds,
-          seats: selected.map((s) => ({ id: s.id, type: s.type, seatInventoryId: s.seatInventoryId })),
-          subtotal: bookingHold?.seatSubtotal ?? apiQuote?.seatSubtotal ?? subtotal,
+          seats: selected.map((s) => ({ id: s.id, type: s.type })),
+          subtotal,
           serviceFee,
-          total: bookingHold?.grandTotal ?? total,
-          comboSubtotal: bookingHold?.comboSubtotal ?? comboSubtotal,
-          discountAmount: bookingHold?.discountAmount,
+          total: promoTotals.total,
+          comboSubtotal,
           combos: selectedSnackCombos,
           promoId,
           bookingDate,
@@ -735,7 +369,7 @@ export function SeatSelectionPage() {
     );
   };
 
-  if (!displayMovie && !apiShowtime && !fallbackCinema) {
+  if (!movie || !cinema) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#07091a]">
         <div className="text-center">
@@ -795,8 +429,8 @@ export function SeatSelectionPage() {
               {/* Poster */}
               <div className="relative shrink-0">
                 <img
-                  src={displayPosterUrl}
-                  alt={displayMovieTitle}
+                  src={movie.imageUrl}
+                  alt={movie.title}
                   className="h-24 w-16 rounded-xl object-cover shadow-xl ring-1 ring-white/10 sm:h-28 sm:w-20"
                 />
                 <Badge className="absolute -right-1.5 -top-1.5 bg-gradient-to-r from-purple-600 to-pink-600 px-1.5 py-0.5 text-[10px]">
@@ -807,12 +441,12 @@ export function SeatSelectionPage() {
               {/* Details */}
               <div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
                 <h2 className="text-base font-bold text-white line-clamp-1 sm:text-lg">
-                  {displayMovieTitle}
+                  {movie.title}
                 </h2>
                 <div className="space-y-1.5">
                   <InfoRow
                     icon={<MapPin className="size-3.5 text-purple-400" />}
-                    label={displayCinemaName}
+                    label={cinema.name}
                   />
                   <InfoRow
                     icon={<Clock className="size-3.5 text-pink-400" />}
@@ -820,11 +454,11 @@ export function SeatSelectionPage() {
                   />
                   <InfoRow
                     icon={<Film className="size-3.5 text-cyan-400" />}
-                    label={displayHallName ?? 'Loading hall information...'}
+                    label={HALL_NAMES[hallType] ?? hallType}
                   />
                   <InfoRow
                     icon={<MapPin className="size-3 text-gray-600" />}
-                    label={displayCinemaAddress}
+                    label={cinema.address}
                     dim
                   />
                 </div>
@@ -881,15 +515,8 @@ export function SeatSelectionPage() {
               </div>
 
               {/* Scroll wrapper for small screens */}
-              {isSeatMapLoading ? (
-                <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] px-4 py-10 text-center">
-                  <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-blue-400/40 border-t-blue-300" />
-                  <p className="mt-4 text-sm font-medium text-white">Loading live seat map...</p>
-                  <p className="mt-1 text-xs text-gray-500">Waiting for the current hall layout and seat availability.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <div className="inline-block min-w-[540px] w-full">
+              <div className="overflow-x-auto">
+                <div className="inline-block min-w-[540px] w-full">
                   {/* Column header */}
                   <div className="mb-3 flex items-center gap-2">
                     <div className="w-7 shrink-0" /> {/* row label spacer */}
@@ -963,56 +590,31 @@ export function SeatSelectionPage() {
                     })}
                   </div>
                 </div>
-                </div>
-              )}
+              </div>
               <div className="mt-8 border-t border-white/[0.05] pt-6">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-500">
-                      Seat status
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-3">
-                      <LegendItem
-                        boxClass="bg-slate-700/50 border-slate-600/50 text-slate-500"
-                        label="Available"
-                        description="Can be selected now"
-                      />
-                      <LegendItem
-                        boxClass="bg-gradient-to-b from-purple-500 to-pink-600 border-purple-400 shadow-md shadow-purple-500/30"
-                        label="Selected"
-                        description="Included in your order"
-                      />
-                      <LegendItem
-                        boxClass="bg-slate-900 border-slate-500/70 text-slate-200"
-                        label="Booked"
-                        description="Already sold"
-                      />
-                      <LegendItem
-                        boxClass={HELD_STATUS_CLASSES}
-                        label="Held"
-                        description="Temporarily locked"
-                      />
-                    </div>
-                  </div>
-                  <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-500">
-                      Seat type
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-3">
-                      <LegendItem
-                        boxClass="bg-amber-950/70 border-amber-600/40 text-amber-400"
-                        label={`VIP (+${Math.round(SEAT_SURCHARGES.vip / 1000)}K)`}
-                        description="Premium row surcharge"
-                        icon={<span>*</span>}
-                      />
-                      <LegendItem
-                        boxClass="bg-rose-950/60 border-rose-600/30 text-rose-400"
-                        label={`Couple seat (+${Math.round(SEAT_SURCHARGES.couple / 1000)}K)`}
-                        description="Booked as a linked pair"
-                        icon={<Heart className="size-3 fill-current" />}
-                      />
-                    </div>
-                  </div>
+                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
+                  <LegendItem
+                    boxClass="bg-slate-700/50 border-slate-600/50 text-slate-500"
+                    label="Available"
+                  />
+                  <LegendItem
+                    boxClass="bg-gradient-to-b from-purple-500 to-pink-600 border-purple-400 shadow-md shadow-purple-500/30"
+                    label="Selected"
+                  />
+                  <LegendItem
+                    boxClass="bg-slate-800/30 border-slate-700/20 opacity-30"
+                    label="Booked"
+                  />
+                  <LegendItem
+                    boxClass="bg-amber-950/70 border-amber-600/40 text-amber-400"
+                    label={`VIP (+${Math.round(SEAT_SURCHARGES.vip / 1000)}K)`}
+                    icon={<span>*</span>}
+                  />
+                  <LegendItem
+                    boxClass="bg-rose-950/60 border-rose-600/30 text-rose-400"
+                    label={`Couple seat (+${Math.round(SEAT_SURCHARGES.couple / 1000)}K)`}
+                    icon={<Heart className="size-3 fill-current" />}
+                  />
                 </div>
               </div>
             </div>
@@ -1033,11 +635,11 @@ export function SeatSelectionPage() {
 
             {/* Movie snapshot */}
             <div className="mb-4 space-y-1.5 rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/[0.04]">
-              <p className="font-semibold text-white line-clamp-1 text-sm">{displayMovieTitle}</p>
+              <p className="font-semibold text-white line-clamp-1 text-sm">{movie.title}</p>
               <div className="space-y-1">
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
                   <MapPin className="size-3 shrink-0 text-purple-400" />
-                  {displayCinemaName}
+                  {cinema.name}
                 </p>
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Clock className="size-3 shrink-0 text-pink-400" />
@@ -1045,7 +647,7 @@ export function SeatSelectionPage() {
                 </p>
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Film className="size-3 shrink-0 text-cyan-400" />
-                  {displayHallName ?? 'Loading hall information...'}
+                  {HALL_NAMES[hallType] ?? hallType}
                 </p>
               </div>
             </div>
@@ -1090,7 +692,7 @@ export function SeatSelectionPage() {
                 </p>
                 <div className="space-y-2">
                   {selectedSnackCombos.map((selection) => {
-                    const combo = findComboOption(comboOptions, selection.id);
+                    const combo = getSnackComboById(selection.id);
                     if (!combo) return null;
                     return (
                       <div
@@ -1113,28 +715,31 @@ export function SeatSelectionPage() {
               </div>
             )}
 
-            {selectedPromotion && apiQuote?.promotion && (
+            {promoEvaluation && (
               <div className="mb-4 rounded-2xl border border-fuchsia-500/20 bg-fuchsia-950/20 p-4 ring-1 ring-fuchsia-500/10">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-fuchsia-300/80">
                       Selected promotion
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-white">{selectedPromotion.title}</p>
-                    <p className="mt-1 text-xs text-fuchsia-100/75">{apiQuote.promotion.message}</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{promoEvaluation.promo.title}</p>
+                    <p className="mt-1 text-xs text-fuchsia-100/75">{promoEvaluation.message}</p>
+                    {promoEvaluation.bonusLabel && (
+                      <p className="mt-2 text-xs font-medium text-amber-300">{promoEvaluation.bonusLabel}</p>
+                    )}
                   </div>
                   <Badge
                     className={`text-xs ${
-                      apiQuote.promotion.isEligible
+                      promoEvaluation.status === 'applied'
                         ? 'bg-emerald-600/20 text-emerald-300 ring-1 ring-emerald-500/30'
-                        : apiQuote.promotion.status.toLowerCase().includes('ineligible')
+                        : promoEvaluation.status === 'ineligible'
                           ? 'bg-red-600/20 text-red-300 ring-1 ring-red-500/30'
                           : 'bg-fuchsia-600/20 text-fuchsia-200 ring-1 ring-fuchsia-500/30'
                     }`}
                   >
-                    {apiQuote.promotion.isEligible
+                    {promoEvaluation.status === 'applied'
                       ? 'Applied'
-                      : apiQuote.promotion.status.toLowerCase().includes('ineligible')
+                      : promoEvaluation.status === 'ineligible'
                         ? 'Not eligible'
                         : 'Reserved'}
                   </Badge>
@@ -1159,7 +764,9 @@ export function SeatSelectionPage() {
                       <span className="text-gray-400">
                         {label} x {ts.length}
                       </span>
-                      <span className="font-medium text-white">{vnd(getSeatPrice(hallType, type) * ts.length)}</span>
+                      <span className="font-medium text-white">
+                        {vnd(getSeatPrice(hallType, type) * ts.length)}
+                      </span>
                     </div>
                   );
                 })}
@@ -1168,7 +775,7 @@ export function SeatSelectionPage() {
                   <span className="font-medium text-white">{vnd(serviceFee)}</span>
                 </div>
                 {selectedSnackCombos.map((selection) => {
-                  const combo = findComboOption(comboOptions, selection.id);
+                  const combo = getSnackComboById(selection.id);
                   if (!combo) return null;
                   return (
                     <div key={selection.id} className="flex items-center justify-between text-sm">
@@ -1181,11 +788,13 @@ export function SeatSelectionPage() {
                     </div>
                   );
                 })}
-                {(apiQuote?.discountTotal ?? 0) > 0 && (
+                {promoEvaluation && promoEvaluation.estimatedDiscount > 0 && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-fuchsia-200/80">Promotion discount</span>
+                    <span className="text-fuchsia-200/80">
+                      {promoEvaluation.status === 'applied' ? 'Discount' : 'Estimated savings'}
+                    </span>
                     <span className="font-medium text-fuchsia-200">
-                      -{vnd(apiQuote?.discountTotal ?? 0)}
+                      -{vnd(promoEvaluation.status === 'applied' ? promoEvaluation.discount : promoEvaluation.estimatedDiscount)}
                     </span>
                   </div>
                 )}
@@ -1196,7 +805,7 @@ export function SeatSelectionPage() {
             <div className="mb-5 flex items-center justify-between rounded-2xl bg-gradient-to-r from-purple-950/60 to-pink-950/40 px-4 py-3.5 ring-1 ring-purple-500/20">
               <span className="font-semibold text-white">Total</span>
               <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-xl font-bold text-transparent">
-                {vnd(total)}
+                {vnd(promoTotals.total)}
               </span>
             </div>
 
@@ -1240,7 +849,7 @@ export function SeatSelectionPage() {
           </div>
 
           <div className="space-y-3">
-            {comboOptions.map((combo) => {
+            {SNACK_COMBOS.map((combo) => {
               const quantity = comboQuantities[combo.id] ?? 0;
               return (
                 <div
@@ -1251,7 +860,7 @@ export function SeatSelectionPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-semibold text-white">{combo.name}</p>
-                        {combo.originalPrice && (
+                        {combo.promoPrice && (
                           <Badge className="bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25">
                             Promo price
                           </Badge>
@@ -1260,11 +869,11 @@ export function SeatSelectionPage() {
                       <p className="mt-1 text-xs leading-relaxed text-gray-400">{combo.description}</p>
                       <div className="mt-3 flex items-center gap-2 text-sm">
                         <span className="font-semibold text-amber-300">
-                          {vnd(combo.price)}
+                          {vnd(combo.promoPrice ?? combo.price)}
                         </span>
-                        {combo.originalPrice && (
+                        {combo.promoPrice && (
                           <span className="text-xs text-gray-500 line-through">
-                            {vnd(combo.originalPrice)}
+                            {vnd(combo.price)}
                           </span>
                         )}
                       </div>
@@ -1304,7 +913,7 @@ export function SeatSelectionPage() {
                 <p className="truncate text-xs text-gray-400">
                   {selected.map((s) => s.id).join(', ')}
                 </p>
-                <p className="text-lg font-bold text-white">{vnd(total)}</p>
+                <p className="text-lg font-bold text-white">{vnd(promoTotals.total)}</p>
                 {comboCount > 0 && (
                   <p className="text-[11px] text-amber-300">{comboCount} combo item(s) included</p>
                 )}

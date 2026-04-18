@@ -14,6 +14,10 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
         CreateBookingHoldRequestDto request,
         CancellationToken cancellationToken = default); //tạo hold mới, trả về thông tin hold đã tạo
 
+        Task<BookingHoldResponseDto?> ConfirmAsync(
+        Guid holdId,
+        CancellationToken cancellationToken = default); //flow test cũ: xác nhận hold để chuyển ghế sang booked
+
         Task<BookingHoldResponseDto?> GetByIdAsync(
         Guid holdId,
         CancellationToken cancellationToken = default); //lấy thông tin hold theo id, trả về null nếu không tìm thấy

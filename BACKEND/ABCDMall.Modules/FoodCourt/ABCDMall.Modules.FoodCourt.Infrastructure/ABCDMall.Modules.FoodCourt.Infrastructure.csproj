@@ -7,12 +7,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- PHẢI có cả 2 -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.14">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules.FoodCourt.Domain\ABCDMall.Modules.FoodCourt.Domain.csproj" />
     <ProjectReference Include="..\ABCDMall.Modules.FoodCourt.Application\ABCDMall.Modules.FoodCourt.Application.csproj" />
     <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
-
-    <PackageReference Include="MongoDB.Driver" Version="3.7.1" />
   </ItemGroup>
 
 </Project>

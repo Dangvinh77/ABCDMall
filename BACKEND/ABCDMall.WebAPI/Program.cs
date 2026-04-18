@@ -1,11 +1,23 @@
+using ABCDMall.Modules.FoodCourt.Application;
+using ABCDMall.Modules.FoodCourt.Infrastructure;
+using ABCDMall.Modules.FoodCourt.Infrastructure.Persistence.FoodCourt;
+using ABCDMall.Modules.FoodCourt.Infrastructure.Seed;
 using ABCDMall.Modules.Movies.Application;
 using ABCDMall.Modules.Movies.Infrastructure;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Seed;
+using ABCDMall.Modules.Shops.Application;
+using ABCDMall.Modules.Shops.Infrastructure;
+using ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops;
+using ABCDMall.Modules.Shops.Infrastructure.Seed;
 using ABCDMall.Modules.Users.Application;
 using ABCDMall.Modules.Users.Infrastructure;
 using ABCDMall.Modules.Users.Infrastructure.Seed;
+using ABCDMall.Modules.UtilityMap.Application;
+using ABCDMall.Modules.UtilityMap.Infrastructure;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -56,11 +68,23 @@ var resetMoviesDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:
 var seedMoviesData = builder.Configuration.GetValue("DatabaseStartup:SeedMoviesData", true);
 var resetUsersDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetUsersDatabase");
 var seedUsersData = builder.Configuration.GetValue("DatabaseStartup:SeedUsersData", true);
+var resetFoodCourtDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetFoodCourtDatabase");
+var seedFoodCourtData = builder.Configuration.GetValue("DatabaseStartup:SeedFoodCourtData", true);
+var resetShopsDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetShopsDatabase");
+var seedShopsData = builder.Configuration.GetValue("DatabaseStartup:SeedShopsData", true);
+var resetUtilityMapDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetUtilityMapDatabase");
+var seedUtilityMapData = builder.Configuration.GetValue("DatabaseStartup:SeedUtilityMapData", true);
 
 builder.Services.AddMoviesApplication(autoMapperLicenseKey);
 builder.Services.AddMoviesInfrastructure(builder.Configuration);
+builder.Services.AddFoodCourtApplication(autoMapperLicenseKey);
+builder.Services.AddFoodCourtInfrastructure(builder.Configuration);
+builder.Services.AddShopsApplication();
+builder.Services.AddShopsInfrastructure(builder.Configuration);
 builder.Services.AddUsersApplication(autoMapperLicenseKey);
 builder.Services.AddUsersInfrastructure(builder.Configuration);
+builder.Services.AddUtilityMapApplication(autoMapperLicenseKey);
+builder.Services.AddUtilityMapInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
@@ -124,6 +148,52 @@ await using (var scope = app.Services.CreateAsyncScope())
 
     try
     {
+        logger.LogInformation("Starting FoodCourt database initialization.");
+        var foodCourtDbContext = scope.ServiceProvider.GetRequiredService<FoodCourtDbContext>();
+        if (resetFoodCourtDatabase)
+        {
+            logger.LogWarning("ResetFoodCourtDatabase is enabled. Deleting FoodCourt database.");
+            await foodCourtDbContext.Database.EnsureDeletedAsync();
+        }
+
+        await foodCourtDbContext.Database.MigrateAsync();
+        if (seedFoodCourtData)
+        {
+            await FrontendFoodCourtSeed.SeedAsync(foodCourtDbContext);
+        }
+
+        logger.LogInformation("FoodCourt database initialization completed.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "FoodCourt database migration/seed was skipped because startup database initialization failed.");
+    }
+
+    try
+    {
+        logger.LogInformation("Starting Shops database initialization.");
+        var shopsDbContext = scope.ServiceProvider.GetRequiredService<ShopsDbContext>();
+        if (resetShopsDatabase)
+        {
+            logger.LogWarning("ResetShopsDatabase is enabled. Deleting Shops database.");
+            await shopsDbContext.Database.EnsureDeletedAsync();
+        }
+
+        await shopsDbContext.Database.MigrateAsync();
+        if (seedShopsData)
+        {
+            await FrontendShopsSeed.SeedAsync(shopsDbContext);
+        }
+
+        logger.LogInformation("Shops database initialization completed.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Shops database migration/seed was skipped because startup database initialization failed.");
+    }
+
+    try
+    {
         logger.LogInformation("Starting Users database initialization.");
         var usersDbContext = scope.ServiceProvider.GetRequiredService<MallDbContext>();
         if (resetUsersDatabase)
@@ -143,6 +213,29 @@ await using (var scope = app.Services.CreateAsyncScope())
     catch (Exception ex)
     {
         logger.LogWarning(ex, "Users database migration/seed was skipped because startup database initialization failed.");
+    }
+
+    try
+    {
+        logger.LogInformation("Starting UtilityMap database initialization.");
+        var mapDbContext = scope.ServiceProvider.GetRequiredService<UtilityMapDbContext>();
+        if (resetUtilityMapDatabase)
+        {
+            logger.LogWarning("ResetUtilityMapDatabase is enabled. Deleting UtilityMap database.");
+            await mapDbContext.Database.EnsureDeletedAsync();
+        }
+
+        await mapDbContext.Database.MigrateAsync();
+        if (seedUtilityMapData)
+        {
+            await FrontendUtilityMapSeed.SeedAsync(mapDbContext);
+        }
+
+        logger.LogInformation("UtilityMap database initialization completed.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "UtilityMap database migration/seed was skipped because startup database initialization failed.");
     }
 }
 
