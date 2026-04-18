@@ -1,38 +1,63 @@
-# 🚀 .NET CLI & EF Core Cheat Sheet
+# .NET CLI Guide for VS Code and Visual Studio 2022
 
-## 📦 Setup & Create Project
+## Muc dich
 
-### Cài EF CLI
+File nay dung cho dev lam viec bang:
+
+- VS Code: dung `Terminal`
+- Visual Studio 2022: dung `Terminal` / `Developer PowerShell`
+
+Neu muon dung `Package Manager Console`, xem them file `package_console_cli.md`.
+
+## Thu muc dung lenh
+
+Chay tat ca lenh ben duoi tai thu muc:
+
+```powershell
+E:\DEV\Coding_Resource\Project\e_PROJECT\Semester3\eProjectSem3_Group2_ABCDMall_T2.2410.E0\CODE\BACKEND
+```
+
+## Cai dat can thiet
+
+### Cai EF CLI
 
 ```bash
 dotnet tool install --global dotnet-ef --version 8.0.4
 ```
 
-### Tạo project MVC
+### Kiem tra EF CLI
 
 ```bash
-dotnet new mvc -n MyMvcProject -f net8.0
+dotnet ef
 ```
 
-### Tạo Web API (tạo thư mục mới)
+### Restore solution
 
 ```bash
-dotnet new webapi --framework net8.0 -o <project_name>
+dotnet restore ABCDMall.sln
 ```
 
-### Tạo Web API ngay trong thư mục hiện tại
+## Build va run
+
+### Build solution
 
 ```bash
-dotnet new webapi --framework net8.0
+dotnet build ABCDMall.sln
 ```
 
-## 📚 Cài đặt Package
+### Run WebAPI
 
 ```bash
-dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.2
+dotnet run --project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj
 ```
 
-## 🔐 HTTPS Dev Certificate
+### Run WebAPI voi hot reload
+
+```bash
+dotnet watch --project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj run
+```
+
+## HTTPS dev certificate
 
 ### Trust certificate
 
@@ -40,56 +65,175 @@ dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.2
 dotnet dev-certs https --trust
 ```
 
-### Kiểm tra certificate
+### Kiem tra certificate
 
 ```bash
 dotnet dev-certs https --check
 ```
 
-## ▶️ Build & Run
+## EF Core cho du an nay
 
-### Build project
+## Nguyen tac
 
-```bash
-dotnet build
-```
+Trong solution nay, moi module co infrastructure project rieng. Khi dung `dotnet ef`, nen chi ro:
 
-### Run (không auto reload)
+- `--project`: project chua migrations / DbContext
+- `--startup-project`: project khoi dong app, o day la `ABCDMall.WebAPI`
+- `--context`: DbContext can thao tac
 
-```bash
-dotnet run
-```
-
-### Run có auto reload + chọn profile https
+Mau chung:
 
 ```bash
-dotnet watch run --launch-profile https
+dotnet ef migrations add <MigrationName> --project <Infrastructure.csproj> --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context <DbContext> --output-dir <MigrationsFolder>
 ```
 
-## 💡 Tip:
+## Mapping voi Package Manager Console
 
-Nếu không muốn dùng --launch-profile
-→ chỉnh file:
-**./Properties/launchSettings.json**
+- `Add-Migration`  -> `dotnet ef migrations add`
+- `Remove-Migration` -> `dotnet ef migrations remove`
+- `Update-Database` -> `dotnet ef database update`
+- `Drop-Database` -> `dotnet ef database drop`
 
-### 👉 Đưa profile https lên trên http để mặc định chạy HTTPS
+Visual Studio 2022 van dung duoc file nay neu ban mo `Terminal` trong VS va chay y nhu tren.
 
-## 🗄️ Entity Framework Core (CLI)
+## Cac DbContext hien co
 
-### Tạo migration
+- `MoviesCatalogDbContext`
+- `MoviesBookingDbContext`
+- `MallDbContext`
+- `FoodCourtDbContext`
+- `ShopsDbContext`
+- `UtilityMapDbContext`
+
+Luu y: context dung trong code la `ShopsDbContext`, khong phai `ShopDbContext`.
+
+## Tao migration
+
+### Movies Catalog
 
 ```bash
-dotnet ef migrations add <MigrationName>
+dotnet ef migrations add <MigrationName> `
+  --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MoviesCatalogDbContext `
+  --output-dir Persistence\Catalog\Migrations
 ```
 
-### Update database
+### Movies Booking
 
 ```bash
-dotnet ef database update
+dotnet ef migrations add <MigrationName> `
+  --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MoviesBookingDbContext `
+  --output-dir Persistence\Booking\Migrations
 ```
 
-### Xoá database
+### Mall / Users
 
 ```bash
-dotnet ef database drop
+dotnet ef migrations add <MigrationName> `
+  --project .\ABCDMall.Modules\Users\ABCDMall.Modules.Users.Infrastructure\ABCDMall.Modules.Users.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MallDbContext `
+  --output-dir Persistence\Migrations
 ```
+
+### FoodCourt
+
+```bash
+dotnet ef migrations add <MigrationName> `
+  --project .\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Infrastructure\ABCDMall.Modules.FoodCourt.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context FoodCourtDbContext `
+  --output-dir Persistence\FoodCourt\Migrations
+```
+
+### Shops
+
+```bash
+dotnet ef migrations add <MigrationName> `
+  --project .\ABCDMall.Modules\Shops\ABCDMall.Modules.Shops.Infrastructure\ABCDMall.Modules.Shops.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context ShopsDbContext `
+  --output-dir Persistence\Shops\Migrations
+```
+
+### UtilityMap
+
+```bash
+dotnet ef migrations add <MigrationName> `
+  --project .\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Infrastructure\ABCDMall.Modules.UtilityMap.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context UtilityMapDbContext `
+  --output-dir Persistence\UtilityMap\Migrations
+```
+
+## Xoa migration cuoi cung
+
+Mau chung:
+
+```bash
+dotnet ef migrations remove --project <Infrastructure.csproj> --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context <DbContext>
+```
+
+Vi du voi `MallDbContext`:
+
+```bash
+dotnet ef migrations remove `
+  --project .\ABCDMall.Modules\Users\ABCDMall.Modules.Users.Infrastructure\ABCDMall.Modules.Users.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MallDbContext
+```
+
+## Update database
+
+### Cap nhat theo tung context
+
+```bash
+dotnet ef database update --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context MoviesCatalogDbContext
+
+dotnet ef database update --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context MoviesBookingDbContext
+
+dotnet ef database update --project .\ABCDMall.Modules\Users\ABCDMall.Modules.Users.Infrastructure\ABCDMall.Modules.Users.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context MallDbContext
+
+dotnet ef database update --project .\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Infrastructure\ABCDMall.Modules.FoodCourt.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context FoodCourtDbContext
+
+dotnet ef database update --project .\ABCDMall.Modules\Shops\ABCDMall.Modules.Shops.Infrastructure\ABCDMall.Modules.Shops.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context ShopsDbContext
+
+dotnet ef database update --project .\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Infrastructure\ABCDMall.Modules.UtilityMap.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context UtilityMapDbContext
+```
+
+## Drop database
+
+Mau chung:
+
+```bash
+dotnet ef database drop --project <Infrastructure.csproj> --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context <DbContext>
+```
+
+Vi du:
+
+```bash
+dotnet ef database drop `
+  --project .\ABCDMall.Modules\FoodCourt\ABCDMall.Modules.FoodCourt.Infrastructure\ABCDMall.Modules.FoodCourt.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context FoodCourtDbContext
+```
+
+## Cach dung trong tung IDE
+
+### VS Code
+
+1. Mo folder `BACKEND`.
+2. Mo `Terminal`.
+3. Chay cac lenh `dotnet` trong file nay.
+
+### Visual Studio 2022
+
+1. Mo file `ABCDMall.sln`.
+2. Vao `View > Terminal` hoac mo `Developer PowerShell`.
+3. Chuyen ve thu muc `BACKEND` neu can.
+4. Chay cac lenh `dotnet` trong file nay.
+
+Neu muon thao tac bang `Package Manager Console` trong Visual Studio 2022, dung file `package_console_cli.md`.
