@@ -20,7 +20,7 @@ import { getDefaultBookingDate } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
-import { fallbackMovieDetailUiData, loadMovieDetailUiData } from '../api/movieUiAdapter';
+import { loadMovieDetailUiData } from '../api/movieUiAdapter';
 import type { Movie } from '../data/movie';
 
 const HALL_TYPE_COLORS: Record<string, string> = {
@@ -41,11 +41,11 @@ export function MovieDetailPage() {
     availableDates.find((dateOption) => formatScheduleDateParam(dateOption.date) === initialBookingDate)
       ? initialBookingDate
       : formatScheduleDateParam(availableDates[0].date);
-  const fallbackData = fallbackMovieDetailUiData(movieId, bookingDate);
-  const [apiMovie, setApiMovie] = useState<Movie | undefined>(fallbackData.movie);
-  const [apiMovieSchedule, setApiMovieSchedule] = useState<MovieSchedule | undefined>(fallbackData.movieSchedule);
-  const movie = apiMovie ?? fallbackData.movie;
-  const movieSchedule = apiMovieSchedule ?? fallbackData.movieSchedule;
+  const [apiMovie, setApiMovie] = useState<Movie | undefined>();
+  const [apiMovieSchedule, setApiMovieSchedule] = useState<MovieSchedule | undefined>();
+  const [isLoading, setIsLoading] = useState(Boolean(movieId));
+  const movie = apiMovie;
+  const movieSchedule = apiMovieSchedule;
   const scheduleMovieId = movie?.id.replace(/-(now|soon)-\d+$/, '') ?? movieId?.replace(/-(now|soon)-\d+$/, '');
   const bookingDateLabel = new Date(`${bookingDate}T00:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
@@ -89,6 +89,10 @@ export function MovieDetailPage() {
     const currentMovieId = movieId;
 
     async function loadMovieFromApi() {
+      if (active) {
+        setIsLoading(true);
+      }
+
       try {
         // API FETCH NOTE:
         // Detail keeps the original visual layout but swaps the movie/showtime objects with API-backed data.
@@ -98,12 +102,15 @@ export function MovieDetailPage() {
         setApiMovie(data.movie);
         setApiMovieSchedule(data.movieSchedule);
       } catch (error) {
-        const fallback = fallbackMovieDetailUiData(currentMovieId, bookingDate);
         if (active) {
-          setApiMovie(fallback.movie);
-          setApiMovieSchedule(fallback.movieSchedule);
+          setApiMovie(undefined);
+          setApiMovieSchedule(undefined);
         }
-        console.warn("Movie detail API failed; using bundled fallback data.", error);
+        console.warn('Movie detail API failed.', error);
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -113,6 +120,14 @@ export function MovieDetailPage() {
       active = false;
     };
   }, [bookingDate, movieId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+        <div className="text-center text-gray-300">Loading movie details...</div>
+      </div>
+    );
+  }
 
   if (!movie) {
     return (

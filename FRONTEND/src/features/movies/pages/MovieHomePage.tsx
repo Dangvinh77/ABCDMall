@@ -16,53 +16,19 @@ import { Badge } from "../component/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../component/ui/tabs";
 import { MovieCard } from "./MovieCard";
 import { PromoCard } from "./PromoCard";
-import { nowShowingMovies as fallbackNowShowingMovies, comingSoonMovies as fallbackComingSoonMovies } from "../data/movie";
+import type { Movie } from "../data/movie";
 import { getDefaultBookingDate } from "../data/promotions";
 import { moviePaths } from "../routes/moviePaths";
-import { loadHomeUiData } from "../api/movieUiAdapter";
-
-const fallbackPromos = [
-  {
-    id: "f1",
-    title: "Weekend special",
-    description: "Extra savings for Saturday and Sunday showtimes",
-    discount: "30% OFF",
-    color: "bg-gradient-to-br from-purple-600 to-purple-800",
-    imageUrl:
-      "https://unsplash.com/photos/DUPLnKwg69w/download?force=true&w=1200",
-  },
-  {
-    id: "p6",
-    title: "Popcorn combo",
-    description: "Save 50,000 VND on your snack combo",
-    discount: "50K",
-    color: "bg-gradient-to-br from-pink-600 to-pink-800",
-    imageUrl:
-      "https://unsplash.com/photos/wzAf9AAtVSI/download?force=true&w=1200",
-  },
-  {
-    id: "p7",
-    title: "Birthday gift",
-    description: "Birthday reward unlocked during checkout",
-    discount: "FREE",
-    color: "bg-gradient-to-br from-cyan-600 to-cyan-800",
-    imageUrl:
-      "https://unsplash.com/photos/PxM8aeJbzvk/download?force=true&w=1200",
-  },
-];
+import { loadHomeUiData, type HomePromo } from "../api/movieUiAdapter";
 
 export function MovieHomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [nowShowingMovies, setNowShowingMovies] = useState(fallbackNowShowingMovies);
-  const [comingSoonMovies, setComingSoonMovies] = useState(fallbackComingSoonMovies);
-  const [promos, setPromos] = useState(fallbackPromos);
+  const [nowShowingMovies, setNowShowingMovies] = useState<Movie[]>([]);
+  const [comingSoonMovies, setComingSoonMovies] = useState<Movie[]>([]);
+  const [promos, setPromos] = useState<HomePromo[]>([]);
   const [heroIndex, setHeroIndex] = useState(0);
-  const [nowShowingIndex, setNowShowingIndex] = useState(
-    fallbackNowShowingMovies.length,
-  );
-  const [comingSoonIndex, setComingSoonIndex] = useState(
-    fallbackComingSoonMovies.length,
-  );
+  const [nowShowingIndex, setNowShowingIndex] = useState(0);
+  const [comingSoonIndex, setComingSoonIndex] = useState(0);
   const [isNowShowingTransitionEnabled, setIsNowShowingTransitionEnabled] =
     useState(true);
   const [isComingSoonTransitionEnabled, setIsComingSoonTransitionEnabled] =
@@ -70,6 +36,7 @@ export function MovieHomePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const heroMovies = nowShowingMovies.slice(0, 3);
+  const currentHero = heroMovies[heroIndex];
   const defaultBookingDate = getDefaultBookingDate();
 
   const nowShowingTrack = [
@@ -93,19 +60,19 @@ export function MovieHomePage() {
         const data = await loadHomeUiData();
         if (!active) return;
 
-        if (data.nowShowingMovies.length > 0) {
-          setNowShowingMovies(data.nowShowingMovies);
-          setNowShowingIndex(data.nowShowingMovies.length);
-        }
-        if (data.comingSoonMovies.length > 0) {
-          setComingSoonMovies(data.comingSoonMovies);
-          setComingSoonIndex(data.comingSoonMovies.length);
-        }
-        if (data.promos.length > 0) {
-          setPromos(data.promos);
-        }
+        setNowShowingMovies(data.nowShowingMovies);
+        setNowShowingIndex(data.nowShowingMovies.length > 0 ? data.nowShowingMovies.length : 0);
+        setComingSoonMovies(data.comingSoonMovies);
+        setComingSoonIndex(data.comingSoonMovies.length > 0 ? data.comingSoonMovies.length : 0);
+        setPromos(data.promos);
       } catch (error) {
-        console.warn("Movies home API failed; using bundled fallback data.", error);
+        if (!active) return;
+        setNowShowingMovies([]);
+        setComingSoonMovies([]);
+        setPromos([]);
+        setNowShowingIndex(0);
+        setComingSoonIndex(0);
+        console.warn("Movies home API failed.", error);
       }
     }
 
@@ -117,6 +84,7 @@ export function MovieHomePage() {
   }, []);
 
   useEffect(() => {
+    if (heroMovies.length === 0) return;
     const intervalId = window.setInterval(() => {
       setHeroIndex((current) => (current + 1) % heroMovies.length);
     }, 5200);
@@ -175,12 +143,14 @@ export function MovieHomePage() {
   };
 
   const handlePrevHero = () => {
+    if (heroMovies.length === 0) return;
     setHeroIndex(
       (current) => (current - 1 + heroMovies.length) % heroMovies.length,
     );
   };
 
   const handleNextHero = () => {
+    if (heroMovies.length === 0) return;
     setHeroIndex((current) => (current + 1) % heroMovies.length);
   };
 
@@ -198,6 +168,7 @@ export function MovieHomePage() {
   };
 
   const handleNowShowingTransitionEnd = () => {
+    if (nowShowingMovies.length === 0) return;
     if (nowShowingIndex >= nowShowingMovies.length * 2) {
       setIsNowShowingTransitionEnabled(false);
       setNowShowingIndex(nowShowingIndex - nowShowingMovies.length);
@@ -208,6 +179,7 @@ export function MovieHomePage() {
   };
 
   const handleComingSoonTransitionEnd = () => {
+    if (comingSoonMovies.length === 0) return;
     if (comingSoonIndex >= comingSoonMovies.length * 2) {
       setIsComingSoonTransitionEnabled(false);
       setComingSoonIndex(comingSoonIndex - comingSoonMovies.length);
@@ -457,59 +429,85 @@ export function MovieHomePage() {
               className="max-w-2xl space-y-4 sm:space-y-6"
               style={{ animation: "cinema-reveal 750ms ease-out both" }}
             >
-              <Badge className="border border-yellow-300/50 bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_24px_rgba(249,115,22,0.28)]">
-                <Sparkles className="mr-1 size-3" />
-                Featured this week
-              </Badge>
-              <div className="inline-flex items-center gap-3">
-                <span className="h-px w-10 bg-gradient-to-r from-transparent to-fuchsia-300/80" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.45em] text-fuchsia-100/70 sm:text-xs">
-                  Featured Premiere
-                </span>
-              </div>
-              <h2
-                className="bg-[linear-gradient(90deg,#fff7ed_0%,#f472b6_16%,#ffffff_36%,#22d3ee_60%,#c084fc_82%,#fff7ed_100%)] bg-[length:260%_260%] bg-clip-text text-3xl font-black uppercase tracking-[0.08em] text-transparent drop-shadow-[0_0_24px_rgba(34,211,238,0.2)] sm:text-4xl md:text-5xl"
-                style={{
-                  animation:
-                    "cinema-title-glow 4.2s ease-in-out infinite, cinema-gradient-shift 5s ease-in-out infinite",
-                }}
-              >
-                {heroMovies[heroIndex].title}
-              </h2>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-200/90">
-                <Badge className="border border-white/10 bg-white/10 text-white">
-                  {heroMovies[heroIndex].genre}
-                </Badge>
-                <Badge className="border border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-100">
-                  {heroMovies[heroIndex].duration}
-                </Badge>
-                <Badge className="border border-cyan-400/30 bg-cyan-500/10 text-cyan-100">
-                  {heroMovies[heroIndex].ageRating}
-                </Badge>
-              </div>
-              <p className="max-w-xl text-base text-gray-300/95 drop-shadow-[0_6px_24px_rgba(0,0,0,0.35)] sm:text-lg">
-                {heroMovies[heroIndex].description}
-              </p>
-              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300/90">
-                <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5">
-                  Director: {heroMovies[heroIndex].director}
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5">
-                  Rating: {heroMovies[heroIndex].rating}/10
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => handleOpenShowtimes(heroMovies[heroIndex].id)}
-                  className="group rounded-2xl border border-cyan-300/35 bg-[linear-gradient(135deg,rgba(34,211,238,0.22),rgba(168,85,247,0.14))] px-6 text-white shadow-[0_0_34px_rgba(34,211,238,0.16)] backdrop-blur-md hover:border-cyan-200/60 hover:bg-[linear-gradient(135deg,rgba(34,211,238,0.32),rgba(236,72,153,0.18))]"
-                >
-                  <CalendarDays className="mr-2 size-4 text-cyan-100 transition-transform duration-300 group-hover:-rotate-6" />
-                  View showtimes
-                  <ChevronRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-              </div>
+              {currentHero ? (
+                <>
+                  <Badge className="border border-yellow-300/50 bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-[0_0_24px_rgba(249,115,22,0.28)]">
+                    <Sparkles className="mr-1 size-3" />
+                    Featured this week
+                  </Badge>
+                  <div className="inline-flex items-center gap-3">
+                    <span className="h-px w-10 bg-gradient-to-r from-transparent to-fuchsia-300/80" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.45em] text-fuchsia-100/70 sm:text-xs">
+                      Featured Premiere
+                    </span>
+                  </div>
+                  <h2
+                    className="bg-[linear-gradient(90deg,#fff7ed_0%,#f472b6_16%,#ffffff_36%,#22d3ee_60%,#c084fc_82%,#fff7ed_100%)] bg-[length:260%_260%] bg-clip-text text-3xl font-black uppercase tracking-[0.08em] text-transparent drop-shadow-[0_0_24px_rgba(34,211,238,0.2)] sm:text-4xl md:text-5xl"
+                    style={{
+                      animation:
+                        "cinema-title-glow 4.2s ease-in-out infinite, cinema-gradient-shift 5s ease-in-out infinite",
+                    }}
+                  >
+                    {currentHero.title}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-gray-200/90">
+                    <Badge className="border border-white/10 bg-white/10 text-white">
+                      {currentHero.genre}
+                    </Badge>
+                    <Badge className="border border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-100">
+                      {currentHero.duration}
+                    </Badge>
+                    <Badge className="border border-cyan-400/30 bg-cyan-500/10 text-cyan-100">
+                      {currentHero.ageRating}
+                    </Badge>
+                  </div>
+                  <p className="max-w-xl text-base text-gray-300/95 drop-shadow-[0_6px_24px_rgba(0,0,0,0.35)] sm:text-lg">
+                    {currentHero.description}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300/90">
+                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5">
+                      Director: {currentHero.director}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1.5">
+                      Rating: {currentHero.rating}/10
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={() => handleOpenShowtimes(currentHero.id)}
+                      className="group rounded-2xl border border-cyan-300/35 bg-[linear-gradient(135deg,rgba(34,211,238,0.22),rgba(168,85,247,0.14))] px-6 text-white shadow-[0_0_34px_rgba(34,211,238,0.16)] backdrop-blur-md hover:border-cyan-200/60 hover:bg-[linear-gradient(135deg,rgba(34,211,238,0.32),rgba(236,72,153,0.18))]"
+                    >
+                      <CalendarDays className="mr-2 size-4 text-cyan-100 transition-transform duration-300 group-hover:-rotate-6" />
+                      View showtimes
+                      <ChevronRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Badge className="border border-white/15 bg-white/10 text-white shadow-[0_0_24px_rgba(255,255,255,0.08)]">
+                    <Sparkles className="mr-1 size-3" />
+                    No featured movie
+                  </Badge>
+                  <h2 className="text-3xl font-black uppercase tracking-[0.08em] text-white sm:text-4xl md:text-5xl">
+                    Movies are unavailable right now
+                  </h2>
+                  <p className="max-w-xl text-base text-gray-300/95 sm:text-lg">
+                    The movies API did not return any items. This page now stays visible instead of rendering demo data.
+                  </p>
+                  <div className="flex flex-wrap gap-3 sm:gap-4">
+                    <Button
+                      size="lg"
+                      onClick={() => handleOpenShowtimes()}
+                      className="rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600"
+                    >
+                      Browse showtimes
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

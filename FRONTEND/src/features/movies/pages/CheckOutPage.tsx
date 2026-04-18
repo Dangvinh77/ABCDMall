@@ -23,7 +23,6 @@ import {
   Star,
   Heart,
 } from 'lucide-react';
-import { getMovieById, cinemasList } from '../data/movie';
 import {
   SERVICE_FEE,
   HALL_NAMES,
@@ -34,7 +33,6 @@ import {
   type PaymentMethod,
   type SeatType,
   type BookingState,
-  type SelectedSeat,
   type SelectedSnackCombo,
 } from '../data/booking';
 import { getDefaultBookingDate } from '../data/promotions';
@@ -129,11 +127,6 @@ const SEAT_ICON: Record<SeatType, React.ReactNode> = {
   vip: <Star className="size-2.5 fill-current" />,
   couple: <Heart className="size-2.5 fill-current" />,
 };
-const DEMO_SEATS: SelectedSeat[] = [
-  { id: 'D5', type: 'vip' },
-  { id: 'D6', type: 'vip' },
-  { id: 'F8', type: 'regular' },
-];
 
 function mapHoldSeatType(value: string): SeatType {
   const normalized = value.toLowerCase();
@@ -248,13 +241,12 @@ function InputField({
   );
 }
 export function CheckoutPage() {
-  const { movieId } = useParams<{ movieId: string }>();
+  useParams<{ movieId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const bookingState = location.state as BookingState | null;
 
-  const cinemaId = searchParams.get('cinema') ?? 'abcd-mall';
   const showtime = searchParams.get('showtime') ?? '19:30';
   const showtimeId = searchParams.get('showtimeId');
   const hallType = searchParams.get('hallType') ?? '2D';
@@ -275,12 +267,12 @@ export function CheckoutPage() {
       })) ?? null,
     [apiHold]
   );
-  const seats = holdSeats ?? bookingState?.seats ?? DEMO_SEATS;
-  const fallbackSubtotal = useMemo(
+  const seats = holdSeats ?? bookingState?.seats ?? [];
+  const localSubtotal = useMemo(
     () => seats.reduce((sum, seat) => sum + getSeatPrice(hallType, seat.type), 0),
     [hallType, seats]
   );
-  const fallbackServiceFee = seats.length * SERVICE_FEE;
+  const localServiceFee = seats.length * SERVICE_FEE;
   const selectedCombos = useMemo(() => bookingState?.combos ?? [], [bookingState?.combos]);
   const comboSummary = useMemo(
     () => getComboSummary(selectedCombos, apiSnackCombos),
@@ -290,11 +282,8 @@ export function CheckoutPage() {
     () => comboSummary.reduce((sum, combo) => sum + combo.lineTotal, 0),
     [comboSummary]
   );
-  const subtotal = apiQuote?.seatSubtotal ?? apiHold?.seatSubtotal ?? bookingState?.subtotal ?? fallbackSubtotal;
-  const serviceFee = apiQuote?.serviceFeeTotal ?? bookingState?.serviceFee ?? fallbackServiceFee;
-
-  const movie = movieId ? getMovieById(movieId) : undefined;
-  const cinema = cinemasList.find((c) => c.id === cinemaId);
+  const subtotal = apiQuote?.seatSubtotal ?? apiHold?.seatSubtotal ?? bookingState?.subtotal ?? localSubtotal;
+  const serviceFee = apiQuote?.serviceFeeTotal ?? bookingState?.serviceFee ?? localServiceFee;
 
   const [stage, setStage] = useState<Stage>('form');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('momo');
@@ -321,9 +310,9 @@ export function CheckoutPage() {
       }),
     [bookingDate]
   );
-  const displayPosterUrl = apiShowtime?.moviePosterUrl ?? movie?.imageUrl;
-  const displayMovieTitle = apiShowtime?.movieTitle ?? movie?.title ?? 'ABCD Cinema';
-  const displayCinemaName = apiShowtime?.cinemaName ?? cinema?.name ?? 'ABCD Cinema';
+  const displayPosterUrl = apiShowtime?.moviePosterUrl;
+  const displayMovieTitle = apiShowtime?.movieTitle ?? 'Unknown movie';
+  const displayCinemaName = apiShowtime?.cinemaName ?? 'Unknown cinema';
   const displayHallName = apiShowtime?.hallName ?? HALL_NAMES[hallType] ?? hallType;
 
   useEffect(() => {
@@ -341,7 +330,10 @@ export function CheckoutPage() {
           setApiShowtime(detail);
         }
       } catch (error) {
-        console.warn("Checkout showtime API failed; using route/fallback booking data.", error);
+        if (active) {
+          setApiShowtime(null);
+        }
+        console.warn("Checkout showtime API failed.", error);
       }
     }
 
@@ -365,7 +357,10 @@ export function CheckoutPage() {
           setApiHold(hold);
         }
       } catch (error) {
-        console.warn("Booking hold API failed; using route/fallback booking state.", error);
+        if (active) {
+          setApiHold(null);
+        }
+        console.warn("Booking hold API failed.", error);
       }
     }
 
@@ -442,7 +437,7 @@ export function CheckoutPage() {
         if (active) {
           setApiQuote(null);
         }
-        console.warn("Checkout quote API failed; using fallback totals.", error);
+        console.warn("Checkout quote API failed.", error);
       }
     }
 
