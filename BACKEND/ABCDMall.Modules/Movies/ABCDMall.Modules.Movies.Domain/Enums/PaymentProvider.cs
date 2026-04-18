@@ -11,6 +11,8 @@ namespace ABCDMall.Modules.Movies.Domain.Enums
         Unknown = 0,
         Mock = 1,
         Momo = 2,
-        VnPay = 3
+        VnPay = 3,
+        Stripe = 4,
+        PayPal = 5
     }
 }

@@ -95,9 +95,7 @@ public sealed class ShowtimeRepository : IShowtimeRepository
         DateTime utcNow,
         CancellationToken cancellationToken = default)
     {
-        // DAY5 TEST-ONLY CONFIRM FLOW:
-        // Đánh dấu ghế Booked trực tiếp để test luồng Confirm.
-        // Khi có booking/payment thật, thao tác này nên nằm trong use case xác nhận thanh toán/booking hoàn chỉnh.
+        // Marks seats as permanently booked after a successful booking/payment flow.
         var distinctSeatInventoryIds = seatInventoryIds.Distinct().ToArray();
         var seats = await _dbContext.ShowtimeSeatInventories
             .Where(seat => seat.ShowtimeId == showtimeId && distinctSeatInventoryIds.Contains(seat.Id))

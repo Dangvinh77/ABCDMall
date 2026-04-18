@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
         services.AddScoped<IBookingHoldRepository, BookingHoldRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddHostedService<BookingHoldCleanupBackgroundService>();
 
         return services;

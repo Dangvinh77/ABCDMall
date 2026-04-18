@@ -118,40 +118,5 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings
             return seatInventoryIds.ToHashSet();
         }
 
-        public async Task<BookingHold?> ConvertAsync(
-            Guid holdId,
-            DateTime utcNow,
-            CancellationToken cancellationToken = default)
-        {
-            // DAY5 TEST-ONLY CONFIRM FLOW:
-            // Chỉ đổi trạng thái hold sang Converted để test. Flow booking hoàn chỉnh nên có aggregate/order riêng.
-            var hold = await _dbContext.BookingHolds
-                .Include(x => x.Seats)
-                .FirstOrDefaultAsync(x => x.Id == holdId, cancellationToken);
-
-            if (hold is null)
-            {
-                return null;
-            }
-
-            if (hold.Status != BookingHoldStatus.Active)
-            {
-                throw new InvalidOperationException($"Booking hold is already {hold.Status}.");
-            }
-
-            if (hold.ExpiresAtUtc <= utcNow)
-            {
-                hold.Status = BookingHoldStatus.Expired;
-                hold.UpdatedAtUtc = utcNow;
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                throw new InvalidOperationException("Booking hold has expired.");
-            }
-
-            hold.Status = BookingHoldStatus.Converted;
-            hold.UpdatedAtUtc = utcNow;
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            return hold;
-        }
     }
 }

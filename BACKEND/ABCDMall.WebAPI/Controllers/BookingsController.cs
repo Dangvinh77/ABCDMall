@@ -1,4 +1,5 @@
 ﻿using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
+using ABCDMall.Modules.Movies.Application.DTOs.Payments;
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,8 @@ public sealed class BookingsController : ControllerBase
     private readonly IValidator<CreateBookingHoldRequestDto> _bookingHoldValidator;
     private readonly IBookingService _bookingService;
     private readonly IValidator<CreateBookingRequestDto> _createBookingValidator;
+    private readonly IPaymentService _paymentService;
+    private readonly IValidator<PaymentResultRequestDto> _paymentResultValidator;
 
     public BookingsController(
         IBookingQuoteService bookingQuoteService,
@@ -22,7 +25,9 @@ public sealed class BookingsController : ControllerBase
         IBookingHoldService bookingHoldService,
         IValidator<CreateBookingHoldRequestDto> bookingHoldValidator,
         IBookingService bookingService,
-        IValidator<CreateBookingRequestDto> createBookingValidator)
+        IValidator<CreateBookingRequestDto> createBookingValidator,
+        IPaymentService paymentService,
+        IValidator<PaymentResultRequestDto> paymentResultValidator)
     {
         _bookingQuoteService = bookingQuoteService;
         _bookingQuoteValidator = bookingQuoteValidator;
@@ -30,6 +35,8 @@ public sealed class BookingsController : ControllerBase
         _bookingHoldValidator = bookingHoldValidator;
         _bookingService = bookingService;
         _createBookingValidator = createBookingValidator;
+        _paymentService = paymentService;
+        _paymentResultValidator = paymentResultValidator;
     }
 
     [HttpPost("quote")]
@@ -148,24 +155,28 @@ public sealed class BookingsController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
-    [HttpPost("holds/{holdId:guid}/confirm")]
-    public async Task<ActionResult<BookingHoldResponseDto>> ConfirmHold(
-        Guid holdId,
+    [HttpPost("{bookingId:guid}/payment-result")]
+    public async Task<ActionResult<PaymentResponseDto>> ApplyPaymentResult(
+        Guid bookingId,
+        [FromBody] PaymentResultRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        // DAY5 TEST-ONLY CONFIRM FLOW:
-        // Endpoint này chỉ dùng để test luồng hold -> booked sau khi bấm Confirm trên FE.
-        // Khi code booking/payment hoàn chỉnh, thay endpoint này bằng use case tạo Booking/Payment thật.
+        var validationResult = await _paymentResultValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(ToValidationProblemDetails(validationResult));
+        }
+
         try
         {
-            var result = await _bookingHoldService.ConfirmAsync(holdId, cancellationToken);
-            return result is null ? NotFound() : Ok(result);
+            var result = await _paymentService.ProcessResultAsync(bookingId, request, cancellationToken);
+            return Ok(result);
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new ProblemDetails
             {
-                Title = "Unable to confirm booking hold.",
+                Title = "Unable to apply payment result.",
                 Detail = ex.Message,
                 Status = StatusCodes.Status400BadRequest
             });

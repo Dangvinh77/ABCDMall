@@ -42,11 +42,11 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
             //kiemr tra showtime có tồn tại và đang mở bán không
             if (showtime == null)
             {
-                throw new Exception("Showtime not found");
+                throw new InvalidOperationException("Showtime not found");
             }
             if (showtime.Status != ShowtimeStatus.Open)
             {
-                throw new Exception("Showtime is not open for booking");
+                throw new InvalidOperationException("Showtime is not open for booking");
             }
             //lấy dữ liệu toàn bộ ghế
             var seatMap = await _showtimeRepository.GetSeatMapByShowtimeIdAsync(request.ShowtimeId, cancellationToken);
@@ -59,7 +59,7 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
             //kiểm tra số lượng ghế tìm được so với số lượng ghế request gửi lên
             if (selectedSeats.Count != request.SeatInventoryIds.Count)
             {
-                throw new Exception("Some selected seats are not available");
+                throw new InvalidOperationException("Some selected seats are not available");
             }
             //lọc các ghế không có trạng thái Available 
             var unavailableSeats = selectedSeats
@@ -161,40 +161,6 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
         public Task<bool> ReleaseAsync(Guid holdId, CancellationToken cancellationToken = default)
         {
             return _bookingHoldRepository.ReleaseAsync(holdId, DateTime.UtcNow, cancellationToken);//hủy hold theo id, gọi repository để cập nhật trạng thái hold thành Released nếu tìm thấy và chưa hết hạn, trả về true nếu hủy thành công, false nếu không tìm thấy hoặc đã hết hạn
-        }
-
-        public async Task<BookingHoldResponseDto?> ConfirmAsync(Guid holdId, CancellationToken cancellationToken = default)
-        {
-            // DAY5 TEST-ONLY CONFIRM FLOW:
-            // Đây là confirm tối thiểu để test ghế bị khóa sau khi đặt.
-            // Nó chưa tạo Booking, PaymentTransaction, Ticket, customer snapshot hay email.
-            // Khi làm flow hoàn chỉnh, thay đoạn này bằng use case booking/payment thật.
-            var now = DateTime.UtcNow;
-            var hold = await _bookingHoldRepository.GetByIdAsync(holdId, cancellationToken);
-            if (hold is null)
-            {
-                return null;
-            }
-
-            if (hold.Status != BookingHoldStatus.Active)
-            {
-                throw new InvalidOperationException($"Booking hold is already {hold.Status}.");
-            }
-
-            if (hold.ExpiresAtUtc <= now)
-            {
-                await _bookingHoldRepository.ExpireAsync(now, cancellationToken);
-                throw new InvalidOperationException("Booking hold has expired.");
-            }
-
-            await _showtimeRepository.MarkSeatsBookedAsync(
-                hold.ShowtimeId,
-                hold.Seats.Select(seat => seat.SeatInventoryId).ToArray(),
-                now,
-                cancellationToken);
-
-            var converted = await _bookingHoldRepository.ConvertAsync(holdId, now, cancellationToken);
-            return converted is null ? null : Map(converted);
         }
 
         private static BookingHoldResponseDto Map(BookingHold hold)

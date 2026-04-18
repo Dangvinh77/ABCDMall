@@ -21,9 +21,5 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
         Task<bool> ReleaseAsync(
         Guid holdId,
         CancellationToken cancellationToken = default); //hủy hold theo id, trả về true nếu hủy thành công, false nếu không tìm thấy hoặc đã hết hạn
-
-        Task<BookingHoldResponseDto?> ConfirmAsync(
-        Guid holdId,
-        CancellationToken cancellationToken = default); //DAY5 TEST-ONLY CONFIRM FLOW: xác nhận hold tối thiểu để khóa ghế khi test, chưa phải booking/payment hoàn chỉnh
     }
 }

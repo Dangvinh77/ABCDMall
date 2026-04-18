@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
 using ABCDMall.Modules.Movies.Application.DTOs.Movies;
+using ABCDMall.Modules.Movies.Application.DTOs.Payments;
 using ABCDMall.Modules.Movies.Application.DTOs.Promotions;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Application.Mappings;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<BookingQuoteRequestDto>, BookingQuoteRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingHoldRequestDto>, CreateBookingHoldRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingRequestDto>, CreateBookingRequestDtoValidator>();
+        services.AddScoped<IValidator<PaymentResultRequestDto>, PaymentResultRequestDtoValidator>();
         services.AddScoped<IValidator<EvaluatePromotionRequestDto>, EvaluatePromotionRequestDtoValidator>();
         services.AddScoped<IValidator<MovieListQueryDto>, MovieListQueryDtoValidator>();
         services.AddScoped<IValidator<MovieShowtimesQueryDto>, MovieShowtimesQueryDtoValidator>();
@@ -38,6 +40,7 @@ public static class DependencyInjection
         services.AddScoped<IBookingQuoteService, BookingQuoteService>();
         services.AddScoped<IBookingHoldService, BookingHoldService>();
         services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IMovieQueryService, MovieQueryService>();
         services.AddScoped<IPromotionQueryService, PromotionQueryService>();
         services.AddScoped<IPromotionEvaluationService, PromotionEvaluationService>();
