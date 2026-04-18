@@ -13,17 +13,23 @@ public sealed class BookingsController : ControllerBase
     private readonly IValidator<BookingQuoteRequestDto> _bookingQuoteValidator;
     private readonly IBookingHoldService _bookingHoldService;
     private readonly IValidator<CreateBookingHoldRequestDto> _bookingHoldValidator;
+    private readonly IBookingService _bookingService;
+    private readonly IValidator<CreateBookingRequestDto> _createBookingValidator;
 
     public BookingsController(
         IBookingQuoteService bookingQuoteService,
         IValidator<BookingQuoteRequestDto> bookingQuoteValidator,
         IBookingHoldService bookingHoldService,
-        IValidator<CreateBookingHoldRequestDto> bookingHoldValidator)
+        IValidator<CreateBookingHoldRequestDto> bookingHoldValidator,
+        IBookingService bookingService,
+        IValidator<CreateBookingRequestDto> createBookingValidator)
     {
         _bookingQuoteService = bookingQuoteService;
         _bookingQuoteValidator = bookingQuoteValidator;
         _bookingHoldService = bookingHoldService;
         _bookingHoldValidator = bookingHoldValidator;
+        _bookingService = bookingService;
+        _createBookingValidator = createBookingValidator;
     }
 
     [HttpPost("quote")]
@@ -104,6 +110,42 @@ public sealed class BookingsController : ControllerBase
     {
         var released = await _bookingHoldService.ReleaseAsync(holdId, cancellationToken);
         return released ? NoContent() : NotFound();
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<CreateBookingResponseDto>> CreateBooking(
+        [FromBody] CreateBookingRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var validationResult = await _createBookingValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(ToValidationProblemDetails(validationResult));
+        }
+
+        try
+        {
+            var result = await _bookingService.CreateAsync(request, cancellationToken);
+            return CreatedAtAction(nameof(GetBooking), new { bookingCode = result.BookingCode }, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Unable to create booking.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+    }
+
+    [HttpGet("{bookingCode}")]
+    public async Task<ActionResult<BookingDetailResponseDto>> GetBooking(
+        string bookingCode,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _bookingService.GetByCodeAsync(bookingCode, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
     }
 
     [HttpPost("holds/{holdId:guid}/confirm")]

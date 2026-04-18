@@ -44,7 +44,9 @@ public class BookinggConfiguration : IEntityTypeConfiguration<Bookingg>
         builder.HasIndex(x => x.BookingCode).IsUnique();//Đảm bảo mã đặt chỗ là duy nhất
         builder.HasIndex(x => x.ShowtimeId);
         builder.HasIndex(x => x.GuestCustomerId);
-        builder.HasIndex(x => x.BookingHoldId);
+        builder.HasIndex(x => x.BookingHoldId)
+            .IsUnique()
+            .HasFilter("[BookingHoldId] IS NOT NULL");
 
         builder.HasOne(x => x.GuestCustomer)
             .WithMany(x => x.Bookings)

@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
         services.AddScoped<IBookingHoldRepository, BookingHoldRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddHostedService<BookingHoldCleanupBackgroundService>();
 
         return services;

@@ -1,4 +1,5 @@
 ﻿using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Promotions;
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Bookings
@@ -19,12 +21,18 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
         private readonly IShowtimeRepository _showtimeRepository; //lấy thông tin showtime để kiểm tra tình trạng ghế
         private readonly IBookingQuoteService _bookingQuoteService; //dịch vụ để tính toán giá trị đặt chỗ
         private readonly IBookingHoldRepository _bookingHoldRepository; //repository để quản lý hold
+        private readonly IPromotionRepository _promotionRepository;
 
-        public BookingHoldService(IShowtimeRepository showtimeRepository, IBookingQuoteService bookingQuoteService, IBookingHoldRepository bookingHoldRepository)
+        public BookingHoldService(
+            IShowtimeRepository showtimeRepository,
+            IBookingQuoteService bookingQuoteService,
+            IBookingHoldRepository bookingHoldRepository,
+            IPromotionRepository promotionRepository)
         {
             _showtimeRepository = showtimeRepository;
             _bookingQuoteService = bookingQuoteService;
             _bookingHoldRepository = bookingHoldRepository;
+            _promotionRepository = promotionRepository;
         }
 
         public async Task<BookingHoldResponseDto> CreateAsync(CreateBookingHoldRequestDto request, CancellationToken cancellationToken = default)
@@ -75,6 +83,27 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
                 GuestCustomerId = request.GuestCustomerId
             }, cancellationToken);
 
+            var comboSnapshots = new List<BookingHoldComboSnapshotDto>();
+            foreach (var selectedCombo in request.SnackCombos)
+            {
+                var combo = await _promotionRepository.GetSnackComboByIdAsync(selectedCombo.ComboId, cancellationToken);
+                if (combo is null)
+                {
+                    throw new InvalidOperationException($"Snack combo {selectedCombo.ComboId} was not found or inactive.");
+                }
+
+                var lineTotal = combo.Price * selectedCombo.Quantity;
+                comboSnapshots.Add(new BookingHoldComboSnapshotDto
+                {
+                    ComboId = combo.Id,
+                    ComboCode = combo.Code,
+                    ComboName = combo.Name,
+                    Quantity = selectedCombo.Quantity,
+                    UnitPrice = combo.Price,
+                    LineTotal = lineTotal
+                });
+            }
+
             var now = DateTime.UtcNow;
             //tạo entity BookingHold để lưu vào database
             var hold = new BookingHold
@@ -87,8 +116,12 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
                 SessionId = request.SessionId,
                 SeatSubtotal = quote.SeatSubtotal,
                 ComboSubtotal = quote.ComboSubtotal,
+                ServiceFee = quote.ServiceFeeTotal,
                 DiscountAmount = quote.DiscountTotal,
                 GrandTotal = quote.GrandTotal,
+                PromotionId = request.PromotionId,
+                PromotionSnapshotJson = quote.Promotion is null ? null : JsonSerializer.Serialize(quote.Promotion),
+                ComboSnapshotJson = comboSnapshots.Count == 0 ? null : JsonSerializer.Serialize(comboSnapshots),
                 CreatedAtUtc = now,
                 UpdatedAtUtc = now,
                 //tạo bản ghi BookingHoldSeat cho từng ghế được giữ

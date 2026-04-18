@@ -167,6 +167,37 @@ Dev 2 dựa vào đó để làm:
 
 Nếu cần thêm field vào `seat-map` hoặc đổi contract, phải sync lại với Dev 1 trước khi code.
 
+### 3.6 Những điểm phải chốt với Dev 1 trước Day 6-8
+
+Trước khi code `Create Booking`, `Payment Result Integration`, và `Complete Booking`, cần sync nhanh với Dev 1 các điểm sau:
+
+1. Payment handoff:
+   - Dev 1 sẽ giả lập Stripe/PayPal/MoMo ở FE hay BE?
+   - Sau khi mock payment success, Dev 1 gọi callback vào BE Dev 2 hay FE gọi API Dev 2?
+   - Endpoint thống nhất là `POST /api/bookings/{bookingId}/payment-result` hay `POST /api/payments/callback/{provider}`?
+2. Payment payload tối thiểu:
+   - `bookingId`
+   - `provider`
+   - `providerTransactionId`
+   - `status`
+   - `amount`
+   - `currency`
+   - `rawPayload` nếu cần audit/debug
+3. Provider enum:
+   - nếu Dev 1 dùng Stripe/PayPal/MoMo thì Dev 2 cần thêm/confirm `PaymentProvider.Stripe`, `PaymentProvider.PayPal`, `PaymentProvider.Momo`, `PaymentProvider.Mock`
+4. Payment status contract:
+   - chỉ `Succeeded` mới được complete booking
+   - `Failed`, `Cancelled`, `Refunded` không được mark booking confirmed
+5. Seat ownership:
+   - Dev 1 owner `ShowtimeSeatInventory`
+   - Dev 2 chỉ được mark seat `Booked` sau khi đã thống nhất cơ chế update hoặc service boundary với Dev 1
+6. Seat-map status contract:
+   - các status public cần thống nhất: `Available`, `Held`, `Booked`, `Blocked`, `Unavailable`
+7. Hold lifecycle:
+   - `BookingHold` chỉ chuyển `Converted` sau payment success, không chuyển ngay khi create booking
+8. Booking/ticket code format:
+   - thống nhất format `BookingCode`, `TicketCode`, và nội dung `QrCodeContent`
+
 ## 4. Tech stack và package đã chốt
 
 ## 4.1 Domain
@@ -321,7 +352,8 @@ Tôi phụ trách:
 - `POST /api/bookings`
 - `GET /api/bookings/{bookingCode}`
 - `POST /api/bookings/{bookingId}/resend-ticket`
-- `POST /api/payments/intents`
+- `POST /api/bookings/{bookingId}/payment-result` nếu thống nhất FE/Dev 1 gửi payment result theo booking
+- `POST /api/payments/intents` chỉ giữ nếu Dev 1 cần Dev 2 tạo payment record/intent trước khi mở mock payment
 - `POST /api/payments/callback/{provider}`
 - `GET /api/payments/{paymentId}`
 - admin APIs cho `Booking + Promotion + Payment + Feedback`:
@@ -337,6 +369,30 @@ Tôi phụ trách:
   - `GET /api/admin/payments`
   - `GET /api/admin/movie-feedbacks`
   - admin support actions như resend ticket / view audit / feedback moderation
+
+## 6.4 Input Dev 2 cần lấy từ Dev 1
+
+Các input này là contract boundary từ `Catalog + Screening` sang `Booking + Payment`:
+
+- `showtimeId`
+- thông tin `Showtime` tối thiểu:
+  - `movieId`
+  - `cinemaId`
+  - `hallId`
+  - `hallType`
+  - `businessDate`
+  - `startAtUtc`
+  - `status`
+- danh sách `ShowtimeSeatInventory` theo showtime:
+  - `seatInventoryId`
+  - `seatCode`
+  - `seatType`
+  - `status`
+  - `price`
+  - `coupleGroupCode`
+- cơ chế cập nhật seat status khi payment success:
+  - Dev 2 cần được phép gọi repository/service mark seat `Booked`
+  - hoặc Dev 1 cung cấp API/service boundary riêng để Dev 2 gọi
 
 ## 7. Cấu trúc code nên tạo
 
@@ -388,9 +444,12 @@ Tạo:
 - `Persistence/Booking/Configurations/*`
 - `Persistence/Booking/Migrations/*`
 - `Seed/*`
-- `Repositories/*`
+- `Repositories/Bookings/*`
+- `Repositories/Promotions/*`
+- `Repositories/Payments/*`
+- `Repositories/Feedbacks/*`
 - `Integrations/Email/*`
-- `Integrations/Payments/*`
+- `Integrations/Payments/*` chỉ dùng nếu Dev 2 phải tự giữ adapter; nếu Dev 1 mock gateway thì Dev 2 chỉ cần nhận payment result/callback
 - `BackgroundServices/*`
 
 ## 8. Thứ tự code tổng thể
@@ -401,8 +460,8 @@ Code theo flow nghiệp vụ theo thứ tự:
 2. `Quote`
 3. `Hold`
 4. `Create Booking`
-5. `Payment`
-6. `Ticket + Email + Outbox`
+5. `Payment Result Integration`
+6. `Complete Booking + Ticket + Email + Outbox`
 7. `Feedback / Review flow`
 8. `Admin management for Booking + Promotion + Payment + Feedback`
 
@@ -575,26 +634,42 @@ Deliverable cuối ngày:
 - hold flow chạy được
 - có thể release hold
 
-## Day 6: Flow Create Booking
+## Day 6: Create Booking From Hold
 
 Mục tiêu:
 
 - tạo booking chính thức từ hold
+- booking mới ở trạng thái `PendingPayment`, chưa mark ghế `Booked`
+- chốt contract payment/seat ownership với Dev 1 ngay đầu ngày
+- thay phần booking tạm bằng flow booking thật nhưng chưa hoàn tất payment
 
 Việc cần làm:
 
-1. tạo DTO:
+1. chốt với Dev 1:
+   - payment result do FE gọi BE hay mock payment service gọi callback
+   - endpoint dùng `POST /api/bookings/{bookingId}/payment-result` hay `POST /api/payments/callback/{provider}`
+   - payload payment gồm `bookingId`, `provider`, `providerTransactionId`, `status`, `amount`, `currency`, `rawPayload`
+   - cơ chế Dev 2 mark seat `Booked` trực tiếp hay gọi qua service/API của Dev 1
+2. tạo DTO:
    - `CreateBookingRequestDto`
    - `CreateBookingResponseDto`
-2. code `BookingService`
-3. logic:
-   - verify hold
+   - `BookingDetailResponseDto`
+3. code `BookingService`
+4. code repository/command layer riêng cho booking, không nhét thêm vào `BookingHoldRepository`
+5. logic:
+   - verify hold tồn tại
+   - hold phải còn `Active` và chưa hết hạn
    - create or reuse `GuestCustomer`
    - tạo `Booking`
    - tạo `BookingItems`
    - lưu promotion snapshot
+   - lưu snapshot giá tiền: seat subtotal, combo subtotal, service fee, discount, grand total
    - set trạng thái `PendingPayment`
-4. mở API:
+   - giữ hold ở trạng thái `Active` cho đến khi payment success
+6. xử lý idempotency/toàn vẹn dữ liệu:
+   - không tạo booking trùng cho cùng một `BookingHoldId`
+   - nếu booking đã tồn tại cho hold thì trả booking cũ
+7. mở API:
    - `POST /api/bookings`
    - `GET /api/bookings/{bookingCode}`
 
@@ -602,168 +677,192 @@ Deliverable cuối ngày:
 
 - booking tạo được
 - có booking code
+- booking có customer snapshot, item snapshot, promotion snapshot
+- booking đang `PendingPayment`, chưa issue ticket, chưa booked seat vĩnh viễn
+- không còn phụ thuộc vào fake confirm để tạo booking record
 
-## Day 7: Flow Payment
+## Day 7: Payment Result + Complete Booking Core
 
 Mục tiêu:
 
-- nối được payment lifecycle
+- tích hợp kết quả thanh toán từ Dev 1 vào booking lifecycle
+- Dev 1 phụ trách giả lập Stripe/PayPal/MoMo hoặc payment provider mock
+- Dev 2 không tự code gateway/provider adapter nếu Dev 1 đã nhận phần này
+- payment success phải complete booking thật và làm ghế không thể đặt lại
 
 Việc cần làm:
 
 1. tạo DTO:
-   - `CreatePaymentIntentRequestDto`
-   - `CreatePaymentIntentResponseDto`
+   - `PaymentResultRequestDto`
    - `PaymentStatusResponseDto`
-2. tạo `IPaymentGateway`
-3. tạo payment gateway mock hoặc adapter bước đầu
-4. code `PaymentService`
-5. mở API:
-   - `POST /api/payments/intents`
-   - `POST /api/payments/callback/{provider}`
+   - `PaymentResponseDto`
+2. code `PaymentService` cho phần Dev 2:
+   - tạo hoặc cập nhật `Payment` record gắn với `Booking`
+   - verify amount/currency khớp với booking
+   - update `PaymentStatus`
+   - nếu payment failed/cancelled thì booking vẫn không được confirmed
+3. xử lý idempotency:
+   - `providerTransactionId` không được xử lý lặp thành nhiều booking success
+   - callback/payment result có thể bị gọi nhiều lần
+4. code complete booking core khi payment success:
+   - verify booking đang `PendingPayment`
+   - verify hold còn hợp lệ hoặc đã được gắn với booking này
+   - mark `Booking.Status = Confirmed`
+   - mark `BookingHold.Status = Converted`
+   - mark booked seats trong `ShowtimeSeatInventory` theo cơ chế đã chốt với Dev 1
+5. thay thế endpoint/code `DAY5 TEST-ONLY CONFIRM FLOW` bằng flow thật:
+   - nếu còn giữ endpoint cũ để frontend chưa vỡ thì endpoint phải gọi flow thật
+   - comment rõ đoạn nào chỉ là compatibility tạm thời
+6. mở API theo contract chốt với Dev 1, ví dụ:
+   - `POST /api/bookings/{bookingId}/payment-result`
+   - hoặc `POST /api/payments/callback/{provider}`
    - `GET /api/payments/{paymentId}`
-6. xử lý idempotency cho callback
 
 Deliverable cuối ngày:
 
 - payment record chạy được
-- callback update được payment status
+- payment result/callback update được payment status
+- payment success complete booking thật
+- ghế đã confirmed không thể book lại trong cùng suất chiếu
+- callback duplicate không tạo thêm booking/ticket
 
-## Day 8: Ticket + Email + Outbox
+## Day 8: Ticket + Outbox/Email + Frontend Checkout Integration
 
 Mục tiêu:
 
-- hoàn tất flow booking success
+- booking success có ticket thật
+- có outbox/email mock để demo e-ticket
+- frontend checkout không còn dùng success giả
 
 Việc cần làm:
 
-1. code `TicketService`
-2. code `EmailService`
-3. code `OutboxProcessor`
-4. khi payment success:
-   - issue ticket
-   - mark booked seats
-   - create outbox event
-   - send e-ticket
-5. mở API:
+1. code `TicketService`:
+   - issue ticket cho từng seat item
+   - tạo `TicketCode`
+   - tạo `QrCodeContent`
+2. code promotion redemption:
+   - nếu booking có promotion và discount > 0 thì tạo `PromotionRedemption`
+   - dùng `GuestCustomerId` để enforce/redemption history sau này
+3. code outbox/email:
+   - tạo `OutboxEvent` cho e-ticket
+   - code `OutboxProcessor`
+   - email service có thể mock/local log nếu chưa có SMTP
+4. mở API:
    - `POST /api/bookings/{bookingId}/resend-ticket`
+   - `GET /api/bookings/{bookingCode}` trả đủ ticket/payment status
+5. nối frontend checkout theo flow thật, không đổi UI:
+   - hold ghế
+   - create booking
+   - gọi mock payment của Dev 1
+   - gửi payment result về BE
+   - hiển thị success từ booking/ticket thật của BE
+6. rà lại frontend không còn gọi endpoint fake confirm
 
 Deliverable cuối ngày:
 
 - booking success có ticket
 - có email resend flow
+- frontend checkout chạy được bằng dữ liệu thật từ BE
+- UI giữ nguyên, chỉ đổi nguồn data/logic
 
-## Day 9: Hardening
+## Day 9: Feedback/Review + Checkout Hardening
 
 Mục tiêu:
 
-- làm sạch code và giảm bug runtime
+- bổ sung feedback/review vì đây cũng thuộc ownership Dev 2 trong `work_split`
+- harden các case dễ lỗi nhất của checkout trước demo
 
 Việc cần làm:
 
-1. bổ sung validation còn thiếu
-2. thêm logging
-3. rà lại transaction boundary
-4. rà unique/index/concurrency
-5. rà mapping AutoMapper
-6. test các case:
+1. tạo DTO:
+   - `MovieFeedbackResponseDto`
+   - `CreateMovieFeedbackRequestDto`
+2. code validator cho feedback:
+   - rating hợp lệ
+   - nội dung không rỗng
+   - movie tồn tại
+   - nếu đủ thời gian thì kiểm tra booking/ticket eligibility
+3. code service/repository feedback
+4. mở API:
+   - `GET /api/movies/{movieId}/feedbacks`
+   - `POST /api/movies/{movieId}/feedbacks`
+5. hardening checkout:
+   - bổ sung validation còn thiếu
+   - thêm logging ở các bước hold, booking, payment, ticket
+   - rà transaction boundary
+   - rà unique/index/concurrency
+   - rà AutoMapper mapping
+6. test thủ công hoặc test tự động các case:
    - hold expired
    - callback duplicate
    - promotion invalid
    - quote với seat không hợp lệ
    - booking khi hold không còn
-
-Deliverable cuối ngày:
-
-- flow ổn định hơn
-- sẵn sàng tích hợp frontend
-
-## Day 10: Movies Admin Management
-
-Mục tiêu:
-
-- có API thật cho frontend admin quản lý promotions, snack combos, bookings, payments
-- có chỗ để quản lý feedback nếu admin UI cần
-
-Việc cần làm:
-
-1. tạo admin DTO cho:
-   - promotion create/update
-   - snack combo create/update
-   - booking admin list/detail
-   - payment admin list/detail
-   - feedback admin list/moderation nếu cần
-2. tạo validator cho admin request
-3. code command/query service cho:
-   - create/update/delete promotion
-   - create/update/delete snack combo
-   - booking admin read
-   - payment admin read
-   - resend ticket action
-4. mở admin controller riêng:
-   - `/api/admin/movies-promotions`
-   - `/api/admin/snack-combos`
-   - `/api/admin/bookings`
-   - `/api/admin/payments`
-   - `/api/admin/movie-feedbacks`
-5. áp JWT/authorization cho admin endpoints
-
-Deliverable cuối ngày:
-
-- frontend admin có thể bỏ mock dần ở promotions/combos/bookings/payments
-
-## Day 11: Feedback / Review
-
-Mục tiêu:
-
-- có API thật để mỗi movie có feedback/review từ khách
-
-Việc cần làm:
-
-1. tạo entity + config cho `MovieFeedback`
-2. tạo DTO:
-   - `MovieFeedbackResponseDto`
-   - `CreateMovieFeedbackRequestDto`
-3. tạo validator cho feedback:
-   - rating hợp lệ
-   - nội dung không rỗng
-   - movie tồn tại
-   - nếu business cần thì kiểm tra booking/ticket eligibility
-4. code service/repository feedback
-5. mở API:
-   - `GET /api/movies/{movieId}/feedbacks`
-   - `POST /api/movies/{movieId}/feedbacks`
+   - payment amount/currency mismatch
+   - seat đã `Booked` không thể giữ lại
 
 Deliverable cuối ngày:
 
 - movie detail/frontend có thể load feedback thật
 - khách có thể gửi review thật qua API
+- checkout giảm lỗi runtime ở các case quan trọng
 
-## Day 12: Admin hardening
+## Day 10: Admin Minimal + Final Cleanup/Docs
 
 Mục tiêu:
 
-- làm phần admin management đủ ổn cho demo nội bộ hoặc handoff frontend admin
+- có admin API tối thiểu đủ demo/handoff
+- cleanup toàn bộ test-only confirm
+- chốt tài liệu contract để Dev 1/frontend dùng được
 
 Việc cần làm:
 
-1. thêm search/filter/paging cho admin list
-2. thêm audit log cần thiết cho action admin
-3. chốt support actions:
+1. ưu tiên admin read endpoint tối thiểu:
+   - `GET /api/admin/bookings`
+   - `GET /api/admin/bookings/{bookingId}`
+   - `GET /api/admin/payments`
+   - `GET /api/admin/payments/{paymentId}`
+   - `GET /api/admin/movie-feedbacks`
+2. nếu còn thời gian mới làm admin command:
+   - create/update/delete promotion
+   - create/update/delete snack combo
+   - feedback moderation
+3. tạo DTO/validator cần thiết cho phần admin được chọn:
+   - booking admin list/detail
+   - payment admin list/detail
+   - feedback admin list/moderation nếu cần
+4. hỗ trợ action cần cho demo:
    - resend ticket
    - xem trạng thái booking/payment
-   - override note nếu business cần
-4. test các case:
-   - promotion inactive
-   - combo inactive
-   - booking/payment not found
-   - resend ticket duplicate
-5. sync contract với frontend admin
+5. áp JWT/authorization cho admin endpoints nếu auth đã sẵn sàng
+6. cleanup:
+   - gỡ bỏ hoặc thay thế toàn bộ code/comment `DAY5 TEST-ONLY CONFIRM FLOW`
+   - update Swagger/docs cho booking, payment result, ticket, feedback, admin
+   - sync lại contract với Dev 1/frontend
+   - chạy build/test cuối
 
 Deliverable cuối ngày:
 
-- phần admin thuộc ownership Dev 2 có API thật, không chỉ còn mock UI
-- feedback flow ổn định đủ để frontend bắt đầu tích hợp
+- demo-ready cho flow user: hold -> booking -> payment result -> confirmed -> ticket
+- admin có read/support API tối thiểu
+- không còn fake confirm làm sai trạng thái ghế
+- tài liệu đủ để frontend/Dev 1 nối tiếp
+
+### Nếu 5 ngày bị thiếu thời gian
+
+Ưu tiên giữ:
+
+1. Day 6 booking thật từ hold
+2. Day 7 payment result + complete booking + mark seat booked
+3. Day 8 ticket + frontend checkout flow thật
+
+Có thể giảm scope:
+
+1. Feedback eligibility chỉ validate movie/rating/content, chưa cần bắt buộc kiểm tra đã mua vé
+2. Admin chỉ làm read endpoint, chưa làm full CRUD promotion/snack combo
+3. Email dùng mock/local log, chưa cần SMTP thật
+4. Payment gateway adapter để Dev 1 giữ, Dev 2 chỉ nhận payment result/callback
+5. Admin audit log/search nâng cao để sau demo
 
 ## 10. Những thứ cần nhớ khi code
 
@@ -777,6 +876,9 @@ Deliverable cuối ngày:
 
 - phải idempotent
 - có thể bị gọi nhiều lần
+- Dev 1 phụ trách giả lập Stripe/PayPal/MoMo nếu đã chốt như hiện tại
+- Dev 2 phụ trách lưu `Payment`, verify amount/currency, update booking lifecycle sau payment result
+- không complete booking nếu payment status không phải `Succeeded`
 
 ## 10.3 Promotion
 
@@ -860,6 +962,8 @@ Mỗi ngày nên xác nhận:
 - `seat-map` có đổi field không
 - `status` ghế có đổi tên không
 - `price` lấy từ đâu là source of truth
+- payment mock contract có đổi endpoint/payload/status/provider không
+- Dev 2 mark seat `Booked` trực tiếp hay phải gọi service/API do Dev 1 cung cấp
 
 ## 11. Trình tự nên làm trong một ngày coding
 

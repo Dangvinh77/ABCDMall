@@ -21,8 +21,11 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Configurati
 
             builder.Property(x => x.SeatSubtotal).HasColumnType("decimal(18,2)");
             builder.Property(x => x.ComboSubtotal).HasColumnType("decimal(18,2)");
+            builder.Property(x => x.ServiceFee).HasColumnType("decimal(18,2)");
             builder.Property(x => x.DiscountAmount).HasColumnType("decimal(18,2)");
             builder.Property(x => x.GrandTotal).HasColumnType("decimal(18,2)");
+            builder.Property(x => x.PromotionSnapshotJson).HasColumnType("nvarchar(max)");
+            builder.Property(x => x.ComboSnapshotJson).HasColumnType("nvarchar(max)");
 
             builder.Property(x => x.CreatedAtUtc).IsRequired();
             builder.Property(x => x.UpdatedAtUtc).IsRequired();
@@ -30,6 +33,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Configurati
 
             builder.HasIndex(x => x.HoldCode).IsUnique();
             builder.HasIndex(x => new { x.ShowtimeId, x.Status, x.ExpiresAtUtc });
+            builder.HasIndex(x => x.PromotionId);
 
             builder.HasMany(x => x.Seats)
                 .WithOne(x => x.BookingHold)

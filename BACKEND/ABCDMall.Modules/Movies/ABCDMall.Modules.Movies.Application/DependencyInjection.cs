@@ -29,6 +29,7 @@ public static class DependencyInjection
 
         services.AddScoped<IValidator<BookingQuoteRequestDto>, BookingQuoteRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingHoldRequestDto>, CreateBookingHoldRequestDtoValidator>();
+        services.AddScoped<IValidator<CreateBookingRequestDto>, CreateBookingRequestDtoValidator>();
         services.AddScoped<IValidator<EvaluatePromotionRequestDto>, EvaluatePromotionRequestDtoValidator>();
         services.AddScoped<IValidator<MovieListQueryDto>, MovieListQueryDtoValidator>();
         services.AddScoped<IValidator<MovieShowtimesQueryDto>, MovieShowtimesQueryDtoValidator>();
@@ -36,6 +37,7 @@ public static class DependencyInjection
 
         services.AddScoped<IBookingQuoteService, BookingQuoteService>();
         services.AddScoped<IBookingHoldService, BookingHoldService>();
+        services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IMovieQueryService, MovieQueryService>();
         services.AddScoped<IPromotionQueryService, PromotionQueryService>();
         services.AddScoped<IPromotionEvaluationService, PromotionEvaluationService>();

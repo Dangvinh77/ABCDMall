@@ -20,8 +20,12 @@ namespace ABCDMall.Modules.Movies.Domain.Entities
         // Day 2: giữ snapshot số tiền ở hold để dễ quote/create booking về sau.
         public decimal SeatSubtotal { get; set; }
         public decimal ComboSubtotal { get; set; }
+        public decimal ServiceFee { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal GrandTotal { get; set; }
+        public Guid? PromotionId { get; set; }
+        public string? PromotionSnapshotJson { get; set; }
+        public string? ComboSnapshotJson { get; set; }
 
         public DateTime CreatedAtUtc { get; set; }
         public DateTime UpdatedAtUtc { get; set; }
