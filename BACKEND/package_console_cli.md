@@ -18,6 +18,11 @@ Remove-Migration -Context <Name-DBcontext>
 
 ```bash
 Update-Database -Context <Name-DBContext>
+
+Update-Database -Context MoviesCatalogDbContext
+Update-Database -Context MoviesBookingDbContext
+Update-Database -Context MallDbContext
+
 ```
 
 ### Xoá database

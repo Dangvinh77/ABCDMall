@@ -21,8 +21,9 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("ABCDMallMoviesDBConnection")
-            ?? throw new InvalidOperationException("Connection string 'ABCDMallMoviesDBConnection' was not found.");
+        var connectionString = configuration.GetConnectionString("ABCDMallConnection")
+            ?? configuration.GetConnectionString("ABCDMallMoviesDBConnection")
+            ?? throw new InvalidOperationException("Connection string 'ABCDMallConnection' or 'ABCDMallMoviesDBConnection' was not found.");
 
         services.AddDbContext<MoviesCatalogDbContext>(options =>
         {
