@@ -40,9 +40,9 @@ public class MoviesCatalogDbContextFactory : IDesignTimeDbContextFactory<MoviesC
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("ABCDMallMoviesDBConnection")
+        var connectionString = configuration.GetConnectionString("ABCDMallConnection")
             ?? throw new InvalidOperationException(
-                "Connection string 'ABCDMallMoviesDBConnection' was not found.");
+                "Connection string 'ABCDMallConnection' was not found.");
         var optionsBuilder = new DbContextOptionsBuilder<MoviesCatalogDbContext>();
 
         optionsBuilder.UseSqlServer(

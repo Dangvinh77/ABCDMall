@@ -1,0 +1,44 @@
+using ABCDMall.Modules.Users.Application.DTOs.Auth;
+
+namespace ABCDMall.Modules.Users.Application.Services.Auth;
+
+public sealed class UserQueryService : IUserQueryService
+{
+    private readonly AutoMapper.IMapper _mapper;
+    private readonly IUserReadRepository _userReadRepository;
+
+    public UserQueryService(AutoMapper.IMapper mapper, IUserReadRepository userReadRepository)
+    {
+        _mapper = mapper;
+        _userReadRepository = userReadRepository;
+    }
+
+    public async Task<UserProfileResponseDto?> GetProfileAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userReadRepository.GetByIdAsync(userId, cancellationToken);
+        return user is null ? null : _mapper.Map<UserProfileResponseDto>(user);
+    }
+
+    public async Task<IReadOnlyList<ProfileUpdateHistoryResponseDto>> GetProfileUpdateHistoryAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var history = await _userReadRepository.GetProfileUpdateHistoryAsync(userId, 20, cancellationToken);
+        return _mapper.Map<IReadOnlyList<ProfileUpdateHistoryResponseDto>>(history);
+    }
+
+    public async Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersAsync(CancellationToken cancellationToken = default)
+    {
+        var users = await _userReadRepository.GetUsersAsync(cancellationToken);
+        var shopNamesById = await _userReadRepository.GetShopNamesByIdsAsync(cancellationToken);
+
+        var responses = _mapper.Map<List<UserSummaryResponseDto>>(users);
+        foreach (var response in responses)
+        {
+            if (!string.IsNullOrWhiteSpace(response.ShopId) && shopNamesById.TryGetValue(response.ShopId, out var shopName))
+            {
+                response.ShopName = shopName;
+            }
+        }
+
+        return responses;
+    }
+}

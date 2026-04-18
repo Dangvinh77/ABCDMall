@@ -10,6 +10,61 @@ export const http = axios.create({
   baseURL: BASE_URL,
 });
 
+http.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+http.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const requestUrl = error.config?.url ?? "";
+    const isPublicAuthRequest =
+      requestUrl.includes("/Auth/login") ||
+      requestUrl.includes("/Auth/forgotpassword/request-otp") ||
+      requestUrl.includes("/Auth/forgotpassword/confirm-otp");
+
+    if (error.response?.status === 401 && !isPublicAuthRequest) {
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("role");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
+      try {
+        const refreshResponse = await axios.post<{ accessToken: string }>(
+          `${BASE_URL}/Auth/refresh`,
+          { refreshToken },
+        );
+
+        const newAccessToken = refreshResponse.data.accessToken;
+        localStorage.setItem("token", newAccessToken);
+
+        error.config.headers = error.config.headers ?? {};
+        error.config.headers.Authorization = `Bearer ${newAccessToken}`;
+        return axios(error.config);
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("role");
+        window.location.href = "/login";
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
 function mapApiError(error: unknown): never {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{ detail?: string; title?: string }>;
@@ -51,6 +106,19 @@ export const api = {
     }
   },
 
+  put: async <TResponse, TRequest = unknown>(
+    url: string,
+    data?: TRequest,
+    config?: { headers?: Record<string, string> },
+  ): Promise<TResponse> => {
+    try {
+      const response = await http.put<TResponse>(url, data, config);
+      return response.data;
+    } catch (error) {
+      return mapApiError(error);
+    }
+  },
+
   delete: async <TResponse = void>(url: string): Promise<TResponse> => {
     try {
       const response = await http.delete<TResponse>(url);
@@ -73,3 +141,5 @@ export const uploadImage = async (file: File) => {
 
   return response.data;
 };
+
+export default http;

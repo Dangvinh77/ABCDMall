@@ -1,0 +1,11 @@
+using ABCDMall.Modules.Users.Domain.Entities;
+
+namespace ABCDMall.Modules.Users.Application.Services.Auth;
+
+public interface IUserReadRepository
+{
+    Task<User?> GetByIdAsync(string userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ProfileUpdateHistory>> GetProfileUpdateHistoryAsync(string userId, int take, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<string, string>> GetShopNamesByIdsAsync(CancellationToken cancellationToken = default);
+}
