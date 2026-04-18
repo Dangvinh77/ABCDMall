@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { getImageUrl } from "../../../core/utils/image";
 import { getShopBySlug, type ShopDetail } from "../api/shopApi";
 
 function formatCurrency(value: number) {
@@ -75,7 +76,11 @@ export default function ShopDetailPage() {
   return (
     <main className="min-h-screen bg-mall-light pb-16">
       <section className="relative h-[340px] overflow-hidden bg-slate-950">
-        <img src={shop.imageUrl} alt={shop.name} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={getImageUrl(shop.imageUrl || shop.coverImageUrl)}
+          alt={shop.name}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-end px-6 pb-10 text-white md:px-10">
           <p className="text-sm text-slate-200">Home / Shops / {shop.name}</p>
@@ -122,7 +127,7 @@ export default function ShopDetailPage() {
                   <article key={product.id} className="overflow-hidden rounded-[1.5rem] border border-slate-100 bg-slate-50">
                     <div className="relative h-56 overflow-hidden bg-white">
                       <img
-                        src={product.imageUrl}
+                        src={getImageUrl(product.imageUrl)}
                         alt={product.name}
                         className="h-full w-full object-cover"
                       />

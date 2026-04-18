@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../../../core/utils/image";
 import type { Shop } from "../api/shopApi";
 
 type ShopCardProps = {
@@ -13,7 +14,7 @@ export default function ShopCard({ shop }: ShopCardProps) {
     >
       <div className="relative h-64 overflow-hidden">
         <img
-          src={shop.imageUrl}
+          src={getImageUrl(shop.imageUrl)}
           alt={shop.name}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
@@ -49,4 +50,3 @@ export default function ShopCard({ shop }: ShopCardProps) {
     </Link>
   );
 }
-

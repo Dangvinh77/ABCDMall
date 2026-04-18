@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import {
   ArrowLeft,
   Clock,
@@ -28,7 +28,6 @@ import {
   SERVICE_FEE,
   HALL_NAMES,
   SEAT_LABELS,
-  getSnackComboById,
   getSeatPrice,
   vnd,
   generateBookingCode,
@@ -38,14 +37,25 @@ import {
   type SelectedSeat,
   type SelectedSnackCombo,
 } from '../data/booking';
-import {
-  evaluatePromotion,
-  getDefaultBookingDate,
-  getPromotionFinalTotal,
-} from '../data/promotions';
+import { getDefaultBookingDate } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
+import {
+  confirmBookingHold,
+  fetchBookingHold,
+  fetchPromotions,
+  fetchSnackCombos,
+  fetchShowtimeDetail,
+  quoteBooking,
+  releaseBookingHold,
+  type BookingHoldModel,
+  type BookingQuoteModel,
+  type PromotionModel,
+  type SnackComboModel,
+  type ShowtimeDetailModel,
+  resolvePromotionApiIdFromUiId,
+} from '../api/moviesApi';
 interface FormValues {
   fullName: string;
   email: string;
@@ -54,6 +64,14 @@ interface FormValues {
 }
 
 type Stage = 'form' | 'loading' | 'success';
+
+interface ComboSummaryItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  lineTotal: number;
+}
 const PAYMENT_METHODS: {
   id: PaymentMethod;
   label: string;
@@ -116,6 +134,14 @@ const DEMO_SEATS: SelectedSeat[] = [
   { id: 'D6', type: 'vip' },
   { id: 'F8', type: 'regular' },
 ];
+
+function mapHoldSeatType(value: string): SeatType {
+  const normalized = value.toLowerCase();
+  if (normalized.includes('vip')) return 'vip';
+  if (normalized.includes('couple')) return 'couple';
+  return 'regular';
+}
+
 function StepBar({ current }: { current: 1 | 2 | 3 }) {
   const steps = [
     { n: 1, label: 'Choose movie' },
@@ -169,10 +195,21 @@ function StepBar({ current }: { current: 1 | 2 | 3 }) {
   );
 }
 
-function getComboSummary(combos: SelectedSnackCombo[]) {
+function getComboSummary(combos: SelectedSnackCombo[], snackCombos: SnackComboModel[]) {
+  const comboLookup = new Map(
+    snackCombos.map((combo) => [
+      combo.code,
+      {
+        id: combo.code,
+        name: combo.name,
+        price: combo.price,
+      },
+    ]),
+  );
+
   return combos
     .map((selectedCombo) => {
-      const combo = getSnackComboById(selectedCombo.id);
+      const combo = comboLookup.get(selectedCombo.id);
       if (!combo) return null;
       return {
         ...combo,
@@ -180,7 +217,7 @@ function getComboSummary(combos: SelectedSnackCombo[]) {
         lineTotal: combo.price * selectedCombo.quantity,
       };
     })
-    .filter((combo): combo is NonNullable<typeof combo> => combo !== null);
+    .filter((combo): combo is ComboSummaryItem => combo !== null);
 }
 
 function InputField({
@@ -219,19 +256,42 @@ export function CheckoutPage() {
 
   const cinemaId = searchParams.get('cinema') ?? 'abcd-mall';
   const showtime = searchParams.get('showtime') ?? '19:30';
+  const showtimeId = searchParams.get('showtimeId');
   const hallType = searchParams.get('hallType') ?? '2D';
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? bookingState?.bookingDate ?? getDefaultBookingDate();
+  const holdId = searchParams.get('holdId') ?? bookingState?.holdId;
 
-  const seats = bookingState?.seats ?? DEMO_SEATS;
+  const [apiHold, setApiHold] = useState<BookingHoldModel | null>(null);
+  const [apiQuote, setApiQuote] = useState<BookingQuoteModel | null>(null);
+  const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
+  const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
+  const holdSeats = useMemo(
+    () =>
+      apiHold?.seats.map((seat) => ({
+        id: seat.seatCode,
+        type: mapHoldSeatType(seat.seatType),
+        seatInventoryId: seat.seatInventoryId,
+      })) ?? null,
+    [apiHold]
+  );
+  const seats = holdSeats ?? bookingState?.seats ?? DEMO_SEATS;
   const fallbackSubtotal = useMemo(
     () => seats.reduce((sum, seat) => sum + getSeatPrice(hallType, seat.type), 0),
     [hallType, seats]
   );
   const fallbackServiceFee = seats.length * SERVICE_FEE;
-  const subtotal = bookingState?.subtotal ?? fallbackSubtotal;
-  const serviceFee = bookingState?.serviceFee ?? fallbackServiceFee;
-  const selectedCombos = bookingState?.combos ?? [];
+  const selectedCombos = useMemo(() => bookingState?.combos ?? [], [bookingState?.combos]);
+  const comboSummary = useMemo(
+    () => getComboSummary(selectedCombos, apiSnackCombos),
+    [apiSnackCombos, selectedCombos]
+  );
+  const comboSubtotal = useMemo(
+    () => comboSummary.reduce((sum, combo) => sum + combo.lineTotal, 0),
+    [comboSummary]
+  );
+  const subtotal = apiQuote?.seatSubtotal ?? apiHold?.seatSubtotal ?? bookingState?.subtotal ?? fallbackSubtotal;
+  const serviceFee = apiQuote?.serviceFeeTotal ?? bookingState?.serviceFee ?? fallbackServiceFee;
 
   const movie = movieId ? getMovieById(movieId) : undefined;
   const cinema = cinemasList.find((c) => c.id === cinemaId);
@@ -239,37 +299,18 @@ export function CheckoutPage() {
   const [stage, setStage] = useState<Stage>('form');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('momo');
   const [bookingCode] = useState(generateBookingCode);
+  const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
 
   const {
     register,
     handleSubmit,
     getValues,
-    watch,
+    control,
     formState: { errors },
   } = useForm<FormValues>({ mode: 'onBlur' });
 
-  const birthday = watch('birthday');
-  const promoEvaluation = useMemo(
-    () =>
-      evaluatePromotion({
-        promoId,
-        seats,
-        subtotal,
-        serviceFee,
-        hallType,
-        showtime,
-        bookingDate,
-        paymentMethod,
-        birthday,
-        snackCombos: selectedCombos,
-      }),
-    [birthday, bookingDate, hallType, paymentMethod, promoId, seats, selectedCombos, serviceFee, showtime, subtotal]
-  );
-  const pricing = useMemo(
-    () => getPromotionFinalTotal(subtotal + serviceFee, promoEvaluation, selectedCombos),
-    [promoEvaluation, selectedCombos, serviceFee, subtotal]
-  );
-  const total = pricing.total;
+  const birthday = useWatch({ control, name: 'birthday' });
+  const total = apiQuote?.grandTotal ?? apiHold?.grandTotal ?? bookingState?.total ?? subtotal + serviceFee + comboSubtotal;
   const bookingDateLabel = useMemo(
     () =>
       new Date(`${bookingDate}T00:00:00`).toLocaleDateString('en-US', {
@@ -280,25 +321,188 @@ export function CheckoutPage() {
       }),
     [bookingDate]
   );
-  const promoBadgeClass = promoEvaluation
-    ? promoEvaluation.status === 'applied'
+  const displayPosterUrl = apiShowtime?.moviePosterUrl ?? movie?.imageUrl;
+  const displayMovieTitle = apiShowtime?.movieTitle ?? movie?.title ?? 'ABCD Cinema';
+  const displayCinemaName = apiShowtime?.cinemaName ?? cinema?.name ?? 'ABCD Cinema';
+  const displayHallName = apiShowtime?.hallName ?? HALL_NAMES[hallType] ?? hallType;
+
+  useEffect(() => {
+    if (!showtimeId) return;
+
+    let active = true;
+    const currentShowtimeId = showtimeId;
+
+    async function loadShowtimeFromApi() {
+      try {
+        // API FETCH NOTE:
+        // Checkout keeps the original form UI, but refreshes cinema/hall context from GET /api/showtimes/{id}.
+        const detail = await fetchShowtimeDetail(currentShowtimeId);
+        if (active) {
+          setApiShowtime(detail);
+        }
+      } catch (error) {
+        console.warn("Checkout showtime API failed; using route/fallback booking data.", error);
+      }
+    }
+
+    void loadShowtimeFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, [showtimeId]);
+
+  useEffect(() => {
+    if (!holdId) return;
+
+    let active = true;
+    const currentHoldId = holdId;
+
+    async function loadBookingHoldFromApi() {
+      try {
+        const hold = await fetchBookingHold(currentHoldId);
+        if (active) {
+          setApiHold(hold);
+        }
+      } catch (error) {
+        console.warn("Booking hold API failed; using route/fallback booking state.", error);
+      }
+    }
+
+    void loadBookingHoldFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, [holdId]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCheckoutSeedData() {
+      try {
+        const [promotions, snackCombos] = await Promise.all([
+          fetchPromotions(true),
+          fetchSnackCombos(),
+        ]);
+
+        if (active) {
+          setApiPromotions(promotions);
+          setApiSnackCombos(snackCombos);
+        }
+      } catch (error) {
+        console.warn("Checkout seed API failed; combo and promo details may be incomplete.", error);
+      }
+    }
+
+    void loadCheckoutSeedData();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showtimeId || seats.some((seat) => !seat.seatInventoryId)) {
+      setApiQuote(null);
+      return;
+    }
+
+    let active = true;
+    const currentShowtimeId = showtimeId;
+
+    async function refreshCheckoutQuote() {
+      try {
+        const comboLookup = new Map(apiSnackCombos.map((combo) => [combo.code, combo.id]));
+        const quote = await quoteBooking({
+          showtimeId: currentShowtimeId,
+          seatInventoryIds: seats.map((seat) => seat.seatInventoryId as string),
+          snackCombos: selectedCombos
+            .map((combo) => {
+              const comboId = comboLookup.get(combo.id);
+              if (!comboId) {
+                return null;
+              }
+
+              return {
+                comboId,
+                quantity: combo.quantity,
+              };
+            })
+            .filter((combo): combo is { comboId: string; quantity: number } => combo !== null),
+          promotionId: resolvePromotionApiIdFromUiId(apiPromotions, promoId),
+          paymentProvider: paymentMethod,
+          birthday: birthday ?? undefined,
+        });
+
+        if (active) {
+          setApiQuote(quote);
+        }
+      } catch (error) {
+        if (active) {
+          setApiQuote(null);
+        }
+        console.warn("Checkout quote API failed; using fallback totals.", error);
+      }
+    }
+
+    void refreshCheckoutQuote();
+
+    return () => {
+      active = false;
+    };
+  }, [apiPromotions, apiSnackCombos, birthday, paymentMethod, promoId, seats, selectedCombos, showtimeId]);
+
+  const selectedPromotion = useMemo(() => {
+    const promotionApiId = resolvePromotionApiIdFromUiId(apiPromotions, promoId);
+    return apiPromotions.find((promotion) => promotion.id === promotionApiId) ?? null;
+  }, [apiPromotions, promoId]);
+  const promoBadgeClass = apiQuote?.promotion
+    ? apiQuote.promotion.isEligible
       ? 'bg-emerald-600/20 text-emerald-300 ring-1 ring-emerald-500/30'
-      : promoEvaluation.status === 'ineligible'
+      : apiQuote.promotion.status.toLowerCase().includes('ineligible')
         ? 'bg-red-600/20 text-red-300 ring-1 ring-red-500/30'
         : 'bg-fuchsia-600/20 text-fuchsia-200 ring-1 ring-fuchsia-500/30'
     : '';
-  const promoBadgeLabel = promoEvaluation
-    ? promoEvaluation.status === 'applied'
+  const promoBadgeLabel = apiQuote?.promotion
+    ? apiQuote.promotion.isEligible
       ? 'Applied'
-      : promoEvaluation.status === 'ineligible'
+      : apiQuote.promotion.status.toLowerCase().includes('ineligible')
         ? 'Not eligible'
         : 'Reserved'
     : '';
-  const comboSummary = useMemo(() => getComboSummary(selectedCombos), [selectedCombos]);
 
-  const onSubmit = () => {
+  const backToSeats = useCallback(async () => {
+    if (holdId) {
+      try {
+        await releaseBookingHold(holdId);
+      } catch (error) {
+        console.warn("Release booking hold API failed; navigating back to seats anyway.", error);
+      }
+    }
+
+    navigate(-1);
+  }, [holdId, navigate]);
+
+  const onSubmit = async () => {
     setStage('loading');
-    setTimeout(() => setStage('success'), 1800);
+    try {
+      if (!holdId) {
+        window.alert("Booking hold was not found. Please choose your seats again.");
+        setStage('form');
+        return;
+      }
+
+      // DAY5 TEST-ONLY CONFIRM FLOW:
+      // Tạm gọi endpoint confirm hold để test ghế chuyển sang Booked.
+      // Khi có booking/payment hoàn chỉnh, thay bằng API đặt vé/thanh toán thật.
+      await confirmBookingHold(holdId);
+      setTimeout(() => setStage('success'), 1800);
+    } catch (error) {
+      console.warn("Confirm booking hold API failed; booking was not completed.", error);
+      window.alert("Unable to confirm this booking. Please choose your seats again.");
+      setStage('form');
+    }
   };
   const groupedSeats = (['regular', 'vip', 'couple'] as SeatType[])
     .map((type) => ({ type, seats: seats.filter((s) => s.type === type) }))
@@ -357,21 +561,21 @@ export function CheckoutPage() {
           {/* Ticket card */}
           <div className="mb-8 overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-slate-900/90 to-[#0e1128] shadow-2xl">
             <div className="flex gap-4 p-5">
-              {movie && (
+              {displayPosterUrl && (
                 <img
-                  src={movie.imageUrl}
-                  alt={movie.title}
+                  src={displayPosterUrl}
+                  alt={displayMovieTitle}
                   className="h-24 w-16 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
                 />
               )}
               <div className="flex flex-col justify-center gap-2">
                 <h2 className="text-lg font-bold text-white">
-                  {movie?.title ?? 'ABCD Cinema'}
+                  {displayMovieTitle}
                 </h2>
                 <div className="space-y-1">
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <MapPin className="size-3 text-purple-400" />
-                    {cinema?.name ?? 'ABCD Cinema'}
+                    {displayCinemaName}
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Clock className="size-3 text-pink-400" />
@@ -379,7 +583,7 @@ export function CheckoutPage() {
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Film className="size-3 text-cyan-400" />
-                    {HALL_NAMES[hallType] ?? hallType}
+                    {displayHallName}
                   </p>
                 </div>
               </div>
@@ -493,7 +697,7 @@ export function CheckoutPage() {
       <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={backToSeats}
             className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all hover:bg-white/[0.06] hover:text-white"
           >
             <ArrowLeft className="size-4" />
@@ -710,7 +914,7 @@ export function CheckoutPage() {
             </div>
           </div>
 
-          {promoEvaluation && (
+          {selectedPromotion && apiQuote?.promotion && (
             <div className="overflow-hidden rounded-2xl border border-fuchsia-500/20 bg-gradient-to-b from-fuchsia-950/30 to-[#0e1128] shadow-xl ring-1 ring-inset ring-fuchsia-500/10">
               <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
                 <div>
@@ -722,20 +926,14 @@ export function CheckoutPage() {
 
               <div className="space-y-3 px-5 py-4">
                 <div>
-                  <p className="text-sm font-semibold text-white">{promoEvaluation.promo.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-fuchsia-100/75">{promoEvaluation.message}</p>
+                  <p className="text-sm font-semibold text-white">{selectedPromotion.title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-fuchsia-100/75">{apiQuote.promotion.message}</p>
                 </div>
 
-                {promoEvaluation.bonusLabel && (
-                  <div className="rounded-xl bg-amber-950/30 px-3 py-2 text-xs font-medium text-amber-300 ring-1 ring-amber-500/20">
-                    {promoEvaluation.bonusLabel}
-                  </div>
-                )}
-
-                {promoEvaluation.status !== 'applied' && promoEvaluation.estimatedDiscount > 0 && (
+                {!apiQuote.promotion.isEligible && apiQuote.promotion.discountAmount > 0 && (
                   <div className="flex items-center justify-between rounded-xl bg-white/[0.03] px-3 py-2 text-xs ring-1 ring-white/[0.05]">
                     <span className="text-gray-400">Estimated savings</span>
-                    <span className="font-semibold text-fuchsia-200">-{vnd(promoEvaluation.estimatedDiscount)}</span>
+                    <span className="font-semibold text-fuchsia-200">-{vnd(apiQuote.promotion.discountAmount)}</span>
                   </div>
                 )}
               </div>
@@ -748,7 +946,7 @@ export function CheckoutPage() {
               type="button"
               variant="outline"
               size="lg"
-              onClick={() => navigate(-1)}
+              onClick={backToSeats}
               className="border-white/10 text-gray-300 hover:bg-white/[0.05] hover:text-white"
             >
               <ArrowLeft className="mr-2 size-4" />
@@ -774,10 +972,10 @@ export function CheckoutPage() {
 
             {/* Movie row */}
             <div className="flex gap-4 p-5">
-              {movie ? (
+              {displayPosterUrl ? (
                 <img
-                  src={movie.imageUrl}
-                  alt={movie.title}
+                  src={displayPosterUrl}
+                  alt={displayMovieTitle}
                   className="h-24 w-16 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
                 />
               ) : (
@@ -785,12 +983,12 @@ export function CheckoutPage() {
               )}
               <div className="flex min-w-0 flex-col justify-center gap-2">
                 <h3 className="line-clamp-2 font-bold text-white">
-                  {movie?.title ?? 'ABCD Cinema'}
+                  {displayMovieTitle}
                 </h3>
                 <div className="space-y-1">
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <MapPin className="size-3 shrink-0 text-purple-400" />
-                    {cinema?.name ?? 'ABCD Cinema - ABCD Mall'}
+                    {displayCinemaName}
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Clock className="size-3 shrink-0 text-pink-400" />
@@ -798,7 +996,7 @@ export function CheckoutPage() {
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Film className="size-3 shrink-0 text-cyan-400" />
-                    {HALL_NAMES[hallType] ?? hallType}
+                    {displayHallName}
                   </p>
                 </div>
               </div>
@@ -869,7 +1067,7 @@ export function CheckoutPage() {
               </div>
             )}
 
-            {promoEvaluation && (
+            {selectedPromotion && apiQuote?.promotion && (
               <div className="border-t border-white/[0.05] px-5 py-4">
                 <div className="rounded-2xl border border-fuchsia-500/20 bg-fuchsia-950/20 p-4 ring-1 ring-fuchsia-500/10">
                   <div className="flex items-start justify-between gap-3">
@@ -877,11 +1075,8 @@ export function CheckoutPage() {
                       <p className="text-[10px] font-semibold uppercase tracking-widest text-fuchsia-300/80">
                         Promotion
                       </p>
-                      <p className="mt-1 text-sm font-semibold text-white">{promoEvaluation.promo.title}</p>
-                      <p className="mt-1 text-xs text-fuchsia-100/75">{promoEvaluation.message}</p>
-                      {promoEvaluation.bonusLabel && (
-                        <p className="mt-2 text-xs font-medium text-amber-300">{promoEvaluation.bonusLabel}</p>
-                      )}
+                      <p className="mt-1 text-sm font-semibold text-white">{selectedPromotion.title}</p>
+                      <p className="mt-1 text-xs text-fuchsia-100/75">{apiQuote.promotion.message}</p>
                     </div>
                     <Badge className={`text-xs ${promoBadgeClass}`}>{promoBadgeLabel}</Badge>
                   </div>
@@ -899,16 +1094,16 @@ export function CheckoutPage() {
                 <span className="text-gray-400">Service fee x {seats.length}</span>
                 <span className="text-white">{vnd(serviceFee)}</span>
               </div>
-              {pricing.comboCost > 0 && (
+              {comboSubtotal > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Snack combos</span>
-                  <span className="text-white">{vnd(pricing.comboCost)}</span>
+                  <span className="text-white">{vnd(comboSubtotal)}</span>
                 </div>
               )}
-              {promoEvaluation && promoEvaluation.status === 'applied' && pricing.discount > 0 && (
+              {(apiQuote?.discountTotal ?? 0) > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-emerald-300">Promotion discount</span>
-                  <span className="text-emerald-300">-{vnd(pricing.discount)}</span>
+                  <span className="text-emerald-300">-{vnd(apiQuote?.discountTotal ?? 0)}</span>
                 </div>
               )}
             </div>

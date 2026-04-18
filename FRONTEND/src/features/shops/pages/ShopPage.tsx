@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getImageUrl } from "../../../core/utils/image";
 import ShopCard from "../components/ShopCard";
 import { useShops } from "../hooks/useShops";
 
@@ -15,26 +16,29 @@ export default function ShopPage() {
           .includes(normalizedKeyword),
       )
     : shops;
+  const heroImageUrl = getImageUrl(filteredShops[0]?.imageUrl || shops[0]?.imageUrl || "");
 
   return (
     <main className="min-h-screen bg-mall-light pb-20">
       <section className="relative overflow-hidden bg-slate-950 text-white">
-        <img
-          src="https://images.unsplash.com/photo-1519567241046-7f570eee3ce6?q=80&w=2000&auto=format&fit=crop"
-          alt="ABCD Mall shops"
-          className="absolute inset-0 h-full w-full object-cover opacity-35"
-        />
+        {heroImageUrl ? (
+          <img
+            src={heroImageUrl}
+            alt="ABCD Mall shops"
+            className="absolute inset-0 h-full w-full object-cover opacity-35"
+          />
+        ) : null}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-slate-950/40" />
         <div className="relative mx-auto max-w-7xl px-6 py-24 md:px-10 md:py-32">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-mall-accent">
-            Shopping Center
+            Shopping Directory
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black md:text-6xl">
-            Explore flagship stores integrated into the main mall experience.
+            Khám phá cửa hàng với hình ảnh và thông tin được đồng bộ trực tiếp từ API.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-slate-200">
-            Browse fashion, sportswear, and lifestyle brands curated for the ABCD Mall homepage,
-            promotions, and quick navigation flow.
+            Danh sách cửa hàng, vị trí và ảnh bìa được tải động từ backend để nội dung trên trang
+            luôn bám theo dữ liệu thực tế.
           </p>
           <div className="mt-10 max-w-xl rounded-[1.75rem] bg-white p-2 shadow-2xl">
             <input
@@ -51,15 +55,15 @@ export default function ShopPage() {
         <div className="flex flex-col gap-4 rounded-[2rem] bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-mall-primary">
-              Integrated Module
+              API Connected
             </p>
             <h2 className="mt-2 text-2xl font-black text-slate-900">
-              Shops now follow the same `features/pages/routes` structure as MAIN.
+              Hình ảnh cửa hàng đang được render từ dữ liệu API thay vì nội dung tĩnh.
             </h2>
           </div>
           <div className="text-sm text-slate-500">
             <p>{shops.length} stores available</p>
-            <p>Home carousel and quick nav links now resolve correctly.</p>
+            <p>Ảnh cover sẽ tự đổi theo dữ liệu cửa hàng đang hiển thị.</p>
           </div>
         </div>
 

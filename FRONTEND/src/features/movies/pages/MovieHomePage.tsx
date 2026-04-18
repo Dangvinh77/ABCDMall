@@ -16,11 +16,12 @@ import { Badge } from "../component/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../component/ui/tabs";
 import { MovieCard } from "./MovieCard";
 import { PromoCard } from "./PromoCard";
-import { nowShowingMovies, comingSoonMovies } from "../data/movie";
+import { nowShowingMovies as fallbackNowShowingMovies, comingSoonMovies as fallbackComingSoonMovies } from "../data/movie";
 import { getDefaultBookingDate } from "../data/promotions";
 import { moviePaths } from "../routes/moviePaths";
+import { loadHomeUiData } from "../api/movieUiAdapter";
 
-const promos = [
+const fallbackPromos = [
   {
     id: "f1",
     title: "Weekend special",
@@ -52,12 +53,15 @@ const promos = [
 
 export function MovieHomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [nowShowingMovies, setNowShowingMovies] = useState(fallbackNowShowingMovies);
+  const [comingSoonMovies, setComingSoonMovies] = useState(fallbackComingSoonMovies);
+  const [promos, setPromos] = useState(fallbackPromos);
   const [heroIndex, setHeroIndex] = useState(0);
   const [nowShowingIndex, setNowShowingIndex] = useState(
-    nowShowingMovies.length,
+    fallbackNowShowingMovies.length,
   );
   const [comingSoonIndex, setComingSoonIndex] = useState(
-    comingSoonMovies.length,
+    fallbackComingSoonMovies.length,
   );
   const [isNowShowingTransitionEnabled, setIsNowShowingTransitionEnabled] =
     useState(true);
@@ -78,6 +82,39 @@ export function MovieHomePage() {
     ...comingSoonMovies,
     ...comingSoonMovies,
   ];
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadMoviesFromApi() {
+      try {
+        // API FETCH NOTE:
+        // This keeps the original home UI/carousels intact while replacing the source arrays with API data.
+        const data = await loadHomeUiData();
+        if (!active) return;
+
+        if (data.nowShowingMovies.length > 0) {
+          setNowShowingMovies(data.nowShowingMovies);
+          setNowShowingIndex(data.nowShowingMovies.length);
+        }
+        if (data.comingSoonMovies.length > 0) {
+          setComingSoonMovies(data.comingSoonMovies);
+          setComingSoonIndex(data.comingSoonMovies.length);
+        }
+        if (data.promos.length > 0) {
+          setPromos(data.promos);
+        }
+      } catch (error) {
+        console.warn("Movies home API failed; using bundled fallback data.", error);
+      }
+    }
+
+    void loadMoviesFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -678,7 +715,7 @@ export function MovieHomePage() {
               }}
             >
               <div
-                className="[--gap:1rem] [--visible:1] sm:[--gap:1.5rem] sm:[--visible:2] lg:[--visible:4]"
+                className="[--gap:1rem] [--visible:1] sm:[--gap:1.5rem] sm:[--visible:2] lg:[--visible:4] xl:[--visible:6]"
                 onTransitionEnd={handleNowShowingTransitionEnd}
                 style={{
                   display: "grid",
@@ -802,7 +839,7 @@ export function MovieHomePage() {
               }}
             >
               <div
-                className="[--gap:1rem] [--visible:1] sm:[--gap:1.5rem] sm:[--visible:2] lg:[--visible:3]"
+                className="[--gap:1rem] [--visible:1] sm:[--gap:1.5rem] sm:[--visible:2] lg:[--visible:3] xl:[--visible:6]"
                 onTransitionEnd={handleComingSoonTransitionEnd}
                 style={{
                   display: "grid",
