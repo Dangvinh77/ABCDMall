@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const navItems = [
   { title: "Shopping Centers", icon: "🛍️", color: "bg-blue-100 text-blue-600", path: "/shops" },
   { title: "Food Courts", icon: "🍔", color: "bg-orange-100 text-orange-600", path: "/food-court" },
-  { title: "Gallery & Events", icon: "✨", color: "bg-purple-100 text-purple-600", path: "/gallery" },
+  { title: " Events", icon: "✨", color: "bg-purple-100 text-purple-600", path: "/events" },
   { title: "Mall Directory", icon: "🗺️", color: "bg-green-100 text-green-600", path: "/map" },
 ];
 

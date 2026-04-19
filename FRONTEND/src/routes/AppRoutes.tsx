@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
 
+// --- AUTH & ADMIN PAGES ---
 const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagement"));
 const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
 const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
@@ -12,12 +13,16 @@ const RentalAreasAdmin = lazy(() => import("../features/auth/pages/RentalAreasAd
 const RevenueStatistics = lazy(() => import("../features/auth/pages/RevenueStatistics"));
 const ShopInfo = lazy(() => import("../features/auth/pages/ShopInfo"));
 const UserManagement = lazy(() => import("../features/auth/pages/UserManagement"));
+
+// --- FEATURE ROUTES ---
 const FoodRoutes = lazy(() => import("../features/food/routes/FoodRoutes").then((module) => ({ default: module.FoodRoutes })));
 const MoviesAdminRoutes = lazy(() =>
   import("../features/movies-admin/routes/MoviesAdminRoutes").then((module) => ({ default: module.MoviesAdminRoutes })),
 );
 const MoviesRoutes = lazy(() => import("../features/movies/routes/MovieRoutes").then((module) => ({ default: module.MoviesRoutes })));
 const ShopsRoutes = lazy(() => import("../features/shops/routes/ShopsRoutes").then((module) => ({ default: module.ShopsRoutes })));
+
+// --- PAGE WRAPPERS ---
 const AmenitiesPage = lazy(() => import("../pages/amenities/AmenitiesPage").then((module) => ({ default: module.AmenitiesPage })));
 const BrandsPage = lazy(() => import("../pages/brands/BrandsPage").then((module) => ({ default: module.BrandsPage })));
 const ContactPage = lazy(() => import("../pages/contact/ContactPage").then((module) => ({ default: module.ContactPage })));
@@ -25,10 +30,13 @@ const MapPage = lazy(() => import("../pages/directory/MapPage").then((module) =>
 const FeedbackPage = lazy(() => import("../pages/feedbacks/FeedbackPage").then((module) => ({ default: module.FeedbackPage })));
 const FaqPage = lazy(() => import("../pages/support/FaqPage").then((module) => ({ default: module.FaqPage })));
 
+// 1. IMPORT LAZY CHO TRANG SỰ KIỆN (EVENTS)
+const EventsPage = lazy(() => import("../pages/events/EventsPage").then((module) => ({ default: module.EventsPage })));
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center px-6 py-20 text-center text-gray-500">
-      Dang tai noi dung...
+      Đang tải nội dung...
     </div>
   );
 }
@@ -42,12 +50,15 @@ export function AppRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
+        {/* Home & Auth */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Admin Management */}
         <Route path="/shop-info" element={<ShopInfo />} />
         <Route path="/admin-management" element={<AdminManagement />} />
         <Route path="/admin-management/users" element={<UserManagement />} />
@@ -56,22 +67,22 @@ export function AppRoutes() {
         <Route path="/users" element={<Navigate to="/admin-management/users" replace />} />
         <Route path="/revenue-statistics" element={<Navigate to="/admin-management/revenue" replace />} />
 
+        {/* Food Court */}
         <Route path="/food-court/*" element={<FoodRoutes />} />
         <Route path="/food/:slug" element={<LegacyFoodRedirect />} />
         <Route path="/mall/:mall/:slug" element={<LegacyFoodRedirect />} />
 
+        {/* Movies */}
         <Route path="/movies/*" element={<MoviesRoutes />} />
         <Route path="/movies/admin/*" element={<MoviesAdminRoutes />} />
 
+        {/* Shops */}
         <Route path="/shops/*" element={<ShopsRoutes />} />
-        <Route
-          path="/gallery"
-          element={
-            <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
-              Trang Thu vien (Sap ra mat)
-            </div>
-          }
-        />
+        
+        {/* 2. ROUTE CHO TRANG SỰ KIỆN */}
+        <Route path="/events" element={<EventsPage />} />
+
+        {/* General Pages */}
         <Route path="/map" element={<MapPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/brands" element={<BrandsPage />} />
@@ -79,7 +90,17 @@ export function AppRoutes() {
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/feedback" element={<FeedbackPage />} />
 
-        <Route path="*" element={<div>404 Not Found</div>} />
+        <Route
+          path="/gallery"
+          element={
+            <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
+              Trang Thư viện (Sắp ra mắt)
+            </div>
+          }
+        />
+
+        {/* 404 */}
+        <Route path="*" element={<div className="p-32 text-center text-3xl font-bold">404 Not Found</div>} />
       </Routes>
     </Suspense>
   );

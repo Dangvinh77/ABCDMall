@@ -22,11 +22,11 @@ export const Header = () => {
     }`;
 
   const brandCategories = [
-    { name: "Thoi Trang", slug: "thoi-trang" },
-    { name: "Trang Suc & Phu Kien", slug: "phu-kien" },
-    { name: "Am Thuc", slug: "am-thuc" },
-    { name: "Suc Khoe & Lam Dep", slug: "lam-dep" },
-    { name: "Nha Sach & Giao Duc", slug: "giao-duc" },
+    { name: "thời trang", slug: "thoi-trang" },
+    { name: "trang sức & phụ kiện", slug: "phu-kien" },
+    { name: "ẩm thực", slug: "am-thuc" },
+    { name: "sức khỏe & làm đẹp", slug: "lam-dep" },
+    { name: "nhà sách & giáo dục", slug: "giao-duc" },
   ];
 
   return (
@@ -47,15 +47,15 @@ export const Header = () => {
 
         <nav className="hidden h-full flex-1 items-center justify-end gap-10 md:flex">
           <NavLink to="/" className={navClass}>
-            Trang Chu
+            Trang Chủ
           </NavLink>
           <NavLink to="/map" className={navClass}>
-            So do Mall
+            Sơ đồ Mall
           </NavLink>
 
           <div className="group relative flex h-full items-center">
             <NavLink to="/brands" className={navClass}>
-              Thuong Hieu <span className="ml-1 text-[10px]">▼</span>
+              Thương Hiệu <span className="ml-1 text-[10px]">▼</span>
             </NavLink>
 
             <div className="invisible absolute top-full left-1/2 w-64 -translate-x-1/2 translate-y-2 overflow-hidden rounded-2xl border border-gray-100 bg-white opacity-0 shadow-2xl transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
@@ -64,7 +64,7 @@ export const Header = () => {
                   to="/brands"
                   className="mb-1 rounded-xl bg-red-50 px-4 py-3 text-center font-bold text-red-600 transition-colors"
                 >
-                  Tat ca Thuong Hieu
+                  tất cả Thương Hiệu
                 </Link>
                 {brandCategories.map((category) => (
                   <Link
@@ -80,10 +80,10 @@ export const Header = () => {
           </div>
 
           <NavLink to="/movies" className={navClass}>
-            Rap Phim
+            Rạp Phim
           </NavLink>
           <NavLink to="/amenities" className={navClass}>
-            Tien Ich
+            Tiện Ích
           </NavLink>
         </nav>
       </div>

@@ -78,28 +78,76 @@ import { getImageUrl } from "../../../core/utils/image";
 export default function FoodDetailPage() {
   const { slug } = useParams();
   const [food, setFood] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (slug) {
-      getFoodBySlug(slug).then((res) => {
-  setFood(res);
+    let active = true;
+
+    const fetchFood = async () => {
+      if (!slug) {
+        setLoading(false);
+        return;
       }
-      );
-    }
+
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getFoodBySlug(slug);
+        if (active) {
+          setFood(res);
+        }
+      } catch (err: unknown) {
+        if (active) {
+          const errorMsg = err instanceof Error ? err.message : "Không thể tải thông tin thực phẩm";
+          setError(errorMsg);
+          console.error("Lỗi khi tải thực phẩm:", err);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchFood();
+
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   useEffect(() => {
-  if (food) {
-    document.title = food.name + " | ABCD Mall";
+    if (food) {
+      document.title = food.name + " | ABCD Mall";
 
-    const meta = document.querySelector("meta[name='description']");
-    if (meta) {
-      meta.setAttribute("content", food.description);
+      const meta = document.querySelector("meta[name='description']");
+      if (meta) {
+        meta.setAttribute("content", food.description);
+      }
     }
-  }
-}, [food]);
+  }, [food]);
 
-  if (!food) return <div className="p-10">Loading...</div>;
+  if (loading) return <div className="p-10 text-center text-gray-500">Đang tải...</div>;
+
+  if (error) return (
+    <div className="p-10 text-center">
+      <h2 className="text-2xl font-bold text-red-600 mb-4">⚠️ Lỗi!</h2>
+      <p className="text-gray-600 mb-4">{error}</p>
+      <button 
+        onClick={() => window.location.reload()}
+        className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+      >
+        Thử lại
+      </button>
+    </div>
+  );
+
+  if (!food) return (
+    <div className="p-10 text-center">
+      <h2 className="text-2xl font-bold text-gray-600">Không tìm thấy thực phẩm</h2>
+    </div>
+  );
 
 return (
   <div className="bg-gray-50 min-h-screen">
