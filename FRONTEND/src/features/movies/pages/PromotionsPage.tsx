@@ -86,7 +86,7 @@ const FEATURED: Promo[] = [
     accentTo: '#ea580c',
   },
 ];
-const ALL_PROMOS: Promo[] = [
+export const ALL_PROMOS: Promo[] = [
   ...FEATURED,
   {
     id: 'p4',
@@ -365,7 +365,7 @@ export function PromotionsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
-  const [allPromos, setAllPromos] = useState<Promo[]>(ALL_PROMOS);
+  const [allPromos, setAllPromos] = useState<Promo[]>([]);
   const gridRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
   const selectedPromoId = searchParams.get('promo');
@@ -392,11 +392,14 @@ export function PromotionsPage() {
         // API FETCH NOTE:
         // Promotions keep the original marketing page UI; this only replaces the promo list with API data.
         const data = await loadPromotionsUiData();
-        if (active && data.length > 0) {
+        if (active) {
           setAllPromos(data);
         }
       } catch (error) {
-        console.warn("Promotions API failed; using bundled fallback data.", error);
+        if (active) {
+          setAllPromos([]);
+        }
+        console.warn("Promotions API failed.", error);
       }
     }
 

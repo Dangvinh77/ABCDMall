@@ -16,10 +16,11 @@ import {
   Send,
 } from 'lucide-react';
 import { getDefaultBookingDate } from '../data/promotions';
+import { formatScheduleDateParam, getScheduleDates, type MovieSchedule } from '../data/schedules';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
-import { fallbackMovieDetailUiData, loadMovieDetailOnlyUiData } from '../api/movieUiAdapter';
+import { loadMovieDetailUiData } from '../api/movieUiAdapter';
 import { createMovieFeedback, fetchMovieFeedbacks } from '../api/moviesApi';
 import type { Movie } from '../data/movie';
 
@@ -76,9 +77,15 @@ export function MovieDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const bookingDate = searchParams.get('date') ?? getDefaultBookingDate();
-  const fallbackData = fallbackMovieDetailUiData(movieId, bookingDate);
-  const [apiMovie, setApiMovie] = useState<Movie | undefined>(fallbackData.movie);
+  const availableDates = getScheduleDates(7);
+  const initialBookingDate = searchParams.get('date') ?? getDefaultBookingDate();
+  const bookingDate =
+    availableDates.find((dateOption) => formatScheduleDateParam(dateOption.date) === initialBookingDate)
+      ? initialBookingDate
+      : formatScheduleDateParam(availableDates[0].date);
+  const [apiMovie, setApiMovie] = useState<Movie | undefined>();
+  const [apiMovieSchedule, setApiMovieSchedule] = useState<MovieSchedule | undefined>();
+  const [isLoading, setIsLoading] = useState(Boolean(movieId));
   const [submittedFeedback, setSubmittedFeedback] = useState<MovieFeedback[]>([]);
   const [reviewerName, setReviewerName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
@@ -87,8 +94,12 @@ export function MovieDetailPage() {
   const [apiAverageRating, setApiAverageRating] = useState<number | null>(null);
   const [apiRatingBreakdown, setApiRatingBreakdown] = useState<Record<number, number> | null>(null);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const movie = apiMovie ?? fallbackData.movie;
-  const scheduleMovieId = movie?.id.replace(/-(now|soon)-\d+$/, '') ?? movieId?.replace(/-(now|soon)-\d+$/, '');
+  const movie = apiMovie;
+  const movieSchedule = apiMovieSchedule;
+  const scheduleMovieId =
+    movieSchedule?.movie.id.replace(/-(now|soon)-\d+$/, '') ??
+    movie?.id.replace(/-(now|soon)-\d+$/, '') ??
+    movieId?.replace(/-(now|soon)-\d+$/, '');
   const feedbackMovieId = movie?.apiId ?? movieId;
   const feedbackStorageKey = movie ? getFeedbackStorageKey(movie.id) : undefined;
   const defaultFeedback = useMemo(() => (movie ? buildDefaultMovieFeedback(movie) : []), [movie]);
@@ -126,19 +137,26 @@ export function MovieDetailPage() {
     const currentMovieId = movieId;
 
     async function loadMovieFromApi() {
+      if (active) {
+        setIsLoading(true);
+      }
+
       try {
-        // API FETCH NOTE:
-        // Detail only needs the movie payload now; showtimes live on the dedicated schedule page.
-        const data = await loadMovieDetailOnlyUiData(currentMovieId);
+        const data = await loadMovieDetailUiData(currentMovieId, bookingDate);
         if (!active) return;
 
         setApiMovie(data.movie);
+        setApiMovieSchedule(data.movieSchedule);
       } catch (error) {
-        const fallback = fallbackMovieDetailUiData(currentMovieId, bookingDate);
         if (active) {
-          setApiMovie(fallback.movie);
+          setApiMovie(undefined);
+          setApiMovieSchedule(undefined);
         }
-        console.warn("Movie detail API failed; using bundled fallback data.", error);
+        console.warn('Movie detail API failed.', error);
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
       }
     }
 
@@ -249,6 +267,14 @@ export function MovieDetailPage() {
     setReviewComment('');
     setFeedbackSubmitted(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+        <div className="text-center text-gray-300">Loading movie details...</div>
+      </div>
+    );
+  }
 
   if (!movie) {
     return (

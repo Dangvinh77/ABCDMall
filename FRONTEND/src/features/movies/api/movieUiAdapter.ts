@@ -10,14 +10,8 @@ import {
   type PromotionModel,
   type ShowtimeLiteModel,
 } from './moviesApi';
-import {
-  allMovies,
-  cinemasList,
-  comingSoonMovies,
-  nowShowingMovies,
-  type Movie,
-} from '../data/movie';
-import { getScheduleDataForDate, type HallType, type Language, type MovieSchedule } from '../data/schedules';
+import { cinemasList, type Movie } from '../data/movie';
+import { type HallType, type Language, type MovieSchedule } from '../data/schedules';
 
 export interface HomePromo {
   id: string;
@@ -95,34 +89,24 @@ function normalizedTitle(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-function findFallbackMovie(movie: Pick<MovieCardModel, 'id' | 'title'>) {
-  return (
-    allMovies.find((item) => item.id === movie.id) ??
-    allMovies.find((item) => normalizedTitle(item.title) === normalizedTitle(movie.title))
-  );
-}
-
 function toUiMovie(movie: MovieCardModel | MovieDetailModel): Movie {
-  const fallback = findFallbackMovie(movie);
-
   return {
     id: movie.id,
     apiId: movie.apiId,
     title: movie.title,
-    description:
-      'description' in movie ? movie.description : fallback?.description ?? 'Synopsis is being updated.',
+    description: 'description' in movie ? movie.description : '',
     genre: movie.genre,
     rating: movie.rating,
     duration: movie.duration,
-    director: 'director' in movie ? movie.director : fallback?.director ?? 'Updating',
-    cast: 'cast' in movie ? movie.cast : fallback?.cast ?? ['Updating'],
-    language: 'language' in movie ? movie.language : fallback?.language ?? 'Updating',
-    releaseDate: 'releaseDate' in movie ? movie.releaseDate : fallback?.releaseDate,
+    director: 'director' in movie ? movie.director : '',
+    cast: 'cast' in movie ? movie.cast : [],
+    language: 'language' in movie ? movie.language : '',
+    releaseDate: 'releaseDate' in movie ? movie.releaseDate : undefined,
     imageUrl: movie.imageUrl,
-    backdropUrl: fallback?.backdropUrl,
+    backdropUrl: undefined,
     isComingSoon: movie.isComingSoon,
     ageRating: movie.ageRating,
-    cinemas: fallback?.cinemas ?? cinemasList,
+    cinemas: [],
   };
 }
 
@@ -135,8 +119,8 @@ function cinemaCodeFromName(name: string) {
   );
 }
 
-function cinemaAddressFromCode(code: string, fallback: string) {
-  return cinemasList.find((cinema) => cinema.id === code)?.address ?? fallback;
+function cinemaAddressFromCode(code: string, sourceAddress: string) {
+  return cinemasList.find((cinema) => cinema.id === code)?.address ?? sourceAddress;
 }
 
 function toUiHallType(value: string): HallType {
@@ -149,13 +133,16 @@ function toUiLanguage(value: string): Language {
 }
 
 function toUiShowtime(showtime: ShowtimeLiteModel) {
+  const isSoldOut = showtime.status.toLowerCase().includes('sold');
   return {
     id: showtime.showtimeId,
     time: showtime.time,
     hallType: toUiHallType(showtime.hallType),
     language: toUiLanguage(showtime.language),
-    availableSeats: showtime.status.toLowerCase().includes('sold') ? 0 : 58,
-    totalSeats: 60,
+    // The showtimes APIs currently do not expose live seat counts.
+    // Keep sold-out detection, but avoid inventing "almost full" states from synthetic numbers.
+    availableSeats: isSoldOut ? 0 : 999,
+    totalSeats: 999,
     priceFrom: showtime.priceFrom,
     isBookable: showtime.isBookable,
     bookingUnavailableReason: showtime.bookingUnavailableReason,
@@ -258,20 +245,4 @@ export async function loadSchedulesUiData(bookingDate: string, movieId?: string)
 export async function loadPromotionsUiData() {
   const promotions = await fetchPromotions(true);
   return promotions.map(toUiPromo);
-}
-
-export const fallbackHomeUiData = {
-  nowShowingMovies,
-  comingSoonMovies,
-  promos: [] as HomePromo[],
-};
-
-export function fallbackMovieDetailUiData(movieId: string | undefined, bookingDate: string) {
-  const movie = movieId ? allMovies.find((item) => item.id === movieId) : undefined;
-  const scheduleMovieId = movieId ? movieId.replace(/-(now|soon)-\d+$/, '') : undefined;
-  const movieSchedule = scheduleMovieId
-    ? getScheduleDataForDate(bookingDate).find((item) => item.movie.id === scheduleMovieId)
-    : undefined;
-
-  return { movie, movieSchedule };
 }

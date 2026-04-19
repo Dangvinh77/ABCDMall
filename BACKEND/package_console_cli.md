@@ -23,7 +23,7 @@ Update-Database -Context MoviesCatalogDbContext
 Update-Database -Context MoviesBookingDbContext
 Update-Database -Context MallDbContext
 Update-Database -Context FoodCourtDbContext
-Update-Database -Context ShopDbContext
+Update-Database -Context ShopsDbContext
 Update-Database -Context UtilityMapDbContext
 
 ```

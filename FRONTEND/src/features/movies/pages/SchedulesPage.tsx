@@ -18,7 +18,6 @@ import {
 import { Button } from '../component/ui/button';
 import {
   allCinemas,
-  getScheduleDataForDate,
   getScheduleDates,
   formatScheduleDateParam,
   type HallType,
@@ -375,9 +374,7 @@ export function SchedulePage() {
   const [activeHallTypes, setActiveHallTypes] = useState<Set<HallType>>(new Set());
   const [activeLanguages, setActiveLanguages] = useState<Set<Language>>(new Set());
   const [showStickyBar, setShowStickyBar] = useState(false);
-  const [apiScheduleData, setApiScheduleData] = useState<MovieSchedule[]>(() =>
-    getScheduleDataForDate(formatScheduleDateParam(dates[selectedDateIdx].date)),
-  );
+  const [apiScheduleData, setApiScheduleData] = useState<MovieSchedule[]>([]);
 
   const heroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -403,17 +400,12 @@ export function SchedulePage() {
         const data = await loadSchedulesUiData(selectedDate, selectedMovieId);
         if (!active) return;
 
-        if (data.length > 0) {
-          setApiScheduleData(data);
-          return;
-        }
-
-        setApiScheduleData(getScheduleDataForDate(selectedDate));
+        setApiScheduleData(data);
       } catch (error) {
         if (active) {
-          setApiScheduleData(getScheduleDataForDate(selectedDate));
+          setApiScheduleData([]);
         }
-        console.warn('Schedules API failed; using bundled fallback data.', error);
+        console.warn('Schedules API failed.', error);
       }
     }
 

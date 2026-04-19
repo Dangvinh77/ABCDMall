@@ -12,11 +12,9 @@ import {
   Heart,
   Info,
 } from 'lucide-react';
-import { getMovieById, cinemasList } from '../data/movie';
 import {
   SERVICE_FEE,
   HALL_NAMES,
-  SNACK_COMBOS,
   getSeatPrice,
   SEAT_SURCHARGES,
   vnd,
@@ -69,51 +67,14 @@ interface Seat {
   type: SeatType;
   status: SeatStatus;
 }
-const ROWS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 const COLS = 12;
 const AISLE_AFTER = 6;
-const VIP_ROWS = new Set(['C', 'D', 'E']);
 const COUPLE_ROW = 'H';
-
-const BOOKED_SEATS = new Set([
-  'A2', 'A3', 'A7', 'A8',
-  'B5', 'B6', 'B11',
-  'C3', 'C4', 'C9', 'C10',
-  'D6', 'D7', 'D8',
-  'E2', 'E3', 'E10', 'E11',
-  'F5', 'F6',
-  'G3', 'G8', 'G9',
-  'H3', 'H4', 'H7', 'H8',
-]);
-
-const HELD_SEATS = new Set([
-  'A5', 'B2',
-  'C6', 'D3',
-  'F9', 'G6',
-  'H9', 'H10',
-]);
 
 function countdown(s: number) {
   const m = Math.floor(s / 60).toString().padStart(2, '0');
   const sec = (s % 60).toString().padStart(2, '0');
   return `${m}:${sec}`;
-}
-
-function buildSeats(): Seat[][] {
-  return ROWS.map((row) =>
-    Array.from({ length: COLS }, (_, i) => {
-      const col = i + 1;
-      const id = `${row}${col}`;
-      const type: SeatType =
-        row === COUPLE_ROW ? 'couple' : VIP_ROWS.has(row) ? 'vip' : 'regular';
-      const status: SeatStatus = BOOKED_SEATS.has(id)
-        ? 'booked'
-        : HELD_SEATS.has(id)
-          ? 'held'
-          : 'available';
-      return { id, row, col, type, status };
-    }),
-  );
 }
 
 function buildSeatsFromApi(seatMap: Awaited<ReturnType<typeof fetchSeatMap>>): Seat[][] {
@@ -305,11 +266,7 @@ export function SeatSelectionPage() {
   const hallType = searchParams.get('hallType') ?? '2D';
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? getDefaultBookingDate();
-
-  const fallbackMovie = movieId ? getMovieById(movieId) : undefined;
-  const fallbackCinema = cinemasList.find((c) => c.id === cinemaId);
-
-  const [seats, setSeats] = useState<Seat[][]>(buildSeats);
+  const [seats, setSeats] = useState<Seat[][]>([]);
   const [timeLeft, setTimeLeft] = useState(10 * 60);
   const [comboQuantities, setComboQuantities] = useState<Record<string, number>>({});
   const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
@@ -330,6 +287,7 @@ export function SeatSelectionPage() {
 
   const refreshSeatMap = useCallback(async (options?: { showLoading?: boolean }) => {
     if (!showtimeId) {
+      setSeats([]);
       setIsSeatMapLoading(false);
       return false;
     }
@@ -352,10 +310,13 @@ export function SeatSelectionPage() {
             nextSeats.some((row) => row.some((seat) => seat.id === seatId && seat.status !== 'available')),
           ),
         );
+      } else {
+        setSeats([]);
       }
       return true;
     } catch (error) {
-      console.warn('Seat map API failed; using bundled fallback seats.', error);
+      setSeats([]);
+      console.warn('Seat map API failed.', error);
       return false;
     } finally {
       if (showLoading) {
@@ -391,10 +352,14 @@ export function SeatSelectionPage() {
             setApiMovie(movieDetail);
           }
         } catch (error) {
-          console.warn('Movie detail API failed on seat page; using showtime snapshot instead.', error);
+          console.warn('Movie detail API failed on seat page.', error);
         }
       } catch (error) {
-        console.warn('Showtime detail API failed on seat page; using route/fallback data.', error);
+        if (active) {
+          setApiShowtime(null);
+          setApiMovie(null);
+        }
+        console.warn('Showtime detail API failed on seat page.', error);
       } finally {
         if (active) {
           setIsShowtimeLoading(false);
@@ -424,7 +389,11 @@ export function SeatSelectionPage() {
           setApiPromotions(promotions);
         }
       } catch (error) {
-        console.warn('Booking seed API failed; using bundled fallback data for checkout state.', error);
+        if (active) {
+          setApiSnackCombos([]);
+          setApiPromotions([]);
+        }
+        console.warn('Booking seed API failed.', error);
       }
     }
 
@@ -478,21 +447,13 @@ export function SeatSelectionPage() {
   );
   const comboOptions = useMemo<ComboOption[]>(
     () =>
-      apiSnackCombos.length > 0
-        ? apiSnackCombos.map((combo) => ({
-            id: combo.code,
-            apiId: combo.id,
-            name: combo.name,
-            description: combo.description,
-            price: combo.price,
-          }))
-        : SNACK_COMBOS.map((combo) => ({
-            id: combo.id,
-            name: combo.name,
-            description: combo.description,
-            price: combo.promoPrice ?? combo.price,
-            originalPrice: combo.promoPrice ? combo.price : undefined,
-          })),
+      apiSnackCombos.map((combo) => ({
+        id: combo.code,
+        apiId: combo.id,
+        name: combo.name,
+        description: combo.description,
+        price: combo.price,
+      })),
     [apiSnackCombos],
   );
   const comboSubtotal = useMemo(
@@ -541,11 +502,11 @@ export function SeatSelectionPage() {
     const promotionApiId = resolvePromotionApiIdFromUiId(apiPromotions, promoId);
     return apiPromotions.find((promotion) => promotion.id === promotionApiId) ?? null;
   }, [apiPromotions, promoId]);
-  const displayMovie = apiMovie ?? fallbackMovie;
-  const displayMovieTitle = apiMovie?.title ?? apiShowtime?.movieTitle ?? fallbackMovie?.title ?? 'ABCD Cinema';
-  const displayPosterUrl = apiMovie?.imageUrl ?? apiShowtime?.moviePosterUrl ?? fallbackMovie?.imageUrl;
-  const displayCinemaName = apiShowtime?.cinemaName ?? fallbackCinema?.name ?? 'ABCD Cinema';
-  const displayCinemaAddress = fallbackCinema?.address ?? apiShowtime?.cinemaName ?? 'ABCD Mall';
+  const displayMovie = apiMovie;
+  const displayMovieTitle = apiMovie?.title ?? apiShowtime?.movieTitle ?? 'Unknown movie';
+  const displayPosterUrl = apiMovie?.imageUrl ?? apiShowtime?.moviePosterUrl;
+  const displayCinemaName = apiShowtime?.cinemaName ?? 'Unknown cinema';
+  const displayCinemaAddress = apiShowtime?.cinemaName ?? 'Unknown address';
   const displayHallName =
     apiShowtime?.hallName ??
     (showtimeId && isShowtimeLoading ? null : (HALL_NAMES[hallType] ?? hallType));
@@ -598,7 +559,7 @@ export function SeatSelectionPage() {
         if (active) {
           setApiQuote(null);
         }
-        console.warn('Booking quote API failed on seat page; using local fallback totals.', error);
+        console.warn('Booking quote API failed on seat page.', error);
       }
     }
 
@@ -680,16 +641,14 @@ export function SeatSelectionPage() {
 
       if (isSeatConflict) {
         const conflictedSeats = extractSeatCodesFromConflict(message);
-        const fallbackConflictedSeats = conflictedSeats.length > 0
-          ? conflictedSeats
-          : selected.map((seat) => seat.id);
-
-        conflictedSeatIdsRef.current = new Set([
-          ...Array.from(conflictedSeatIdsRef.current),
-          ...fallbackConflictedSeats,
-        ]);
-        setSeats((previousSeats) => markSeatsAsHeld(previousSeats, fallbackConflictedSeats));
-        setApiQuote(null);
+        if (conflictedSeats.length > 0) {
+          conflictedSeatIdsRef.current = new Set([
+            ...Array.from(conflictedSeatIdsRef.current),
+            ...conflictedSeats,
+          ]);
+          setSeats((previousSeats) => markSeatsAsHeld(previousSeats, conflictedSeats));
+          setApiQuote(null);
+        }
         void refreshSeatMap({ showLoading: false });
         return;
       }
@@ -772,7 +731,7 @@ export function SeatSelectionPage() {
     );
   };
 
-  if (!displayMovie && !apiShowtime && !fallbackCinema) {
+  if (!displayMovie && !apiShowtime) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#07091a]">
         <div className="text-center">
