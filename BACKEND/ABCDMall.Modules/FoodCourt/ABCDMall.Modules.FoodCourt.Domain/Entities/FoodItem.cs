@@ -10,4 +10,6 @@ public class FoodItem
     public string MallSlug { get; set; } = "ABCD Mall";
     public string CategorySlug { get; set; } = "Floor";
     public string Description { get; set; } = string.Empty;
+   
 }
+
