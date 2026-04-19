@@ -57,6 +57,11 @@ Hai dev phải thống nhất trước:
 - quy ước trạng thái ghế
 - quy ước trạng thái booking
 - quy ước promotion status
+- quy ước `showtime bookable/cutoff` giữa Dev 1 và Dev 2:
+  - Dev 1 cung cấp `Showtime.Status`, `StartAtUtc`, và nếu có thể thêm `runtimeMinutes` hoặc `EndAtUtc`
+  - frontend cần biết showtime nào còn được đặt vé qua `isBookable` và `bookingUnavailableReason` nếu Dev 1 expose trên read API
+  - Dev 2 vẫn phải tự validate lại trên backend, không được chỉ tin vào UI
+  - rule demo hiện tại: chỉ cho booking khi `Showtime.Status == Open` và `StartAtUtc > utcNow + 10 minutes`
 
 ## 3. Cấu trúc đề xuất
 
@@ -124,6 +129,7 @@ Dev 1 sở hữu toàn bộ phần dữ liệu để frontend có thể:
 - xem chi tiết phim
 - xem showtimes
 - xem seat map
+- hiển thị/disable showtime đã qua giờ đặt vé, đang chiếu, hoặc đã chiếu xong theo contract đã chốt với Dev 2
 
 Dev 1 không sở hữu:
 
@@ -182,6 +188,9 @@ Dev 1 không sở hữu:
 ### 4.1.6 Output Dev 1 phải bàn giao cho Dev 2
 
 - `showtimeId` là key chuẩn cho booking flow
+- `Showtime.Status` và `StartAtUtc` phải rõ ràng để Dev 2 validate booking cutoff
+- nếu có thể, bàn giao thêm `runtimeMinutes` hoặc `EndAtUtc` để frontend/backend xác định showtime đã kết thúc
+- nếu frontend cần disabled state trực tiếp, Dev 1 expose thêm `isBookable` và `bookingUnavailableReason`
 - `seat inventory` trả về danh sách ghế theo showtime
 - rule seat map:
   - seat code
@@ -191,6 +200,7 @@ Dev 1 không sở hữu:
   - couple group
 - query chuẩn để Dev 2 lấy:
   - showtime có tồn tại không
+  - showtime còn được đặt vé không
   - ghế nào đang available
   - giá ghế theo showtime
 
@@ -236,6 +246,7 @@ Dev 2 sở hữu toàn bộ phần:
 - payment
 - ticket issue
 - feedback/review của khách cho từng movie
+- backend guard cho showtime bookable/cutoff trong các flow quote, hold, create booking, payment result
 
 Dev 2 không sở hữu:
 
@@ -317,6 +328,8 @@ Dev 2 không sở hữu:
 - seat type
 - seat price
 - seat availability
+- showtime status và start time để chặn booking khi showtime không còn bookable
+- nếu Dev 1 expose, đọc thêm `isBookable`/`bookingUnavailableReason` cho response thống nhất với frontend
 
 ### 4.2.7 Phase Dev 2
 
@@ -330,11 +343,13 @@ Dev 2 không sở hữu:
 
 - làm `promotion evaluate`
 - làm `booking quote`
+- áp dụng `ShowtimeBookingPolicy` vào quote để chặn showtime closed/past cutoff/started/ended
 
 #### Phase C
 
 - làm `booking hold`
 - làm expire hold
+- áp dụng `ShowtimeBookingPolicy` vào hold, không giữ ghế cho showtime không còn bookable
 
 #### Phase D
 
@@ -342,6 +357,8 @@ Dev 2 không sở hữu:
 - làm payment intent
 - làm callback
 - phát hành ticket
+- áp dụng `ShowtimeBookingPolicy` vào create booking và payment result trước khi confirm booking/book seats
+- đảm bảo payment success idempotent, ghế chỉ được book 1 lần, hold hết hạn không được confirm
 
 #### Phase E
 
@@ -361,6 +378,41 @@ Dev 2 không sở hữu:
   - create feedback
   - validate booking/showtime eligibility nếu business yêu cầu
   - admin moderation/read nếu cần
+
+## 4.3 Trạng thái cập nhật sau Day 7
+
+### Dev 2 đã hoàn thành
+
+- `POST /api/bookings/quote`: tính quote từ showtime/seat/snack/promotion.
+- `POST /api/bookings/holds`, `GET /api/bookings/holds/{holdId}`, `DELETE /api/bookings/holds/{holdId}`: giữ ghế, xem hold, release hold.
+- background service expire hold: tự hết hạn hold và trả ghế về trạng thái available.
+- `POST /api/bookings`: tạo booking từ hold hợp lệ.
+- `POST /api/bookings/{bookingId}/payment-result`: nhận kết quả thanh toán giả lập/từ Dev 1, complete booking và book seat.
+- `GET /api/payments/{paymentId}`: tra cứu payment.
+- đã bỏ endpoint confirm booking test-only, không còn dùng flow tạm để book ghế.
+
+### Dev 2 chưa hoàn thành
+
+- `ShowtimeBookingPolicy`: chặn quote/hold/create booking/payment result khi showtime closed, quá cutoff, đang chiếu hoặc đã chiếu xong.
+- phát hành `Ticket` sau khi booking paid.
+- `OutboxEvent` và email/resend ticket.
+- `PromotionRedemption` để ghi nhận mã khuyến mãi đã dùng.
+- feedback/review flow.
+- admin management tối thiểu cho booking/payment/promotion/feedback.
+
+### Việc phải cập nhật ngược vào các flow đã code
+
+- Day 4 quote: thêm guard `ShowtimeBookingPolicy`.
+- Day 5 hold: thêm guard `ShowtimeBookingPolicy`.
+- Day 6 create booking: kiểm tra lại showtime còn bookable trước khi tạo booking.
+- Day 7 payment result: kiểm tra lại showtime còn bookable trước khi chuyển booking sang paid/booked.
+
+### Ưu tiên tiếp theo
+
+1. Chốt contract với Dev 1 về `StartAtUtc`, `Showtime.Status`, `runtimeMinutes`/`EndAtUtc`, `isBookable`, `bookingUnavailableReason`.
+2. Code `ShowtimeBookingPolicy` ở Dev 2 và dùng chung cho quote, hold, create booking, payment result.
+3. Viết test cho showtime quá cutoff, đã bắt đầu, đã kết thúc, hold hết hạn, payment success gọi lại nhiều lần.
+4. Sau khi guard ổn định mới làm ticket/outbox/email và feedback.
 
 ## 5. Shared items cả 2 cùng chốt trước
 

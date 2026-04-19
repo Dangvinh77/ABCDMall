@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
+using ABCDMall.Modules.Movies.Application.DTOs.Feedbacks;
 using ABCDMall.Modules.Movies.Application.DTOs.Movies;
 using ABCDMall.Modules.Movies.Application.DTOs.Payments;
 using ABCDMall.Modules.Movies.Application.DTOs.Promotions;
@@ -6,6 +7,8 @@ using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Application.Mappings;
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
 using ABCDMall.Modules.Movies.Application.Services.Bookings.Validators;
+using ABCDMall.Modules.Movies.Application.Services.Feedbacks;
+using ABCDMall.Modules.Movies.Application.Services.Feedbacks.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Movies;
 using ABCDMall.Modules.Movies.Application.Services.Movies.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Promotions;
@@ -32,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IValidator<CreateBookingHoldRequestDto>, CreateBookingHoldRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingRequestDto>, CreateBookingRequestDtoValidator>();
         services.AddScoped<IValidator<PaymentResultRequestDto>, PaymentResultRequestDtoValidator>();
+        services.AddScoped<IValidator<CreateMovieFeedbackRequestDto>, CreateMovieFeedbackRequestDtoValidator>();
+        services.AddScoped<IValidator<SubmitMovieFeedbackByTokenRequestDto>, SubmitMovieFeedbackByTokenRequestDtoValidator>();
         services.AddScoped<IValidator<EvaluatePromotionRequestDto>, EvaluatePromotionRequestDtoValidator>();
         services.AddScoped<IValidator<MovieListQueryDto>, MovieListQueryDtoValidator>();
         services.AddScoped<IValidator<MovieShowtimesQueryDto>, MovieShowtimesQueryDtoValidator>();
@@ -41,10 +46,12 @@ public static class DependencyInjection
         services.AddScoped<IBookingHoldService, BookingHoldService>();
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IMovieFeedbackService, MovieFeedbackService>();
         services.AddScoped<IMovieQueryService, MovieQueryService>();
         services.AddScoped<IPromotionQueryService, PromotionQueryService>();
         services.AddScoped<IPromotionEvaluationService, PromotionEvaluationService>();
         services.AddScoped<ISeatMapQueryService, SeatMapQueryService>();
+        services.AddScoped<IShowtimeBookingPolicy, ShowtimeBookingPolicy>();
         services.AddScoped<ISnackComboQueryService, SnackComboQueryService>();
         services.AddScoped<IShowtimeQueryService, ShowtimeQueryService>();
 

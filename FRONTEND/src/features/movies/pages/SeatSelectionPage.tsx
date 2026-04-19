@@ -316,6 +316,7 @@ export function SeatSelectionPage() {
   const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
   const [apiMovie, setApiMovie] = useState<MovieDetailModel | null>(null);
   const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
+  const [seatMapUnavailableReason, setSeatMapUnavailableReason] = useState<string | null>(null);
   const [apiQuote, setApiQuote] = useState<BookingQuoteModel | null>(null);
   const [isSeatMapLoading, setIsSeatMapLoading] = useState(Boolean(showtimeId));
   const [isShowtimeLoading, setIsShowtimeLoading] = useState(Boolean(showtimeId));
@@ -340,6 +341,7 @@ export function SeatSelectionPage() {
 
     try {
       const seatMap = await fetchSeatMap(showtimeId);
+      setSeatMapUnavailableReason(seatMap.isBookable ? null : (seatMap.bookingUnavailableReason ?? 'This showtime is not available for booking.'));
       if (seatMap.seats.length > 0) {
         const nextSeats = buildSeatsFromApi(seatMap);
         setSeats((previousSeats) =>
@@ -547,13 +549,18 @@ export function SeatSelectionPage() {
   const displayHallName =
     apiShowtime?.hallName ??
     (showtimeId && isShowtimeLoading ? null : (HALL_NAMES[hallType] ?? hallType));
+  const showtimeUnavailableReason =
+    apiShowtime?.isBookable === false
+      ? apiShowtime.bookingUnavailableReason ?? 'This showtime is not available for booking.'
+      : seatMapUnavailableReason;
+  const isShowtimeBookable = !showtimeUnavailableReason;
   const total = useMemo(
     () => apiQuote?.grandTotal ?? promoTotals.total,
     [apiQuote?.grandTotal, promoTotals.total],
   );
 
   useEffect(() => {
-    if (!showtimeId || selected.length === 0 || selected.some((seat) => !seat.seatInventoryId)) {
+    if (!isShowtimeBookable || !showtimeId || selected.length === 0 || selected.some((seat) => !seat.seatInventoryId)) {
       setApiQuote(null);
       return;
     }
@@ -600,7 +607,7 @@ export function SeatSelectionPage() {
     return () => {
       active = false;
     };
-  }, [apiPromotions, comboOptions, promoId, selected, selectedSnackCombos, showtimeId]);
+  }, [apiPromotions, comboOptions, isShowtimeBookable, promoId, selected, selectedSnackCombos, showtimeId]);
 
   const updateComboQuantity = useCallback((comboId: string, nextQuantity: number) => {
     setComboQuantities((prev) => {
@@ -618,6 +625,11 @@ export function SeatSelectionPage() {
 
     if (!showtimeId || selected.some((seat) => !seat.seatInventoryId)) {
       window.alert('This showtime is not ready for online booking yet. Please choose a live showtime again.');
+      return;
+    }
+
+    if (!isShowtimeBookable) {
+      window.alert(showtimeUnavailableReason ?? 'This showtime is not available for booking.');
       return;
     }
 
@@ -862,6 +874,13 @@ export function SeatSelectionPage() {
                 <AlertCircle className="size-4 shrink-0" />
                 Seats will be held for another{' '}
                 <span className="font-bold">{countdown(timeLeft)}</span>. Please complete your booking soon!
+              </div>
+            )}
+
+            {!isShowtimeBookable && (
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-950/40 px-3 py-2.5 text-sm text-amber-300 ring-1 ring-amber-500/20">
+                <AlertCircle className="size-4 shrink-0" />
+                {showtimeUnavailableReason}
               </div>
             )}
           </div>
@@ -1268,7 +1287,7 @@ export function SeatSelectionPage() {
 
             {/* CTA */}
             <Button
-              disabled={selected.length === 0}
+              disabled={selected.length === 0 || !isShowtimeBookable}
               onClick={goToCheckout}
               className="h-12 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-base font-semibold hover:from-purple-500 hover:to-pink-500 disabled:cursor-not-allowed disabled:opacity-40 shadow-lg shadow-purple-900/30"
               size="lg"
@@ -1380,7 +1399,7 @@ export function SeatSelectionPage() {
             )}
           </div>
           <Button
-            disabled={selected.length === 0}
+            disabled={selected.length === 0 || !isShowtimeBookable}
             onClick={goToCheckout}
             className="shrink-0 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-40 shadow-lg shadow-purple-900/30"
           >

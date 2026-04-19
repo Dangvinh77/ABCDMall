@@ -1,14 +1,19 @@
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 using ABCDMall.Modules.Movies.Application.Services.Movies;
 using ABCDMall.Modules.Movies.Application.Services.Promotions;
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Infrastructure.BackgroundServices;
+using ABCDMall.Modules.Movies.Infrastructure.Options;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Catalog;
+using ABCDMall.Modules.Movies.Infrastructure.Repositories.Feedbacks;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Promotions;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Screening;
+using ABCDMall.Modules.Movies.Infrastructure.Services.Emails;
+using ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,7 +54,13 @@ public static class DependencyInjection
         services.AddScoped<IBookingHoldRepository, BookingHoldRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IMovieFeedbackRepository, MovieFeedbackRepository>();
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddScoped<ITicketPdfRenderer, QuestPdfTicketPdfRenderer>();
+        services.AddScoped<ITicketEmailSender, SmtpTicketEmailSender>();
+        services.AddScoped<ITicketEmailDispatcher, TicketEmailDispatcher>();
         services.AddHostedService<BookingHoldCleanupBackgroundService>();
+        services.AddHostedService<TicketEmailOutboxBackgroundService>();
 
         return services;
     }

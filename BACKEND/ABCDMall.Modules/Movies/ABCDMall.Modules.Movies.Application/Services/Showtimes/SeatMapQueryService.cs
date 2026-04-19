@@ -10,15 +10,18 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
 {
     private readonly IShowtimeRepository _showtimeRepository;
     private readonly IBookingHoldRepository _bookingHoldRepository;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
     private readonly ILogger<SeatMapQueryService> _logger;
 
     public SeatMapQueryService(
         IShowtimeRepository showtimeRepository,
         IBookingHoldRepository bookingHoldRepository,
+        IShowtimeBookingPolicy showtimeBookingPolicy,
         ILogger<SeatMapQueryService> logger)
     {
         _showtimeRepository = showtimeRepository;
         _bookingHoldRepository = bookingHoldRepository;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
         _logger = logger;
     }
 
@@ -32,6 +35,7 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
         }
 
         var seats = await _showtimeRepository.GetSeatMapByShowtimeIdAsync(showtimeId, cancellationToken);
+        var bookingDecision = _showtimeBookingPolicy.EvaluateForUser(showtime, DateTime.UtcNow);
         var activeHoldSeatIds = await _bookingHoldRepository.GetActiveSeatInventoryIdsAsync(
             showtimeId,
             DateTime.UtcNow,
@@ -48,6 +52,8 @@ public sealed class SeatMapQueryService : ISeatMapQueryService
             ShowtimeId = showtime.Id,
             HallId = showtime.HallId,
             HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
+            IsBookable = bookingDecision.IsBookable,
+            BookingUnavailableReason = bookingDecision.UnavailableReason,
             Seats = seats
                 .OrderBy(seat => seat.RowLabel)
                 .ThenBy(seat => seat.ColumnNumber)

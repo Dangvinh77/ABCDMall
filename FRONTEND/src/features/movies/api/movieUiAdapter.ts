@@ -107,6 +107,7 @@ function toUiMovie(movie: MovieCardModel | MovieDetailModel): Movie {
 
   return {
     id: movie.id,
+    apiId: movie.apiId,
     title: movie.title,
     description:
       'description' in movie ? movie.description : fallback?.description ?? 'Synopsis is being updated.',
@@ -156,6 +157,8 @@ function toUiShowtime(showtime: ShowtimeLiteModel) {
     availableSeats: showtime.status.toLowerCase().includes('sold') ? 0 : 58,
     totalSeats: 60,
     priceFrom: showtime.priceFrom,
+    isBookable: showtime.isBookable,
+    bookingUnavailableReason: showtime.bookingUnavailableReason,
   };
 }
 
@@ -232,6 +235,14 @@ export async function loadMovieDetailUiData(movieId: string, bookingDate: string
         };
       }),
     } satisfies MovieSchedule,
+  };
+}
+
+export async function loadMovieDetailOnlyUiData(movieId: string) {
+  const movie = await fetchMovieDetail(movieId);
+
+  return {
+    movie: toUiMovie(movie),
   };
 }
 

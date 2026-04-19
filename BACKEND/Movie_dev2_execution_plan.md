@@ -197,6 +197,12 @@ Trước khi code `Create Booking`, `Payment Result Integration`, và `Complete 
    - `BookingHold` chỉ chuyển `Converted` sau payment success, không chuyển ngay khi create booking
 8. Booking/ticket code format:
    - thống nhất format `BookingCode`, `TicketCode`, và nội dung `QrCodeContent`
+9. Showtime bookable/cutoff contract:
+   - Dev 1 owner dữ liệu `Showtime.Status`, `StartAtUtc`, runtime/end time nếu có
+   - Dev 1 nên trả `isBookable` và `bookingUnavailableReason` ở showtime/seat-map nếu frontend cần hiển thị disabled
+   - Dev 2 vẫn phải tự chặn ở booking/payment flow, không tin hoàn toàn frontend hoặc listing API
+   - rule tối thiểu đề xuất: chỉ cho book khi `Showtime.Status == Open` và `Showtime.StartAtUtc > utcNow + bookingCutoff`
+   - cutoff đề xuất cho demo: 10 phút trước giờ chiếu, trừ khi team chốt rule khác
 
 ## 4. Tech stack và package đã chốt
 
@@ -390,6 +396,11 @@ Các input này là contract boundary từ `Catalog + Screening` sang `Booking +
   - `status`
   - `price`
   - `coupleGroupCode`
+- bookable/cutoff input:
+  - `startAtUtc`
+  - `status`
+  - `runtimeMinutes` hoặc `endAtUtc` nếu Dev 1 có
+  - `isBookable` và `bookingUnavailableReason` nếu Dev 1 muốn frontend hiển thị disabled thay vì ẩn
 - cơ chế cập nhật seat status khi payment success:
   - Dev 2 cần được phép gọi repository/service mark seat `Booked`
   - hoặc Dev 1 cung cấp API/service boundary riêng để Dev 2 gọi
@@ -575,6 +586,107 @@ Deliverable cuối ngày:
 - frontend có thể gọi promotions thật
 - logic evaluate promotion chạy được
 
+## Trạng thái thực tế sau khi code Day 7
+
+Tính tới thời điểm cập nhật hiện tại, Dev 2 đã hoàn thành tới flow:
+
+```text
+Quote -> Hold -> Create Booking PendingPayment -> Payment Result -> Confirm Booking -> Book Seat
+```
+
+### Đã hoàn thành
+
+1. Quote:
+   - API `POST /api/bookings/quote`
+   - tính seat subtotal, service fee, combo subtotal, promotion discount, grand total
+   - validate seat available
+   - validate couple seat
+   - promotion evaluation
+2. Hold:
+   - API `POST /api/bookings/hold`
+   - API `GET /api/bookings/holds/{holdId}`
+   - API `DELETE /api/bookings/holds/{holdId}`
+   - chống hold trùng ghế đang active
+   - hold expiry
+   - cleanup background service cho hold expired
+   - lưu snapshot combo/promotion/price vào hold để tạo booking sau đó
+3. Create Booking From Hold:
+   - API `POST /api/bookings`
+   - API `GET /api/bookings/{bookingCode}`
+   - tạo `Booking` thật từ `BookingHold`
+   - trạng thái booking là `PendingPayment`
+   - tạo hoặc reuse `GuestCustomer`
+   - tạo `BookingItems` cho seat/combo/service fee/discount
+   - lưu snapshot customer, price, promotion
+   - idempotency theo `BookingHoldId`
+   - migration `CreateBookingFromHold` đã apply vào database development
+4. Payment Result + Complete Booking Core:
+   - API `POST /api/bookings/{bookingId}/payment-result`
+   - API `GET /api/payments/{paymentId}`
+   - tạo/cập nhật `Payment`
+   - verify amount/currency
+   - idempotency theo `ProviderTransactionId`
+   - chỉ `PaymentStatus.Succeeded` mới complete booking
+   - `Booking.PendingPayment -> Booking.Confirmed`
+   - `BookingHold.Active -> BookingHold.Converted`
+   - `ShowtimeSeatInventory.Available -> ShowtimeSeatInventory.Booked`
+   - đã gỡ public endpoint test cũ `POST /api/bookings/holds/{holdId}/confirm`
+
+### Chưa hoàn thành
+
+1. Showtime bookable/cutoff guard:
+   - chưa có `ShowtimeBookingPolicy` dùng chung
+   - chưa chặn chắc `quote/hold/create booking/payment result` khi showtime quá cutoff, đang chiếu hoặc đã chiếu xong
+   - hiện vẫn phụ thuộc chủ yếu vào `Showtime.Status == Open`
+2. Ticket:
+   - chưa có `TicketService`
+   - chưa issue `TicketCode`
+   - chưa tạo `QrCodeContent`
+3. Promotion redemption:
+   - chưa tạo `PromotionRedemption` sau booking confirmed
+4. Outbox/email:
+   - chưa tạo e-ticket outbox event
+   - chưa có resend ticket flow thật
+5. Frontend checkout integration sau Day 7:
+   - cần nối FE theo flow thật `hold -> create booking -> mock payment -> payment result -> success`
+   - không còn dùng endpoint fake confirm cũ
+6. Feedback/review:
+   - chưa có API feedback thật
+7. Admin minimal:
+   - chưa có admin read/support endpoints cho booking/payment/feedback
+
+### Cần cập nhật ngược vào các Day cũ
+
+Các việc này không nên đợi quá lâu, vì ảnh hưởng trực tiếp tới việc không bán vé cho suất đã bắt đầu hoặc đã chiếu xong:
+
+1. Day 4 Quote:
+   - thêm `ShowtimeBookingPolicy` hoặc helper tương đương
+   - chặn quote nếu showtime không `Open`, quá cutoff, đang chiếu hoặc đã chiếu xong
+2. Day 5 Hold:
+   - chặn create hold nếu showtime không còn bookable
+   - vẫn giữ cleanup expired hold như hiện tại
+3. Day 6 Create Booking:
+   - khi tạo booking từ hold, kiểm tra lại showtime còn bookable
+   - tránh trường hợp hold trước cutoff nhưng create booking sau cutoff
+4. Day 7 Payment Result:
+   - trước khi complete booking, kiểm tra lại showtime còn bookable
+   - nếu showtime đã quá cutoff/đang chiếu/đã chiếu xong thì không được mark booking `Confirmed`, không được mark seat `Booked`
+   - tùy contract với Dev 1/payment mock, payment có thể ghi `Failed`/`Cancelled` hoặc cần support refund/manual review
+
+### Ưu tiên tiếp theo
+
+Trước khi nhảy sang ticket Day 8, nên ưu tiên:
+
+```text
+ShowtimeBookingPolicy -> apply vào Quote/Hold/Create Booking/Payment Result -> test cutoff/started/ended showtime
+```
+
+Sau đó mới làm:
+
+```text
+TicketService -> PromotionRedemption -> Outbox/Email -> FE checkout thật
+```
+
 ## Day 4: Flow Quote
 
 Mục tiêu:
@@ -707,6 +819,7 @@ Việc cần làm:
 4. code complete booking core khi payment success:
    - verify booking đang `PendingPayment`
    - verify hold còn hợp lệ hoặc đã được gắn với booking này
+   - verify showtime vẫn còn bookable, không quá cutoff, không đang chiếu hoặc đã chiếu xong
    - mark `Booking.Status = Confirmed`
    - mark `BookingHold.Status = Converted`
    - mark booked seats trong `ShowtimeSeatInventory` theo cơ chế đã chốt với Dev 1
@@ -788,6 +901,8 @@ Việc cần làm:
    - `POST /api/movies/{movieId}/feedbacks`
 5. hardening checkout:
    - bổ sung validation còn thiếu
+   - thêm `ShowtimeBookingPolicy` hoặc helper tương đương để dùng chung cho quote/hold/create booking/payment result
+   - chặn quote/hold/create booking/payment success khi showtime đã quá cutoff, đang chiếu, đã chiếu xong hoặc không còn `Open`
    - thêm logging ở các bước hold, booking, payment, ticket
    - rà transaction boundary
    - rà unique/index/concurrency
@@ -800,6 +915,8 @@ Việc cần làm:
    - booking khi hold không còn
    - payment amount/currency mismatch
    - seat đã `Booked` không thể giữ lại
+   - showtime đã quá cutoff không được quote/hold
+   - showtime đang chiếu hoặc đã chiếu xong không được complete booking dù payment result là `Succeeded`
 
 Deliverable cuối ngày:
 

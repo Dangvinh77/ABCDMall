@@ -42,7 +42,8 @@ import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
 import {
-  confirmBookingHold,
+  applyPaymentResult,
+  createBooking,
   fetchBookingHold,
   fetchPromotions,
   fetchSnackCombos,
@@ -118,6 +119,35 @@ const PAYMENT_METHODS: {
     bg: 'bg-emerald-950/30',
   },
 ];
+
+function toApiPaymentProvider(paymentMethod: PaymentMethod) {
+  switch (paymentMethod) {
+    case 'momo':
+      return 'Momo';
+    case 'vnpay':
+      return 'VnPay';
+    case 'visa':
+      return 'Stripe';
+    case 'atm':
+      return 'VnPay';
+    default:
+      return 'Mock';
+  }
+}
+
+function generateMockProviderTransactionId() {
+  const suffix =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return `mock-${suffix}`;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unable to confirm this booking. Please choose your seats again.";
+}
+
 const SEAT_CHIP: Record<SeatType, string> = {
   regular: 'bg-purple-950/60 text-purple-300 ring-purple-500/30',
   vip: 'bg-amber-950/60 text-amber-400 ring-amber-500/30',
@@ -493,14 +523,40 @@ export function CheckoutPage() {
         return;
       }
 
-      // DAY5 TEST-ONLY CONFIRM FLOW:
+      // OLD DAY5 HOLD-CONFIRM TEST REPLACED BELOW.
       // Tạm gọi endpoint confirm hold để test ghế chuyển sang Booked.
       // Khi có booking/payment hoàn chỉnh, thay bằng API đặt vé/thanh toán thật.
-      await confirmBookingHold(holdId);
+      const values = getValues();
+
+      // TEMP MOCK PAYMENT FLOW FOR TICKET EMAIL TEST:
+      // Do not remove this marker silently. This replaces the old Day5 hold-confirm test
+      // so we can exercise the real backend path: booking -> payment succeeded -> ticket PDF email.
+      // When dev1 finishes the real Stripe/PayPal/MoMo simulation, replace only this mocked
+      // payment-result call with the real provider callback/result.
+      const booking = await createBooking({
+        holdId,
+        customerName: values.fullName,
+        customerEmail: values.email,
+        customerPhoneNumber: values.phone,
+      });
+
+      await applyPaymentResult(booking.bookingId, {
+        provider: toApiPaymentProvider(paymentMethod),
+        providerTransactionId: generateMockProviderTransactionId(),
+        status: 'Succeeded',
+        amount: booking.grandTotal,
+        currency: booking.currency,
+        rawPayload: JSON.stringify({
+          source: 'frontend-ticket-email-test',
+          selectedPaymentMethod: paymentMethod,
+          bookingCode: booking.bookingCode,
+        }),
+      });
       setTimeout(() => setStage('success'), 1800);
     } catch (error) {
-      console.warn("Confirm booking hold API failed; booking was not completed.", error);
-      window.alert("Unable to confirm this booking. Please choose your seats again.");
+      const message = getErrorMessage(error);
+      console.warn("Mock payment booking flow failed; booking was not completed.", error);
+      window.alert(message);
       setStage('form');
     }
   };

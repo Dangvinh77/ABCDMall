@@ -8,12 +8,14 @@ namespace ABCDMall.Modules.Movies.Tests;
 
 public sealed class SeatMapAndShowtimeContractTests
 {
+    private static readonly ShowtimeBookingPolicy BookingPolicy = new();
+
     [Fact]
     public async Task SeatMap_ShouldContainRequiredFields_AndCoupleSeatsShouldHaveGroupCode()
     {
         await using var dbContext = await CatalogSeedTestDb.CreateSeededContextAsync();
         var repository = new ShowtimeRepository(dbContext);
-        var queryService = new SeatMapQueryService(repository, new FakeBookingHoldRepository(), NullLogger<SeatMapQueryService>.Instance);
+        var queryService = new SeatMapQueryService(repository, new FakeBookingHoldRepository(), BookingPolicy, NullLogger<SeatMapQueryService>.Instance);
         var showtimeId = dbContext.Showtimes.Select(x => x.Id).First();
 
         var result = await queryService.GetByShowtimeIdAsync(showtimeId);
@@ -46,7 +48,7 @@ public sealed class SeatMapAndShowtimeContractTests
     {
         await using var dbContext = await CatalogSeedTestDb.CreateSeededContextAsync();
         var repository = new ShowtimeRepository(dbContext);
-        var queryService = new SeatMapQueryService(repository, new FakeBookingHoldRepository(), NullLogger<SeatMapQueryService>.Instance);
+        var queryService = new SeatMapQueryService(repository, new FakeBookingHoldRepository(), BookingPolicy, NullLogger<SeatMapQueryService>.Instance);
         var showtimeId = dbContext.Showtimes.Select(x => x.Id).First();
 
         var result = await queryService.GetByShowtimeIdAsync(showtimeId);
@@ -71,7 +73,7 @@ public sealed class SeatMapAndShowtimeContractTests
     {
         await using var dbContext = await CatalogSeedTestDb.CreateSeededContextAsync();
         var repository = new ShowtimeRepository(dbContext);
-        var queryService = new ShowtimeQueryService(repository, NullLogger<ShowtimeQueryService>.Instance);
+        var queryService = new ShowtimeQueryService(repository, BookingPolicy, NullLogger<ShowtimeQueryService>.Instance);
         var showtimeId = dbContext.Showtimes.Select(x => x.Id).First();
 
         var result = await queryService.GetByIdAsync(showtimeId);
@@ -92,7 +94,7 @@ public sealed class SeatMapAndShowtimeContractTests
     {
         await using var dbContext = await CatalogSeedTestDb.CreateSeededContextAsync();
         var repository = new ShowtimeRepository(dbContext);
-        var queryService = new ShowtimeQueryService(repository, NullLogger<ShowtimeQueryService>.Instance);
+        var queryService = new ShowtimeQueryService(repository, BookingPolicy, NullLogger<ShowtimeQueryService>.Instance);
         var unfilteredResult = await queryService.GetListAsync();
         var sample = unfilteredResult.First();
 

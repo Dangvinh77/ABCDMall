@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using System.Text.Json;
@@ -8,10 +9,17 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings;
 public sealed class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepository;
+    private readonly IShowtimeRepository _showtimeRepository;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
 
-    public BookingService(IBookingRepository bookingRepository)
+    public BookingService(
+        IBookingRepository bookingRepository,
+        IShowtimeRepository showtimeRepository,
+        IShowtimeBookingPolicy showtimeBookingPolicy)
     {
         _bookingRepository = bookingRepository;
+        _showtimeRepository = showtimeRepository;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
     }
 
     public async Task<CreateBookingResponseDto> CreateAsync(
@@ -41,6 +49,13 @@ public sealed class BookingService : IBookingService
         {
             throw new InvalidOperationException("Booking hold has expired.");
         }
+
+        var showtime = await _showtimeRepository.GetShowtimeByIdAsync(hold.ShowtimeId, cancellationToken);
+        if (showtime is null)
+        {
+            throw new InvalidOperationException("Showtime not found.");
+        }
+        _showtimeBookingPolicy.EnsureBookableForUser(showtime, now);
 
         var guestCustomer = await _bookingRepository.FindGuestCustomerAsync(
             request.CustomerEmail,

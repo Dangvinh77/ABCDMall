@@ -25,6 +25,8 @@ public class MoviesBookingDbContext : DbContext
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<OutboxEvent> OutboxEvents => Set<OutboxEvent>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<MovieFeedbackRequest> MovieFeedbackRequests => Set<MovieFeedbackRequest>();
+    public DbSet<MovieFeedback> MovieFeedbacks => Set<MovieFeedback>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,6 +44,8 @@ public class MoviesBookingDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PaymentConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxEventConfiguration());
         modelBuilder.ApplyConfiguration(new AuditLogConfiguration());
+        modelBuilder.ApplyConfiguration(new MovieFeedbackRequestConfiguration());
+        modelBuilder.ApplyConfiguration(new MovieFeedbackConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

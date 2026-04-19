@@ -12,6 +12,8 @@ export interface Showtime {
   availableSeats: number;
   totalSeats: number;
   priceFrom: number; // VND
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
 }
 
 export interface CinemaSchedule {
@@ -44,7 +46,7 @@ function s(
   totalSeats: number,
   priceFrom: number,
 ): Showtime {
-  return { id, time, hallType, language, availableSeats, totalSeats, priceFrom };
+  return { id, time, hallType, language, availableSeats, totalSeats, priceFrom, isBookable: true };
 }
 const extraMovies: Movie[] = [
   {
@@ -186,6 +188,8 @@ function buildDailyShowtime(
       (dayOffset + cinemaIndex + showtimeIndex) % 9 === 0
         ? 0
         : availableSeats,
+    isBookable: showtime.isBookable,
+    bookingUnavailableReason: showtime.bookingUnavailableReason,
   };
 }
 

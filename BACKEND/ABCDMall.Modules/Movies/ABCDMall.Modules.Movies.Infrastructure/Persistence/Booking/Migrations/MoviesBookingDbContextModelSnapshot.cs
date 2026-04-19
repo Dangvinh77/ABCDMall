@@ -333,6 +333,152 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
                     b.ToTable("GuestCustomers", "movies");
                 });
 
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedback", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("CreatedByEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<Guid?>("FeedbackRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModeratedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModeratedBy")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("ModerationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ModerationStatus")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("MovieId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ShowtimeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TagsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("FeedbackRequestId")
+                        .IsUnique()
+                        .HasFilter("[FeedbackRequestId] IS NOT NULL");
+
+                    b.HasIndex("MovieId", "IsVisible", "ModerationStatus", "CreatedAtUtc");
+
+                    b.HasIndex("MovieId", "Rating", "CreatedAtUtc");
+
+                    b.HasIndex("ShowtimeId");
+
+                    b.ToTable("MovieFeedbacks", "movies");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedbackRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AvailableAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EmailRetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("InvalidatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastEmailError")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MovieId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PurchaserEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ShowtimeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId", "ShowtimeId")
+                        .IsUnique();
+
+                    b.HasIndex("ExpiresAtUtc");
+
+                    b.HasIndex("MovieId");
+
+                    b.HasIndex("Status", "AvailableAtUtc");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasFilter("[TokenHash] IS NOT NULL");
+
+                    b.ToTable("MovieFeedbackRequests", "movies");
+                });
+
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.OutboxEvent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -639,8 +785,18 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("EmailSendError")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EmailSentAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("IssuedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("PdfFileName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("QrCodeContent")
                         .HasColumnType("nvarchar(max)");
@@ -656,6 +812,9 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -699,6 +858,32 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("GuestCustomer");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedback", b =>
+                {
+                    b.HasOne("ABCDMall.Modules.Movies.Domain.Entities.Bookingg", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId");
+
+                    b.HasOne("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedbackRequest", "FeedbackRequest")
+                        .WithOne("Feedback")
+                        .HasForeignKey("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedback", "FeedbackRequestId");
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("FeedbackRequest");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedbackRequest", b =>
+                {
+                    b.HasOne("ABCDMall.Modules.Movies.Domain.Entities.Bookingg", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Payment", b =>
@@ -762,6 +947,11 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.GuestCustomer", b =>
                 {
                     b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedbackRequest", b =>
+                {
+                    b.Navigation("Feedback");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Promotion", b =>

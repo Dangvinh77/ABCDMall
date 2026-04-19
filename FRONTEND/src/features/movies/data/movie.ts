@@ -8,6 +8,7 @@ export interface Cinema {
 
 export interface Movie {
   id: string;
+  apiId?: string;
   title: string;
   description: string;
   genre: string;
