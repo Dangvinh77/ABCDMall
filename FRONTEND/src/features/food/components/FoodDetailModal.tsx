@@ -107,7 +107,7 @@ export default function FoodDetailModal({ food, onClose }: Props) {
             <p className="mb-2">⭐ 4.5</p>
 
             <button className="w-full mt-4 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition">
-              Xem menu
+              See Menu
             </button>
 
           </div>
