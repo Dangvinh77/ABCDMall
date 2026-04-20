@@ -1,6 +1,150 @@
 .
+├── -p
 ├── BACKEND
 │   ├── ABCDMall.Modules
+│   │   ├── Events
+│   │   │   ├── ABCDMall.Modules.Events.Application
+│   │   │   │   ├── ABCDMall.Modules.Events.Application.csproj
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── EventDto.cs
+│   │   │   │   │   └── Events
+│   │   │   │   │       ├── CreateEventRequestDto.cs
+│   │   │   │   │       ├── EventListQueryDto.cs
+│   │   │   │   │       └── UpdateEventRequestDto.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Mappings
+│   │   │   │   │   └── EventProfile.cs
+│   │   │   │   ├── Services
+│   │   │   │   │   └── Events
+│   │   │   │   │       ├── EventCommandService.cs
+│   │   │   │   │       ├── EventQueryService.cs
+│   │   │   │   │       ├── IEventCommandService.cs
+│   │   │   │   │       ├── IEventQueryService.cs
+│   │   │   │   │       ├── IEventRepository.cs
+│   │   │   │   │       └── Validators
+│   │   │   │   │           ├── CreateEventRequestDtoValidator.cs
+│   │   │   │   │           ├── EventListQueryDtoValidator.cs
+│   │   │   │   │           └── UpdateEventRequestDtoValidator.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.983C8C87.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Events.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Events.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Events.Domain
+│   │   │   │   ├── ABCDMall.Modules.Events.Domain.csproj
+│   │   │   │   ├── Entities
+│   │   │   │   │   └── Event.cs
+│   │   │   │   ├── Enums
+│   │   │   │   │   ├── EventStatus.cs
+│   │   │   │   │   └── EventType.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Events.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Events.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Events.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Events.Infrastructure
+│   │   │       ├── ABCDMall.Modules.Events.Infrastructure.csproj
+│   │   │       ├── DependencyInjection.cs
+│   │   │       ├── Persistence
+│   │   │       │   └── Events
+│   │   │       │       ├── Configurations
+│   │   │       │       │   └── EventConfiguration.cs
+│   │   │       │       ├── EventsDbContext.cs
+│   │   │       │       ├── EventsDbContextFactory.cs
+│   │   │       │       └── Migrations
+│   │   │       │           ├── 20260419164000_InitEvents.Designer.cs
+│   │   │       │           ├── 20260419164000_InitEvents.cs
+│   │   │       │           └── EventsDbContextModelSnapshot.cs
+│   │   │       ├── Repositories
+│   │   │       │   └── EventRepository.cs
+│   │   │       ├── Seed
+│   │   │       │   └── FrontendEventsSeed.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Events.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.pdb
+│   │   │       │           └── ABCDMall.Modules.Events.Infrastructure.runtimeconfig.json
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.91C37947.Up2Date
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.genruntimeconfig.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
 │   │   ├── Feedbacks
 │   │   │   ├── ABCDMall.Modules.Feedbacks.Application
 │   │   │   │   ├── ABCDMall.Modules.Feedbacks.Application.csproj
@@ -1493,6 +1637,7 @@
 │   │   │   ├── AuthController.cs
 │   │   │   ├── BookingsController.cs
 │   │   │   ├── DbController.cs
+│   │   │   ├── EventsController.cs
 │   │   │   ├── FoodController.cs
 │   │   │   ├── MapsController.cs
 │   │   │   ├── MoviesController.cs
@@ -1513,6 +1658,12 @@
 │   │   │   └── Debug
 │   │   │       ├── net8.0
 │   │   │       └── net9.0
+│   │   │           ├── ABCDMall.Modules.Events.Application.dll
+│   │   │           ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │           ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.pdb
 │   │   │           ├── ABCDMall.Modules.FoodCourt.Application.dll
 │   │   │           ├── ABCDMall.Modules.FoodCourt.Application.pdb
 │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
@@ -1781,6 +1932,37 @@
 │   │       │   │   ├── huy-sneakers-contract.png
 │   │       │   │   ├── lan-cosmetics-contract.png
 │   │       │   │   └── minh-fashion-contract.png
+│   │       │   ├── foodcourt
+│   │       │   │   ├── 0731f01c-b6d0-48f3-a22c-519e25af1f6c.png
+│   │       │   │   ├── 0bddc014-1e5b-49d1-9c22-32bdc0c2061c.png
+│   │       │   │   ├── 21ba6d9c-440e-4d4b-8c8c-13196bdc01cb.png
+│   │       │   │   ├── 231858df-1988-4279-a5dc-0223f9067f0d.png
+│   │       │   │   ├── 28743d71-7c4e-4da3-bec0-26260b358ade.png
+│   │       │   │   ├── 2a8755b1-efc6-40ea-9832-867a463dabba.png
+│   │       │   │   ├── 314e3363-1716-40ac-991d-c3a06dc5ebdf.png
+│   │       │   │   ├── 330ad780-2305-4904-878b-60f91b9c8ddc.png
+│   │       │   │   ├── 3c1cd101-23f1-41c0-91e7-d6592cff0291.png
+│   │       │   │   ├── 3fcdf09e-68c9-478d-996c-1b1336bfc6e5.png
+│   │       │   │   ├── 4113ac13-c04e-43c7-8287-1853bbce46b5.png
+│   │       │   │   ├── 46959ac1-933f-49d7-a90f-1bd9ca68f3e3.png
+│   │       │   │   ├── 490d997f-d460-4bfd-a015-2e191e1beeeb.png
+│   │       │   │   ├── 4a0ab7ad-b4a8-452d-937d-4c132a592d0e.png
+│   │       │   │   ├── 5f8bec71-a12c-4dca-be2d-30261a44546b.png
+│   │       │   │   ├── 641c0b06-64a6-43d2-a2b0-95946622000f.png
+│   │       │   │   ├── 67165b40-10d7-4e22-8349-2a45a3180130.png
+│   │       │   │   ├── 7527d8a3-a696-412d-840b-a0451c2b10a0.png
+│   │       │   │   ├── 780ed55d-1ee0-4ce8-88f9-5e5c3538f850.png
+│   │       │   │   ├── 7d26e69e-3448-4e51-a8ee-bb8bdf734c55.png
+│   │       │   │   ├── 9fa56b4e-1f7f-4074-a50c-f3617d5f06f4.png
+│   │       │   │   ├── a2d8666b-ed51-4af7-9893-56d7178e1d54.png
+│   │       │   │   ├── a56de76c-2411-4cfb-ad19-3aff90b16474.png
+│   │       │   │   ├── a7e5a199-fde3-47bc-a5c6-59e4cd5dd475.png
+│   │       │   │   ├── adbe0d3d-a7e5-41c5-b74e-3c3bdc3ceea1.png
+│   │       │   │   ├── b1b91506-3cf2-47fd-8239-f6321910fd42.png
+│   │       │   │   ├── c0cefae8-4bcd-4c33-b34f-594f5eaabc9d.png
+│   │       │   │   ├── c4308328-baba-4f70-bd6c-5e57880035e6.png
+│   │       │   │   ├── f57b17e3-ed66-420a-ac2f-aad3e2dbebca.png
+│   │       │   │   └── f8ed0731-c822-44b8-b114-596bc1cc07c1.png
 │   │       │   ├── maps
 │   │       │   │   ├── floor-tang1.png
 │   │       │   │   ├── floor-tang2.png
@@ -1809,6 +1991,8 @@
 │   │       │   │   └── logo.jpg
 │   │       │   ├── Belluni
 │   │       │   │   └── logo.png
+│   │       │   ├── Boba Bella Milk Tea
+│   │       │   │   └── logo.jpg
 │   │       │   ├── Bobapop
 │   │       │   │   ├── logo.jpg
 │   │       │   │   ├── menu.jpg
@@ -1837,9 +2021,12 @@
 │   │       │   │   ├── logo.webp
 │   │       │   │   └── out.jpeg
 │   │       │   ├── Dookki
-│   │       │   │   ├── in.jpg
 │   │       │   │   ├── logo.png
-│   │       │   │   └── out.jpeg
+│   │       │   │   ├── logo1.jpg
+│   │       │   │   ├── logo2.jpeg
+│   │       │   │   ├── menu.jpg
+│   │       │   │   ├── menu1.jpg
+│   │       │   │   └── menu2.webp
 │   │       │   ├── Elise
 │   │       │   │   └── logo.png
 │   │       │   ├── H BBQ Buffet
@@ -1999,6 +2186,8 @@
 │   │       │   ├── lug
 │   │       │   │   ├── logo.png
 │   │       │   │   └── out.webp
+│   │       │   ├── minh
+│   │       │   │   └── longwang.png
 │   │       │   ├── miniso
 │   │       │   │   ├── logo.jpg
 │   │       │   │   └── out.jpg
@@ -2096,8 +2285,13 @@
 │   ├── working-in-progress-dev1.md
 │   └── working-in-progress-dev2.md
 ├── FRONTEND
+│   ├── COMPREHENSIVE_LOCALIZATION_SUMMARY.md
+│   ├── DEBUG_REPORT.md
 │   ├── FE_structure.md
+│   ├── FIXES_APPLIED.md
 │   ├── General_Rule.md
+│   ├── IMPROVEMENT_GUIDE.md
+│   ├── LOCALIZATION_FIXES.md
 │   ├── eslint.config.js
 │   ├── index.html
 │   ├── package-lock.json
@@ -2160,6 +2354,12 @@
 │   │   │   │   │   └── useMap.ts
 │   │   │   │   └── types
 │   │   │   │       └── map.types.ts
+│   │   │   ├── events
+│   │   │   │   ├── EventsFeature.tsx
+│   │   │   │   ├── api
+│   │   │   │   │   └── eventsApi.ts
+│   │   │   │   └── types
+│   │   │   │       └── event.types.ts
 │   │   │   ├── faq
 │   │   │   │   └── FaqFeature.tsx
 │   │   │   ├── feedbacks
@@ -2169,9 +2369,12 @@
 │   │   │   │   │   └── foodApi.ts
 │   │   │   │   ├── components
 │   │   │   │   │   ├── FoodCard.tsx
-│   │   │   │   │   └── FoodDetailModal.tsx
+│   │   │   │   │   ├── FoodDetailModal.tsx
+│   │   │   │   │   └── UploadImage.tsx
 │   │   │   │   ├── hooks
-│   │   │   │   │   └── useFood.ts
+│   │   │   │   │   ├── useFood.ts
+│   │   │   │   │   ├── useFoodStoreAssets.ts
+│   │   │   │   │   └── useLocalMenu.ts
 │   │   │   │   ├── pages
 │   │   │   │   │   ├── FoodDetailPage.tsx
 │   │   │   │   │   └── FoodPage.tsx
@@ -2249,6 +2452,8 @@
 │   │   │   │   └── ContactPage.tsx
 │   │   │   ├── directory
 │   │   │   │   └── MapPage.tsx
+│   │   │   ├── events
+│   │   │   │   └── EventsPage.tsx
 │   │   │   ├── feedbacks
 │   │   │   │   └── FeedbackPage.tsx
 │   │   │   ├── food-court
@@ -2270,8 +2475,9 @@
 │   └── vite.config.ts
 ├── README.md
 ├── mermaid-diagram.png
+├── mkdir
 ├── package-lock.json
 ├── package.json
 └── project_tree.txt
 
-596 directories, 1679 files
+647 directories, 1834 files
