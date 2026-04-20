@@ -37,6 +37,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<LoginResponseDto>.Unauthorized("Email does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<LoginResponseDto>.Unauthorized("This account is inactive");
+        }
+
         if (user.FailedLoginAttempts >= 5)
         {
             var requiresNewOtp = string.IsNullOrWhiteSpace(user.LoginOtpCode)
@@ -145,6 +150,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("Email does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         await _userCommandRepository.RemoveUnusedForgotPasswordOtpsAsync(normalizedEmail, cancellationToken);
         var otp = CreateOtp();
         await _userCommandRepository.AddForgotPasswordOtpAsync(new ForgotPasswordOtp
@@ -196,6 +206,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         user.Password = forgotPasswordOtp.NewPasswordHash;
         user.UpdatedAt = DateTime.UtcNow;
         forgotPasswordOtp.IsUsed = true;
@@ -215,6 +230,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<UpdateProfileResponseDto>.Unauthorized("Invalid token");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<UpdateProfileResponseDto>.Unauthorized("This account is inactive");
         }
 
         var normalizedFullName = NormalizeOptionalValue(dto.FullName);
@@ -284,6 +304,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.Password))
         {
             return ApplicationResult<MessageResponseDto>.BadRequest("The current password is incorrect");
@@ -339,6 +364,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         user.Password = resetOtp.NewPasswordHash;
         user.UpdatedAt = DateTime.UtcNow;
         resetOtp.IsUsed = true;
@@ -377,7 +407,17 @@ public sealed class UserCommandService : IUserCommandService
         var normalizedFullName = dto.FullName.Trim();
         var normalizedShopName = dto.ShopName.Trim();
         var normalizedAddress = NormalizeOptionalValue(dto.Address);
+        var resolvedImagePath = user.Image;
         var normalizedCccd = dto.CCCD.Trim();
+
+        if (dto.Avatar is not null)
+        {
+            resolvedImagePath = await _fileStorageService.SaveProfileAvatarAsync(dto.Avatar, cancellationToken);
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Image))
+        {
+            resolvedImagePath = NormalizeOptionalValue(dto.Image);
+        }
 
         if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), userId, cancellationToken))
         {
@@ -393,6 +433,7 @@ public sealed class UserCommandService : IUserCommandService
         user.Email = normalizedEmail;
         user.FullName = normalizedFullName;
         user.Address = normalizedAddress;
+        user.Image = resolvedImagePath;
         user.CCCD = normalizedCccd;
         user.UpdatedAt = DateTime.UtcNow;
 
@@ -427,9 +468,14 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("User account is already inactive");
+        }
+
         if (user.Role == "Admin")
         {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be deleted here");
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be deactivated here");
         }
 
         var shopInfo = !string.IsNullOrWhiteSpace(user.ShopId)
@@ -439,13 +485,16 @@ public sealed class UserCommandService : IUserCommandService
         var emailSent = await TrySendAsync(() =>
             _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName));
 
-        await _userCommandRepository.RemoveUserRelatedDataAsync(userId, cancellationToken);
-        await _userCommandRepository.RemoveUserAsync(user, cancellationToken);
+        user.IsActive = false;
+        user.UpdatedAt = DateTime.UtcNow;
+        user.LoginOtpCode = null;
+        user.LoginOtpExpiresAt = null;
+        await _userCommandRepository.RevokeUserRefreshTokensAsync(userId, cancellationToken);
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
         return ApplicationResult<UserAccountMutationResponseDto>.Ok(new UserAccountMutationResponseDto
         {
-            Message = "User account deleted successfully",
+            Message = "User account deactivated successfully",
             EmailSent = emailSent
         });
     }
@@ -472,6 +521,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<AccessTokenResponseDto>.Unauthorized("User does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<AccessTokenResponseDto>.Unauthorized("This account is inactive");
         }
 
         return ApplicationResult<AccessTokenResponseDto>.Ok(new AccessTokenResponseDto

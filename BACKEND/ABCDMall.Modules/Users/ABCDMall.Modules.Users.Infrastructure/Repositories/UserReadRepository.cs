@@ -30,6 +30,7 @@ public sealed class UserReadRepository : IUserReadRepository
     public async Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .Where(x => x.IsActive)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
     }

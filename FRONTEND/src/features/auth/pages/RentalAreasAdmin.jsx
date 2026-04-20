@@ -56,11 +56,11 @@ export default function RentalAreasAdmin() {
   const [success, setSuccess] = useState("");
   const [areaForm, setAreaForm] = useState(initialAreaForm);
   const [saving, setSaving] = useState(false);
+  const [selectedViewArea, setSelectedViewArea] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
   const [rentalForm, setRentalForm] = useState(initialRentalForm);
   const [contractFile, setContractFile] = useState(null);
   const [checkingCccd, setCheckingCccd] = useState(false);
-  const [selectedBillArea, setSelectedBillArea] = useState(null);
   const [monthlyBillForm, setMonthlyBillForm] = useState(initialMonthlyBillForm);
 
   const loadRentalAreas = async () => {
@@ -68,7 +68,12 @@ export default function RentalAreasAdmin() {
       setLoading(true);
       setLoadError("");
       const res = await api.get("/RentalArea");
-      setRentalAreas(res.data);
+      const areas = res.data || [];
+      setRentalAreas(areas);
+      setSelectedViewArea((current) => (
+        current ? areas.find((area) => area.id === current.id) || null : null
+      ));
+      return areas;
     } catch (err) {
       setLoadError(err.response?.data || "Unable to load rental areas.");
     } finally {
@@ -133,15 +138,15 @@ export default function RentalAreasAdmin() {
     setActionError("");
   };
 
-  const openMonthlyBillModal = (area) => {
-    setSelectedBillArea(area);
+  const openViewModal = (area) => {
+    setSelectedViewArea(area);
     setMonthlyBillForm(initialMonthlyBillForm);
     setActionError("");
     setSuccess("");
   };
 
-  const closeMonthlyBillModal = () => {
-    setSelectedBillArea(null);
+  const closeViewModal = () => {
+    setSelectedViewArea(null);
     setMonthlyBillForm(initialMonthlyBillForm);
     setActionError("");
   };
@@ -265,15 +270,16 @@ export default function RentalAreasAdmin() {
         return;
       }
 
-      await api.put(`/RentalArea/${selectedBillArea.id}/monthly-bill`, {
+      await api.put(`/RentalArea/${selectedViewArea.id}/monthly-bill`, {
         billingMonth: monthlyBillForm.billingMonth,
         usageMonth: monthlyBillForm.usageMonth,
         electricityUsage: monthlyBillForm.electricityUsage.trim(),
         waterUsage: monthlyBillForm.waterUsage.trim(),
       });
 
-      closeMonthlyBillModal();
+      setMonthlyBillForm(initialMonthlyBillForm);
       setSuccess("Monthly bill updated successfully.");
+      await loadRentalAreas();
     } catch (err) {
       setActionError(err.response?.data || "Unable to update monthly bill.");
     } finally {
@@ -283,7 +289,7 @@ export default function RentalAreasAdmin() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 pb-6 pt-24 text-slate-900 sm:px-6 sm:pt-28 lg:px-8">
         <div className="mx-auto max-w-3xl rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_80px_rgba(15,23,42,0.08)]">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">
             Rental Areas
@@ -308,7 +314,7 @@ export default function RentalAreasAdmin() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] text-slate-900">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-6 pt-24 sm:px-6 sm:pt-28 lg:px-8">
         <header className="rounded-[28px] border border-white/70 bg-white/80 px-5 py-4 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -384,16 +390,16 @@ export default function RentalAreasAdmin() {
               <div className="px-6 py-8 text-sm font-medium text-rose-600">{loadError}</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[1240px] table-fixed border-collapse text-left">
+                <table className="w-full min-w-[1080px] table-fixed border-collapse text-left">
                   <colgroup>
-                    <col className="w-[11%]" />
+                    <col className="w-[12%]" />
                     <col className="w-[8%]" />
-                    <col className="w-[18%]" />
-                    <col className="w-[9%]" />
-                    <col className="w-[13%]" />
+                    <col className="w-[20%]" />
                     <col className="w-[10%]" />
                     <col className="w-[14%]" />
-                    <col className="w-[17%]" />
+                    <col className="w-[12%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[8%]" />
                   </colgroup>
                   <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                     <tr>
@@ -425,20 +431,9 @@ export default function RentalAreasAdmin() {
                           </td>
                           <td className="px-4 py-4">{area.tenantName || "-"}</td>
                           <td className="px-4 py-4">
-                            {isRented ? (
-                              <div className="flex flex-wrap gap-2">
-                                <button type="button" disabled={saving} onClick={() => openMonthlyBillModal(area)} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
-                                  Update Monthly Usage
-                                </button>
-                                <button type="button" disabled={saving} onClick={() => handleCancelTenant(area.id)} className="rounded-full bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50">
-                                  Cancel Tenant
-                                </button>
-                              </div>
-                            ) : (
-                              <button type="button" disabled={saving} onClick={() => openRegisterModal(area)} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
-                                Register
-                              </button>
-                            )}
+                            <button type="button" onClick={() => openViewModal(area)} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5">
+                              View
+                            </button>
                           </td>
                         </tr>
                       );
@@ -534,45 +529,115 @@ export default function RentalAreasAdmin() {
         </div>
       )}
 
-      {selectedBillArea && (
+      {selectedViewArea && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
-          <div className="max-h-[92vh] w-full max-w-3xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
+          <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
               <div>
-                <h3 className="text-xl font-black text-slate-950">Update Monthly Usage</h3>
+                <h3 className="text-xl font-black text-slate-950">Rental Area Details</h3>
                 <p className="text-sm text-slate-500">
-                  Area: {selectedBillArea.areaCode} | Tenant: {selectedBillArea.tenantName}
+                  Area: {selectedViewArea.areaCode} | Status: {selectedViewArea.status}
                 </p>
               </div>
-              <button type="button" onClick={closeMonthlyBillModal} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+              <button type="button" onClick={closeViewModal} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
                 Close
               </button>
             </div>
 
-            <div className="grid gap-4 p-5 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Billing Month</label>
-                <input type="month" value={monthlyBillForm.billingMonth} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("billingMonth", e.target.value)} />
-              </div>
+            <div className="space-y-5 p-5">
+              <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Area Information</p>
+                    <h4 className="mt-2 text-2xl font-black text-slate-950">{selectedViewArea.areaName}</h4>
+                  </div>
+                  <span className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold ${selectedViewArea.status === "Rented" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                    {selectedViewArea.status}
+                  </span>
+                </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Usage Month</label>
-                <input type="month" value={monthlyBillForm.usageMonth} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("usageMonth", e.target.value)} />
-              </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Area Code</p>
+                    <p className="mt-1 font-bold text-slate-950">{selectedViewArea.areaCode || "-"}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Floor</p>
+                    <p className="mt-1 font-bold text-slate-950">{selectedViewArea.floor || "-"}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Size</p>
+                    <p className="mt-1 font-bold text-slate-950">{selectedViewArea.size || "-"}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Monthly Rent</p>
+                    <p className="mt-1 font-bold text-slate-950">{formatCurrency(selectedViewArea.monthlyRent)}</p>
+                  </div>
+                </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Electricity Usage</label>
-                <input value={monthlyBillForm.electricityUsage} placeholder="Example: 238 kWh" className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("electricityUsage", e.target.value)} />
-              </div>
+                <div className="mt-3 rounded-[18px] bg-white px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Tenant</p>
+                  <p className="mt-1 font-bold text-slate-950">{selectedViewArea.tenantName || "No tenant registered"}</p>
+                </div>
+              </section>
 
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Water Usage</label>
-                <input value={monthlyBillForm.waterUsage} placeholder="Example: 18 m3" className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("waterUsage", e.target.value)} />
-              </div>
+              {selectedViewArea.status === "Rented" ? (
+                <section className="rounded-[24px] border border-amber-100 bg-amber-50 p-4">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">Monthly Usage</p>
+                      <h4 className="mt-2 text-xl font-black text-slate-950">Update electricity and water usage</h4>
+                      <p className="mt-1 text-sm text-amber-800">
+                        Electricity fee, water fee, and service fee are reused from the rental registration.
+                      </p>
+                    </div>
+                    <button type="button" disabled={saving} onClick={() => handleCancelTenant(selectedViewArea.id)} className="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50">
+                      Cancel Tenant
+                    </button>
+                  </div>
 
-              <div className="sm:col-span-2 rounded-[18px] border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                Electricity fee, water fee, and fee are reused from the rental registration information, so admin only updates monthly usage.
-              </div>
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">Billing Month</label>
+                      <input type="month" value={monthlyBillForm.billingMonth} className="w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("billingMonth", e.target.value)} />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">Usage Month</label>
+                      <input type="month" value={monthlyBillForm.usageMonth} className="w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("usageMonth", e.target.value)} />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">Electricity Usage</label>
+                      <input value={monthlyBillForm.electricityUsage} placeholder="Example: 238" className="w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("electricityUsage", e.target.value)} />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">Water Usage</label>
+                      <input value={monthlyBillForm.waterUsage} placeholder="Example: 18" className="w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleMonthlyBillFormChange("waterUsage", e.target.value)} />
+                    </div>
+                  </div>
+                </section>
+              ) : (
+                <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Tenant Registration</p>
+                  <h4 className="mt-2 text-xl font-black text-slate-950">This area is available</h4>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Register a tenant from this detail view when the rental information is ready.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => {
+                      openRegisterModal(selectedViewArea);
+                      setSelectedViewArea(null);
+                    }}
+                    className="mt-4 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Register Tenant
+                  </button>
+                </section>
+              )}
             </div>
 
             <div className="sticky bottom-0 flex flex-col gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -580,9 +645,11 @@ export default function RentalAreasAdmin() {
                 {actionError && <p className="text-sm font-medium text-rose-600">{actionError}</p>}
                 {success && <p className="text-sm font-medium text-emerald-600">{success}</p>}
               </div>
-              <button type="button" disabled={saving} onClick={handleSubmitMonthlyBill} className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
-                {saving ? "Saving..." : "Save Monthly Bill"}
-              </button>
+              {selectedViewArea.status === "Rented" && (
+                <button type="button" disabled={saving} onClick={handleSubmitMonthlyBill} className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+                  {saving ? "Saving..." : "Save Monthly Usage"}
+                </button>
+              )}
             </div>
           </div>
         </div>

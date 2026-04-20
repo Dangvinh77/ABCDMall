@@ -146,7 +146,8 @@ public class AuthController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPut("users/{id}")]
-    public async Task<IActionResult> UpdateUserAccount(string id, UpdateUserAccountDto dto)
+    [RequestSizeLimit(10_000_000)]
+    public async Task<IActionResult> UpdateUserAccount(string id, [FromForm] UpdateUserAccountDto dto)
     {
         var result = await _userCommandService.UpdateUserAccountAsync(id, dto);
         return result.Status switch

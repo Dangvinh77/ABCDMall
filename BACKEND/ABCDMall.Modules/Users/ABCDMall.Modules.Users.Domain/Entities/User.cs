@@ -29,6 +29,8 @@ namespace ABCDMall.Modules.Users.Domain.Entities
 
         public string? CCCD { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
         public int FailedLoginAttempts { get; set; }
 
         public string? LoginOtpCode { get; set; }
