@@ -91,7 +91,7 @@ const PAYMENT_METHODS: {
   {
     id: 'vnpay',
     label: 'VNPay QR',
-    sub: 'Scan to pay',
+    sub: 'Quét để thanh toán',
     icon: <QrCode className="size-5" />,
     accent: 'text-blue-400',
     ring: 'ring-blue-500/40',
@@ -100,7 +100,7 @@ const PAYMENT_METHODS: {
   {
     id: 'visa',
     label: 'Visa / Mastercard',
-    sub: 'The tin dung quoc te',
+    sub: 'Thẻ tín dụng quốc tế',
     icon: <CreditCard className="size-5" />,
     accent: 'text-cyan-400',
     ring: 'ring-cyan-500/40',
@@ -109,7 +109,7 @@ const PAYMENT_METHODS: {
   {
     id: 'atm',
     label: 'ATM / Internet Banking',
-    sub: 'The noi dia',
+    sub: 'Thẻ nội địa',
     icon: <Building2 className="size-5" />,
     accent: 'text-emerald-400',
     ring: 'ring-emerald-500/40',
@@ -137,9 +137,9 @@ function mapHoldSeatType(value: string): SeatType {
 
 function StepBar({ current }: { current: 1 | 2 | 3 }) {
   const steps = [
-    { n: 1, label: 'Choose movie' },
-    { n: 2, label: 'Choose seats' },
-    { n: 3, label: 'Payment' },
+    { n: 1, label: 'Chọn phim' },
+    { n: 2, label: 'Chọn ghế' },
+    { n: 3, label: 'Thanh toán' },
   ];
   return (
     <div className="flex items-center gap-0">
@@ -517,7 +517,7 @@ export function CheckoutPage() {
             </div>
             <Badge className="bg-emerald-600/20 text-emerald-400 ring-1 ring-emerald-500/30">
               <CheckCircle2 className="mr-1.5 size-3.5" />
-              Booking successful
+              Đặt vé thành công
             </Badge>
           </div>
         </header>
@@ -533,23 +533,23 @@ export function CheckoutPage() {
               </div>
             </div>
             <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">
-              Booking successful!
+              Đặt vé thành công!
             </h1>
             <p className="text-gray-400">
-              Your ticket has been sent to your email. Please check your inbox.
+              Vé của bạn đã được gửi đến email. Vui lòng kiểm tra hộp thư.
             </p>
           </div>
 
           {/* Booking code */}
           <div className="mb-6 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-950/50 to-pink-950/30 p-5 text-center shadow-xl ring-1 ring-inset ring-white/[0.04]">
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500">
-              Booking code
+              Mã đặt vé
             </p>
             <p className="font-mono text-2xl font-bold tracking-[0.15em] text-white sm:text-3xl">
               {bookingCode}
             </p>
             <p className="mt-1.5 text-xs text-gray-500">
-              Please save this code for support or counter check-in
+              Vui lòng lưu mã này để hỗ trợ hoặc kiểm tra tại quầy
             </p>
           </div>
 
@@ -623,7 +623,7 @@ export function CheckoutPage() {
               </div>
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between rounded-xl bg-white/[0.04] px-4 py-2.5">
-                  <span className="text-sm font-semibold text-white">Total paid</span>
+                  <span className="text-sm font-semibold text-white">Tổng thanh toán</span>
                   <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text font-bold text-transparent">
                     {vnd(total)}
                   </span>
@@ -639,7 +639,7 @@ export function CheckoutPage() {
               className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 font-semibold hover:from-purple-500 hover:to-pink-500 shadow-lg shadow-purple-900/30"
             >
               <Download className="mr-2 size-5" />
-              Download e-ticket
+              Tải vé điện tử
             </Button>
             <Button
               size="lg"
@@ -648,7 +648,7 @@ export function CheckoutPage() {
               className="flex-1 border-white/10 text-white hover:bg-white/[0.06]"
             >
               <Home className="mr-2 size-5" />
-              Back to homepage
+              Về trang chủ
             </Button>
           </div>
 
@@ -669,8 +669,8 @@ export function CheckoutPage() {
           <Loader2 className="absolute inset-0 m-auto size-10 animate-spin text-purple-500" />
         </div>
         <div className="text-center">
-          <p className="text-lg font-semibold text-white">Processing your booking...</p>
-          <p className="mt-1 text-sm text-gray-500">Please do not close your browser</p>
+          <p className="text-lg font-semibold text-white">Đang xử lý đặt vé...</p>
+          <p className="mt-1 text-sm text-gray-500">Vui lòng không đóng trình duyệt</p>
         </div>
         <div className="h-1 w-48 overflow-hidden rounded-full bg-gray-800">
           <div className="animate-loading-bar h-full rounded-full bg-gradient-to-r from-purple-600 to-pink-600" />
@@ -696,7 +696,7 @@ export function CheckoutPage() {
             className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all hover:bg-white/[0.06] hover:text-white"
           >
             <ArrowLeft className="size-4" />
-            <span className="hidden sm:inline">Back</span>
+            <span className="hidden sm:inline">Quay lại</span>
           </button>
 
           <div className="flex items-center gap-2">

@@ -124,7 +124,7 @@ export function MovieDetailPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <div className="text-center text-gray-300">Loading movie details...</div>
+        <div className="text-center text-gray-300">Đang tải chi tiết phim...</div>
       </div>
     );
   }
@@ -134,9 +134,9 @@ export function MovieDetailPage() {
       <div className="flex min-h-screen items-center justify-center bg-gray-950">
         <div className="text-center">
           <Film className="mx-auto mb-4 size-16 text-gray-600" />
-          <h2 className="mb-2 text-2xl font-bold text-white">Movie not found</h2>
+          <h2 className="mb-2 text-2xl font-bold text-white">Không tìm thấy phim</h2>
           <p className="mb-6 text-gray-400">
-            The movie you are looking for does not exist or has been removed.
+            Phim bạn tìm kiếm không tồn tại hoặc đã bị xóa.
           </p>
           <Button
             onClick={() => navigate(moviePaths.home())}

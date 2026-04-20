@@ -20,6 +20,11 @@ using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using ABCDMall.Modules.UtilityMap.Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using ABCDMall.Modules.Events.Application;
+using ABCDMall.Modules.Events.Infrastructure;
+using ABCDMall.Modules.Events.Infrastructure.Persistence.Events;
+using ABCDMall.Modules.Events.Infrastructure.Seed;
+ 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +77,8 @@ var resetFoodCourtDatabase = builder.Configuration.GetValue<bool>("DatabaseStart
 var seedFoodCourtData = builder.Configuration.GetValue("DatabaseStartup:SeedFoodCourtData", true);
 var resetShopsDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetShopsDatabase");
 var seedShopsData = builder.Configuration.GetValue("DatabaseStartup:SeedShopsData", true);
+var resetEventsDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetEventsDatabase");
+var seedEventsData = builder.Configuration.GetValue("DatabaseStartup:SeedEventsData", true);
 var resetUtilityMapDatabase = builder.Configuration.GetValue<bool>("DatabaseStartup:ResetUtilityMapDatabase");
 var seedUtilityMapData = builder.Configuration.GetValue("DatabaseStartup:SeedUtilityMapData", true);
 
@@ -81,6 +88,8 @@ builder.Services.AddFoodCourtApplication(autoMapperLicenseKey);
 builder.Services.AddFoodCourtInfrastructure(builder.Configuration);
 builder.Services.AddShopsApplication();
 builder.Services.AddShopsInfrastructure(builder.Configuration);
+builder.Services.AddEventsApplication(autoMapperLicenseKey);
+builder.Services.AddEventsInfrastructure(builder.Configuration);
 builder.Services.AddUsersApplication(autoMapperLicenseKey);
 builder.Services.AddUsersInfrastructure(builder.Configuration);
 builder.Services.AddUtilityMapApplication(autoMapperLicenseKey);
@@ -190,6 +199,29 @@ await using (var scope = app.Services.CreateAsyncScope())
     catch (Exception ex)
     {
         logger.LogWarning(ex, "Shops database migration/seed was skipped because startup database initialization failed.");
+    }
+
+    try
+    {
+        logger.LogInformation("Starting Events database initialization.");
+        var eventsDbContext = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
+        if (resetEventsDatabase)
+        {
+            logger.LogWarning("ResetEventsDatabase is enabled. Deleting Events database.");
+            await eventsDbContext.Database.EnsureDeletedAsync();
+        }
+
+        await eventsDbContext.Database.MigrateAsync();
+        if (seedEventsData)
+        {
+            await FrontendEventsSeed.SeedAsync(eventsDbContext);
+        }
+
+        logger.LogInformation("Events database initialization completed.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Events database migration/seed was skipped because startup database initialization failed.");
     }
 
     try

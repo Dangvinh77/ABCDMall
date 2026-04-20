@@ -156,12 +156,12 @@ export const ALL_PROMOS: Promo[] = [
   },
 ];
 const FILTERS: { key: FilterKey; label: string; icon: ReactNode }[] = [
-  { key: 'all', label: 'All', icon: <Sparkles className="size-3.5" /> },
-  { key: 'ticket', label: 'Movie tickets', icon: <Ticket className="size-3.5" /> },
-  { key: 'combo', label: 'Popcorn combos', icon: <Coffee className="size-3.5" /> },
-  { key: 'member', label: 'Members', icon: <Star className="size-3.5" /> },
-  { key: 'bank', label: 'Bank / Wallet', icon: <CreditCard className="size-3.5" /> },
-  { key: 'weekend', label: 'Weekend', icon: <Calendar className="size-3.5" /> },
+  { key: 'all', label: 'Tất cả', icon: <Sparkles className="size-3.5" /> },
+  { key: 'ticket', label: 'Vé phim', icon: <Ticket className="size-3.5" /> },
+  { key: 'combo', label: 'Combo bỏ ngô', icon: <Coffee className="size-3.5" /> },
+  { key: 'member', label: 'Thành viên', icon: <Star className="size-3.5" /> },
+  { key: 'bank', label: 'Ngân hàng / Ví', icon: <CreditCard className="size-3.5" /> },
+  { key: 'weekend', label: 'Cuối tuần', icon: <Calendar className="size-3.5" /> },
 ];
 const PROMO_DETAIL_NOTES: Record<string, string[]> = {
   f1: [
@@ -452,7 +452,7 @@ export function PromotionsPage() {
           </button>
 
           <div className="flex items-center gap-2">
-            <span className="hidden text-xs text-gray-500 sm:block">Promotions page</span>
+            <span className="hidden text-xs text-gray-500 sm:block">Trang khuyến mãi</span>
             <Button
               size="sm"
               onClick={() => navigate(moviePaths.showtimes())}
@@ -496,12 +496,12 @@ export function PromotionsPage() {
             {/* Eyebrow */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-fuchsia-500/30 bg-fuchsia-950/40 px-4 py-2 backdrop-blur-sm">
               <BadgePercent className="size-4 text-fuchsia-400" />
-              <span className="text-sm font-medium text-fuchsia-300">Exclusive offers &bull; Updated weekly</span>
+              <span className="text-sm font-medium text-fuchsia-300">Uu dài đặc biệt • Cập nhật hàng tuần</span>
             </div>
 
             {/* Main heading */}
             <h1 className="mb-5 text-5xl font-black leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
-              Promotions{' '}
+              Khuyến Mãi{' '}
               <span
                 className="inline-block"
                 style={{
@@ -511,22 +511,23 @@ export function PromotionsPage() {
                   backgroundClip: 'text',
                 }}
               >
-                for you
+                Dành cho bạn
               </span>
             </h1>
 
             {/* Subheading */}
             <p className="mb-8 max-w-xl text-lg text-gray-300 leading-relaxed sm:text-xl">
-              Discover weekly offers on tickets, combos, and special gifts -{' '}
-              <span className="text-white font-medium">no sign-up required, no account needed</span>.
+              Khám phá các uu dài hàng tuần cho vé phim, combo, và quà tặng đặc biệt -{' '}
+              <span className="text-white font-medium">
+không cần đăng ký, không cần tài khoản</span>.
             </p>
 
             {/* Stats strip */}
             <div className="mb-10 flex flex-wrap gap-6">
               {[
-                { val: '30%', label: 'Max savings', color: 'text-fuchsia-400' },
-                { val: '8+', label: 'Active deals', color: 'text-cyan-400' },
-                { val: '5 cinemas', label: 'Nationwide network', color: 'text-amber-400' },
+                { val: '30%', label: 'Tiếp kiệm tối đa', color: 'text-fuchsia-400' },
+                { val: '8+', label: 'Công dụng đang hoạt động', color: 'text-cyan-400' },
+                { val: '5 rạp', label: 'Mạng lưới trớn quốc gia', color: 'text-amber-400' },
               ].map((s) => (
                 <div key={s.label}>
                   <p className={`text-3xl font-black ${s.color}`}>{s.val}</p>
@@ -543,7 +544,7 @@ export function PromotionsPage() {
                 className="h-12 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 px-7 text-base font-bold shadow-2xl shadow-purple-900/50 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500"
               >
                 <Film className="mr-2 size-5" />
-                View showtimes
+                Xem suất chiếu
                 <ArrowRight className="ml-2 size-4" />
               </Button>
               <Button
@@ -552,7 +553,7 @@ export function PromotionsPage() {
                 onClick={scrollToGrid}
                 className="h-12 border-white/15 px-7 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/[0.08] hover:border-white/25"
               >
-                View all offers
+                Xem tất cả các uu dài
               </Button>
             </div>
           </div>
@@ -569,21 +570,21 @@ export function PromotionsPage() {
               <div className="mb-3 flex items-center gap-2">
                 <div className="h-px w-8 bg-gradient-to-r from-fuchsia-500 to-pink-500" />
                 <span className="text-xs font-bold uppercase tracking-widest text-fuchsia-400">
-                  Featured this week
+                  Nổi bật tuần này
                 </span>
               </div>
               <h2 className="text-3xl font-black text-white sm:text-4xl">
-                Top{' '}
+                Của hàng{' '}
                 <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
-                  offers
+                  uu dài
                 </span>
               </h2>
-              <p className="mt-2 text-gray-500">Choose yours before it expires</p>
+              <p className="mt-2 text-gray-500">Chọn của bạn trước khi hết hạn</p>
             </div>
 
             <div className="flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-950/20 px-4 py-3">
               <div className="flex h-2 w-2 animate-pulse rounded-full bg-red-500" />
-              <span className="text-sm font-semibold text-red-400">Live now</span>
+              <span className="text-sm font-semibold text-red-400">Đang hoạt động</span>
             </div>
           </div>
 
@@ -643,13 +644,13 @@ export function PromotionsPage() {
                   <div>
                     <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
                       <Sparkles className="size-3.5" />
-                      Promotion detail
+                      Chi tiết khuyến mãi
                     </div>
 
                     <div className="space-y-4">
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                          Dieu kien ap dung
+                          Điều kiện áp dụng
                         </p>
                         <p className="mt-2 text-sm leading-6 text-gray-200">
                           {selectedPromo.condition}
@@ -658,7 +659,7 @@ export function PromotionsPage() {
 
                       <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                          Booking flow logic
+                          Logic luồng đặt vé
                         </p>
                         <div className="mt-3 space-y-3">
                           {PROMO_DETAIL_NOTES[selectedPromo.id]?.map((note) => (
@@ -696,7 +697,7 @@ export function PromotionsPage() {
                       className="h-12 border-white/12 px-6 text-sm font-semibold text-white hover:bg-white/[0.05]"
                     >
                       <ArrowLeft className="mr-2 size-4" />
-                      Ve danh sach
+                      Về danh sách
                     </Button>
                   </div>
                 </div>
@@ -716,13 +717,13 @@ export function PromotionsPage() {
             <div className="relative">
               <div className="mb-8 text-center">
                 <h2 className="text-2xl font-black text-white sm:text-3xl">
-                  Why choose{' '}
+                  Tại sao chọn{' '}
                   <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">
                     ABCD Cinema?
                   </span>
                 </h2>
                 <p className="mt-2 text-sm text-gray-500">
-                  Book fast, receive tickets instantly, and skip account creation
+                  Đặt nhanh, nhận vé tức thì, và bỏ qua tạo tài khoản
                 </p>
               </div>
 
@@ -730,32 +731,32 @@ export function PromotionsPage() {
                 {[
                   {
                     icon: <Zap className="size-6" />,
-                    title: 'Instant activation',
-                    desc: 'Offers apply automatically when conditions are met',
+                    title: 'Kích hoạt tức thì',
+                    desc: 'Các uu dài được áp dụng tự động khi đáp ứng điều kiện',
                     color: 'text-yellow-400',
                     glow: 'bg-yellow-500/10',
                     ring: 'ring-yellow-500/20',
                   },
                   {
                     icon: <Shield className="size-6" />,
-                    title: 'No account needed',
-                    desc: 'Fast guest checkout',
+                    title: 'Không cần tài khoản',
+                    desc: 'Thanh toán nhanh cho khách',
                     color: 'text-emerald-400',
                     glow: 'bg-emerald-500/10',
                     ring: 'ring-emerald-500/20',
                   },
                   {
                     icon: <Mail className="size-6" />,
-                    title: 'Tickets sent by email',
-                    desc: 'Receive your e-ticket right after payment',
+                    title: 'Vé nhận qua email',
+                    desc: 'Nhận vé điện tử sau khi thanh toán',
                     color: 'text-cyan-400',
                     glow: 'bg-cyan-500/10',
                     ring: 'ring-cyan-500/20',
                   },
                   {
                     icon: <Smartphone className="size-6" />,
-                    title: 'Multiple payment methods',
-                    desc: 'MoMo, VNPay, bank cards',
+                    title: 'Nhiều cách thanh toán',
+                    desc: 'MoMo, VNPay, thẻ ngân hàng',
                     color: 'text-purple-400',
                     glow: 'bg-purple-500/10',
                     ring: 'ring-purple-500/20',
@@ -785,13 +786,13 @@ export function PromotionsPage() {
             <div className="mb-3 flex items-center gap-2">
               <div className="h-px w-8 bg-gradient-to-r from-cyan-500 to-purple-500" />
               <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
-                All offers
+                Tất cả các uu dài
               </span>
             </div>
             <h2 className="text-3xl font-black text-white sm:text-4xl">
-              All{' '}
+              Tất cả{' '}
               <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                promotions
+                khuyến mãi
               </span>
             </h2>
           </div>
@@ -837,13 +838,13 @@ export function PromotionsPage() {
           ) : (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.02] py-20 text-center">
               <Gift className="mb-4 size-12 text-gray-700" />
-              <p className="text-lg font-semibold text-gray-500">No offers in this category yet</p>
-              <p className="mt-1 text-sm text-gray-600">Try browsing all offers</p>
+              <p className="text-lg font-semibold text-gray-500">Chù có uu dài nào trong danh mục này</p>
+              <p className="mt-1 text-sm text-gray-600">Thử duyệt tất cả các uu dài</p>
               <button
                 onClick={() => setActiveFilter('all')}
                 className="mt-4 text-sm font-semibold text-purple-400 hover:text-purple-300"
               >
-                View all
+                Xem tất cả
               </button>
             </div>
           )}

@@ -405,14 +405,17 @@ function MenuModal({
 
 export default function FoodDetailPage() {
   const { slug } = useParams();
+
   const [food, setFood] = useState<FoodItemDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+
   useEffect(() => {
     let active = true;
+
 
     const load = async () => {
       if (!slug) {
@@ -439,6 +442,7 @@ export default function FoodDetailPage() {
 
     void load();
 
+
     return () => {
       active = false;
     };
@@ -448,15 +452,7 @@ export default function FoodDetailPage() {
   const preset = CATEGORY_PRESETS[category];
   const brand = food ? titleCase(food.name) : "Restaurant";
   // const gallery = useMemo(() => {
-  //   if (!food) return [];
-  //   return food.galleryImageUrls && food.galleryImageUrls.length > 0 ? food.galleryImageUrls : fallbackGallery(food, category);
-  // }, [food, category]);
-
-  // const menu = useMemo(() => {
-  //   if (!food) return [];
-
-  //   const slug = food.slug?.toLowerCase() ?? "";
-
+ 
   //   return generateMenuFromFolder(slug);
   // }, [food]);
 

@@ -60,8 +60,8 @@ const HALL_CONFIGS: Record<HallType, { label: string; bg: string; text: string; 
 };
 
 const LANG_CONFIGS: Record<Language, { label: string; bg: string; text: string }> = {
-  sub: { label: 'Subtitled', bg: 'bg-cyan-900/60', text: 'text-cyan-400' },
-  dub: { label: 'Dubbed', bg: 'bg-amber-900/60', text: 'text-amber-400' },
+  sub: { label: 'Phụ đề', bg: 'bg-cyan-900/60', text: 'text-cyan-400' },
+  dub: { label: 'Lồng tiếng', bg: 'bg-amber-900/60', text: 'text-amber-400' },
 };
 
 const AGE_RATING_COLORS: Record<string, string> = {
@@ -71,7 +71,7 @@ const AGE_RATING_COLORS: Record<string, string> = {
   T18: 'bg-red-600',
 };
 
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_LABELS = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
 
 function getSeatStatus(st: Showtime): 'full' | 'nearly-full' | 'available' {
   if (st.availableSeats === 0) return 'full';
@@ -143,9 +143,9 @@ function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipP
 
       <div className="mt-1.5">
         {isFull ? (
-          <span className="text-[10px] text-gray-600">Sold out</span>
+          <span className="text-[10px] text-gray-600">Hết vé</span>
         ) : isNearlyFull ? (
-          <span className="text-[10px] font-semibold text-amber-500">Almost full</span>
+          <span className="text-[10px] font-semibold text-amber-500">Sắp hết</span>
         ) : (
           <span className="text-[10px] text-gray-500">{vnd(st.priceFrom)}</span>
         )}
@@ -290,16 +290,16 @@ function EmptySchedule({ onReset }: { onReset: () => void }) {
       <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gray-800/60 ring-1 ring-white/[0.07]">
         <Clapperboard className="size-10 text-gray-600" />
       </div>
-      <p className="text-xl font-bold text-gray-400">No matching showtimes</p>
+      <p className="text-xl font-bold text-gray-400">Không có suất chiếu phù hợp</p>
       <p className="mt-2 max-w-xs text-sm text-gray-600">
-        Try another date, cinema, or hall format to see more showtimes.
+        Thử một ngày khác, rạp khác hoặc định dạng phòng khác để xem thêm suất chiếu.
       </p>
       <button
         onClick={onReset}
         className="mt-6 flex items-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.05] px-5 py-2.5 text-sm font-semibold text-gray-300 transition-all hover:bg-white/[0.1] hover:text-white"
       >
         <RotateCcw className="size-4" />
-        Reset filters
+        Đặt lại bộ lọc
       </button>
     </div>
   );
@@ -478,7 +478,7 @@ export function SchedulePage() {
                 className="text-gray-300 hover:text-white"
               >
                 <ArrowLeft className="mr-1.5 size-4" />
-                <span className="hidden sm:inline">Home</span>
+                <span className="hidden sm:inline">Trang chủ</span>
               </Button>
               <div className="h-5 w-px bg-gray-700" />
               <div className="flex items-center gap-2">
@@ -489,7 +489,7 @@ export function SchedulePage() {
               </div>
               <div className="hidden items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 sm:flex">
                 <Calendar className="size-3.5 text-purple-400" />
-                <span className="text-xs text-gray-400">Showtimes</span>
+                <span className="text-xs text-gray-400">Suất chiếu</span>
               </div>
             </div>
 
@@ -498,7 +498,7 @@ export function SchedulePage() {
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               <Ticket className="mr-1.5 size-4" />
-              <span className="hidden sm:inline">Book tickets</span>
+              <span className="hidden sm:inline">Đặt vé</span>
             </Button>
           </div>
         </div>
@@ -519,10 +519,10 @@ export function SchedulePage() {
               <span className="hidden text-gray-400 sm:inline">{selectedCinemaLabel}</span>
               <span className="hidden text-gray-700 sm:inline">&bull;</span>
               <span className="text-purple-400">
-                {totalMovies} movies
+                {totalMovies} phim
               </span>
               <span className="text-gray-700">&bull;</span>
-              <span className="text-gray-400">{totalShowtimes} showtimes</span>
+              <span className="text-gray-400">{totalShowtimes} suất chiếu</span>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {hasFilters && (
@@ -554,7 +554,6 @@ export function SchedulePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-                Movie{' '}
                 <span
                   style={{
                     background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 60%, #f97316 100%)',
@@ -563,19 +562,19 @@ export function SchedulePage() {
                     backgroundClip: 'text',
                   }}
                 >
-                  Showtimes
+                  Suất Chiếu Phim
                 </span>
               </h1>
               <p className="mt-2 text-gray-400">
-                Browse by date, cinema, and format, then pick a showtime and book instantly.
+                Duyệt theo ngày, rạp và định dạng, sau đó chọn suất chiếu và đặt vé ngay lập tức.
               </p>
             </div>
 
             <div className="flex shrink-0 items-center gap-5 rounded-2xl border border-white/[0.06] bg-white/[0.03] px-5 py-3">
               {[
-                { val: totalMovies, label: 'Movies', color: 'text-purple-400' },
-                { val: totalShowtimes, label: 'Showtimes', color: 'text-cyan-400' },
-                { val: allCinemas.length - 1, label: 'Cinemas', color: 'text-pink-400' },
+                { val: totalMovies, label: 'Phim', color: 'text-purple-400' },
+                { val: totalShowtimes, label: 'Suất chiếu', color: 'text-cyan-400' },
+                { val: allCinemas.length - 1, label: 'Rạp', color: 'text-pink-400' },
               ].map((s) => (
                 <div key={s.label} className="text-center">
                   <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
@@ -623,7 +622,7 @@ export function SchedulePage() {
           <div className="flex flex-wrap items-center gap-2 py-2.5">
             <span className="flex shrink-0 items-center gap-1.5 text-xs text-gray-600">
               <SlidersHorizontal className="size-3.5" />
-              <span className="hidden sm:inline">Filters:</span>
+              <span className="hidden sm:inline">Bộ lọc:</span>
             </span>
 
             {allCinemas.map((c) => (
@@ -664,14 +663,14 @@ export function SchedulePage() {
               onClick={() => toggleLanguage('sub')}
               accentColor="cyan"
             >
-              Subtitled
+              Phụ đề
             </FilterChip>
             <FilterChip
               active={activeLanguages.has('dub')}
               onClick={() => toggleLanguage('dub')}
               accentColor="orange"
             >
-              Dubbed
+              Lồng tiếng
             </FilterChip>
 
             {hasFilters && (
@@ -680,7 +679,7 @@ export function SchedulePage() {
                 className="flex items-center gap-1.5 rounded-full border border-white/[0.08] px-3 py-1.5 text-sm text-gray-500 transition-all hover:border-white/15 hover:text-gray-300"
               >
                 <RotateCcw className="size-3.5" />
-                Reset
+                Đặt lại
               </button>
             )}
           </div>
@@ -691,9 +690,9 @@ export function SchedulePage() {
           <div className="mb-6 flex items-center gap-2 rounded-xl border border-purple-500/20 bg-purple-950/20 px-4 py-3">
             <Shield className="size-4 shrink-0 text-purple-400" />
             <p className="text-sm text-gray-300">
-              Showing <span className="font-bold text-purple-300">{totalMovies} movies</span> with{' '}
-              <span className="font-bold text-purple-300">{totalShowtimes} showtimes</span>{' '}
-              matching the selected filters
+              Hiển thị <span className="font-bold text-purple-300">{totalMovies} phim</span> với{' '}
+              <span className="font-bold text-purple-300">{totalShowtimes} suất chiếu</span>{' '}
+              phù hợp với các bộ lọc được chọn
             </p>
           </div>
         )}
@@ -705,7 +704,7 @@ export function SchedulePage() {
           <div>
             <h2 className="text-lg font-black text-white">{currentDate.fullLabel}</h2>
             <p className="text-xs text-gray-500">
-              {totalMovies} movies now showing &bull; {totalShowtimes} showtimes
+              {totalMovies} phim đang chiếu &bull; {totalShowtimes} suất chiếu
             </p>
           </div>
         </div>
@@ -728,12 +727,12 @@ export function SchedulePage() {
         {filteredSchedules.length > 0 && (
           <div className="mt-10 flex flex-wrap items-center justify-center gap-5 border-t border-white/[0.05] pt-8">
             <p className="w-full text-center text-xs font-semibold uppercase tracking-widest text-gray-700">
-              Legend
+              Chú thích
             </p>
             {[
-              { label: 'Many seats left', className: 'border-white/10 bg-white/[0.06] text-white' },
-              { label: 'Almost full', className: 'border-amber-600/35 bg-amber-950/20 text-amber-400' },
-              { label: 'Sold out', className: 'border-gray-700/30 bg-gray-800/20 text-gray-600 opacity-50' },
+              { label: 'Còn nhiều ghế', className: 'border-white/10 bg-white/[0.06] text-white' },
+              { label: 'Sắp hết', className: 'border-amber-600/35 bg-amber-950/20 text-amber-400' },
+              { label: 'Hết vé', className: 'border-gray-700/30 bg-gray-800/20 text-gray-600 opacity-50' },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-2">
                 <div className={`rounded-lg border px-3 py-1 text-sm font-bold ${item.className}`}>
@@ -744,12 +743,12 @@ export function SchedulePage() {
             ))}
             <div className="flex items-center gap-2">
               <HallBadge hallType="IMAX" />
-              <span className="text-xs text-gray-500">Hall format</span>
+              <span className="text-xs text-gray-500">Định dạng phòng</span>
             </div>
             <div className="flex items-center gap-2">
               <LangBadge language="sub" />
               <LangBadge language="dub" />
-              <span className="text-xs text-gray-500">Language</span>
+              <span className="text-xs text-gray-500">Ngôn ngữ</span>
             </div>
           </div>
         )}
@@ -767,10 +766,10 @@ export function SchedulePage() {
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <button onClick={() => navigate(moviePaths.promotions())} className="transition-colors hover:text-gray-300">
-                Promotions
+                Khuyến mãi
               </button>
               <button onClick={() => navigate(moviePaths.home())} className="transition-colors hover:text-gray-300">
-                Home
+                Trang chủ
               </button>
               <span>&copy; 2026 ABCD Cinema</span>
             </div>

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { mockBrandsData } from './api/brandsMockData';
+import { getShops, type Shop } from '../shops/api/shopApi';
 import { getImageUrl } from "@/core/utils/image";
 
 export const BrandsFeature = () => {
@@ -9,28 +9,98 @@ export const BrandsFeature = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [activeFloor, setActiveFloor] = useState<string | null>(null);
+  
+  const [brands, setBrands] = useState<Shop[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  // 1. GIỮ NGUYÊN BỘ LỌC TIẾNG VIỆT CỦA BẠN
   const categories = [
     { name: 'Tất cả', slug: 'all' },
     { name: 'Thời Trang', slug: 'thoi-trang' },
     { name: 'Trang Sức & Phụ Kiện', slug: 'phu-kien' },
     { name: 'Ẩm Thực', slug: 'am-thuc' },
-    { name: 'Giáo Dục', slug: 'giao-duc' },
-    { name: 'Giải Trí', slug: 'giai-tri' },
+    { name: 'Sức Khỏe & Làm Đẹp', slug: 'lam-dep' },
+    { name: 'Nhà Sách & Giáo Dục', slug: 'giao-duc' },
   ];
 
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const floors = ["Tầng 1", "Tầng 2", "Tầng 3", "Tầng 4"];
 
+  // 2. TỪ ĐIỂN MAPPING (Khớp slug Tiếng Việt với Category Tiếng Anh từ Backend)
+  const categoryKeywords: Record<string, string[]> = {
+    'thoi-trang': ['fashion', 'clothing', 'lifestyle', 'apparel', 'thời trang'],
+    'phu-kien': ['jewelry', 'accessories', 'watch', 'shoes', 'bags', 'trang sức', 'phụ kiện'],
+    'am-thuc': ['food', 'beverage', 'restaurant', 'cafe', 'bakery', 'ẩm thực'],
+    'lam-dep': ['health', 'beauty', 'cosmetic', 'spa', 'sức khỏe', 'làm đẹp'],
+    'giao-duc': ['education', 'book', 'entertainment', 'nhà sách', 'giáo dục', 'giải trí']
+  };
+
+  useEffect(() => {
+    let active = true;
+    
+    const fetchBrands = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getShops();
+        if (active) {
+          setBrands(data);
+        }
+      } catch (err: unknown) {
+        if (active) {
+          const errorMsg = err instanceof Error ? err.message : "Không thể tải danh sách thương hiệu";
+          setError(errorMsg);
+          console.error("Lỗi khi tải danh sách thương hiệu:", err);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    fetchBrands();
+    window.scrollTo(0, 0);
+    
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // 3. LOGIC LỌC THÔNG MINH
   const filteredBrands = useMemo(() => {
-    return mockBrandsData.filter(brand => {
-      const matchCategory = currentCategory === 'all' || brand.category === currentCategory;
+    return brands.filter(brand => {
+      // Lọc Category
+      let matchCategory = false;
+      if (currentCategory === 'all') {
+        matchCategory = true;
+      } else {
+        const keywords = categoryKeywords[currentCategory] || [];
+        const shopCat = brand.category.toLowerCase();
+        matchCategory = keywords.some(kw => shopCat.includes(kw));
+      }
+
+      // Lọc Search theo Tên
       const matchSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Lọc Chữ cái đầu
       const matchLetter = !activeLetter || brand.name.toUpperCase().startsWith(activeLetter);
-      const matchFloor = !activeFloor || brand.floor === activeFloor;
+      
+      // Lọc Tầng (Khớp "Tầng 1" với "Floor 1" hoặc "Tầng 1" từ Backend)
+      let matchFloor = true;
+      if (activeFloor) {
+        const floorNumber = activeFloor.replace(/\D/g, ''); // Trích xuất số 1, 2, 3...
+        const loc = brand.location.toLowerCase();
+        matchFloor = loc.includes(`floor ${floorNumber}`) || 
+                     loc.includes(`tầng ${floorNumber}`) || 
+                     loc.includes(`l${floorNumber}`);
+      }
+      
       return matchCategory && matchSearch && matchLetter && matchFloor;
     });
-  }, [currentCategory, searchTerm, activeLetter, activeFloor]);
+  }, [brands, currentCategory, searchTerm, activeLetter, activeFloor]);
 
   return (
     <div className="min-h-screen bg-slate-50 pt-10 pb-20">
@@ -68,7 +138,7 @@ export const BrandsFeature = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* SIDEBAR: ĐÃ ĐƯỢC REDESIGN LẠI RẤT MALL */}
+          {/* SIDEBAR */}
           <div className="lg:w-64 shrink-0 flex flex-col gap-6">
             
             {/* Box 1: Bảng Chữ Cái */}
@@ -125,7 +195,21 @@ export const BrandsFeature = () => {
 
           {/* MAIN CONTENT: LƯỚI LOGO THƯƠNG HIỆU */}
           <div className="flex-1">
-            {filteredBrands.length > 0 ? (
+            {error ? (
+              <div className="bg-white rounded-[2rem] border-2 border-red-200 p-12 text-center flex flex-col items-center gap-4">
+                <span className="text-6xl">⚠️</span>
+                <h3 className="text-2xl font-bold text-red-600">Lỗi tải dữ liệu!</h3>
+                <p className="text-gray-600 max-w-md">{error}</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="mt-4 px-6 py-2 bg-red-500 text-white font-bold rounded-full hover:bg-red-600 transition-colors"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : isLoading ? (
+              <div className="text-center py-20 text-2xl animate-pulse text-gray-400">Đang tải danh sách thương hiệu...</div>
+            ) : filteredBrands.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredBrands.map(brand => (
                   <Link 
@@ -133,19 +217,18 @@ export const BrandsFeature = () => {
                     key={brand.id}
                     className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center p-6 text-center relative overflow-hidden"
                   >
-                    {/* Dải màu hover mỏng ở trên cùng của card */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     
                     <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
                       <img 
-                        //src={brand.logoUrl} 
-                         src={getImageUrl(brand.logoUrl)}
-                        alt={brand.name} 
-                        className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
+                         // Ưu tiên hiện Logo, nếu không có mới hiện ảnh phụ
+                         src={getImageUrl(brand.logoUrl || brand.imageUrl)}
+                         alt={brand.name} 
+                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
                       />
                     </div>
                     <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {brand.floor}</p>
+                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full text-ellipsis overflow-hidden whitespace-nowrap w-full">📍 {brand.location}</p>
                   </Link>
                 ))}
               </div>
@@ -154,7 +237,7 @@ export const BrandsFeature = () => {
                 <span className="text-6xl mb-4">🏬</span>
                 <h3 className="text-2xl font-bold text-gray-400">Chưa có thương hiệu phù hợp!</h3>
                 <button 
-                  onClick={() => {setSearchTerm(''); setActiveFloor(null); setActiveLetter(null);}}
+                  onClick={() => {setSearchTerm(''); setActiveFloor(null); setActiveLetter(null); setSearchParams({ category: 'all' })}}
                   className="mt-6 px-8 py-3 bg-red-50 text-red-500 font-bold rounded-full hover:bg-red-100 transition-colors shadow-sm"
                 >
                   Xóa bộ lọc
