@@ -33,6 +33,19 @@ public static class FrontendUsersSeed
             }
 
             shop.ShopName = seed.ShopName;
+            shop.Slug = seed.Slug;
+            shop.Category = seed.Category;
+            shop.Floor = seed.Floor;
+            shop.LocationSlot = seed.LocationSlot;
+            shop.Summary = seed.Summary;
+            shop.Description = seed.Description;
+            shop.LogoUrl = seed.LogoUrl;
+            shop.CoverImageUrl = seed.CoverImageUrl;
+            shop.OpenHours = seed.OpenHours;
+            shop.Badge = seed.Badge;
+            shop.Offer = seed.Offer;
+            shop.Tags = seed.Tags;
+            shop.IsPublicVisible = seed.IsPublicVisible;
             shop.ManagerName = seed.ManagerName;
             shop.CCCD = seed.Cccd;
             shop.RentalLocation = seed.RentalLocation;
@@ -196,248 +209,201 @@ public static class FrontendUsersSeed
 
     private static class SeedData
     {
-        public static readonly UserSeed[] Users =
+        private static readonly CatalogShopOwnerSeed[] CatalogShopOwners =
         [
-            new(
-                Id: "users-admin-001",
-                Email: "admin@abcdmall.local",
-                Password: "Admin@123",
-                Role: "Admin",
-                FullName: "Mall Administrator",
-                ShopId: null,
-                Image: "/images/profiles/admin-default.png",
-                Address: "ABCD Mall HQ",
-                Cccd: "000000000001",
-                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "users-manager-001",
-                Email: "manager1@abcdmall.local",
-                Password: "Manager@123",
-                Role: "Manager",
-                FullName: "Nguyen Van Minh",
-                ShopId: "shop-001",
-                Image: "/images/profiles/manager-1.png",
-                Address: "District 1, Ho Chi Minh City",
-                Cccd: "079203000111",
-                CreatedAt: new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "users-manager-002",
-                Email: "manager2@abcdmall.local",
-                Password: "Manager@123",
-                Role: "Manager",
-                FullName: "Tran Thi Lan",
-                ShopId: "shop-002",
-                Image: "/images/profiles/manager-2.png",
-                Address: "Thu Duc, Ho Chi Minh City",
-                Cccd: "079203000222",
-                CreatedAt: new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "users-manager-003",
-                Email: "manager3@abcdmall.local",
-                Password: "Manager@123",
-                Role: "Manager",
-                FullName: "Pham Gia Huy",
-                ShopId: "shop-003",
-                Image: "/images/profiles/manager-3.png",
-                Address: "Go Vap, Ho Chi Minh City",
-                Cccd: "079203000333",
-                CreatedAt: new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "users-manager-004",
-                Email: "manager4@abcdmall.local",
-                Password: "Manager@123",
-                Role: "Manager",
-                FullName: "Le Bao Chau",
-                ShopId: "shop-004",
-                Image: "/images/profiles/manager-4.png",
-                Address: "Binh Thanh, Ho Chi Minh City",
-                Cccd: "079203000444",
-                CreatedAt: new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "users-manager-005",
-                Email: "manager5@abcdmall.local",
-                Password: "Manager@123",
-                Role: "Manager",
-                FullName: "Vo Quynh Anh",
-                ShopId: "shop-005",
-                Image: "/images/profiles/manager-5.png",
-                Address: "District 7, Ho Chi Minh City",
-                Cccd: "079203000555",
-                CreatedAt: new DateTime(2026, 4, 6, 0, 0, 0, DateTimeKind.Utc))
+            new("shop-001", "uniqlo", "Uniqlo", "Nguyen Van Minh", "manager1@abcdmall.local", "079203000111", "1-01", "1", "Fashion Corner", "42m2", 25000000m),
+            new("shop-002", "miniso", "Miniso", "Tran Thi Lan", "manager2@abcdmall.local", "079203000222", "3-03A", "2", "Lifestyle Store", "36m2", 21000000m),
+            new("shop-003", "nike", "Nike", "Pham Gia Huy", "manager3@abcdmall.local", "079203000333", "1-07", "1", "Sneaker Zone", "46m2", 28000000m),
+            new("shop-004", "charles-keith", "Charles & Keith", "Le Bao Chau", "manager4@abcdmall.local", "079203000444", "1-06", "1", "Accessory Gallery", "34m2", 22000000m),
+            new("shop-005", "lego", "LEGO", "Vo Quynh Anh", "manager5@abcdmall.local", "079203000555", "6-02", "4", "Toy Gallery", "40m2", 27000000m),
+            new("shop-006", "adidas", "Adidas", "Dang Mai Phuong", "manager6@abcdmall.local", "079203000666", "1-11", "1", "Sportswear Lane", "44m2", 26000000m),
+            new("shop-007", "levis", "Levi's", "Do Minh Khang", "manager7@abcdmall.local", "079203000777", "1-02", "1", "Denim Studio", "38m2", 23000000m),
+            new("shop-008", "beauty-box", "Beauty Box", "Hoang Bao Tran", "manager8@abcdmall.local", "079203000888", "SB-01", "1", "Beauty Box", "30m2", 20000000m),
+            new("shop-009", "pnj", "PNJ", "Bui Quoc Bao", "manager9@abcdmall.local", "079203000999", "1-27", "1", "Jewelry Boutique", "32m2", 24000000m),
+            new("shop-010", "pedro", "Pedro", "Nguyen Hoai Nam", "manager10@abcdmall.local", "079203001010", "1-09", "1", "Leather Studio", "31m2", 21000000m),
+            new("shop-011", "casio", "Casio", "Tran Minh Thu", "manager11@abcdmall.local", "079203001011", "K1-11", "1", "Watch Counter", "24m2", 16000000m),
+            new("shop-012", "phuong-nam", "Phuong Nam Book City", "Pham Ngoc Anh", "manager12@abcdmall.local", "079203001012", "3-01", "2", "Book City", "55m2", 30000000m),
+            new("shop-013", "pop-mart", "Pop Mart", "Le Thanh Tung", "manager13@abcdmall.local", "079203001013", "3-15", "2", "Collectible Hub", "28m2", 19000000m),
+            new("shop-014", "ninomaxx", "Ninomaxx", "Vo Minh Quan", "manager14@abcdmall.local", "079203001014", "3-31", "2", "Casualwear Point", "35m2", 20500000m),
+            new("shop-015", "levents", "Levents", "Dang Thao Nhi", "manager15@abcdmall.local", "079203001015", "3-07", "2", "Streetwear Corner", "34m2", 21000000m),
+            new("shop-016", "rabity", "Rabity", "Nguyen Duc Anh", "manager16@abcdmall.local", "079203001016", "3-03", "2", "Kids Fashion", "33m2", 19500000m),
+            new("shop-017", "boo", "Boo", "Tran Quoc Viet", "manager17@abcdmall.local", "079203001017", "3-08", "2", "Youth Streetwear", "32m2", 20000000m),
+            new("shop-018", "john-henry", "John Henry", "Ho Thi My Linh", "manager18@abcdmall.local", "079203001018", "3-09", "2", "Menswear Studio", "35m2", 22000000m),
+            new("shop-019", "lugvn", "Lug.vn", "Phan Hoang Long", "manager19@abcdmall.local", "079203001019", "3-12", "2", "Travel Goods", "30m2", 19000000m),
+            new("shop-020", "powerbowl", "Powerbowl 388", "Nguyen Gia Bao", "manager20@abcdmall.local", "079203001020", "5-01", "3", "Entertainment Zone", "80m2", 42000000m),
+            new("shop-021", "vans", "Vans", "Le Minh Tri", "manager21@abcdmall.local", "079203001021", "5-04", "3", "Skate Street", "34m2", 21000000m),
+            new("shop-022", "converse", "Converse", "Tran Anh Khoa", "manager22@abcdmall.local", "079203001022", "5-05", "3", "Sneaker Street", "34m2", 21000000m),
+            new("shop-023", "sony-center", "Sony Center", "Do Bao Ngoc", "manager23@abcdmall.local", "079203001023", "6-06", "4", "Technology Center", "52m2", 36000000m)
         ];
 
-        public static readonly ShopSeed[] Shops =
-        [
-            new(
-                Id: "shop-001",
-                ShopName: "Minh Fashion",
-                ManagerName: "Nguyen Van Minh",
-                Cccd: "079203000111",
-                RentalLocation: "A-101",
+        public static readonly UserSeed[] Users = BuildUsers();
+
+        public static readonly ShopSeed[] Shops = BuildShops();
+
+        public static readonly RentalAreaSeed[] RentalAreas = BuildRentalAreas();
+
+        public static readonly MonthlyBillSeed[] MonthlyBills = BuildMonthlyBills();
+
+        private static UserSeed[] BuildUsers()
+        {
+            var users = new List<UserSeed>
+            {
+                new(
+                    Id: "users-admin-001",
+                    Email: "admin@abcdmall.local",
+                    Password: "Admin@123",
+                    Role: "Admin",
+                    FullName: "Mall Administrator",
+                    ShopId: null,
+                    Image: "/images/profiles/admin-default.png",
+                    Address: "ABCD Mall HQ",
+                    Cccd: "000000000001",
+                    CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc))
+            };
+
+            users.AddRange(CatalogShopOwners.Select((shop, index) => new UserSeed(
+                Id: $"users-manager-{index + 1:000}",
+                Email: shop.Email,
+                Password: "Manager@123",
+                Role: "Manager",
+                FullName: shop.ManagerName,
+                ShopId: shop.ShopId,
+                Image: $"/images/profiles/manager-{index + 1}.png",
+                Address: "Ho Chi Minh City",
+                Cccd: shop.Cccd,
+                CreatedAt: new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc).AddDays(index))));
+
+            return users.ToArray();
+        }
+
+        private static ShopSeed[] BuildShops()
+            => CatalogShopOwners.Select((shop, index) => new ShopSeed(
+                Id: shop.ShopId,
+                ShopName: shop.ShopName,
+                Slug: shop.Slug,
+                Category: shop.AreaName,
+                Floor: $"Floor {shop.Floor}",
+                LocationSlot: shop.RentalLocation,
+                Summary: $"{shop.ShopName} is available at {shop.RentalLocation} inside ABCD Mall.",
+                Description: $"{shop.ShopName} is managed by {shop.ManagerName} and operates from {shop.RentalLocation}.",
+                LogoUrl: GetLogoUrl(shop.Slug),
+                CoverImageUrl: GetCoverImageUrl(shop.Slug),
+                OpenHours: "09:30 - 22:00",
+                Badge: "Featured Store",
+                Offer: null,
+                Tags: $"{shop.AreaName}, Floor {shop.Floor}, {shop.RentalLocation}",
+                IsPublicVisible: true,
+                ManagerName: shop.ManagerName,
+                Cccd: shop.Cccd,
+                RentalLocation: shop.RentalLocation,
                 Month: "April 2026",
-                LeaseStartDate: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
-                ElectricityUsage: "120 kWh",
+                LeaseStartDate: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index),
+                ElectricityUsage: "0 kWh",
                 ElectricityFee: 3500m,
-                WaterUsage: "18 m3",
+                WaterUsage: "0 m3",
                 WaterFee: 15000m,
                 ServiceFee: 800000m,
                 LeaseTermDays: 180,
-                TotalDue: 1490000m,
-                ContractImage: "/images/contracts/minh-fashion-contract.png",
-                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "shop-002",
-                ShopName: "Lan Cosmetics",
-                ManagerName: "Tran Thi Lan",
-                Cccd: "079203000222",
-                RentalLocation: "B-201",
-                Month: "May 2026",
-                LeaseStartDate: new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
-                ElectricityUsage: "96 kWh",
-                ElectricityFee: 3600m,
-                WaterUsage: "12 m3",
-                WaterFee: 15000m,
-                ServiceFee: 650000m,
-                LeaseTermDays: 365,
-                TotalDue: 1175600m,
-                ContractImage: "/images/contracts/lan-cosmetics-contract.png",
-                CreatedAt: new DateTime(2026, 4, 5, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "shop-003",
-                ShopName: "Huy Sneakers",
-                ManagerName: "Pham Gia Huy",
-                Cccd: "079203000333",
-                RentalLocation: "C-301",
-                Month: "June 2026",
-                LeaseStartDate: new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                ElectricityUsage: "140 kWh",
-                ElectricityFee: 3400m,
-                WaterUsage: "16 m3",
-                WaterFee: 15000m,
-                ServiceFee: 900000m,
-                LeaseTermDays: 180,
-                TotalDue: 1616000m,
-                ContractImage: "/images/contracts/huy-sneakers-contract.png",
-                CreatedAt: new DateTime(2026, 4, 6, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "shop-004",
-                ShopName: "Chau Accessories",
-                ManagerName: "Le Bao Chau",
-                Cccd: "079203000444",
-                RentalLocation: "D-102",
-                Month: "July 2026",
-                LeaseStartDate: new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
-                ElectricityUsage: "88 kWh",
-                ElectricityFee: 3500m,
-                WaterUsage: "10 m3",
-                WaterFee: 15000m,
-                ServiceFee: 600000m,
-                LeaseTermDays: 180,
-                TotalDue: 1058000m,
-                ContractImage: "/images/contracts/chau-accessories-contract.png",
-                CreatedAt: new DateTime(2026, 4, 7, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                Id: "shop-005",
-                ShopName: "Quynh Gifts",
-                ManagerName: "Vo Quynh Anh",
-                Cccd: "079203000555",
-                RentalLocation: string.Empty,
-                Month: string.Empty,
-                LeaseStartDate: new DateTime(2026, 4, 8, 0, 0, 0, DateTimeKind.Utc),
-                ElectricityUsage: string.Empty,
-                ElectricityFee: 0m,
-                WaterUsage: string.Empty,
-                WaterFee: 0m,
-                ServiceFee: 0m,
-                LeaseTermDays: 0,
-                TotalDue: 0m,
-                ContractImage: null,
-                CreatedAt: new DateTime(2026, 4, 8, 0, 0, 0, DateTimeKind.Utc))
-        ];
+                TotalDue: 800000m,
+                ContractImage: $"/images/contracts/{shop.Slug}-contract.png",
+                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index)))
+            .ToArray();
 
-        public static readonly RentalAreaSeed[] RentalAreas =
-        [
-            new("rental-area-001", "A-101", "1", "Fashion Corner", "42m2", 25000000m, "Rented", "Minh Fashion", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-002", "A-102", "1", "Accessory Hub", "30m2", 18000000m, "Available", null, new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-003", "B-201", "2", "Beauty Studio", "35m2", 22000000m, "Rented", "Lan Cosmetics", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-004", "C-301", "3", "Lifestyle Kiosk", "28m2", 16000000m, "Rented", "Huy Sneakers", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-005", "D-102", "1", "Accessories Lane", "26m2", 17500000m, "Rented", "Chau Accessories", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-006", "D-103", "1", "Gift Box", "24m2", 15000000m, "Available", null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-007", "E-210", "2", "Streetwear Point", "40m2", 24000000m, "Available", null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-008", "F-305", "3", "Beauty Corner", "33m2", 21000000m, "Available", null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-009", "G-115", "1", "Toy House", "32m2", 19500000m, "Available", null, new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-010", "H-410", "4", "Premium Lounge", "55m2", 32000000m, "Available", null, new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc))
-        ];
+        private static RentalAreaSeed[] BuildRentalAreas()
+            => CatalogShopOwners.Select((shop, index) => new RentalAreaSeed(
+                Id: $"rental-area-{index + 1:000}",
+                AreaCode: shop.RentalLocation,
+                Floor: shop.Floor,
+                AreaName: shop.AreaName,
+                Size: shop.Size,
+                MonthlyRent: shop.MonthlyRent,
+                Status: "Rented",
+                TenantName: shop.ShopName,
+                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index)))
+            .ToArray();
 
-        public static readonly MonthlyBillSeed[] MonthlyBills =
-        [
-            new(
-                Id: "monthly-bill-001",
-                ShopInfoId: "shop-001",
-                BillKey: "shop-001:2026-04:2026-03:seed",
-                ShopName: "Minh Fashion",
-                ManagerName: "Nguyen Van Minh",
-                Cccd: "079203000111",
-                RentalLocation: "A-101",
+        private static MonthlyBillSeed[] BuildMonthlyBills()
+            => CatalogShopOwners.Select((shop, index) => new MonthlyBillSeed(
+                Id: $"monthly-bill-{index + 1:000}",
+                ShopInfoId: shop.ShopId,
+                BillKey: $"{shop.ShopId}:2026-04:2026-03:seed",
+                ShopName: shop.ShopName,
+                ManagerName: shop.ManagerName,
+                Cccd: shop.Cccd,
+                RentalLocation: shop.RentalLocation,
                 Month: "April 2026",
                 UsageMonth: "March 2026",
                 BillingMonthKey: "2026-04",
                 UsageMonthKey: "2026-03",
-                LeaseStartDate: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
-                ElectricityUsage: "120 kWh",
+                LeaseStartDate: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index),
+                ElectricityUsage: "0 kWh",
                 ElectricityFee: 3500m,
-                WaterUsage: "18 m3",
+                WaterUsage: "0 m3",
                 WaterFee: 15000m,
                 ServiceFee: 800000m,
                 LeaseTermDays: 180,
-                TotalDue: 1490000m,
-                ContractImage: "/images/contracts/minh-fashion-contract.png",
-                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-002", "shop-001", "shop-001:2026-05:2026-04:seed", "Minh Fashion", "Nguyen Van Minh", "079203000111",
-                "A-101", "May 2026", "April 2026", "2026-05", "2026-04", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
-                "134 kWh", 3500m, "20 m3", 15000m, 800000m, 180, 1569000m, "/images/contracts/minh-fashion-contract.png", new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-003", "shop-001", "shop-001:2026-06:2026-05:seed", "Minh Fashion", "Nguyen Van Minh", "079203000111",
-                "A-101", "June 2026", "May 2026", "2026-06", "2026-05", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
-                "128 kWh", 3500m, "19 m3", 15000m, 800000m, 180, 1523000m, "/images/contracts/minh-fashion-contract.png", new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-004", "shop-002", "shop-002:2026-05:2026-04:seed", "Lan Cosmetics", "Tran Thi Lan", "079203000222",
-                "B-201", "May 2026", "April 2026", "2026-05", "2026-04", new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
-                "96 kWh", 3600m, "12 m3", 15000m, 650000m, 365, 1175600m, "/images/contracts/lan-cosmetics-contract.png", new DateTime(2026, 5, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-005", "shop-002", "shop-002:2026-06:2026-05:seed", "Lan Cosmetics", "Tran Thi Lan", "079203000222",
-                "B-201", "June 2026", "May 2026", "2026-06", "2026-05", new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
-                "102 kWh", 3600m, "13 m3", 15000m, 650000m, 365, 1222200m, "/images/contracts/lan-cosmetics-contract.png", new DateTime(2026, 6, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-006", "shop-002", "shop-002:2026-07:2026-06:seed", "Lan Cosmetics", "Tran Thi Lan", "079203000222",
-                "B-201", "July 2026", "June 2026", "2026-07", "2026-06", new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
-                "98 kWh", 3600m, "11 m3", 15000m, 650000m, 365, 1187800m, "/images/contracts/lan-cosmetics-contract.png", new DateTime(2026, 7, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-007", "shop-003", "shop-003:2026-06:2026-05:seed", "Huy Sneakers", "Pham Gia Huy", "079203000333",
-                "C-301", "June 2026", "May 2026", "2026-06", "2026-05", new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                "140 kWh", 3400m, "16 m3", 15000m, 900000m, 180, 1616000m, "/images/contracts/huy-sneakers-contract.png", new DateTime(2026, 6, 3, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-008", "shop-003", "shop-003:2026-07:2026-06:seed", "Huy Sneakers", "Pham Gia Huy", "079203000333",
-                "C-301", "July 2026", "June 2026", "2026-07", "2026-06", new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                "148 kWh", 3400m, "18 m3", 15000m, 900000m, 180, 1707200m, "/images/contracts/huy-sneakers-contract.png", new DateTime(2026, 7, 3, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-009", "shop-003", "shop-003:2026-08:2026-07:seed", "Huy Sneakers", "Pham Gia Huy", "079203000333",
-                "C-301", "August 2026", "July 2026", "2026-08", "2026-07", new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                "143 kWh", 3400m, "17 m3", 15000m, 900000m, 180, 1641200m, "/images/contracts/huy-sneakers-contract.png", new DateTime(2026, 8, 3, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-010", "shop-004", "shop-004:2026-07:2026-06:seed", "Chau Accessories", "Le Bao Chau", "079203000444",
-                "D-102", "July 2026", "June 2026", "2026-07", "2026-06", new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
-                "88 kWh", 3500m, "10 m3", 15000m, 600000m, 180, 1058000m, "/images/contracts/chau-accessories-contract.png", new DateTime(2026, 7, 4, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-011", "shop-004", "shop-004:2026-08:2026-07:seed", "Chau Accessories", "Le Bao Chau", "079203000444",
-                "D-102", "August 2026", "July 2026", "2026-08", "2026-07", new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
-                "93 kWh", 3500m, "11 m3", 15000m, 600000m, 180, 1100500m, "/images/contracts/chau-accessories-contract.png", new DateTime(2026, 8, 4, 0, 0, 0, DateTimeKind.Utc)),
-            new(
-                "monthly-bill-012", "shop-004", "shop-004:2026-09:2026-08:seed", "Chau Accessories", "Le Bao Chau", "079203000444",
-                "D-102", "September 2026", "August 2026", "2026-09", "2026-08", new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
-                "90 kWh", 3500m, "10 m3", 15000m, 600000m, 180, 1065000m, "/images/contracts/chau-accessories-contract.png", new DateTime(2026, 9, 4, 0, 0, 0, DateTimeKind.Utc))
-        ];
+                TotalDue: 800000m,
+                ContractImage: $"/images/contracts/{shop.Slug}-contract.png",
+                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index)))
+            .ToArray();
+
+        private static string GetLogoUrl(string slug)
+            => slug switch
+            {
+                "uniqlo" => "/img/uniqlo/logo.png",
+                "miniso" => "/img/miniso/logo.jpg",
+                "nike" => "/img/nike/logo.webp",
+                "charles-keith" => "/img/C&K/logo.jpg",
+                "lego" => "/img/lego/logo.png",
+                "adidas" => "/img/adidas/logo.png",
+                "levis" => "/img/levi/logo.png",
+                "beauty-box" => "/img/beautybox/logo.png",
+                "pnj" => "/img/pnj/logo.jpg",
+                "pedro" => "/img/pedro/logo.png",
+                "casio" => "/img/casio/logo.png",
+                "phuong-nam" => "/img/phuongnam/logo.jpg",
+                "pop-mart" => "/img/popmart/logo.jpg",
+                "ninomaxx" => "/img/NINOMAXX/logo.png",
+                "levents" => "/img/levents/logo.png",
+                "rabity" => "/img/rabity/logo.jpg",
+                "boo" => "/img/boo/logo.png",
+                "john-henry" => "/img/johnhenry/logo.png",
+                "lugvn" => "/img/lug/logo.png",
+                "powerbowl" => "/img/powerbowl/logo.png",
+                "vans" => "/img/vans/logo.jpg",
+                "converse" => "/img/converse/logo.webp",
+                "sony-center" => "/img/sonycenter/logo.jpeg",
+                _ => string.Empty
+            };
+
+        private static string GetCoverImageUrl(string slug)
+            => slug switch
+            {
+                "uniqlo" => "/img/uniqlo/out.jpg",
+                "miniso" => "/img/miniso/out.jpg",
+                "nike" => "/img/nike/out.jpg",
+                "charles-keith" => "/img/C&K/out.jpg",
+                "lego" => "/img/lego/out.webp",
+                "adidas" => "/img/adidas/out.webp",
+                "levis" => "/img/levi/out.jpg",
+                "beauty-box" => "/img/beautybox/out.jpg",
+                "pnj" => "/img/pnj/pnj_out.png",
+                "pedro" => "/img/pedro/pedro_outdoor.png",
+                "casio" => "/img/casio/out.png",
+                "phuong-nam" => "/img/phuongnam/out.jpg",
+                "pop-mart" => "/img/popmart/out.webp",
+                "ninomaxx" => "/img/NINOMAXX/out.jpg",
+                "levents" => "/img/levents/OUT.webp",
+                "rabity" => "/img/rabity/out.jpg",
+                "boo" => "/img/boo/out.jpg",
+                "john-henry" => "/img/johnhenry/out.jpg",
+                "lugvn" => "/img/lug/out.webp",
+                "powerbowl" => "/img/powerbowl/out.jpg",
+                "vans" => "/img/vans/out.avif",
+                "converse" => "/img/converse/out.jpg",
+                "sony-center" => "/img/sonycenter/out.png",
+                _ => string.Empty
+            };
 
         public static readonly ProfileUpdateHistorySeed[] ProfileUpdateHistories =
         [
@@ -459,6 +425,19 @@ public static class FrontendUsersSeed
         ];
     }
 
+    private sealed record CatalogShopOwnerSeed(
+        string ShopId,
+        string Slug,
+        string ShopName,
+        string ManagerName,
+        string Email,
+        string Cccd,
+        string RentalLocation,
+        string Floor,
+        string AreaName,
+        string Size,
+        decimal MonthlyRent);
+
     private sealed record UserSeed(
         string Id,
         string Email,
@@ -471,10 +450,23 @@ public static class FrontendUsersSeed
         string? Cccd,
         DateTime CreatedAt);
 
-    private sealed record ShopSeed(
-        string Id,
-        string ShopName,
-        string? ManagerName,
+        private sealed record ShopSeed(
+            string Id,
+            string ShopName,
+            string Slug,
+            string Category,
+            string Floor,
+            string LocationSlot,
+            string Summary,
+            string Description,
+            string LogoUrl,
+            string CoverImageUrl,
+            string OpenHours,
+            string? Badge,
+            string? Offer,
+            string Tags,
+            bool IsPublicVisible,
+            string? ManagerName,
         string? Cccd,
         string RentalLocation,
         string Month,

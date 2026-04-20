@@ -145,6 +145,7 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
 
         rentalArea.Status = "Rented";
         rentalArea.TenantName = shopInfo.ShopName;
+        rentalArea.ShopInfoId = shopInfo.Id;
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
 
@@ -217,6 +218,7 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
 
         rentalArea.Status = "Available";
         rentalArea.TenantName = null;
+        rentalArea.ShopInfoId = null;
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
 

@@ -13,5 +13,7 @@ export async function logoutUser() {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("role");
+    localStorage.removeItem("profile");
+    window.dispatchEvent(new Event("auth:changed"));
   }
 }

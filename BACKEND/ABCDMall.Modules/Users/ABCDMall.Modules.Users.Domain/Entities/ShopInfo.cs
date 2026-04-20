@@ -4,7 +4,35 @@ namespace ABCDMall.Modules.Users.Domain.Entities
     {
         public string? Id { get; set; } = Guid.NewGuid().ToString("N");
 
+        public string? OwnerShopInfoId { get; set; }
+
         public string ShopName { get; set; } = string.Empty;
+
+        public string Slug { get; set; } = string.Empty;
+
+        public string Category { get; set; } = string.Empty;
+
+        public string Floor { get; set; } = string.Empty;
+
+        public string LocationSlot { get; set; } = string.Empty;
+
+        public string Summary { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
+
+        public string LogoUrl { get; set; } = string.Empty;
+
+        public string CoverImageUrl { get; set; } = string.Empty;
+
+        public string OpenHours { get; set; } = "09:30 - 22:00";
+
+        public string? Badge { get; set; }
+
+        public string? Offer { get; set; }
+
+        public string Tags { get; set; } = string.Empty;
+
+        public bool IsPublicVisible { get; set; }
 
         public string? ManagerName { get; set; }
 

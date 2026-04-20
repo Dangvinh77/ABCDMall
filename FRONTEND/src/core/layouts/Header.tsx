@@ -1,9 +1,37 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { getImageUrl } from "../utils/image";
+
+type UserProfile = {
+  email?: string;
+  role?: string;
+  fullName?: string | null;
+  image?: string | null;
+};
+
+const getStoredProfile = (): UserProfile | null => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return null;
+  }
+
+  const storedProfile = localStorage.getItem("profile");
+  if (storedProfile) {
+    try {
+      return JSON.parse(storedProfile) as UserProfile;
+    } catch {
+      localStorage.removeItem("profile");
+    }
+  }
+
+  const role = localStorage.getItem("role");
+  return role ? { role } : null;
+};
 
 export const Header = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [profile, setProfile] = useState<UserProfile | null>(() => getStoredProfile());
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +43,18 @@ export const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  useEffect(() => {
+    const syncProfile = () => setProfile(getStoredProfile());
+
+    window.addEventListener("storage", syncProfile);
+    window.addEventListener("auth:changed", syncProfile);
+
+    return () => {
+      window.removeEventListener("storage", syncProfile);
+      window.removeEventListener("auth:changed", syncProfile);
+    };
+  }, []);
 
   const navClass = ({ isActive }: { isActive: boolean }) =>
     `font-bold text-[15px] uppercase tracking-wider transition-all duration-300 relative py-2 ${
@@ -35,6 +75,10 @@ export const Header = () => {
     { name: "Sắp diễn ra", path: "/events?status=Upcoming" },
     { name: "Tất cả sự kiện", path: "/events" },
   ];
+
+  const displayEmail = profile?.email || "Account";
+  const avatarInitial = displayEmail.charAt(0).toUpperCase();
+  const avatarUrl = profile?.image ? getImageUrl(profile.image) : "";
 
   return (
     <header
@@ -108,8 +152,46 @@ export const Header = () => {
             </div>
           </div>
 
+          <NavLink to="/movies" className={navClass}>
+            Rạp Phim
+          </NavLink>
+          <NavLink to="/amenities" className={navClass}>
+            Tiện Ích
+          </NavLink>
+          {profile ? (
+            <Link
+              to="/dashboard"
+              className="group flex max-w-[260px] items-center gap-3 rounded-full border border-red-100 bg-red-50/80 py-1.5 pr-4 pl-1.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-red-200 hover:bg-white hover:shadow-lg hover:shadow-red-100"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-sm font-black text-white shadow-md">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayEmail} className="h-full w-full object-cover" />
+                ) : (
+                  avatarInitial
+                )}
+              </span>
+              <span className="min-w-0 text-left leading-tight">
+                <span className="block truncate text-sm font-black text-gray-800">{displayEmail}</span>
+              </span>
+            </Link>
+          ) : (
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                `rounded-full px-5 py-2.5 text-sm font-black uppercase tracking-wide shadow-md transition-all duration-300 ${
+                  isActive
+                    ? "bg-red-700 text-white shadow-red-200"
+                    : "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-red-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200"
+                }`
+              }
+            >
+              Login
+            </NavLink>
+          )}
+
           <NavLink to="/movies" className={navClass}>Rạp Phim</NavLink>
           <NavLink to="/amenities" className={navClass}>Tiện Ích</NavLink>
+
         </nav>
 
         {/* NÚT LIÊN HỆ */}

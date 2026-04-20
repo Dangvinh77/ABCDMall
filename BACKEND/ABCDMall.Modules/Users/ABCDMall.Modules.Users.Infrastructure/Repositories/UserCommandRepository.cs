@@ -86,15 +86,14 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task AddUserAsync(User user, CancellationToken cancellationToken = default)
         => _context.Users.AddAsync(user, cancellationToken).AsTask();
 
-    public async Task RemoveUserRelatedDataAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task RevokeUserRefreshTokensAsync(string userId, CancellationToken cancellationToken = default)
     {
         var refreshTokens = await _context.RefreshTokens.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
-        var passwordResetOtps = await _context.PasswordResetOtps.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
-        var forgotPasswordOtps = await _context.ForgotPasswordOtps.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
-
-        _context.RefreshTokens.RemoveRange(refreshTokens);
-        _context.PasswordResetOtps.RemoveRange(passwordResetOtps);
-        _context.ForgotPasswordOtps.RemoveRange(forgotPasswordOtps);
+        foreach (var refreshToken in refreshTokens)
+        {
+            refreshToken.IsRevoked = true;
+            refreshToken.RevokedAt = DateTime.UtcNow;
+        }
     }
 
     public Task RemoveUserAsync(User user, CancellationToken cancellationToken = default)

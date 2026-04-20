@@ -38,7 +38,7 @@ public interface IUserCommandRepository
 
     Task AddUserAsync(User user, CancellationToken cancellationToken = default);
 
-    Task RemoveUserRelatedDataAsync(string userId, CancellationToken cancellationToken = default);
+    Task RevokeUserRefreshTokensAsync(string userId, CancellationToken cancellationToken = default);
 
     Task RemoveUserAsync(User user, CancellationToken cancellationToken = default);
 
