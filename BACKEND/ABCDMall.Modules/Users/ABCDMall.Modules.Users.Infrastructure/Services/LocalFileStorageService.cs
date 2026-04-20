@@ -11,6 +11,15 @@ public sealed class LocalFileStorageService : IFileStorageService
     public Task<string> SaveContractImageAsync(IFormFile file, CancellationToken cancellationToken = default)
         => SaveFileAsync(file, Path.Combine("wwwroot", "images", "contracts"), "/images/contracts", cancellationToken);
 
+    public Task<string> SaveShopLogoAsync(IFormFile file, CancellationToken cancellationToken = default)
+        => SaveFileAsync(file, Path.Combine("wwwroot", "images", "shops", "logos"), "/images/shops/logos", cancellationToken);
+
+    public Task<string> SaveShopCoverAsync(IFormFile file, CancellationToken cancellationToken = default)
+        => SaveFileAsync(file, Path.Combine("wwwroot", "images", "shops", "covers"), "/images/shops/covers", cancellationToken);
+
+    public Task<string> SaveShopProductImageAsync(IFormFile file, CancellationToken cancellationToken = default)
+        => SaveFileAsync(file, Path.Combine("wwwroot", "images", "shops", "products"), "/images/shops/products", cancellationToken);
+
     private static async Task<string> SaveFileAsync(IFormFile file, string relativeFolder, string publicRoot, CancellationToken cancellationToken)
     {
         var uploadsRoot = Path.Combine(Directory.GetCurrentDirectory(), relativeFolder);

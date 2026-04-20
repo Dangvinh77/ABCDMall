@@ -26,5 +26,27 @@ public sealed class PublicShopCatalogReadRepository : IPublicShopCatalogReadRepo
             .OrderBy(x => x.AreaCode)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<PublicShopProduct>> GetProductsAsync(IEnumerable<string> shopIds, CancellationToken cancellationToken = default)
+    {
+        var ids = shopIds.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        return await _context.PublicShopProducts
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.ShopId))
+            .OrderByDescending(x => x.IsFeatured)
+            .ThenBy(x => x.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<PublicShopVoucher>> GetVouchersAsync(IEnumerable<string> shopIds, CancellationToken cancellationToken = default)
+    {
+        var ids = shopIds.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        return await _context.PublicShopVouchers
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.ShopId))
+            .OrderByDescending(x => x.IsActive)
+            .ThenBy(x => x.Title)
+            .ToListAsync(cancellationToken);
+    }
 }
 

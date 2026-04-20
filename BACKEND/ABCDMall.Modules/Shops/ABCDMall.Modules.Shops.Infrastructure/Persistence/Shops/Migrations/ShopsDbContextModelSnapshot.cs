@@ -76,6 +76,10 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("OwnerShopId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -87,6 +91,8 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerShopId");
 
                     b.HasIndex("Slug")
                         .IsUnique();

@@ -18,6 +18,8 @@ namespace ABCDMall.Modules.Users.Domain.Entities
 
         public string? TenantName { get; set; }
 
+        public string? ShopInfoId { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

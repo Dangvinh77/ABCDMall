@@ -34,6 +34,7 @@ public static class FrontendShopsSeed
             shop.OpenHours = seed.OpenHours;
             shop.Badge = seed.Badge;
             shop.Offer = seed.Offer;
+            shop.OwnerShopId = seed.Id;
 
             shop.Tags.Clear();
             foreach (var tag in seed.Tags.Distinct(StringComparer.OrdinalIgnoreCase))

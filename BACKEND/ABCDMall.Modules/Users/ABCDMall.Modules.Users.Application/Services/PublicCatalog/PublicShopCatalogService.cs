@@ -1,14 +1,10 @@
 using ABCDMall.Modules.Users.Application.DTOs.PublicCatalog;
 using ABCDMall.Modules.Users.Domain.Entities;
-using System.Text.RegularExpressions;
 
 namespace ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 
 public sealed class PublicShopCatalogService : IPublicShopCatalogService
 {
-    private const string DefaultImage =
-        "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop";
-
     private readonly IPublicShopCatalogReadRepository _readRepository;
 
     public PublicShopCatalogService(IPublicShopCatalogReadRepository readRepository)
@@ -20,9 +16,34 @@ public sealed class PublicShopCatalogService : IPublicShopCatalogService
     {
         var shopInfos = await _readRepository.GetShopInfosAsync(cancellationToken);
         var rentalAreas = await _readRepository.GetRentalAreasAsync(cancellationToken);
+        var visibleShopInfos = shopInfos
+            .Where(shopInfo => shopInfo.IsPublicVisible)
+            .ToArray();
+        var visibleShopIds = visibleShopInfos
+            .Where(shopInfo => shopInfo.IsPublicVisible)
+            .SelectMany(GetCatalogLookupIds)
+            .Where(id => id.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var productsByShopId = (await _readRepository.GetProductsAsync(visibleShopIds, cancellationToken))
+            .GroupBy(product => product.ShopId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.AsEnumerable(), StringComparer.OrdinalIgnoreCase);
+        var vouchersByShopId = (await _readRepository.GetVouchersAsync(visibleShopIds, cancellationToken))
+            .GroupBy(voucher => voucher.ShopId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.AsEnumerable(), StringComparer.OrdinalIgnoreCase);
 
-        return shopInfos
-            .Select(shopInfo => MapShop(shopInfo, FindRentalArea(shopInfo, rentalAreas)))
+        return visibleShopInfos
+            .Select(shopInfo =>
+            {
+                var catalogLookupIds = GetCatalogLookupIds(shopInfo);
+                var products = catalogLookupIds
+                    .Where(productsByShopId.ContainsKey)
+                    .SelectMany(id => productsByShopId[id]);
+                var vouchers = catalogLookupIds
+                    .Where(vouchersByShopId.ContainsKey)
+                    .SelectMany(id => vouchersByShopId[id]);
+                return ShopInfoPublicMapper.Map(shopInfo, FindRentalArea(shopInfo, rentalAreas), products, vouchers);
+            })
             .OrderBy(shop => shop.Name)
             .ToList();
     }
@@ -42,76 +63,21 @@ public sealed class PublicShopCatalogService : IPublicShopCatalogService
              string.Equals(area.TenantName, shopInfo.ShopName, StringComparison.OrdinalIgnoreCase)));
     }
 
-    private static PublicShopDto MapShop(ShopInfo shopInfo, RentalArea? rentalArea)
+    private static string[] GetCatalogLookupIds(ShopInfo shopInfo)
     {
-        var location = string.IsNullOrWhiteSpace(shopInfo.RentalLocation)
-            ? "ABCD Mall"
-            : $"Area {shopInfo.RentalLocation}";
-        var category = rentalArea?.AreaName ?? "Retail Store";
-        var floor = string.IsNullOrWhiteSpace(rentalArea?.Floor) ? "Mall floor" : $"Floor {rentalArea!.Floor}";
-        var leaseInfo = shopInfo.LeaseTermDays > 0 ? $"{shopInfo.LeaseTermDays} day lease term" : "Flexible lease term";
-        var utilityInfo =
-            shopInfo.ElectricityFee > 0 || shopInfo.WaterFee > 0 || shopInfo.ServiceFee > 0
-                ? $"Current monthly service profile includes electricity, water, and service fees totaling {shopInfo.TotalDue:N0}."
-                : "This shop is newly added and commercial details are being updated.";
+        var ids = new List<string>();
 
-        return new PublicShopDto
+        if (!string.IsNullOrWhiteSpace(shopInfo.Id))
         {
-            Id = shopInfo.Id ?? string.Empty,
-            Name = shopInfo.ShopName,
-            Slug = GenerateSlug(shopInfo.ShopName),
-            Category = category,
-            Location = $"{location}, {floor}",
-            Summary = $"{shopInfo.ShopName} is operating at {location} in the {category.ToLowerInvariant()} zone.",
-            Description =
-                $"{shopInfo.ShopName} is managed by {shopInfo.ManagerName ?? "the ABCD Mall team"} and is positioned at {location}. " +
-                $"{leaseInfo}. {utilityInfo}",
-            ImageUrl = string.IsNullOrWhiteSpace(shopInfo.ContractImage) ? DefaultImage : shopInfo.ContractImage!,
-            Badge = rentalArea?.Status == "Rented" ? "Featured Store" : "New Listing",
-            Offer = shopInfo.TotalDue > 0 ? $"Estimated monthly due: {shopInfo.TotalDue:N0}" : "Contact mall support for leasing details.",
-            OpenHours = "09:00 - 22:00",
-            Tags = BuildTags(shopInfo, rentalArea)
-        };
-    }
-
-    private static string[] BuildTags(ShopInfo shopInfo, RentalArea? rentalArea)
-    {
-        var tags = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(rentalArea?.AreaName))
-        {
-            tags.Add(rentalArea.AreaName);
+            ids.Add(shopInfo.Id);
         }
 
-        if (!string.IsNullOrWhiteSpace(rentalArea?.Floor))
+        if (!string.IsNullOrWhiteSpace(shopInfo.Slug))
         {
-            tags.Add($"Floor {rentalArea.Floor}");
+            ids.Add($"shop-{shopInfo.Slug}");
         }
 
-        if (!string.IsNullOrWhiteSpace(shopInfo.RentalLocation))
-        {
-            tags.Add(shopInfo.RentalLocation);
-        }
-
-        if (shopInfo.LeaseTermDays > 0)
-        {
-            tags.Add($"{shopInfo.LeaseTermDays} days");
-        }
-
-        if (!tags.Any())
-        {
-            tags.Add("ABCD Mall");
-        }
-
-        return tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-    }
-
-    private static string GenerateSlug(string value)
-    {
-        var slug = value.Trim().ToLowerInvariant();
-        slug = Regex.Replace(slug, @"[^a-z0-9\s-]", string.Empty);
-        slug = Regex.Replace(slug, @"\s+", "-");
-        return slug;
+        return ids.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 }
 
