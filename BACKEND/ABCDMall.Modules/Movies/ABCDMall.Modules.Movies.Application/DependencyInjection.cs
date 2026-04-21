@@ -11,6 +11,8 @@ using ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 using ABCDMall.Modules.Movies.Application.Services.Feedbacks.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Movies;
 using ABCDMall.Modules.Movies.Application.Services.Movies.Validators;
+using ABCDMall.Modules.Movies.Application.Services.Payments;
+using ABCDMall.Modules.Movies.Application.Services.Payments.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Promotions;
 using ABCDMall.Modules.Movies.Application.Services.Promotions.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
@@ -34,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<BookingQuoteRequestDto>, BookingQuoteRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingHoldRequestDto>, CreateBookingHoldRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingRequestDto>, CreateBookingRequestDtoValidator>();
+        services.AddScoped<IValidator<CreateStripeCheckoutSessionRequestDto>, CreateStripeCheckoutSessionRequestDtoValidator>();
         services.AddScoped<IValidator<PaymentResultRequestDto>, PaymentResultRequestDtoValidator>();
         services.AddScoped<IValidator<CreateMovieFeedbackRequestDto>, CreateMovieFeedbackRequestDtoValidator>();
         services.AddScoped<IValidator<SubmitMovieFeedbackByTokenRequestDto>, SubmitMovieFeedbackByTokenRequestDtoValidator>();
@@ -46,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IBookingHoldService, BookingHoldService>();
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IStripePaymentService, StripePaymentService>();
         services.AddScoped<IMovieFeedbackService, MovieFeedbackService>();
         services.AddScoped<IMovieQueryService, MovieQueryService>();
         services.AddScoped<IPromotionQueryService, PromotionQueryService>();

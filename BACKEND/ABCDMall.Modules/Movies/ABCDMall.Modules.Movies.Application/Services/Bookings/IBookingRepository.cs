@@ -4,6 +4,10 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings;
 
 public interface IBookingRepository
 {
+    Task<Bookingg?> GetByIdAsync(
+        Guid bookingId,
+        CancellationToken cancellationToken = default);
+
     Task<BookingHold?> GetHoldForBookingAsync(
         Guid holdId,
         CancellationToken cancellationToken = default);

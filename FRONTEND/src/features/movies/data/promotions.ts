@@ -204,9 +204,9 @@ export function evaluatePromotion(context: PromotionContext): PromotionEvaluatio
         result.message = 'This offer is only available from Monday to Friday.';
         return result;
       }
-      if (!context.paymentMethod || !['visa', 'atm'].includes(context.paymentMethod)) {
+      if (!context.paymentMethod || !['stripe', 'atm'].includes(context.paymentMethod)) {
         result.status = 'pending';
-        result.message = 'Choose Visa/Mastercard or ATM/Internet Banking to receive 25% off.';
+        result.message = 'Choose Stripe card checkout or ATM/Internet Banking to receive 25% off.';
         return result;
       }
       result.status = 'applied';

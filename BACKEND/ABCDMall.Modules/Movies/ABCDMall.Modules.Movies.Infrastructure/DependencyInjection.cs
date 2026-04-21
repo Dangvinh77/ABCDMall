@@ -1,6 +1,7 @@
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
 using ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 using ABCDMall.Modules.Movies.Application.Services.Movies;
+using ABCDMall.Modules.Movies.Application.Services.Payments;
 using ABCDMall.Modules.Movies.Application.Services.Promotions;
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Infrastructure.BackgroundServices;
@@ -13,6 +14,7 @@ using ABCDMall.Modules.Movies.Infrastructure.Repositories.Feedbacks;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Promotions;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Screening;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Emails;
+using ABCDMall.Modules.Movies.Infrastructure.Services.Payments;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -56,9 +58,11 @@ public static class DependencyInjection
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<IMovieFeedbackRepository, MovieFeedbackRepository>();
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
         services.AddScoped<ITicketPdfRenderer, QuestPdfTicketPdfRenderer>();
         services.AddScoped<ITicketEmailSender, SmtpTicketEmailSender>();
         services.AddScoped<ITicketEmailDispatcher, TicketEmailDispatcher>();
+        services.AddScoped<IStripePaymentGateway, StripePaymentGateway>();
         services.AddHostedService<BookingHoldCleanupBackgroundService>();
         services.AddHostedService<TicketEmailOutboxBackgroundService>();
 

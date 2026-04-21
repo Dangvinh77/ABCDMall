@@ -8,6 +8,7 @@
     "install:be": "cd BACKEND && dotnet restore",
     "dev:fe": "cd FRONTEND && pnpm dev",
     "dev:be": "cd BACKEND/ABCDMall.WebAPI && dotnet watch run",
+    "stripe": "stripe listen --forward-to localhost:5184/api/payments/webhooks/stripe",
     "dev": "concurrently \"npm run dev:be\" \"npm run dev:fe\""
   },
   "devDependencies": {

@@ -14,8 +14,6 @@ import {
   Phone,
   ShieldCheck,
   ChevronRight,
-  Download,
-  Home,
   CreditCard,
   Smartphone,
   QrCode,
@@ -29,7 +27,6 @@ import {
   SEAT_LABELS,
   getSeatPrice,
   vnd,
-  generateBookingCode,
   type PaymentMethod,
   type SeatType,
   type BookingState,
@@ -38,10 +35,9 @@ import {
 import { getDefaultBookingDate } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
-import { moviePaths } from '../routes/moviePaths';
 import {
-  applyPaymentResult,
   createBooking,
+  createStripeCheckoutSession,
   fetchBookingHold,
   fetchPromotions,
   fetchSnackCombos,
@@ -62,7 +58,7 @@ interface FormValues {
   birthday?: string;
 }
 
-type Stage = 'form' | 'loading' | 'success';
+type Stage = 'form' | 'loading';
 
 interface ComboSummaryItem {
   id: string;
@@ -79,7 +75,18 @@ const PAYMENT_METHODS: {
   accent: string;
   ring: string;
   bg: string;
+  disabled?: boolean;
+  badge?: string;
 }[] = [
+  {
+    id: 'stripe',
+    label: 'Stripe Checkout',
+    sub: 'Secure card payment hosted by Stripe',
+    icon: <CreditCard className="size-5" />,
+    accent: 'text-cyan-400',
+    ring: 'ring-cyan-500/40',
+    bg: 'bg-cyan-950/30',
+  },
   {
     id: 'momo',
     label: 'MoMo',
@@ -88,6 +95,8 @@ const PAYMENT_METHODS: {
     accent: 'text-pink-400',
     ring: 'ring-pink-500/40',
     bg: 'bg-pink-950/40',
+    disabled: true,
+    badge: 'Coming soon',
   },
   {
     id: 'vnpay',
@@ -97,15 +106,8 @@ const PAYMENT_METHODS: {
     accent: 'text-blue-400',
     ring: 'ring-blue-500/40',
     bg: 'bg-blue-950/40',
-  },
-  {
-    id: 'visa',
-    label: 'Visa / Mastercard',
-    sub: 'The tin dung quoc te',
-    icon: <CreditCard className="size-5" />,
-    accent: 'text-cyan-400',
-    ring: 'ring-cyan-500/40',
-    bg: 'bg-cyan-950/30',
+    disabled: true,
+    badge: 'Coming soon',
   },
   {
     id: 'atm',
@@ -115,32 +117,10 @@ const PAYMENT_METHODS: {
     accent: 'text-emerald-400',
     ring: 'ring-emerald-500/40',
     bg: 'bg-emerald-950/30',
+    disabled: true,
+    badge: 'Coming soon',
   },
 ];
-
-function toApiPaymentProvider(paymentMethod: PaymentMethod) {
-  switch (paymentMethod) {
-    case 'momo':
-      return 'Momo';
-    case 'vnpay':
-      return 'VnPay';
-    case 'visa':
-      return 'Stripe';
-    case 'atm':
-      return 'VnPay';
-    default:
-      return 'Mock';
-  }
-}
-
-function generateMockProviderTransactionId() {
-  const suffix =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  return `mock-${suffix}`;
-}
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unable to confirm this booking. Please choose your seats again.";
@@ -316,8 +296,7 @@ export function CheckoutPage() {
   const serviceFee = apiQuote?.serviceFeeTotal ?? bookingState?.serviceFee ?? localServiceFee;
 
   const [stage, setStage] = useState<Stage>('form');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('momo');
-  const [bookingCode] = useState(generateBookingCode);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('stripe');
   const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
 
   const {
@@ -518,16 +497,11 @@ export function CheckoutPage() {
         return;
       }
 
-      // OLD DAY5 HOLD-CONFIRM TEST REPLACED BELOW.
-      // Tạm gọi endpoint confirm hold để test ghế chuyển sang Booked.
-      // Khi có booking/payment hoàn chỉnh, thay bằng API đặt vé/thanh toán thật.
       const values = getValues();
+      if (paymentMethod !== 'stripe') {
+        throw new Error('Only Stripe Checkout is enabled in the current payment flow.');
+      }
 
-      // TEMP MOCK PAYMENT FLOW FOR TICKET EMAIL TEST:
-      // Do not remove this marker silently. This replaces the old Day5 hold-confirm test
-      // so we can exercise the real backend path: booking -> payment succeeded -> ticket PDF email.
-      // When dev1 finishes the real Stripe/PayPal/MoMo simulation, replace only this mocked
-      // payment-result call with the real provider callback/result.
       const booking = await createBooking({
         holdId,
         customerName: values.fullName,
@@ -535,22 +509,11 @@ export function CheckoutPage() {
         customerPhoneNumber: values.phone,
       });
 
-      await applyPaymentResult(booking.bookingId, {
-        provider: toApiPaymentProvider(paymentMethod),
-        providerTransactionId: generateMockProviderTransactionId(),
-        status: 'Succeeded',
-        amount: booking.grandTotal,
-        currency: booking.currency,
-        rawPayload: JSON.stringify({
-          source: 'frontend-ticket-email-test',
-          selectedPaymentMethod: paymentMethod,
-          bookingCode: booking.bookingCode,
-        }),
-      });
-      setTimeout(() => setStage('success'), 1800);
+      const session = await createStripeCheckoutSession(booking.bookingId);
+      window.location.assign(session.checkoutUrl);
     } catch (error) {
       const message = getErrorMessage(error);
-      console.warn("Mock payment booking flow failed; booking was not completed.", error);
+      console.warn("Stripe checkout flow failed; booking was not redirected.", error);
       window.alert(message);
       setStage('form');
     }
@@ -558,164 +521,6 @@ export function CheckoutPage() {
   const groupedSeats = (['regular', 'vip', 'couple'] as SeatType[])
     .map((type) => ({ type, seats: seats.filter((s) => s.type === type) }))
     .filter((g) => g.seats.length > 0);
-  // SUCCESS SCREEN
-  if (stage === 'success') {
-    return (
-      <div className="min-h-screen bg-[#07091a] text-white">
-        {/* Header */}
-        <header className="border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
-          <div className="container mx-auto flex h-14 items-center justify-between px-4">
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-gradient-to-br from-purple-600 to-pink-600 p-1.5">
-                <Film className="size-4 text-white" />
-              </div>
-              <span className="font-bold tracking-tight">ABCD Cinema</span>
-            </div>
-            <Badge className="bg-emerald-600/20 text-emerald-400 ring-1 ring-emerald-500/30">
-              <CheckCircle2 className="mr-1.5 size-3.5" />
-              Booking successful
-            </Badge>
-          </div>
-        </header>
-
-        <main className="container mx-auto max-w-2xl px-4 py-12 sm:py-16">
-          {/* Success hero */}
-          <div className="mb-8 flex flex-col items-center text-center">
-            {/* Animated checkmark */}
-            <div className="relative mb-6">
-              <div className="absolute inset-0 animate-ping rounded-full bg-emerald-500/20" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-500/30">
-                <CheckCircle2 className="size-10 text-white" strokeWidth={2.5} />
-              </div>
-            </div>
-            <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl">
-              Booking successful!
-            </h1>
-            <p className="text-gray-400">
-              Your ticket has been sent to your email. Please check your inbox.
-            </p>
-          </div>
-
-          {/* Booking code */}
-          <div className="mb-6 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-950/50 to-pink-950/30 p-5 text-center shadow-xl ring-1 ring-inset ring-white/[0.04]">
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500">
-              Booking code
-            </p>
-            <p className="font-mono text-2xl font-bold tracking-[0.15em] text-white sm:text-3xl">
-              {bookingCode}
-            </p>
-            <p className="mt-1.5 text-xs text-gray-500">
-              Please save this code for support or counter check-in
-            </p>
-          </div>
-
-          {/* Ticket card */}
-          <div className="mb-8 overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-slate-900/90 to-[#0e1128] shadow-2xl">
-            <div className="flex gap-4 p-5">
-              {displayPosterUrl && (
-                <img
-                  src={displayPosterUrl}
-                  alt={displayMovieTitle}
-                  className="h-24 w-16 shrink-0 rounded-xl object-cover shadow-lg ring-1 ring-white/10"
-                />
-              )}
-              <div className="flex flex-col justify-center gap-2">
-                <h2 className="text-lg font-bold text-white">
-                  {displayMovieTitle}
-                </h2>
-                <div className="space-y-1">
-                  <p className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <MapPin className="size-3 text-purple-400" />
-                    {displayCinemaName}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Clock className="size-3 text-pink-400" />
-                    {showtime} &nbsp;-&nbsp; {bookingDateLabel}
-                  </p>
-                  <p className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Film className="size-3 text-cyan-400" />
-                    {displayHallName}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Perforation divider */}
-            <div className="relative flex items-center">
-              <div className="h-px flex-1 border-t border-dashed border-white/10" />
-              <div className="absolute -left-3 h-6 w-6 rounded-full bg-[#07091a]" />
-              <div className="absolute -right-3 h-6 w-6 rounded-full bg-[#07091a]" />
-            </div>
-            <div className="grid gap-4 p-5 sm:grid-cols-2">
-              <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
-                  Seat
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {seats.map((s) => (
-                    <span
-                      key={s.id}
-                      className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold ring-1 ${SEAT_CHIP[s.type]}`}
-                    >
-                      {SEAT_ICON[s.type]}
-                      {s.id}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
-                  Guest
-                </p>
-                <p className="text-sm font-semibold text-white">
-                  {getValues('fullName') || 'Nguyen Van A'}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {getValues('email') || 'example@email.com'}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {getValues('phone') || '0901 234 567'}
-                </p>
-              </div>
-              <div className="sm:col-span-2">
-                <div className="flex items-center justify-between rounded-xl bg-white/[0.04] px-4 py-2.5">
-                  <span className="text-sm font-semibold text-white">Total paid</span>
-                  <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text font-bold text-transparent">
-                    {vnd(total)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              size="lg"
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 font-semibold hover:from-purple-500 hover:to-pink-500 shadow-lg shadow-purple-900/30"
-            >
-              <Download className="mr-2 size-5" />
-              Download e-ticket
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate(moviePaths.home())}
-              className="flex-1 border-white/10 text-white hover:bg-white/[0.06]"
-            >
-              <Home className="mr-2 size-5" />
-              Back to homepage
-            </Button>
-          </div>
-
-          <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-xs text-gray-600">
-            <ShieldCheck className="size-3.5 text-emerald-600" />
-            Giao dich duoc bao mat boi ABCD Cinema
-          </p>
-        </main>
-      </div>
-    );
-  }
   // LOADING SCREEN
   if (stage === 'loading') {
     return (
@@ -725,8 +530,8 @@ export function CheckoutPage() {
           <Loader2 className="absolute inset-0 m-auto size-10 animate-spin text-purple-500" />
         </div>
         <div className="text-center">
-          <p className="text-lg font-semibold text-white">Processing your booking...</p>
-          <p className="mt-1 text-sm text-gray-500">Please do not close your browser</p>
+          <p className="text-lg font-semibold text-white">Redirecting to Stripe secure checkout...</p>
+          <p className="mt-1 text-sm text-gray-500">Please do not close your browser while we create the checkout session</p>
         </div>
         <div className="h-1 w-48 overflow-hidden rounded-full bg-gray-800">
           <div className="animate-loading-bar h-full rounded-full bg-gradient-to-r from-purple-600 to-pink-600" />
@@ -894,11 +699,18 @@ export function CheckoutPage() {
                     <button
                       key={pm.id}
                       type="button"
-                      onClick={() => setPaymentMethod(pm.id)}
+                      onClick={() => {
+                        if (!pm.disabled) {
+                          setPaymentMethod(pm.id);
+                        }
+                      }}
+                      disabled={pm.disabled}
                       className={`relative flex items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200 focus:outline-none ${
                         active
                           ? `${pm.bg} border-transparent ring-1 ${pm.ring} shadow-md`
-                          : 'border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
+                          : pm.disabled
+                            ? 'cursor-not-allowed border-white/[0.05] bg-white/[0.01] opacity-60'
+                            : 'border-white/[0.07] bg-white/[0.02] hover:border-white/[0.14] hover:bg-white/[0.04]'
                       }`}
                     >
                       {/* Icon */}
@@ -919,6 +731,11 @@ export function CheckoutPage() {
                           {pm.label}
                         </p>
                         <p className="text-xs text-gray-500">{pm.sub}</p>
+                        {pm.badge ? (
+                          <span className="mt-2 inline-flex rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400">
+                            {pm.badge}
+                          </span>
+                        ) : null}
                       </div>
                       {/* Active radio dot */}
                       <div
@@ -937,7 +754,7 @@ export function CheckoutPage() {
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/[0.02] px-3 py-2.5">
                 <ShieldCheck className="size-4 shrink-0 text-emerald-500" />
                 <p className="text-xs text-gray-500">
-                  Payment information is protected with 256-bit SSL encryption. ABCD Cinema does not store your card details.
+                  Stripe Checkout is active in this build. Card details are collected on Stripe and confirmed later by webhook on the backend.
                 </p>
               </div>
 
@@ -1011,7 +828,7 @@ export function CheckoutPage() {
               className="bg-gradient-to-r from-purple-600 to-pink-600 font-semibold hover:from-purple-500 hover:to-pink-500 shadow-lg shadow-purple-900/30 sm:min-w-[220px]"
             >
               <Ticket className="mr-2 size-5" />
-              Confirm booking
+              Pay with Stripe
               <ChevronRight className="ml-2 size-4" />
             </Button>
           </div>
@@ -1193,7 +1010,7 @@ export function CheckoutPage() {
             form="checkout-form"
             className="shrink-0 bg-gradient-to-r from-purple-600 to-pink-600 font-semibold hover:from-purple-500 hover:to-pink-500 shadow-lg shadow-purple-900/30"
           >
-            Confirm
+            Pay now
             <ChevronRight className="ml-1.5 size-4" />
           </Button>
         </div>

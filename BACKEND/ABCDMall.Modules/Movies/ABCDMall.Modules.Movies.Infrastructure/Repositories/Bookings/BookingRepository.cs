@@ -36,6 +36,16 @@ public sealed class BookingRepository : IBookingRepository
             .FirstOrDefaultAsync(x => x.BookingHoldId == holdId, cancellationToken);
     }
 
+    public Task<Bookingg?> GetByIdAsync(
+        Guid bookingId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Bookings
+            .AsNoTracking()
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == bookingId, cancellationToken);
+    }
+
     public Task<Bookingg?> GetByCodeAsync(
         string bookingCode,
         CancellationToken cancellationToken = default)

@@ -370,6 +370,34 @@ interface PaymentResponseDto {
   completedAtUtc?: string | null;
 }
 
+interface BookingDetailResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId?: string | null;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+  serviceFee: number;
+  discountAmount: number;
+  grandTotal: number;
+  currency: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+interface StripeCheckoutSessionResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  holdId?: string | null;
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
+}
+
 interface MovieFeedbackResponseDto {
   id: string;
   movieId: string;
@@ -422,6 +450,34 @@ export interface BookingModel {
   grandTotal: number;
   currency: string;
   paymentRequired: boolean;
+}
+
+export interface BookingDetailModel {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId?: string | null;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+  serviceFee: number;
+  discountAmount: number;
+  grandTotal: number;
+  currency: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+export interface StripeCheckoutSessionModel {
+  bookingId: string;
+  bookingCode: string;
+  holdId?: string | null;
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
 }
 
 export interface ApplyPaymentResultPayload {
@@ -1015,6 +1071,45 @@ export async function createBooking(payload: CreateBookingPayload) {
     currency: response.currency,
     paymentRequired: response.paymentRequired,
   } satisfies BookingModel;
+}
+
+export async function fetchBookingDetail(bookingCode: string) {
+  const response = await api.get<BookingDetailResponseDto>(`/bookings/${bookingCode}`);
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    showtimeId: response.showtimeId,
+    holdId: response.holdId ?? undefined,
+    status: response.status,
+    customerName: response.customerName,
+    customerEmail: response.customerEmail,
+    customerPhoneNumber: response.customerPhoneNumber,
+    seatSubtotal: response.seatSubtotal,
+    comboSubtotal: response.comboSubtotal,
+    serviceFee: response.serviceFee,
+    discountAmount: response.discountAmount,
+    grandTotal: response.grandTotal,
+    currency: response.currency,
+    createdAtUtc: response.createdAtUtc,
+    updatedAtUtc: response.updatedAtUtc,
+  } satisfies BookingDetailModel;
+}
+
+export async function createStripeCheckoutSession(bookingId: string) {
+  const response = await api.post<StripeCheckoutSessionResponseDto, { bookingId: string }>(
+    "/payments/checkout-session/stripe",
+    { bookingId },
+  );
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    holdId: response.holdId ?? undefined,
+    sessionId: response.sessionId,
+    checkoutUrl: response.checkoutUrl,
+    expiresAtUtc: response.expiresAtUtc,
+  } satisfies StripeCheckoutSessionModel;
 }
 
 export async function applyPaymentResult(bookingId: string, payload: ApplyPaymentResultPayload) {
