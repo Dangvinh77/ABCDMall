@@ -45,6 +45,13 @@ const initialMonthlyBillForm = {
   waterUsage: "",
 };
 
+const RENTAL_AREA_PAGE_SIZE = 10;
+
+const getFloorLabel = (floor) => {
+  const value = String(floor || "").trim();
+  return value.toLowerCase().includes("floor") ? value : `Floor ${value}`;
+};
+
 export default function RentalAreasAdmin() {
   const role = localStorage.getItem("role") || "Guest";
   const isAdmin = role === "Admin";
@@ -62,6 +69,8 @@ export default function RentalAreasAdmin() {
   const [contractFile, setContractFile] = useState(null);
   const [checkingCccd, setCheckingCccd] = useState(false);
   const [monthlyBillForm, setMonthlyBillForm] = useState(initialMonthlyBillForm);
+  const [floorFilter, setFloorFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadRentalAreas = async () => {
     try {
@@ -97,6 +106,11 @@ export default function RentalAreasAdmin() {
 
   const handleMonthlyBillFormChange = (field, value) => {
     setMonthlyBillForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFloorFilterChange = (value) => {
+    setFloorFilter(value);
+    setCurrentPage(1);
   };
 
   const handleAddArea = async () => {
@@ -311,6 +325,18 @@ export default function RentalAreasAdmin() {
 
   const rentedCount = rentalAreas.filter((area) => area.status === "Rented").length;
   const availableCount = rentalAreas.filter((area) => area.status === "Available").length;
+  const floorOptions = Array.from(
+    new Set(rentalAreas.map((area) => String(area.floor || "").trim()).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+  const filteredRentalAreas = floorFilter === "all"
+    ? rentalAreas
+    : rentalAreas.filter((area) => String(area.floor || "").trim() === floorFilter);
+  const totalPages = Math.max(1, Math.ceil(filteredRentalAreas.length / RENTAL_AREA_PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * RENTAL_AREA_PAGE_SIZE;
+  const paginatedRentalAreas = filteredRentalAreas.slice(startIndex, startIndex + RENTAL_AREA_PAGE_SIZE);
+  const showingStart = filteredRentalAreas.length === 0 ? 0 : startIndex + 1;
+  const showingEnd = Math.min(startIndex + RENTAL_AREA_PAGE_SIZE, filteredRentalAreas.length);
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] text-slate-900">
@@ -380,8 +406,30 @@ export default function RentalAreasAdmin() {
 
           <section className="overflow-hidden rounded-[30px] border border-slate-200 bg-white/90 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur-xl">
             <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Admin View</p>
-              <h2 className="mt-2 text-2xl font-black text-slate-950">Rental Area List</h2>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Admin View</p>
+                  <h2 className="mt-2 text-2xl font-black text-slate-950">Rental Area List</h2>
+                </div>
+
+                <div className="w-full lg:w-56">
+                  <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Filter by floor
+                  </label>
+                  <select
+                    value={floorFilter}
+                    onChange={(e) => handleFloorFilterChange(e.target.value)}
+                    className="w-full rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                  >
+                    <option value="all">All Floors</option>
+                    {floorOptions.map((floor) => (
+                      <option key={floor} value={floor}>
+                        {getFloorLabel(floor)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             {loading ? (
@@ -389,58 +437,100 @@ export default function RentalAreasAdmin() {
             ) : loadError ? (
               <div className="px-6 py-8 text-sm font-medium text-rose-600">{loadError}</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1080px] table-fixed border-collapse text-left">
-                  <colgroup>
-                    <col className="w-[12%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[14%]" />
-                    <col className="w-[12%]" />
-                    <col className="w-[16%]" />
-                    <col className="w-[8%]" />
-                  </colgroup>
-                  <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3">Area Code</th>
-                      <th className="px-4 py-3">Floor</th>
-                      <th className="px-4 py-3">Area Name</th>
-                      <th className="px-4 py-3">Size</th>
-                      <th className="px-4 py-3">Monthly Rent</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Tenant</th>
-                      <th className="px-4 py-3">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                    {rentalAreas.map((area) => {
-                      const isRented = area.status === "Rented";
-
-                      return (
-                        <tr key={area.id} className="align-top transition hover:bg-amber-50/60">
-                          <td className="px-4 py-4 font-semibold text-slate-950">{area.areaCode}</td>
-                          <td className="px-4 py-4">{area.floor}</td>
-                          <td className="px-4 py-4">{area.areaName}</td>
-                          <td className="px-4 py-4">{area.size}</td>
-                          <td className="px-4 py-4">{formatCurrency(area.monthlyRent)}</td>
-                          <td className="px-4 py-4">
-                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isRented ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                              {area.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4">{area.tenantName || "-"}</td>
-                          <td className="px-4 py-4">
-                            <button type="button" onClick={() => openViewModal(area)} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5">
-                              View
-                            </button>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1080px] table-fixed border-collapse text-left">
+                    <colgroup>
+                      <col className="w-[12%]" />
+                      <col className="w-[8%]" />
+                      <col className="w-[20%]" />
+                      <col className="w-[10%]" />
+                      <col className="w-[14%]" />
+                      <col className="w-[12%]" />
+                      <col className="w-[16%]" />
+                      <col className="w-[8%]" />
+                    </colgroup>
+                    <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3">Area Code</th>
+                        <th className="px-4 py-3">Floor</th>
+                        <th className="px-4 py-3">Area Name</th>
+                        <th className="px-4 py-3">Size</th>
+                        <th className="px-4 py-3">Monthly Rent</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">Tenant</th>
+                        <th className="px-4 py-3">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+                      {paginatedRentalAreas.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
+                            No rental areas found for this floor.
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                      ) : (
+                        paginatedRentalAreas.map((area) => {
+                          const isRented = area.status === "Rented";
+
+                          return (
+                            <tr key={area.id} className="align-top transition hover:bg-amber-50/60">
+                              <td className="px-4 py-4 font-semibold text-slate-950">{area.areaCode}</td>
+                              <td className="px-4 py-4">{area.floor}</td>
+                              <td className="px-4 py-4">{area.areaName}</td>
+                              <td className="px-4 py-4">{area.size}</td>
+                              <td className="px-4 py-4">{formatCurrency(area.monthlyRent)}</td>
+                              <td className="px-4 py-4">
+                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isRented ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                                  {area.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4">{area.tenantName || "-"}</td>
+                              <td className="px-4 py-4">
+                                <button type="button" onClick={() => openViewModal(area)} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5">
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <p>
+                    Showing <span className="font-bold text-slate-950">{showingStart}</span>
+                    {" - "}
+                    <span className="font-bold text-slate-950">{showingEnd}</span>
+                    {" of "}
+                    <span className="font-bold text-slate-950">{filteredRentalAreas.length}</span> rental areas
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage === 1}
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:-translate-y-0.5 hover:border-amber-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                    >
+                      Previous
+                    </button>
+                    <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700">
+                      Page {safeCurrentPage} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:-translate-y-0.5 hover:border-amber-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </section>
         </main>

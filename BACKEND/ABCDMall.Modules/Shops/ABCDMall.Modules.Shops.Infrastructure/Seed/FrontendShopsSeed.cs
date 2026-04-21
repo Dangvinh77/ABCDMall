@@ -48,7 +48,8 @@ public static class FrontendShopsSeed
             }
 
             shop.Products.Clear();
-            foreach (var product in seed.Products)
+            var products = seed.Products.Length > 0 ? seed.Products : GetDefaultFeaturedProducts(seed);
+            foreach (var product in products)
             {
                 shop.Products.Add(new ShopProduct
                 {
@@ -173,6 +174,168 @@ public static class FrontendShopsSeed
         // Cuối cùng lưu lại toàn bộ xuống DB
         await db.SaveChangesAsync(ct);
     }
+
+    private static ProductSeed[] GetDefaultFeaturedProducts(ShopSeed seed)
+        => seed.Slug switch
+        {
+            "chuk" =>
+            [
+                Product(seed, 1, "Chuk Chuk Milk Tea", "https://product.hstatic.net/200000459373/product/tra-sua-tran-chau_9e6a7f6047f84413a2a12e875e4c7902_master.jpg", 45000m),
+                Product(seed, 2, "Chuk Chuk Fruit Tea", "https://product.hstatic.net/200000459373/product/tra-trai-cay_061b998a73674473bd7ec7d0c0e6132b_master.jpg", 49000m),
+                Product(seed, 3, "Chuk Chuk Coffee Combo", "https://product.hstatic.net/200000459373/product/ca-phe-sua-da_2e3b2a0d96534760bdb7d7fdc625c9e8_master.jpg", 39000m, 55000m, 29)
+            ],
+            "loc-phuc" =>
+            [
+                Product(seed, 1, "Gold Ring 24K", "https://cdn.pnj.io/images/detailed/191/gnxmxmw060903-nhan-vang-24k-pnj-1.png", 5200000m),
+                Product(seed, 2, "Pearl Earrings", "https://cdn.pnj.io/images/detailed/181/gbxmxmy000617-bong-tai-vang-18k-dinh-ngoc-trai-pnj.png", 6800000m),
+                Product(seed, 3, "Silver Bracelet", "https://cdn.pnj.io/images/detailed/177/glxmxmw000183-lac-tay-bac-dinh-da-pnjsilver.png", 890000m, 1200000m, 26)
+            ],
+            "dong-hai" =>
+            [
+                Product(seed, 1, "Leather Oxford Shoes", "https://product.hstatic.net/1000230642/product/gia_-y_ta_y_nam_da_that_dong_hai_g2515_den_1_7d77d55f340f48d6a26c51979dd3c844_master.jpg", 1890000m),
+                Product(seed, 2, "Women Block Heels", "https://product.hstatic.net/1000230642/product/giay_cao_got_nu_dong_hai_g8171_den_1_2710f1763de947ec8895ccfe9dcf2f46_master.jpg", 1290000m),
+                Product(seed, 3, "Leather Sandals", "https://product.hstatic.net/1000230642/product/sandal_nam_dong_hai_s1654_nau_1_c68c1393df064a62b8e7bbfcd8ce0367_master.jpg", 790000m, 1090000m, 28)
+            ],
+            "the-gioi-kim-cuong" =>
+            [
+                Product(seed, 1, "Diamond Solitaire Ring", "https://cdn.pnj.io/images/detailed/189/gnddddw004543-nhan-kim-cuong-vang-14k-pnj.png", 18500000m),
+                Product(seed, 2, "Diamond Pendant Necklace", "https://cdn.pnj.io/images/detailed/180/gmdxddw000375-mat-day-chuyen-kim-cuong-vang-14k-pnj.png", 22500000m),
+                Product(seed, 3, "Diamond Stud Earrings", "https://cdn.pnj.io/images/detailed/181/gbdd00w000011-bong-tai-kim-cuong-vang-14k-pnj.png", 12900000m, 15000000m, 14)
+            ],
+            "starbucks" =>
+            [
+                Product(seed, 1, "Caramel Macchiato", "https://globalassets.starbucks.com/digitalassets/products/bev/CaramelMacchiato.jpg", 95000m),
+                Product(seed, 2, "Caffe Latte", "https://globalassets.starbucks.com/digitalassets/products/bev/CaffeLatte.jpg", 85000m),
+                Product(seed, 3, "Mocha Frappuccino", "https://globalassets.starbucks.com/digitalassets/products/bev/MochaFrappuccino.jpg", 89000m, 109000m, 18)
+            ],
+            "highlands-coffee" =>
+            [
+                Product(seed, 1, "Phin Sua Da", "https://www.highlandscoffee.com.vn/vnt_upload/product/03_2018/PHIN_SUA_DA.png", 45000m),
+                Product(seed, 2, "Freeze Tra Xanh", "https://www.highlandscoffee.com.vn/vnt_upload/product/04_2023/FREEZE_TRA_XANH.png", 65000m),
+                Product(seed, 3, "Banh Mi Combo", "https://www.highlandscoffee.com.vn/vnt_upload/product/03_2018/BANH_MI_THIT_NUONG.png", 59000m, 79000m, 25)
+            ],
+            "public-bank" =>
+            [
+                Product(seed, 1, "Debit Card Service", "https://www.publicbank.com.vn/images/default-source/default-album/cards.jpg", 50000m),
+                Product(seed, 2, "Savings Account Package", "https://www.publicbank.com.vn/images/default-source/default-album/deposit.jpg", 100000m),
+                Product(seed, 3, "Online Banking Package", "https://www.publicbank.com.vn/images/default-source/default-album/pbebank.jpg", 80000m, 120000m, 33)
+            ],
+            "ecco" =>
+            [
+                Product(seed, 1, "ECCO Soft 7 Sneaker", "https://media.ecco.com/media/catalog/product/cache/2/image/1200x/9df78eab33525d08d6e5fb8d27136e95/4/3/43000301001_1.jpg", 4200000m),
+                Product(seed, 2, "ECCO Biom C4 Golf", "https://media.ecco.com/media/catalog/product/cache/2/image/1200x/9df78eab33525d08d6e5fb8d27136e95/1/3/13040401007_1.jpg", 6200000m),
+                Product(seed, 3, "ECCO Leather Belt", "https://media.ecco.com/media/catalog/product/cache/2/image/1200x/9df78eab33525d08d6e5fb8d27136e95/9/1/910577290000_1.jpg", 1590000m, 1990000m, 20)
+            ],
+            "futureworld" =>
+            [
+                Product(seed, 1, "iPhone 15 Pro", "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-naturaltitanium-select?wid=940&hei=1112&fmt=png-alpha&.v=1692846357018", 28990000m),
+                Product(seed, 2, "MacBook Air 13 M3", "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-m3-midnight-gallery1-202402?wid=4000&hei=3072&fmt=jpeg&qlt=90&.v=1707416810559", 27990000m),
+                Product(seed, 3, "AirPods Pro 2", "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MQD83?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1660803972361", 5490000m, 6190000m, 11)
+            ],
+            "aldo" =>
+            [
+                Product(seed, 1, "Aldo Leather Loafers", "https://media.maisononline.vn/sys_master/images/h1a/h37/9239847108638/ALDO-MENS-LOAFERS-BLACK-01.jpg", 2590000m),
+                Product(seed, 2, "Aldo Crossbody Bag", "https://media.maisononline.vn/sys_master/images/hbf/h10/9239846322206/ALDO-BAGS-BLACK-01.jpg", 1890000m),
+                Product(seed, 3, "Aldo High Heels", "https://media.maisononline.vn/sys_master/images/h78/hc2/9239846125598/ALDO-WOMENS-HEELS-BEIGE-01.jpg", 1390000m, 1990000m, 30)
+            ],
+            "vascara" =>
+            [
+                Product(seed, 1, "Vascara Tote Bag", "https://product.hstatic.net/1000003969/product/tui_xach_tote_satchel_tot_0088_mau_den__1__2f3d2e67d7a34fc69979ed3f47d2c2db_master.jpg", 895000m),
+                Product(seed, 2, "Vascara High Heels", "https://product.hstatic.net/1000003969/product/giay_cao_got_bmn_0523_mau_den__1__fbe38a3b1aa74a0185703ef4ecf76eb7_master.jpg", 745000m),
+                Product(seed, 3, "Vascara Wallet", "https://product.hstatic.net/1000003969/product/vi_cam_tay_wal_0230_mau_be__1__1b2a2034ecdc49e1a6dc7a865c52788d_master.jpg", 395000m, 495000m, 20)
+            ],
+            "mujosh" =>
+            [
+                Product(seed, 1, "Mujosh Optical Frame", "https://product.hstatic.net/200000456445/product/mujosh_frame_black_1_8de5f0e94505408ca356a17ef1dcfd11_master.jpg", 1290000m),
+                Product(seed, 2, "Mujosh Sunglasses", "https://product.hstatic.net/200000456445/product/mujosh_sunglasses_1_4da2e88e85c742e38d7b8a4dcf71239a_master.jpg", 1590000m),
+                Product(seed, 3, "Mujosh Blue Light Glasses", "https://product.hstatic.net/200000456445/product/mujosh_bluelight_1_ea760f0fd38c4a0aa82f67d064e6cf31_master.jpg", 890000m, 1190000m, 25)
+            ],
+            "chagee" =>
+            [
+                Product(seed, 1, "Da Hong Pao Milk Tea", "https://chagee.com.my/wp-content/uploads/2023/12/Da-Hong-Pao-Milk-Tea.png", 65000m),
+                Product(seed, 2, "Jasmine Green Milk Tea", "https://chagee.com.my/wp-content/uploads/2023/12/Jasmine-Green-Milk-Tea.png", 65000m),
+                Product(seed, 3, "Peach Oolong Tea", "https://chagee.com.my/wp-content/uploads/2023/12/Peach-Oolong-Tea.png", 55000m, 69000m, 20)
+            ],
+            "elise" =>
+            [
+                Product(seed, 1, "Elise Office Dress", "https://product.hstatic.net/200000000133/product/dam_cong_so_elise_1_06e37cc8fc7f47939634243f59cc36f3_master.jpg", 1498000m),
+                Product(seed, 2, "Elise Blazer", "https://product.hstatic.net/200000000133/product/ao_blazer_elise_1_ee840d4945d246969d9e3435a53aebf6_master.jpg", 1798000m),
+                Product(seed, 3, "Elise Pleated Skirt", "https://product.hstatic.net/200000000133/product/chan_vay_elise_1_46b8e17df71842e0a93200abf0f3bb59_master.jpg", 799000m, 1098000m, 27)
+            ],
+            "trung-nguyen" =>
+            [
+                Product(seed, 1, "G7 3in1 Instant Coffee", "https://trungnguyenlegend.com/wp-content/uploads/2021/10/G7-3in1.png", 89000m),
+                Product(seed, 2, "Legend Classic Coffee", "https://trungnguyenlegend.com/wp-content/uploads/2021/10/Legend-Classic.png", 159000m),
+                Product(seed, 3, "Creative 5 Ground Coffee", "https://trungnguyenlegend.com/wp-content/uploads/2021/10/Sang-Tao-5.png", 119000m, 149000m, 20)
+            ],
+            "balabala" =>
+            [
+                Product(seed, 1, "Balabala Kids Hoodie", "https://cdn.shopify.com/s/files/1/0566/0839/1368/products/kids-hoodie.jpg", 699000m),
+                Product(seed, 2, "Balabala Girls Dress", "https://cdn.shopify.com/s/files/1/0566/0839/1368/products/girls-dress.jpg", 799000m),
+                Product(seed, 3, "Balabala Kids T-Shirt", "https://cdn.shopify.com/s/files/1/0566/0839/1368/products/kids-tshirt.jpg", 299000m, 399000m, 25)
+            ],
+            "baa-baby" =>
+            [
+                Product(seed, 1, "Baby Cotton Bodysuit", "https://product.hstatic.net/1000288768/product/body_so_sinh_1_b0d71c7f22a44fb093e8889ea2dfc963_master.jpg", 249000m),
+                Product(seed, 2, "Baby Gift Set", "https://product.hstatic.net/1000288768/product/set_qua_tang_so_sinh_1_249d2e1cf34449f9a14f6c6aee0e0f1b_master.jpg", 699000m),
+                Product(seed, 3, "Baby Blanket", "https://product.hstatic.net/1000288768/product/khan_chan_so_sinh_1_f47eaeeb35b64f389647196a88f8f87d_master.jpg", 349000m, 449000m, 22)
+            ],
+            "mochi-sweet" =>
+            [
+                Product(seed, 1, "Strawberry Mochi", "https://product.hstatic.net/200000420363/product/strawberry_mochi_1_518af4c3750446b7bf1ed9fb2ef66dcf_master.jpg", 39000m),
+                Product(seed, 2, "Matcha Mochi Box", "https://product.hstatic.net/200000420363/product/matcha_mochi_1_3fdb9fa5ad0e4f90968d821f438ce57f_master.jpg", 159000m),
+                Product(seed, 3, "Assorted Mochi Set", "https://product.hstatic.net/200000420363/product/assorted_mochi_1_f5042d3c9b194a0494b34306c2a4453f_master.jpg", 199000m, 249000m, 20)
+            ],
+            "ila" =>
+            [
+                Product(seed, 1, "English for Kids Course", "https://ila.edu.vn/wp-content/uploads/2023/08/ila-jumpstart.jpg", 3900000m),
+                Product(seed, 2, "IELTS Foundation Course", "https://ila.edu.vn/wp-content/uploads/2023/08/ila-ielts.jpg", 6900000m),
+                Product(seed, 3, "Trial Class Package", "https://ila.edu.vn/wp-content/uploads/2023/08/ila-smart-teens.jpg", 990000m, 1500000m, 34)
+            ],
+            "vitimex" =>
+            [
+                Product(seed, 1, "Vitimex Polo Shirt", "https://product.hstatic.net/1000284478/product/ao_polo_nam_1_1ee998cb336c466b9a2c8a1f894ec5d9_master.jpg", 459000m),
+                Product(seed, 2, "Vitimex Casual Pants", "https://product.hstatic.net/1000284478/product/quan_kaki_nam_1_9c629f8803fc4a7bb09707d7585f25bf_master.jpg", 599000m),
+                Product(seed, 3, "Vitimex Basic Tee", "https://product.hstatic.net/1000284478/product/ao_thun_nam_1_786e51cb39a6424c9b78e8d457c9cb08_master.jpg", 249000m, 349000m, 29)
+            ],
+            "belluni" =>
+            [
+                Product(seed, 1, "Belluni Oxford Shirt", "https://product.hstatic.net/1000284478/product/ao_so_mi_nam_belluni_1_160393e144b144cd85a52effccbc70ea_master.jpg", 790000m),
+                Product(seed, 2, "Belluni Chino Pants", "https://product.hstatic.net/1000284478/product/quan_tay_nam_belluni_1_0b1f3d4a59dc436fb7e7d5f527e7b327_master.jpg", 890000m),
+                Product(seed, 3, "Belluni Polo Shirt", "https://product.hstatic.net/1000284478/product/ao_polo_nam_belluni_1_d36e6cf4d4844a0597a2044b403e3c02_master.jpg", 490000m, 690000m, 29)
+            ],
+            "v-sixty-four" =>
+            [
+                Product(seed, 1, "V-Sixty Four Shirt", "https://product.hstatic.net/1000344185/product/ao_so_mi_v64_1_2e83fdb023a54272a7e8d582d4f74b26_master.jpg", 599000m),
+                Product(seed, 2, "V-Sixty Four Jeans", "https://product.hstatic.net/1000344185/product/quan_jean_v64_1_d65f470349864706b43ea23ef7ed08f8_master.jpg", 799000m),
+                Product(seed, 3, "V-Sixty Four T-Shirt", "https://product.hstatic.net/1000344185/product/ao_thun_v64_1_9330c7c97b124ed18f898aa9e6b1d717_master.jpg", 299000m, 399000m, 25)
+            ],
+            "insidemen" =>
+            [
+                Product(seed, 1, "Insidemen Linen Shirt", "https://product.hstatic.net/1000360022/product/ao_so_mi_linen_1_5a78cbff09bc430a9f7e292a417c5922_master.jpg", 690000m),
+                Product(seed, 2, "Insidemen Slim Trousers", "https://product.hstatic.net/1000360022/product/quan_tay_nam_1_2a7a3547d15a40d6a12b93a7198de55e_master.jpg", 790000m),
+                Product(seed, 3, "Insidemen Basic Polo", "https://product.hstatic.net/1000360022/product/ao_polo_nam_1_7632f4d347b845c2b3c841780ff6bf36_master.jpg", 390000m, 520000m, 25)
+            ],
+            _ => []
+        };
+
+    private static ProductSeed Product(
+        ShopSeed seed,
+        int index,
+        string name,
+        string imageUrl,
+        decimal price,
+        decimal? oldPrice = null,
+        int? discountPercent = null)
+        => new(
+            $"{seed.Id}-product-{index}",
+            name,
+            imageUrl,
+            price,
+            oldPrice,
+            discountPercent,
+            IsFeatured: index <= 2,
+            IsDiscounted: oldPrice.HasValue);
 
     private static string NormalizeToken(string value)
         => value
@@ -721,6 +884,420 @@ public static class FrontendShopsSeed
                 new("shop-lego-product-2", "Creator Orchid", "https://product.hstatic.net/1000287106/product/10311_1_25b04c868eb34421b9cfca784578b871_master.jpg", 1699000m, null, null, true, false),
                 new("shop-lego-product-3", "City Prisoner Transport", "https://product.hstatic.net/1000287106/product/60312_1_c8b417e3f84f494fb2a3c75d3121d5a7_master.jpg", 599000m, 759000m, 21, false, true)
             ],
+            []
+        ),
+        new(
+            "shop-chuk",
+            "Chuk",
+            "chuk",
+            "Food & Beverage",
+            "Floor 1",
+            "1-03",
+            "Chuk serves quick drinks and light bites for shoppers on the first floor.",
+            "Chuk is a compact beverage stop inside ABCD Mall, designed for fast takeaway orders and casual breaks between shopping visits.",
+            "/img/Chuk chuk/logo.jpg",
+            "/img/Chuk chuk/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Food & Beverage", "Floor 1", "Drinks"],
+            [],
+            []
+        ),
+        new(
+            "shop-loc-phuc",
+            "Loc Phuc",
+            "loc-phuc",
+            "Jewelry",
+            "Floor 1",
+            "1-26",
+            "Fine jewelry and gifting pieces near the premium retail zone.",
+            "Loc Phuc offers jewelry, watches, and gift-ready accessories for shoppers looking for elegant pieces and milestone presents.",
+            "/img/locphuc/logo.png",
+            "/img/locphuc/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Jewelry", "Floor 1", "Premium"],
+            [],
+            []
+        ),
+        new(
+            "shop-dong-hai",
+            "Dong Hai",
+            "dong-hai",
+            "Footwear",
+            "Floor 1",
+            "1-23",
+            "Vietnamese footwear with office, casual, and formal styles.",
+            "Dong Hai brings leather shoes, sandals, and daily footwear collections for shoppers who need polished and reliable styles.",
+            "/img/DongHai/logo.webp",
+            "/img/DongHai/logo.webp",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Footwear", "Floor 1", "Leather"],
+            [],
+            []
+        ),
+        new(
+            "shop-the-gioi-kim-cuong",
+            "The Gioi Kim Cuong",
+            "the-gioi-kim-cuong",
+            "Jewelry",
+            "Floor 1",
+            "K1-04",
+            "Diamond jewelry and premium gifting in a compact counter format.",
+            "The Gioi Kim Cuong focuses on diamond rings, earrings, and fine jewelry consultation for special occasions.",
+            "/img/Thế Giới Kim Cương/logo.jpg",
+            "/img/Thế Giới Kim Cương/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Jewelry", "Floor 1", "Diamonds"],
+            [],
+            []
+        ),
+        new(
+            "shop-starbucks",
+            "Starbucks Coffee",
+            "starbucks",
+            "Cafe",
+            "Floor 1",
+            "1-09A",
+            "Global coffeehouse serving handcrafted drinks and quick snacks.",
+            "Starbucks Coffee offers espresso drinks, seasonal beverages, pastries, and a comfortable stop for shoppers inside ABCD Mall.",
+            "/img/starbuck/logo.png",
+            "/img/starbuck/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Cafe", "Floor 1", "Coffee"],
+            [],
+            []
+        ),
+        new(
+            "shop-highlands-coffee",
+            "Highlands Coffee",
+            "highlands-coffee",
+            "Cafe",
+            "Floor 1",
+            "1-03A",
+            "Vietnamese coffee favorites and quick refreshments.",
+            "Highlands Coffee serves signature phin coffee, freeze drinks, teas, and light snacks for shoppers looking for a familiar local cafe stop.",
+            "/img/2lands/logo.png",
+            "/img/2lands/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Cafe", "Floor 1", "Coffee"],
+            [],
+            []
+        ),
+        new(
+            "shop-public-bank",
+            "Public Bank",
+            "public-bank",
+            "Banking",
+            "Floor 1",
+            "1-10",
+            "Banking support and financial services for mall visitors.",
+            "Public Bank provides convenient in-mall banking services for customers and tenants who need quick financial assistance.",
+            "/img/public bank/logo.png",
+            "/img/public bank/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Banking", "Floor 1", "Services"],
+            [],
+            []
+        ),
+        new(
+            "shop-ecco",
+            "Ecco",
+            "ecco",
+            "Footwear",
+            "Floor 1",
+            "1-08A",
+            "Comfort-focused shoes and leather goods for everyday wear.",
+            "Ecco offers premium footwear and accessories with a focus on durable materials, comfort, and clean Scandinavian styling.",
+            "/img/ecco/logo.png",
+            "/img/ecco/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Footwear", "Floor 1", "Leather"],
+            [],
+            []
+        ),
+        new(
+            "shop-futureworld",
+            "Futureworld",
+            "futureworld",
+            "Technology",
+            "Floor 1",
+            "1-08B",
+            "Apple-focused technology retail and accessories.",
+            "Futureworld brings premium devices, accessories, and consultation for shoppers looking for technology products inside the mall.",
+            "/img/futureword/logo.jpg",
+            "/img/futureword/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Technology", "Floor 1", "Devices"],
+            [],
+            []
+        ),
+        new(
+            "shop-aldo",
+            "Aldo",
+            "aldo",
+            "Footwear & Accessories",
+            "Floor 1",
+            "1-03B",
+            "Fashion footwear, bags, and accessories for modern shoppers.",
+            "Aldo offers trend-led shoes, handbags, and accessories across formal, casual, and occasion-focused collections.",
+            "/img/aldo/logo.jpg",
+            "/img/aldo/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Footwear", "Floor 1", "Accessories"],
+            [],
+            []
+        ),
+        new(
+            "shop-vascara",
+            "Vascara",
+            "vascara",
+            "Bags & Accessories",
+            "Floor 1",
+            "1-05",
+            "Women's shoes, handbags, and fashion accessories.",
+            "Vascara provides handbags, heels, sandals, and accessories with accessible pricing and seasonal collections.",
+            "/img/vascara/logo.png",
+            "/img/vascara/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Accessories", "Floor 1", "Women"],
+            [],
+            []
+        ),
+        new(
+            "shop-mujosh",
+            "Mujosh",
+            "mujosh",
+            "Eyewear",
+            "Floor 1",
+            "1-09B",
+            "Fashion eyewear, optical frames, and sunglasses.",
+            "Mujosh offers stylish optical frames and sunglasses for shoppers seeking expressive eyewear and eye-care accessories.",
+            "/img/mujosh/logo.jpg",
+            "/img/mujosh/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Eyewear", "Floor 1", "Accessories"],
+            [],
+            []
+        ),
+        new(
+            "shop-chagee",
+            "Chagee",
+            "chagee",
+            "Tea & Beverage",
+            "Floor 1",
+            "1-20",
+            "Modern tea drinks with a premium takeaway experience.",
+            "Chagee serves brewed tea drinks, milk tea, and refreshing beverages for shoppers who want a quick premium drink stop.",
+            "/img/Chagee/logo.png",
+            "/img/Chagee/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Tea", "Floor 1", "Drinks"],
+            [],
+            []
+        ),
+        new(
+            "shop-elise",
+            "Elise",
+            "elise",
+            "Fashion & Lifestyle",
+            "Floor 1",
+            "1-09",
+            "Women's fashion with polished office and occasion collections.",
+            "Elise offers dresses, workwear, and seasonal fashion pieces for shoppers looking for refined feminine styling.",
+            "/img/Elise/logo.png",
+            "/img/Elise/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Fashion", "Floor 1", "Women"],
+            [],
+            []
+        ),
+        new(
+            "shop-trung-nguyen",
+            "Trung Nguyen Coffee",
+            "trung-nguyen",
+            "Cafe",
+            "Floor 2",
+            "3-01B",
+            "Vietnamese coffee and cafe products for mall visitors.",
+            "Trung Nguyen Coffee offers roasted coffee, signature drinks, and cafe seating for shoppers exploring the bookstore and lifestyle zone.",
+            "/img/trungnguyen/logo.jpg",
+            "/img/trungnguyen/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Cafe", "Floor 2", "Coffee"],
+            [],
+            []
+        ),
+        new(
+            "shop-balabala",
+            "BalaBala",
+            "balabala",
+            "Kids Fashion",
+            "Floor 2",
+            "3-30",
+            "Children's fashion with playful everyday collections.",
+            "BalaBala provides apparel and accessories for children, focusing on comfortable fabrics and colorful seasonal designs.",
+            "/img/BalaBala/logo.jpg",
+            "/img/BalaBala/logo.jpg",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Kids", "Floor 2", "Family"],
+            [],
+            []
+        ),
+        new(
+            "shop-baa-baby",
+            "Baa Baby",
+            "baa-baby",
+            "Baby & Kids",
+            "Floor 2",
+            "K3-03",
+            "Baby products, gifts, and essentials for young families.",
+            "Baa Baby serves parents with baby essentials, children's accessories, and family-friendly gift items.",
+            "/img/Baa Baby/logo.png",
+            "/img/Baa Baby/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Baby", "Floor 2", "Family"],
+            [],
+            []
+        ),
+        new(
+            "shop-mochi-sweet",
+            "Mochi Sweet",
+            "mochi-sweet",
+            "Dessert",
+            "Floor 2",
+            "3-16",
+            "Japanese-inspired mochi desserts and sweet treats.",
+            "Mochi Sweet offers soft mochi, dessert boxes, and quick sweet treats for shoppers passing through the second floor.",
+            "/img/Mochi Sweet/logo.webp",
+            "/img/Mochi Sweet/logo.webp",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Dessert", "Floor 2", "Sweets"],
+            [],
+            []
+        ),
+        new(
+            "shop-ila",
+            "ILA",
+            "ila",
+            "Education",
+            "Floor 2",
+            "3-11",
+            "English learning and education consultation for families.",
+            "ILA provides language-learning consultation and education services for parents and students inside the mall.",
+            "/img/ILA/logo.webp",
+            "/img/ILA/logo.webp",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Education", "Floor 2", "Learning"],
+            [],
+            []
+        ),
+        new(
+            "shop-vitimex",
+            "Vitimex",
+            "vitimex",
+            "Fashion & Lifestyle",
+            "Floor 2",
+            "3-10A",
+            "Casual fashion and wardrobe essentials.",
+            "Vitimex offers practical apparel and accessories for shoppers looking for simple everyday pieces.",
+            "/img/Vitimex/logo.png",
+            "/img/Vitimex/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Fashion", "Floor 2", "Casual"],
+            [],
+            []
+        ),
+        new(
+            "shop-belluni",
+            "Belluni",
+            "belluni",
+            "Menswear",
+            "Floor 2",
+            "3-10",
+            "Menswear staples for office and daily dressing.",
+            "Belluni focuses on shirts, trousers, and smart casual items for male shoppers who prefer practical and polished outfits.",
+            "/img/Belluni/logo.png",
+            "/img/Belluni/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Menswear", "Floor 2", "Smart Casual"],
+            [],
+            []
+        ),
+        new(
+            "shop-v-sixty-four",
+            "V-Sixty Four",
+            "v-sixty-four",
+            "Fashion & Lifestyle",
+            "Floor 2",
+            "3-02",
+            "Contemporary fashion for young shoppers.",
+            "V-Sixty Four brings casual apparel and trend-led fashion pieces into the second-floor lifestyle zone.",
+            "/img/V-Sixty Four/logo.png",
+            "/img/V-Sixty Four/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Fashion", "Floor 2", "Casual"],
+            [],
+            []
+        ),
+        new(
+            "shop-insidemen",
+            "Insidemen",
+            "insidemen",
+            "Menswear",
+            "Floor 2",
+            "3-02",
+            "Modern menswear with casual and smart styling.",
+            "Insidemen offers shirts, tees, trousers, and accessories for male shoppers looking for approachable modern outfits.",
+            "/img/Insidemen/logo.png",
+            "/img/Insidemen/logo.png",
+            "09:30 - 22:00",
+            null,
+            null,
+            ["Menswear", "Floor 2", "Fashion"],
+            [],
             []
         )
 

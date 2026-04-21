@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SyntheticEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getImageUrl } from "../../../core/utils/image";
 import { getShopBySlug, getShops, type ShopDetail, type Shop } from "../api/shopApi";
@@ -9,6 +9,14 @@ function formatCurrency(value: number) {
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+function useFallbackImage(fallbackUrl: string) {
+  return (event: SyntheticEvent<HTMLImageElement>) => {
+    const fallback = getImageUrl(fallbackUrl);
+    if (!fallback || event.currentTarget.src === fallback) return;
+    event.currentTarget.src = fallback;
+  };
 }
 
 export default function ShopDetailPage() {
@@ -86,6 +94,9 @@ export default function ShopDetailPage() {
     );
   }
 
+  const fallbackImageUrl = shop.logoUrl || shop.coverImageUrl || shop.imageUrl;
+  const handleImageError = useFallbackImage(fallbackImageUrl);
+
   return (
     <main className="min-h-screen bg-mall-light pb-16">
       
@@ -145,7 +156,13 @@ export default function ShopDetailPage() {
                 {shop.products.map((product) => (
                   <article key={product.id} className="overflow-hidden rounded-[1.5rem] border border-slate-100 bg-slate-50">
                     <div className="relative h-56 overflow-hidden bg-white">
-                      <img src={getImageUrl(product.imageUrl)} alt={product.name} className="h-full w-full object-cover" />
+                      <img
+                        src={getImageUrl(product.imageUrl)}
+                        alt={product.name}
+                        className="h-full w-full object-cover"
+                        referrerPolicy="no-referrer"
+                        onError={handleImageError}
+                      />
                       {product.isFeatured && (
                         <span className="absolute left-4 top-4 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">Featured</span>
                       )}
