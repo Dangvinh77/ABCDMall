@@ -8,6 +8,9 @@ namespace ABCDMall.Modules.Users.Application.Services.Auth;
 
 public sealed class UserCommandService : IUserCommandService
 {
+    private const string AdminRole = "Admin";
+    private const string ManagerRole = "Manager";
+    private const string MoviesAdminRole = "MoviesAdmin";
     private readonly AutoMapper.IMapper _mapper;
     private readonly IUserCommandRepository _userCommandRepository;
     private readonly IEmailNotificationService _emailNotificationService;
@@ -355,11 +358,9 @@ public sealed class UserCommandService : IUserCommandService
     public async Task<ApplicationResult<UserAccountMutationResponseDto>> UpdateUserAccountAsync(string userId, UpdateUserAccountDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.FullName)
-            || string.IsNullOrWhiteSpace(dto.ShopName)
-            || string.IsNullOrWhiteSpace(dto.CCCD))
+            || string.IsNullOrWhiteSpace(dto.FullName))
         {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email, full name, shop name, and CCCD are required");
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email and full name are required");
         }
 
         var user = await _userCommandRepository.GetUserByIdAsync(userId, cancellationToken);
@@ -368,24 +369,42 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.NotFound("User does not exist");
         }
 
-        if (user.Role == "Admin")
+        if (user.Role == AdminRole)
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be updated here");
         }
 
+        var resolvedRole = NormalizeManagedRole(dto.Role, user.Role);
+        if (resolvedRole is null)
+        {
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Only Manager and MoviesAdmin roles are supported");
+        }
+
+        if (!string.Equals(resolvedRole, user.Role, StringComparison.Ordinal))
+        {
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Changing account role between Manager and MoviesAdmin is not supported here");
+        }
+
         var normalizedEmail = dto.Email.Trim();
         var normalizedFullName = dto.FullName.Trim();
-        var normalizedShopName = dto.ShopName.Trim();
         var normalizedAddress = NormalizeOptionalValue(dto.Address);
-        var normalizedCccd = dto.CCCD.Trim();
+        var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
+        var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
 
         if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), userId, cancellationToken))
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email already exists");
         }
 
-        if (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, userId, cancellationToken)
-            || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, user.ShopId, cancellationToken))
+        if (resolvedRole == ManagerRole
+            && (string.IsNullOrWhiteSpace(normalizedShopName) || string.IsNullOrWhiteSpace(normalizedCccd)))
+        {
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
+        }
+
+        if (!string.IsNullOrWhiteSpace(normalizedCccd)
+            && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, userId, cancellationToken)
+                || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, user.ShopId, cancellationToken)))
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("CCCD already exists");
         }
@@ -394,23 +413,26 @@ public sealed class UserCommandService : IUserCommandService
         user.FullName = normalizedFullName;
         user.Address = normalizedAddress;
         user.CCCD = normalizedCccd;
+        user.Role = resolvedRole;
         user.UpdatedAt = DateTime.UtcNow;
 
-        if (!string.IsNullOrWhiteSpace(user.ShopId))
+        if (resolvedRole == ManagerRole && !string.IsNullOrWhiteSpace(user.ShopId))
         {
             var shopInfo = await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken);
             if (shopInfo is not null)
             {
-                shopInfo.ShopName = normalizedShopName;
+                shopInfo.ShopName = normalizedShopName!;
                 shopInfo.ManagerName = normalizedFullName;
-                shopInfo.CCCD = normalizedCccd;
+                shopInfo.CCCD = normalizedCccd!;
             }
         }
 
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
-        var emailSent = await TrySendAsync(() =>
-            _emailNotificationService.SendManagerAccountUpdatedEmailAsync(normalizedEmail, normalizedFullName, normalizedShopName));
+        var emailSent = resolvedRole == ManagerRole
+            ? await TrySendAsync(() =>
+                _emailNotificationService.SendManagerAccountUpdatedEmailAsync(normalizedEmail, normalizedFullName, normalizedShopName!))
+            : false;
 
         return ApplicationResult<UserAccountMutationResponseDto>.Ok(new UserAccountMutationResponseDto
         {
@@ -427,7 +449,7 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.NotFound("User does not exist");
         }
 
-        if (user.Role == "Admin")
+        if (user.Role == AdminRole)
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be deleted here");
         }
@@ -436,8 +458,10 @@ public sealed class UserCommandService : IUserCommandService
             ? await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken)
             : null;
 
-        var emailSent = await TrySendAsync(() =>
-            _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName));
+        var emailSent = user.Role == ManagerRole
+            ? await TrySendAsync(() =>
+                _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName))
+            : false;
 
         await _userCommandRepository.RemoveUserRelatedDataAsync(userId, cancellationToken);
         await _userCommandRepository.RemoveUserAsync(user, cancellationToken);
@@ -507,50 +531,68 @@ public sealed class UserCommandService : IUserCommandService
     {
         if (string.IsNullOrWhiteSpace(dto.Email)
             || string.IsNullOrWhiteSpace(dto.Password)
-            || string.IsNullOrWhiteSpace(dto.FullName)
-            || string.IsNullOrWhiteSpace(dto.ShopName)
-            || string.IsNullOrWhiteSpace(dto.CCCD))
+            || string.IsNullOrWhiteSpace(dto.FullName))
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email, password, full name, shop name, and CCCD are required");
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email, password, and full name are required");
+        }
+
+        var resolvedRole = NormalizeManagedRole(dto.Role, ManagerRole);
+        if (resolvedRole is null)
+        {
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Only Manager and MoviesAdmin roles are supported");
         }
 
         var normalizedEmail = dto.Email.Trim();
-        var normalizedCccd = dto.CCCD.Trim();
+        var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
+        var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
 
         if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), null, cancellationToken))
         {
             return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email already exists");
         }
 
-        if (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
-            || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken))
+        if (resolvedRole == ManagerRole
+            && (string.IsNullOrWhiteSpace(normalizedShopName) || string.IsNullOrWhiteSpace(normalizedCccd)))
+        {
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
+        }
+
+        if (!string.IsNullOrWhiteSpace(normalizedCccd)
+            && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
+                || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken)))
         {
             return ApplicationResult<RegisterUserResponseDto>.BadRequest("CCCD already exists");
         }
 
-        var shopInfo = new ShopInfo
+        ShopInfo? shopInfo = null;
+        if (resolvedRole == ManagerRole)
         {
-            ShopName = dto.ShopName.Trim(),
-            CCCD = normalizedCccd,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
+            shopInfo = new ShopInfo
+            {
+                ShopName = normalizedShopName!,
+                CCCD = normalizedCccd!,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
+        }
 
         var user = new User
         {
             Email = normalizedEmail,
             Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FullName = dto.FullName.Trim(),
-            Role = "Manager",
-            ShopId = shopInfo.Id,
+            Role = resolvedRole,
+            ShopId = shopInfo?.Id,
             CCCD = normalizedCccd,
             CreatedAt = DateTime.UtcNow
         };
         await _userCommandRepository.AddUserAsync(user, cancellationToken);
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
-        var emailSent = await TrySendAsync(() =>
-            _emailNotificationService.SendManagerRegistrationSuccessEmailAsync(user.Email, user.FullName));
+        var emailSent = resolvedRole == ManagerRole
+            ? await TrySendAsync(() =>
+                _emailNotificationService.SendManagerRegistrationSuccessEmailAsync(user.Email, user.FullName))
+            : false;
 
         return ApplicationResult<RegisterUserResponseDto>.Ok(new RegisterUserResponseDto
         {
@@ -560,9 +602,23 @@ public sealed class UserCommandService : IUserCommandService
             Role = user.Role,
             ShopId = user.ShopId,
             CCCD = user.CCCD,
-            ShopName = shopInfo.ShopName,
+            ShopName = shopInfo?.ShopName ?? string.Empty,
             CreatedAt = user.CreatedAt
         });
+    }
+
+    private static string? NormalizeManagedRole(string? requestedRole, string fallbackRole)
+    {
+        var normalizedRole = string.IsNullOrWhiteSpace(requestedRole)
+            ? fallbackRole
+            : requestedRole.Trim();
+
+        return normalizedRole switch
+        {
+            ManagerRole => ManagerRole,
+            MoviesAdminRole => MoviesAdminRole,
+            _ => null
+        };
     }
 
     private async Task<bool> IssueLoginOtpAsync(User user, CancellationToken cancellationToken)

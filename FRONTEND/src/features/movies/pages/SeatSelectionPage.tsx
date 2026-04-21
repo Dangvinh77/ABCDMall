@@ -749,7 +749,7 @@ export function SeatSelectionPage() {
 
   return (
     <div className="min-h-screen bg-[#07091a] text-white">
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
+      <header className="relative z-40 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <button
             onClick={() => navigate(`${moviePaths.detail(movieId ?? '')}?${new URLSearchParams({ ...(promoId ? { promo: promoId } : {}), date: bookingDate }).toString()}`)}
@@ -1021,7 +1021,7 @@ export function SeatSelectionPage() {
             </div>
           </div>
         </div>
-        <div className="mt-4 shrink-0 lg:mt-0 lg:w-[320px] xl:w-[360px] lg:sticky lg:top-[4.5rem]">
+        <div className="mt-4 shrink-0 lg:mt-0 lg:w-[320px] xl:w-[360px]">
           <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-slate-900/90 to-[#0e1128] p-5 shadow-2xl ring-1 ring-inset ring-white/[0.04]">
             {/* Top glow */}
             <div className="pointer-events-none absolute -top-10 right-0 h-24 w-32 rounded-full bg-pink-600/10 blur-2xl" />

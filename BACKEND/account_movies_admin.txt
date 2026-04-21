@@ -1,0 +1,3 @@
+movies.admin1@abcdmall.local / MoviesAdmin@123
+movies.admin2@abcdmall.local / MoviesAdmin@123
+movies.admin3@abcdmall.local / MoviesAdmin@123

@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Admin;
 using ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 using ABCDMall.Modules.Movies.Application.Services.Movies;
 using ABCDMall.Modules.Movies.Application.Services.Payments;
@@ -9,6 +10,7 @@ using ABCDMall.Modules.Movies.Infrastructure.Options;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings;
+using ABCDMall.Modules.Movies.Infrastructure.Repositories.Admin;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Feedbacks;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Promotions;
@@ -51,6 +53,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IMovieRepository, MovieRepository>();
+        services.AddScoped<IMoviesAdminRepository, MoviesAdminRepository>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IShowtimeRepository, ShowtimeRepository>();
         services.AddScoped<IBookingHoldRepository, BookingHoldRepository>();

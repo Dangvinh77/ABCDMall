@@ -6,6 +6,7 @@ using ABCDMall.Modules.Movies.Application.DTOs.Promotions;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Application.Mappings;
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Admin;
 using ABCDMall.Modules.Movies.Application.Services.Bookings.Validators;
 using ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 using ABCDMall.Modules.Movies.Application.Services.Feedbacks.Validators;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IBookingQuoteService, BookingQuoteService>();
         services.AddScoped<IBookingHoldService, BookingHoldService>();
         services.AddScoped<IBookingService, BookingService>();
+        services.AddScoped<IMoviesAdminService, MoviesAdminService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IStripePaymentService, StripePaymentService>();
         services.AddScoped<IMovieFeedbackService, MovieFeedbackService>();

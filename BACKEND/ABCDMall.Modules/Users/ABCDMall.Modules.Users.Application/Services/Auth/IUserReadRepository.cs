@@ -7,5 +7,6 @@ public interface IUserReadRepository
     Task<User?> GetByIdAsync(string userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ProfileUpdateHistory>> GetProfileUpdateHistoryAsync(string userId, int take, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<User>> GetUsersByRoleAsync(string role, CancellationToken cancellationToken = default);
     Task<IReadOnlyDictionary<string, string>> GetShopNamesByIdsAsync(CancellationToken cancellationToken = default);
 }

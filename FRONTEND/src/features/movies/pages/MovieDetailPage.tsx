@@ -306,7 +306,7 @@ export function MovieDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
+      <header className="relative z-40 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -648,11 +648,6 @@ export function MovieDetailPage() {
         </div>
       </div>
 
-      <footer className="border-t border-gray-800 bg-gray-950 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          &copy; 2026 ABCD Cinema. Online ticket booking made fast and simple.
-        </div>
-      </footer>
     </div>
   );
 }

@@ -483,7 +483,7 @@ export function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
+      <header className="relative z-40 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -522,7 +522,7 @@ export function SchedulePage() {
       <div
         className="fixed left-0 right-0 z-40 transition-transform duration-300"
         style={{
-          top: 65,
+          top: 0,
           transform: showStickyBar ? 'translateY(0)' : 'translateY(-110%)',
         }}
       >
@@ -602,7 +602,7 @@ export function SchedulePage() {
           </div>
         </div>
       </section>
-      <section className="sticky top-16 z-30 border-b border-gray-800/70 bg-gray-950/95 backdrop-blur-xl">
+      <section className="relative z-30 border-b border-gray-800/70 bg-gray-950/95 backdrop-blur-xl">
         <div className="container mx-auto px-4">
           <div
             className="flex gap-2 overflow-x-auto py-3 scrollbar-hide"
@@ -770,29 +770,7 @@ export function SchedulePage() {
           </div>
         )}
       </main>
-      <footer className="border-t border-gray-800 bg-gray-950 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-gradient-to-br from-purple-600 to-pink-600 p-1.5">
-                <Film className="size-4 text-white" />
-              </div>
-              <span className="font-bold text-white">ABCD Cinema</span>
-              <span className="text-gray-600">&bull;</span>
-              <span className="text-sm text-gray-600">ABCD Mall</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <button onClick={() => navigate(moviePaths.promotions())} className="transition-colors hover:text-gray-300">
-                Promotions
-              </button>
-              <button onClick={() => navigate(moviePaths.home())} className="transition-colors hover:text-gray-300">
-                Home
-              </button>
-              <span>&copy; 2026 ABCD Cinema</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

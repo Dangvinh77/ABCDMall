@@ -263,7 +263,40 @@ public static class FrontendUsersSeed
                 Image: "/images/profiles/manager-5.png",
                 Address: "District 7, Ho Chi Minh City",
                 Cccd: "079203000555",
-                CreatedAt: new DateTime(2026, 4, 6, 0, 0, 0, DateTimeKind.Utc))
+                CreatedAt: new DateTime(2026, 4, 6, 0, 0, 0, DateTimeKind.Utc)),
+            new(
+                Id: "users-movies-admin-001",
+                Email: "movies.admin1@abcdmall.local",
+                Password: "MoviesAdmin@123",
+                Role: "MoviesAdmin",
+                FullName: "Movies Admin One",
+                ShopId: null,
+                Image: "/images/profiles/admin-default.png",
+                Address: "Cinema Operations Desk",
+                Cccd: "000000100001",
+                CreatedAt: new DateTime(2026, 4, 7, 0, 0, 0, DateTimeKind.Utc)),
+            new(
+                Id: "users-movies-admin-002",
+                Email: "movies.admin2@abcdmall.local",
+                Password: "MoviesAdmin@123",
+                Role: "MoviesAdmin",
+                FullName: "Movies Admin Two",
+                ShopId: null,
+                Image: "/images/profiles/admin-default.png",
+                Address: "Cinema Operations Desk",
+                Cccd: "000000100002",
+                CreatedAt: new DateTime(2026, 4, 8, 0, 0, 0, DateTimeKind.Utc)),
+            new(
+                Id: "users-movies-admin-003",
+                Email: "movies.admin3@abcdmall.local",
+                Password: "MoviesAdmin@123",
+                Role: "MoviesAdmin",
+                FullName: "Movies Admin Three",
+                ShopId: null,
+                Image: "/images/profiles/admin-default.png",
+                Address: "Cinema Operations Desk",
+                Cccd: "000000100003",
+                CreatedAt: new DateTime(2026, 4, 9, 0, 0, 0, DateTimeKind.Utc))
         ];
 
         public static readonly ShopSeed[] Shops =

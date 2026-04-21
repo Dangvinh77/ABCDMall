@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Mail,
   Megaphone,
+  PieChart,
   ReceiptText,
   Settings,
   Shield,
@@ -24,6 +25,7 @@ const navItems = [
   { label: 'Showtimes', to: movieAdminPaths.showtimes(), icon: Clapperboard },
   { label: 'Seats', to: movieAdminPaths.seats(), icon: Ticket },
   { label: 'Bookings', to: movieAdminPaths.bookings(), icon: ReceiptText },
+  { label: 'Revenue', to: movieAdminPaths.revenue(), icon: PieChart },
   { label: 'Payments', to: movieAdminPaths.payments(), icon: CircleDollarSign },
   { label: 'Emails', to: movieAdminPaths.emails(), icon: Mail },
   { label: 'Guests', to: movieAdminPaths.guests(), icon: Users },
@@ -34,6 +36,8 @@ const navItems = [
 ];
 
 export function MoviesAdminShell() {
+  const role = localStorage.getItem("role") ?? "Unknown";
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#040816,#0f172a_38%,#020617)] text-white">
       <div className="pointer-events-none fixed inset-0">
@@ -115,11 +119,11 @@ export function MoviesAdminShell() {
                   className="hidden border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.08] sm:inline-flex"
                 >
                   <Bell className="mr-2 size-4" />
-                  3 live alerts
+                  Movies admin
                 </Button>
                 <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-right">
                   <p className="text-xs text-gray-500">Signed in as</p>
-                  <p className="text-sm font-semibold text-white">admin.mall</p>
+                  <p className="text-sm font-semibold text-white">{role}</p>
                 </div>
               </div>
             </div>

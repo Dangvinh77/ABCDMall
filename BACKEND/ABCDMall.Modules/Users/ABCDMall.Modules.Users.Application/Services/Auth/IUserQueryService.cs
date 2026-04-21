@@ -7,4 +7,5 @@ public interface IUserQueryService
     Task<UserProfileResponseDto?> GetProfileAsync(string userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<ProfileUpdateHistoryResponseDto>> GetProfileUpdateHistoryAsync(string userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersByRoleAsync(string role, CancellationToken cancellationToken = default);
 }

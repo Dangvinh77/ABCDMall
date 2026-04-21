@@ -550,7 +550,7 @@ export function CheckoutPage() {
   // FORM SCREEN
   return (
     <div className="min-h-screen bg-[#07091a] text-white">
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
+      <header className="relative z-40 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <button
             onClick={backToSeats}
@@ -835,7 +835,7 @@ export function CheckoutPage() {
         </div>
 
        
-        <div className="mt-5 shrink-0 lg:mt-0 lg:w-[340px] xl:w-[380px] lg:sticky lg:top-[4.5rem]">
+        <div className="mt-5 shrink-0 lg:mt-0 lg:w-[340px] xl:w-[380px]">
           <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-slate-900/90 to-[#0e1128] shadow-2xl ring-1 ring-inset ring-white/[0.04]">
 
             {/* Movie row */}
