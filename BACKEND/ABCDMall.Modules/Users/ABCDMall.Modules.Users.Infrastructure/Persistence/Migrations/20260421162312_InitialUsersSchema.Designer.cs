@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MallDbContext))]
-    [Migration("20260421113224_AddShopInfoIdToRentalAreas")]
-    partial class AddShopInfoIdToRentalAreas
+    [Migration("20260421162312_InitialUsersSchema")]
+    partial class InitialUsersSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -220,9 +220,17 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("OpeningDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("OwnerShopId")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ShopStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -522,6 +530,9 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime?>("OpeningDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerShopInfoId")
                         .HasMaxLength(64)

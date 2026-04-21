@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Shops.Application.Services.Catalog;
+using ABCDMall.Modules.Shops.Application.Services.Manager;
 using ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops;
 using ABCDMall.Modules.Shops.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IShopCatalogRepository, ShopCatalogRepository>();
+        services.AddScoped<IShopManagerRepository, ShopCatalogRepository>();
         return services;
     }
 }

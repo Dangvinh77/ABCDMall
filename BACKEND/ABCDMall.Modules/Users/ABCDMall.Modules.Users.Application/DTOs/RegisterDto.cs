@@ -10,8 +10,10 @@ namespace ABCDMall.Modules.Users.Application.DTOs
 
         public string? Role { get; set; }
 
-        public string? ShopName { get; set; }
+        public string ShopName { get; set; } = string.Empty;
 
-        public string? CCCD { get; set; }
+        public string CCCD { get; set; } = string.Empty;
+
+          public int? MapLocationId { get; set; }
     }
 }

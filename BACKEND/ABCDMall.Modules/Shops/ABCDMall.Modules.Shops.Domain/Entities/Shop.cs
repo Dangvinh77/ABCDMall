@@ -3,6 +3,7 @@ namespace ABCDMall.Modules.Shops.Domain.Entities;
 public sealed class Shop
 {
     public string Id { get; set; } = string.Empty;
+    public string? OwnerShopId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Slug { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
@@ -18,4 +19,7 @@ public sealed class Shop
     public ICollection<ShopTag> Tags { get; set; } = new List<ShopTag>();
     public ICollection<ShopProduct> Products { get; set; } = new List<ShopProduct>();
     public ICollection<ShopVoucher> Vouchers { get; set; } = new List<ShopVoucher>();
+    public string ShopStatus { get; set; } = "Active";
+
+    public DateTime? OpeningDate { get; set; }
 }

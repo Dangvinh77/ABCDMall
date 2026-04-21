@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitMoviesUsers : Migration
+    public partial class InitialUsersSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -99,6 +99,7 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     MonthlyRent = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     TenantName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ShopInfoId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -111,7 +112,21 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false, defaultValueSql: "LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))"),
+                    OwnerShopInfoId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     ShopName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    Floor = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    LocationSlot = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Summary = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    LogoUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    CoverImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    OpenHours = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    Badge = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: true),
+                    Offer = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
+                    Tags = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    IsPublicVisible = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     ManagerName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     CCCD = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     RentalLocation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
@@ -126,7 +141,8 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     TotalDue = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     ContractImage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ContractImages = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OpeningDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -181,6 +197,7 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     Image = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     Address = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CCCD = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     FailedLoginAttempts = table.Column<int>(type: "int", nullable: false),
                     LoginOtpCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
                     LoginOtpExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -203,11 +220,28 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_RentalAreas_ShopInfoId",
+                table: "RentalAreas",
+                column: "ShopInfoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ShopInfos_CCCD",
                 table: "ShopInfos",
                 column: "CCCD",
                 unique: true,
                 filter: "[CCCD] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopInfos_OwnerShopInfoId",
+                table: "ShopInfos",
+                column: "OwnerShopInfoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ShopInfos_Slug",
+                table: "ShopInfos",
+                column: "Slug",
+                unique: true,
+                filter: "[Slug] <> ''");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ShopMonthlyBills_BillKey",

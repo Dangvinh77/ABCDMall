@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
 {
     /// <inheritdoc />
-    public partial class InitShops : Migration
+    public partial class InitialShopsSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,6 +20,7 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    OwnerShopId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Slug = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Category = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
@@ -30,7 +32,9 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                     CoverImageUrl = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     OpenHours = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Badge = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: true),
-                    Offer = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true)
+                    Offer = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    ShopStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Active"),
+                    OpeningDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -115,6 +119,18 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                 schema: "shops",
                 table: "ShopProducts",
                 column: "ShopId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shops_OwnerShopId",
+                schema: "shops",
+                table: "Shops",
+                column: "OwnerShopId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shops_ShopStatus",
+                schema: "shops",
+                table: "Shops",
+                column: "ShopStatus");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Shops_Slug",

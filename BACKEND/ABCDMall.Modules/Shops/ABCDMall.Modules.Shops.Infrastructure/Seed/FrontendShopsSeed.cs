@@ -34,6 +34,7 @@ public static class FrontendShopsSeed
             shop.OpenHours = seed.OpenHours;
             shop.Badge = seed.Badge;
             shop.Offer = seed.Offer;
+            shop.OwnerShopId = seed.Id;
 
             shop.Tags.Clear();
             foreach (var tag in seed.Tags.Distinct(StringComparer.OrdinalIgnoreCase))
@@ -78,7 +79,98 @@ public static class FrontendShopsSeed
                 });
             }
         }
+        var baseShops = ShopSeeds.ToList();
+        var random = new Random();
+        int totalDemoShops = 47; // Số lượng shop ảo bạn muốn tạo thêm
 
+        for (int i = 1; i <= totalDemoShops; i++)
+        {
+            string demoShopId = $"shop-demo-{i}";
+
+            // Lấy ngẫu nhiên 1 shop trong 23 shop gốc để "mượn" data
+            var cloneFrom = baseShops[random.Next(baseShops.Count)];
+
+            var shop = await db.Shops
+                .Include(x => x.Tags)
+                .Include(x => x.Products)
+                .Include(x => x.Vouchers)
+                .FirstOrDefaultAsync(x => x.Id == demoShopId, ct);
+
+            if (shop is null)
+            {
+                shop = new Shop { Id = demoShopId };
+                await db.Shops.AddAsync(shop, ct);
+            }
+
+            // Clone thông tin cơ bản
+            shop.Name = $"Gian Hàng Demo {i} ({cloneFrom.Name})";
+            shop.Slug = $"gian-hang-demo-{i}";
+            shop.Category = cloneFrom.Category;
+            shop.Floor = "Tầng 2";
+            shop.LocationSlot = $"L2-{i:D2}";
+
+            if (i % 5 == 0)
+            {
+                shop.OpeningDate = DateTime.UtcNow.AddDays(10);
+                shop.Summary = "🌟 SẮP KHAI TRƯƠNG - " + cloneFrom.Summary;
+            }
+            else
+            {
+                shop.OpeningDate = DateTime.UtcNow.AddDays(-1); // Đã khai trương hôm qua
+                shop.Summary = cloneFrom.Summary;
+            }
+
+            shop.Description = "Đây là gian hàng demo được tự động tạo data để lấp đầy Mall.";
+            shop.LogoUrl = cloneFrom.LogoUrl;
+            shop.CoverImageUrl = cloneFrom.CoverImageUrl;
+            shop.OpenHours = "09:30 - 22:00";
+            shop.OwnerShopId = demoShopId;
+
+            // Clone Tags
+            shop.Tags.Clear();
+            foreach (var tag in cloneFrom.Tags)
+            {
+                shop.Tags.Add(new ShopTag
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Value = tag
+                });
+            }
+
+            // Clone Products (Phải tạo Object mới để EF Core không báo lỗi tracking)
+            shop.Products.Clear();
+            foreach (var p in cloneFrom.Products)
+            {
+                shop.Products.Add(new ShopProduct
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = p.Name,
+                    ImageUrl = p.ImageUrl,
+                    Price = p.Price,
+                    OldPrice = p.OldPrice,
+                    DiscountPercent = p.DiscountPercent,
+                    IsFeatured = p.IsFeatured,
+                    IsDiscounted = p.IsDiscounted
+                });
+            }
+
+            // Clone Vouchers
+            shop.Vouchers.Clear();
+            foreach (var v in cloneFrom.Vouchers)
+            {
+                shop.Vouchers.Add(new ShopVoucher
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Code = $"{v.Code}-{i}", // Đổi mã voucher một chút
+                    Title = v.Title,
+                    Description = v.Description,
+                    ValidUntil = v.ValidUntil,
+                    IsActive = v.IsActive
+                });
+            }
+        }
+
+        // Cuối cùng lưu lại toàn bộ xuống DB
         await db.SaveChangesAsync(ct);
     }
 
@@ -631,5 +723,7 @@ public static class FrontendShopsSeed
             ],
             []
         )
+
     ];
+
 }

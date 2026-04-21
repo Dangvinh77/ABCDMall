@@ -8,9 +8,6 @@ namespace ABCDMall.Modules.Users.Application.Services.Auth;
 
 public sealed class UserCommandService : IUserCommandService
 {
-    private const string AdminRole = "Admin";
-    private const string ManagerRole = "Manager";
-    private const string MoviesAdminRole = "MoviesAdmin";
     private readonly AutoMapper.IMapper _mapper;
     private readonly IUserCommandRepository _userCommandRepository;
     private readonly IEmailNotificationService _emailNotificationService;
@@ -38,6 +35,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<LoginResponseDto>.Unauthorized("Email does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<LoginResponseDto>.Unauthorized("This account is inactive");
         }
 
         if (user.FailedLoginAttempts >= 5)
@@ -148,6 +150,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("Email does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         await _userCommandRepository.RemoveUnusedForgotPasswordOtpsAsync(normalizedEmail, cancellationToken);
         var otp = CreateOtp();
         await _userCommandRepository.AddForgotPasswordOtpAsync(new ForgotPasswordOtp
@@ -199,6 +206,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         user.Password = forgotPasswordOtp.NewPasswordHash;
         user.UpdatedAt = DateTime.UtcNow;
         forgotPasswordOtp.IsUsed = true;
@@ -218,6 +230,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<UpdateProfileResponseDto>.Unauthorized("Invalid token");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<UpdateProfileResponseDto>.Unauthorized("This account is inactive");
         }
 
         var normalizedFullName = NormalizeOptionalValue(dto.FullName);
@@ -287,6 +304,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.Password))
         {
             return ApplicationResult<MessageResponseDto>.BadRequest("The current password is incorrect");
@@ -342,6 +364,11 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         user.Password = resetOtp.NewPasswordHash;
         user.UpdatedAt = DateTime.UtcNow;
         resetOtp.IsUsed = true;
@@ -358,9 +385,11 @@ public sealed class UserCommandService : IUserCommandService
     public async Task<ApplicationResult<UserAccountMutationResponseDto>> UpdateUserAccountAsync(string userId, UpdateUserAccountDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.FullName))
+            || string.IsNullOrWhiteSpace(dto.FullName)
+            || string.IsNullOrWhiteSpace(dto.ShopName)
+            || string.IsNullOrWhiteSpace(dto.CCCD))
         {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email and full name are required");
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email, full name, shop name, and CCCD are required");
         }
 
         var user = await _userCommandRepository.GetUserByIdAsync(userId, cancellationToken);
@@ -369,42 +398,34 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.NotFound("User does not exist");
         }
 
-        if (user.Role == AdminRole)
+        if (user.Role == "Admin")
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be updated here");
         }
 
-        var resolvedRole = NormalizeManagedRole(dto.Role, user.Role);
-        if (resolvedRole is null)
-        {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Only Manager and MoviesAdmin roles are supported");
-        }
-
-        if (!string.Equals(resolvedRole, user.Role, StringComparison.Ordinal))
-        {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Changing account role between Manager and MoviesAdmin is not supported here");
-        }
-
         var normalizedEmail = dto.Email.Trim();
         var normalizedFullName = dto.FullName.Trim();
+        var normalizedShopName = dto.ShopName.Trim();
         var normalizedAddress = NormalizeOptionalValue(dto.Address);
-        var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
-        var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
+        var resolvedImagePath = user.Image;
+        var normalizedCccd = dto.CCCD.Trim();
+
+        if (dto.Avatar is not null)
+        {
+            resolvedImagePath = await _fileStorageService.SaveProfileAvatarAsync(dto.Avatar, cancellationToken);
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Image))
+        {
+            resolvedImagePath = NormalizeOptionalValue(dto.Image);
+        }
 
         if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), userId, cancellationToken))
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email already exists");
         }
 
-        if (resolvedRole == ManagerRole
-            && (string.IsNullOrWhiteSpace(normalizedShopName) || string.IsNullOrWhiteSpace(normalizedCccd)))
-        {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
-        }
-
-        if (!string.IsNullOrWhiteSpace(normalizedCccd)
-            && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, userId, cancellationToken)
-                || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, user.ShopId, cancellationToken)))
+        if (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, userId, cancellationToken)
+            || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, user.ShopId, cancellationToken))
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("CCCD already exists");
         }
@@ -412,27 +433,25 @@ public sealed class UserCommandService : IUserCommandService
         user.Email = normalizedEmail;
         user.FullName = normalizedFullName;
         user.Address = normalizedAddress;
+        user.Image = resolvedImagePath;
         user.CCCD = normalizedCccd;
-        user.Role = resolvedRole;
         user.UpdatedAt = DateTime.UtcNow;
 
-        if (resolvedRole == ManagerRole && !string.IsNullOrWhiteSpace(user.ShopId))
+        if (!string.IsNullOrWhiteSpace(user.ShopId))
         {
             var shopInfo = await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken);
             if (shopInfo is not null)
             {
-                shopInfo.ShopName = normalizedShopName!;
+                shopInfo.ShopName = normalizedShopName;
                 shopInfo.ManagerName = normalizedFullName;
-                shopInfo.CCCD = normalizedCccd!;
+                shopInfo.CCCD = normalizedCccd;
             }
         }
 
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
-        var emailSent = resolvedRole == ManagerRole
-            ? await TrySendAsync(() =>
-                _emailNotificationService.SendManagerAccountUpdatedEmailAsync(normalizedEmail, normalizedFullName, normalizedShopName!))
-            : false;
+        var emailSent = await TrySendAsync(() =>
+            _emailNotificationService.SendManagerAccountUpdatedEmailAsync(normalizedEmail, normalizedFullName, normalizedShopName));
 
         return ApplicationResult<UserAccountMutationResponseDto>.Ok(new UserAccountMutationResponseDto
         {
@@ -449,27 +468,33 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.NotFound("User does not exist");
         }
 
-        if (user.Role == AdminRole)
+        if (!user.IsActive)
         {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be deleted here");
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("User account is already inactive");
+        }
+
+        if (user.Role == "Admin")
+        {
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be deactivated here");
         }
 
         var shopInfo = !string.IsNullOrWhiteSpace(user.ShopId)
             ? await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken)
             : null;
 
-        var emailSent = user.Role == ManagerRole
-            ? await TrySendAsync(() =>
-                _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName))
-            : false;
+        var emailSent = await TrySendAsync(() =>
+            _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName));
 
-        await _userCommandRepository.RemoveUserRelatedDataAsync(userId, cancellationToken);
-        await _userCommandRepository.RemoveUserAsync(user, cancellationToken);
+        user.IsActive = false;
+        user.UpdatedAt = DateTime.UtcNow;
+        user.LoginOtpCode = null;
+        user.LoginOtpExpiresAt = null;
+        await _userCommandRepository.RevokeUserRefreshTokensAsync(userId, cancellationToken);
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
         return ApplicationResult<UserAccountMutationResponseDto>.Ok(new UserAccountMutationResponseDto
         {
-            Message = "User account deleted successfully",
+            Message = "User account deactivated successfully",
             EmailSent = emailSent
         });
     }
@@ -496,6 +521,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<AccessTokenResponseDto>.Unauthorized("User does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<AccessTokenResponseDto>.Unauthorized("This account is inactive");
         }
 
         return ApplicationResult<AccessTokenResponseDto>.Ok(new AccessTokenResponseDto
@@ -529,96 +559,73 @@ public sealed class UserCommandService : IUserCommandService
 
     public async Task<ApplicationResult<RegisterUserResponseDto>> RegisterAsync(RegisterDto dto, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.Password)
-            || string.IsNullOrWhiteSpace(dto.FullName))
+        // 1. Kiểm tra đầu vào (Giữ nguyên của bạn)
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password) ||
+            string.IsNullOrWhiteSpace(dto.FullName) || string.IsNullOrWhiteSpace(dto.ShopName) ||
+            string.IsNullOrWhiteSpace(dto.CCCD))
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email, password, and full name are required");
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Thiếu thông tin đăng ký.");
         }
 
-        var resolvedRole = NormalizeManagedRole(dto.Role, ManagerRole);
-        if (resolvedRole is null)
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        var normalizedCccd = dto.CCCD.Trim();
+
+        // 2. Kiểm tra trùng (Giữ nguyên)
+        if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail, null, cancellationToken))
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email đã tồn tại.");
+
+        // 3. 👉 BƯỚC QUAN TRỌNG: TỰ TẠO ID TRƯỚC KHI GÁN
+        // Nếu không có dòng này, shopInfo.Id sẽ bị rỗng khi gán cho User
+        var newShopId = Guid.NewGuid().ToString("N");
+
+        var shopInfo = new ShopInfo
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Only Manager and MoviesAdmin roles are supported");
-        }
+            Id = newShopId,
+            ShopName = dto.ShopName.Trim(),
+            // 👉 THÊM CÁC DÒNG NÀY:
+            Slug = dto.ShopName.Trim().ToLower().Replace(" ", "-"), // Tạo slug tạm để Mall tìm thấy
+            Category = "Chưa phân loại", // Gán tạm để không bị null
+            CCCD = normalizedCccd,
+            OpeningDate = null, // Vẫn để null để Manager vào chọn ngày (Coming Soon)
+            CreatedAt = DateTime.UtcNow
+        };
+        await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
 
-        var normalizedEmail = dto.Email.Trim();
-        var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
-        var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
-
-        if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), null, cancellationToken))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email already exists");
-        }
-
-        if (resolvedRole == ManagerRole
-            && (string.IsNullOrWhiteSpace(normalizedShopName) || string.IsNullOrWhiteSpace(normalizedCccd)))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
-        }
-
-        if (!string.IsNullOrWhiteSpace(normalizedCccd)
-            && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
-                || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken)))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("CCCD already exists");
-        }
-
-        ShopInfo? shopInfo = null;
-        if (resolvedRole == ManagerRole)
-        {
-            shopInfo = new ShopInfo
-            {
-                ShopName = normalizedShopName!,
-                CCCD = normalizedCccd!,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
-        }
-
+        // 4. TẠO USER VÀ NỐI VỚI ID SHOP VỪA TẠO
         var user = new User
         {
+            Id = Guid.NewGuid().ToString("N"),
             Email = normalizedEmail,
             Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FullName = dto.FullName.Trim(),
-            Role = resolvedRole,
-            ShopId = shopInfo?.Id,
+            Role = "Manager",
+            ShopId = newShopId, // DÙNG CHUNG CÁI ID newShopId Ở TRÊN
             CCCD = normalizedCccd,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
+
         await _userCommandRepository.AddUserAsync(user, cancellationToken);
+
+        // 5. LƯU XUỐNG DATABASE
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
-        var emailSent = resolvedRole == ManagerRole
-            ? await TrySendAsync(() =>
-                _emailNotificationService.SendManagerRegistrationSuccessEmailAsync(user.Email, user.FullName))
-            : false;
+        // 6. Gửi mail thông báo
+        var emailSent = await TrySendAsync(() =>
+            _emailNotificationService.SendManagerRegistrationSuccessEmailAsync(user.Email, user.FullName));
 
+        // 7. TRẢ VỀ DỮ LIỆU CHUẨN ĐỂ CONTROLLER LẤY ĐI GÁN BẢN ĐỒ
         return ApplicationResult<RegisterUserResponseDto>.Ok(new RegisterUserResponseDto
         {
-            Message = "User created successfully",
+            Message = "User and Shop created successfully",
             EmailSent = emailSent,
             Email = user.Email,
             Role = user.Role,
-            ShopId = user.ShopId,
+            ShopId = newShopId, // PHẢI TRẢ VỀ ID NÀY
             CCCD = user.CCCD,
-            ShopName = shopInfo?.ShopName ?? string.Empty,
+            ShopName = shopInfo.ShopName,
             CreatedAt = user.CreatedAt
         });
-    }
-
-    private static string? NormalizeManagedRole(string? requestedRole, string fallbackRole)
-    {
-        var normalizedRole = string.IsNullOrWhiteSpace(requestedRole)
-            ? fallbackRole
-            : requestedRole.Trim();
-
-        return normalizedRole switch
-        {
-            ManagerRole => ManagerRole,
-            MoviesAdminRole => MoviesAdminRole,
-            _ => null
-        };
     }
 
     private async Task<bool> IssueLoginOtpAsync(User user, CancellationToken cancellationToken)

@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using ABCDMall.Modules.UtilityMap.Application.Services.Maps;
+using ABCDMall.Modules.Shops.Application.Services.Manager;
+using ABCDMall.Modules.Shops.Application.DTOs;
 
 namespace ABCDMall.WebAPI.Controllers;
 
@@ -16,11 +19,19 @@ public class AuthController : ControllerBase
 {
     private readonly IUserCommandService _userCommandService;
     private readonly IUserQueryService _userQueryService;
+    private readonly IMapCommandService _mapCommandService;
+    private readonly IShopManagerService _shopManagerService;
 
-    public AuthController(IUserCommandService userCommandService, IUserQueryService userQueryService)
+    public AuthController(
+        IUserCommandService userCommandService,
+        IUserQueryService userQueryService,
+        IMapCommandService mapCommandService,
+        IShopManagerService shopManagerService)
     {
         _userCommandService = userCommandService;
         _userQueryService = userQueryService;
+        _mapCommandService = mapCommandService;
+        _shopManagerService = shopManagerService;
     }
 
     [HttpPost("login")]
@@ -49,6 +60,81 @@ public class AuthController : ControllerBase
             ApplicationResultStatus.NotFound => NotFound(result.Error),
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };
+    }
+
+    // --- CẬP NHẬT PHƯƠNG THỨC REGISTER ---
+    [Authorize(Roles = "Admin")]
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterDto dto)
+    {
+        // Thực hiện đăng ký tài khoản User/Manager trước
+        var result = await _userCommandService.RegisterAsync(dto);
+
+        if (result.Status != ApplicationResultStatus.Ok)
+        {
+            return result.Status switch
+            {
+                ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+                ApplicationResultStatus.NotFound => NotFound(result.Error),
+                ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+                _ => StatusCode(StatusCodes.Status500InternalServerError)
+            };
+        }
+
+        var response = result.Value!;
+
+        // 1. GÁN VỊ TRÍ TRÊN BẢN ĐỒ (Đổi màu bạc -> Vàng)
+        bool slotReserved = false;
+        if (dto.MapLocationId.HasValue && !string.IsNullOrWhiteSpace(response.ShopId))
+        {
+            slotReserved = await _mapCommandService.ReserveSlotAsync(dto.MapLocationId.Value, response.ShopId);
+        }
+
+        // ==========================================
+        // 2. TẠO TỰ ĐỘNG SHOP VẬT LÝ CHO QUẢN LÝ
+        // ==========================================
+        try
+        {
+            // Tạo một URL (slug) hợp lệ từ tên shop (Ví dụ: "Kichi Kichi" -> "kichi-kichi")
+            var tempSlug = dto.ShopName.Trim().ToLower().Replace(" ", "-").Replace("đ", "d");
+
+            // Khởi tạo các thông tin cơ bản để Shop "nổi" lên trên Mall
+            var shopRequest = new UpsertManagedShopRequestDto
+            {
+                Name = dto.ShopName,
+                Slug = tempSlug,
+                Category = "Coming Soon", // Gán tạm để nổi bật trên Mall
+                Floor = "Đang cập nhật",
+                LocationSlot = "Đang cập nhật",
+                Summary = "Cửa hàng đang trong quá trình setup.",
+                Description = "Thông tin chi tiết sẽ được cập nhật sớm...",
+                OpenHours = "09:00 - 22:00"
+            };
+
+            // Gọi service của module Shops để sinh ra data vật lý
+            // response.ShopId chính là ID kết nối giữa tài khoản Manager và Shop này
+            await _shopManagerService.CreateMyShopAsync(response.ShopId!, shopRequest);
+        }
+        catch (Exception ex)
+        {
+            // Log ra console nếu lỗi, nhưng không làm sập quá trình trả về kết quả đăng ký
+            Console.WriteLine($"[CẢNH BÁO] Không thể tạo tự động shop vật lý: {ex.Message}");
+        }
+        // ==========================================
+
+        return Ok(new
+        {
+            message = response.Message,
+            emailSent = response.EmailSent,
+            email = response.Email,
+            role = response.Role,
+            shopId = response.ShopId,
+            cccd = response.CCCD,
+            shopName = response.ShopName,
+            createdAt = response.CreatedAt,
+            slotReserved,
+            mapLocationId = slotReserved ? dto.MapLocationId : null
+        });
     }
 
     [HttpPost("forgotpassword/request-otp")]
@@ -213,7 +299,8 @@ public class AuthController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPut("users/{id}")]
-    public async Task<IActionResult> UpdateUserAccount(string id, UpdateUserAccountDto dto)
+    [RequestSizeLimit(10_000_000)]
+    public async Task<IActionResult> UpdateUserAccount(string id, [FromForm] UpdateUserAccountDto dto)
     {
         var result = await _userCommandService.UpdateUserAccountAsync(id, dto);
         return result.Status switch
@@ -267,30 +354,6 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Logout(RefreshTokenDto dto)
         => FromResult(await _userCommandService.LogoutAsync(dto), unwrapMessageOnSuccess: true);
 
-    [Authorize(Roles = "Admin")]
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
-    {
-        var result = await _userCommandService.RegisterAsync(dto);
-        return result.Status switch
-        {
-            ApplicationResultStatus.Ok => Ok(new
-            {
-                message = result.Value!.Message,
-                emailSent = result.Value.EmailSent,
-                email = result.Value.Email,
-                role = result.Value.Role,
-                shopId = result.Value.ShopId,
-                cccd = result.Value.CCCD,
-                shopName = result.Value.ShopName,
-                createdAt = result.Value.CreatedAt
-            }),
-            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
-            ApplicationResultStatus.NotFound => NotFound(result.Error),
-            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
-            _ => StatusCode(StatusCodes.Status500InternalServerError)
-        };
-    }
 
     private IActionResult FromResult(ApplicationResult<MessageResponseDto> result, bool unwrapMessageOnSuccess = false)
     {

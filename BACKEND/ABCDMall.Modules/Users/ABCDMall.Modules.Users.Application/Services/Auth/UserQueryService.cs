@@ -16,7 +16,7 @@ public sealed class UserQueryService : IUserQueryService
     public async Task<UserProfileResponseDto?> GetProfileAsync(string userId, CancellationToken cancellationToken = default)
     {
         var user = await _userReadRepository.GetByIdAsync(userId, cancellationToken);
-        return user is null ? null : _mapper.Map<UserProfileResponseDto>(user);
+        return user is null || !user.IsActive ? null : _mapper.Map<UserProfileResponseDto>(user);
     }
 
     public async Task<IReadOnlyList<ProfileUpdateHistoryResponseDto>> GetProfileUpdateHistoryAsync(string userId, CancellationToken cancellationToken = default)

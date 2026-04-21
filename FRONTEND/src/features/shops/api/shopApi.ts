@@ -9,6 +9,7 @@ export type Shop = {
   summary: string;
   description: string;
   imageUrl: string;
+  logoUrl?: string;
   badge?: string;
   offer?: string;
   openHours: string;

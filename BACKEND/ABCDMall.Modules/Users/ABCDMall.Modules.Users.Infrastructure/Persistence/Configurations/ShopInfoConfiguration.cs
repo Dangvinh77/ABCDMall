@@ -41,5 +41,6 @@ internal sealed class ShopInfoConfiguration : IEntityTypeConfiguration<ShopInfo>
         entity.Property(x => x.TotalDue).HasPrecision(18, 2);
         entity.Property(x => x.ContractImage).HasMaxLength(500);
         entity.Property(x => x.ContractImages).HasMaxLength(500);
+        entity.Property(x => x.OpeningDate);
     }
 }

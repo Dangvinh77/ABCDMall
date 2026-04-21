@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom'; 
 import { eventsApi } from './api/eventsApi';
 import type { EventDto } from './types/event.types';
-import { getImageUrl } from "../../core/utils/image";
 
 export const EventsFeature = () => {
   // KHAI BÁO BỘ LỌC TỪ URL
@@ -15,14 +14,14 @@ export const EventsFeature = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Thay đổi tiêu đề tự động theo Navbar
-  const pageTitle = statusParam === 'Ongoing' ? 'Ongoing Events' : statusParam === 'Upcoming' ? 'Upcoming Events' : 'All Events';
+  const pageTitle = statusParam === 'Ongoing' ? 'Sự Kiện Đang Diễn Ra' : statusParam === 'Upcoming' ? 'Sự Kiện Sắp Diễn Ra' : 'Tất Cả Sự Kiện';
 
   const mockEvents: EventDto[] = [
     {
-      id: "e1", title: "Mid-Autumn Lantern Festival", description: "Come admire a giant lantern installation and join the lantern parade around the mall.", coverImageUrl: "https://images.unsplash.com/photo-1541727687969-ce40493cd847?q=80&w=800", startDate: "2026-08-15T00:00:00", endDate: "2026-08-20T00:00:00", location: "Central Atrium, Floor 1", eventType: "MallEvent", eventTypeId: 1, isHot: true, status: "Upcoming", statusId: 1, createdAt: "2026-04-19T00:00:00"
+      id: "e1", title: "Lễ Hội Đèn Lồng Trăng Rằm", description: "Cùng chiêm ngưỡng cây đèn lồng khổng lồ và rước đèn quanh trung tâm thương mại.", coverImageUrl: "https://images.unsplash.com/photo-1541727687969-ce40493cd847?q=80&w=800", startDate: "2026-08-15T00:00:00", endDate: "2026-08-20T00:00:00", location: "Sảnh Trung Tâm Tầng 1", eventType: "MallEvent", eventTypeId: 1, isHot: true, status: "Upcoming", statusId: 1, createdAt: "2026-04-19T00:00:00"
     },
     {
-      id: "e2", title: "UNIQLO - Fall/Winter Collection Launch", description: "Experience an exclusive pop-up space and receive a limited-edition tote bag.", coverImageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800", startDate: "2026-09-01T00:00:00", endDate: "2026-09-07T00:00:00", location: "Event Atrium, Floor 1", eventType: "BrandEvent", eventTypeId: 2, shopId: "uniqlo", shopName: "UNIQLO", isHot: false, status: "Ongoing", statusId: 2, createdAt: "2026-04-19T00:00:00"
+      id: "e2", title: "UNIQLO - Ra mắt BST Thu Đông", description: "Trải nghiệm không gian Pop-up độc quyền và nhận túi tote giới hạn.", coverImageUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800", startDate: "2026-09-01T00:00:00", endDate: "2026-09-07T00:00:00", location: "Sảnh Sự Kiện Tầng 1", eventType: "BrandEvent", eventTypeId: 2, shopId: "uniqlo", shopName: "UNIQLO", isHot: false, status: "Ongoing", statusId: 2, createdAt: "2026-04-19T00:00:00"
     }
   ];
 
@@ -65,13 +64,13 @@ export const EventsFeature = () => {
             {pageTitle}
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto font-medium">
-            Stay updated with the latest promotions, festivals, and special events.
+            Cập nhật những chương trình ưu đãi, lễ hội và sự kiện hấp dẫn nhất.
           </p>
         </div>
 
         {/* TABS LỌC THEO LOẠI */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {[{ id: 0, label: 'All events' }, { id: 1, label: '🎪 Mall events' }, { id: 2, label: '🛍️ Brand events' }].map(tab => (
+          {[{ id: 0, label: 'Tất cả sự kiện' }, { id: 1, label: '🎪 Sự kiện Mall' }, { id: 2, label: '🛍️ Sự kiện Nhãn hàng' }].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -88,7 +87,7 @@ export const EventsFeature = () => {
 
         {/* LƯỚI SỰ KIỆN */}
         {isLoading ? (
-          <div className="text-center py-20 text-2xl animate-pulse text-gray-400">Loading events...</div>
+          <div className="text-center py-20 text-2xl animate-pulse text-gray-400">Đang tải sự kiện...</div>
         ) : events.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {events.map((event, index) => {
@@ -106,16 +105,16 @@ export const EventsFeature = () => {
                       </span>
                     )}
                     <span className="bg-slate-900/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md uppercase">
-                      {event.status === 'Ongoing' ? 'Ongoing' : 'Upcoming'}
+                      {event.status === 'Ongoing' ? 'Đang diễn ra' : 'Sắp diễn ra'}
                     </span>
                   </div>
 
                   <div className="relative h-60 overflow-hidden">
-                    <img src={getImageUrl(event.coverImageUrl)} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    <img src={event.coverImageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80"></div>
                     
                     <div className="absolute bottom-4 left-4 text-white">
-                       <p className="text-sm font-bold text-red-400">From {formattedDate}</p>
+                       <p className="text-sm font-bold text-red-400">Từ {formattedDate}</p>
                        <p className="text-xs text-gray-300 flex items-center gap-1 mt-1">📍 {event.location}</p>
                     </div>
                   </div>
@@ -123,7 +122,7 @@ export const EventsFeature = () => {
                   <div className="p-6 flex-1 flex flex-col">
                     {event.eventTypeId === 2 && event.shopName && (
                       <span className="text-xs font-bold text-orange-500 bg-orange-50 self-start px-2 py-1 rounded mb-3 border border-orange-100">
-                        Brand: {event.shopName}
+                        Thương hiệu: {event.shopName}
                       </span>
                     )}
                     
@@ -137,11 +136,11 @@ export const EventsFeature = () => {
                     <div className="mt-auto">
                       {event.eventTypeId === 2 ? (
                         <Link to={event.shopId ? `/shops/${event.shopId}` : `/map`} className="block text-center w-full py-3 rounded-xl font-bold text-red-500 bg-red-50 hover:bg-red-500 hover:text-white transition-colors">
-                          Go to store page &rarr;
+                          Đến trang cửa hàng &rarr;
                         </Link>
                       ) : (
                         <Link to="/map" className="block text-center w-full py-3 rounded-xl font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
-                          View directions on map
+                          Xem sơ đồ đường đi
                         </Link>
                       )}
                     </div>
@@ -152,7 +151,7 @@ export const EventsFeature = () => {
           </div>
         ) : (
           <div className="text-center py-20 text-xl font-bold text-gray-400 border-2 border-dashed border-gray-200 rounded-[2rem]">
-            No events were found in this section.
+            Không tìm thấy sự kiện nào trong mục này.
           </div>
         )}
 

@@ -20,6 +20,7 @@ public sealed class PublicShopCatalogService : IPublicShopCatalogService
             .Where(shopInfo => shopInfo.IsPublicVisible)
             .ToArray();
         var visibleShopIds = visibleShopInfos
+            .Where(shopInfo => shopInfo.IsPublicVisible)
             .SelectMany(GetCatalogLookupIds)
             .Where(id => id.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -41,7 +42,6 @@ public sealed class PublicShopCatalogService : IPublicShopCatalogService
                 var vouchers = catalogLookupIds
                     .Where(vouchersByShopId.ContainsKey)
                     .SelectMany(id => vouchersByShopId[id]);
-
                 return ShopInfoPublicMapper.Map(shopInfo, FindRentalArea(shopInfo, rentalAreas), products, vouchers);
             })
             .OrderBy(shop => shop.Name)

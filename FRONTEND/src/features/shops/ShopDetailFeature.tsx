@@ -1,16 +1,17 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import type { ShopDetail } from './types/shop.types';
+// IMPORT THÊM getShops VÀ type Shop
+import { getShopBySlug, getShops, type ShopDetail, type Shop } from './api/shopApi'; 
 import { getImageUrl } from "@/core/utils/image";
 
 export const ShopDetailFeature = () => {
   const { slug } = useParams<{ slug: string }>();
   const [shop, setShop] = useState<ShopDetail | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // Thêm state loading
-  const [error, setError] = useState<string | null>(null); // Thêm state báo lỗi
+  const [loading, setLoading] = useState<boolean>(true); 
+  const [error, setError] = useState<string | null>(null); 
 
-  // MOCK DATA Thương hiệu tương tự (Giữ nguyên hoặc sửa lại sau)
-  const similarBrands: any[] = [ /* ... */ ];
+  // Thay the MOCK DATA bằng state chứa danh sách thật
+  const [similarBrands, setSimilarBrands] = useState<Shop[]>([]);
 
   useEffect(() => {
     const fetchShopData = async () => {
@@ -20,18 +21,27 @@ export const ShopDetailFeature = () => {
       setError(null);
       
       try {
-        const response = await fetch(`http://localhost:5184/api/shops/${slug.toLowerCase()}`);
-       
-        if (!response.ok) {
-          throw new Error('Store not found');
+        // 1. Lấy dữ liệu chi tiết của shop hiện tại
+        const currentShop = await getShopBySlug(slug.toLowerCase());
+
+        if (!currentShop) {
+          throw new Error('Không tìm thấy cửa hàng');
         }
-        
-        const data = await response.json();
-        setShop(data);
-        
-      } catch (err: any) {
+        setShop(currentShop);
+
+        // 2. Lấy danh sách toàn bộ shop để làm "Thương hiệu tương tự"
+        const allShops = await getShops();
+
+        // 3. Lọc ra các shop cùng category và bỏ qua shop hiện tại đang xem
+        const relatedShops = allShops
+          .filter(s => s.category === currentShop.category && s.slug !== currentShop.slug)
+          .slice(0, 4); // Chỉ lấy tối đa 4 shop để giao diện gọn gàng
+
+        setSimilarBrands(relatedShops);
+
+      } catch (err: unknown) {
         console.error("Lỗi khi gọi API:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Không thể tải thông tin cửa hàng.");
       } finally {
         setLoading(false);
       }
@@ -39,28 +49,27 @@ export const ShopDetailFeature = () => {
     };
 
     fetchShopData();
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); // Cuộn lên đầu mỗi khi đổi sang shop mới
   }, [slug]);
 
   // HIỂN THỊ LOADING HOẶC LỖI
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <div className="animate-spin text-5xl">⏳</div>
-      <p className="text-gray-500 font-medium">Loading store information...</p>
+      <p className="text-gray-500 font-medium">Đang tải thông tin cửa hàng...</p>
     </div>
   );
 
   if (error || !shop) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <div className="text-5xl">🏪</div>
-      <p className="text-red-500 font-bold text-xl">{error || 'Store not found!'}</p>
-      <Link to="/map" className="px-6 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800">Back to Map</Link>
+      <p className="text-red-500 font-bold text-xl">{error || 'Không tìm thấy cửa hàng!'}</p>
+      <Link to="/map" className="px-6 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800">Quay lại Bản đồ</Link>
     </div>
   );
 
   const featuredProducts = shop.products?.filter(p => p.isFeatured) || [];
   const discountedProducts = shop.products?.filter(p => p.isDiscounted) || [];
-  const displayFloor = String(shop.floor).replace("Tầng", "Floor");
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20">
@@ -92,7 +101,7 @@ export const ShopDetailFeature = () => {
           </div>
           <div className="text-white pb-2 flex-1">
             <h1 className="text-5xl md:text-6xl font-black uppercase tracking-tight drop-shadow-lg">{shop.name}</h1>
-            <p className="text-xl font-medium opacity-90 italic drop-shadow mt-2">"{shop.slogan}"</p>
+            <p className="text-xl font-medium opacity-90 italic drop-shadow mt-2">"{shop.summary}"</p>
           </div>
         </div>
       </div>
@@ -107,12 +116,12 @@ export const ShopDetailFeature = () => {
           </p>
           <div className="flex gap-4 shrink-0 bg-gray-50 p-4 rounded-2xl border border-gray-100">
             <div className="text-center px-4 border-r border-gray-200">
-              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Opening Hours</p>
-              <p className="text-lg font-black text-gray-800">{shop.openTime} - {shop.closeTime}</p>
+              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Giờ mở cửa</p>
+              <p className="text-lg font-black text-gray-800">{shop.openHours}</p>
             </div>
             <div className="text-center px-4">
-              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Location</p>
-              <p className="text-lg font-black text-red-500">{displayFloor} • Unit {shop.locationSlot}</p>
+              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Vị trí</p>
+              <p className="text-lg font-black text-red-500">{shop.floor} • Lô {shop.locationSlot}</p>
             </div>
           </div>
         </div>
@@ -122,7 +131,7 @@ export const ShopDetailFeature = () => {
           <div>
             <div className="flex items-center gap-3 mb-8">
               <span className="w-2 h-8 bg-gray-800 rounded-full"></span>
-              <h2 className="text-3xl font-black text-gray-800">Featured Products</h2>
+              <h2 className="text-3xl font-black text-gray-800">Sản Phẩm Tiêu Biểu</h2>
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -148,7 +157,7 @@ export const ShopDetailFeature = () => {
             <div className="flex items-center gap-3 mb-8">
               <span className="w-2 h-8 bg-red-500 rounded-full"></span>
               <h2 className="text-3xl font-black text-red-600 flex items-center gap-2">
-                Best Deals 🔥
+                Săn Deal Giảm Giá 🔥
               </h2>
             </div>
             
@@ -181,7 +190,7 @@ export const ShopDetailFeature = () => {
         {/* 5. VOUCHER / MÃ GIẢM GIÁ */}
         {shop.vouchers && shop.vouchers.length > 0 && (
           <div className="pt-10 border-t border-gray-200">
-            <h2 className="text-2xl font-black text-gray-800 mb-6 text-center">🎟️ Save Your Offer Codes</h2>
+            <h2 className="text-2xl font-black text-gray-800 mb-6 text-center">🎟️ Lưu Mã Ưu Đãi Ngay</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {shop.vouchers.map(v => (
                 <div key={v.id} className="relative flex bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-0.5 shadow-lg hover:-translate-y-1 transition-transform cursor-pointer">
@@ -193,7 +202,7 @@ export const ShopDetailFeature = () => {
                     <div className="p-4 flex-1">
                       <h3 className="font-bold text-gray-800 text-lg">{v.title}</h3>
                       <p className="text-sm text-gray-500 mt-1 mb-3">{v.description}</p>
-                      <span className="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded">Valid until: {v.validUntil}</span>
+                      <span className="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded">HSD: {v.validUntil}</span>
                     </div>
                   </div>
                 </div>
@@ -202,43 +211,44 @@ export const ShopDetailFeature = () => {
           </div>
         )}
 
-        {/* 6. THƯƠNG HIỆU BẠN CÓ THỂ THÍCH */}
-        <div className="pt-16 pb-8 border-t border-gray-200">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-8 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></span>
-              <h2 className="text-3xl font-black text-gray-800">Similar Brands</h2>
-            </div>
-            <Link to="/brands" className="text-red-500 font-bold hover:underline flex items-center gap-1">
-              View all <span className="text-xl">→</span>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {similarBrands.map(brand => (
-              <Link 
-                to={`/shops/${brand.slug}`} 
-                key={brand.id}
-                className="bg-white rounded-[2rem] border border-gray-100 p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group relative overflow-hidden"
-              >
-                {/* Thanh màu dưới đáy khi hover */}
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                <div className="w-20 h-20 md:w-28 md:h-28 mb-4 p-2">
-                  <img 
-                   // src={brand.logo} 
-                    src={getImageUrl(brand.logoUrl)}
-                    alt={brand.name} 
-                    className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
-                  />
-                </div>
-                <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {String(brand.floor).replace("Tầng", "Floor")}</p>
+      {/* 6. THƯƠNG HIỆU BẠN CÓ THỂ THÍCH */}
+        {similarBrands.length > 0 && (
+          <div className="pt-16 pb-8 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <span className="w-2 h-8 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></span>
+                <h2 className="text-3xl font-black text-gray-800">Thương Hiệu Tương Tự</h2>
+              </div>
+              <Link to={`/brands?category=${shop.category}`} className="text-red-500 font-bold hover:underline flex items-center gap-1">
+                Xem tất cả <span className="text-xl">→</span>
               </Link>
-            ))}
-          </div>
-        </div>
+            </div>
 
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {similarBrands.map(brand => (
+                <Link 
+                  to={`/shops/${brand.slug}`} 
+                  key={brand.id}
+                  className="bg-white rounded-[2rem] border border-gray-100 p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group relative overflow-hidden"
+                >
+                  {/* Thanh màu dưới đáy khi hover */}
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                  <div className="w-20 h-20 md:w-28 md:h-28 mb-4 p-2">
+                    <img 
+                      // Lấy dữ liệu thật bằng hàm getImageUrl
+                      src={getImageUrl(brand.imageUrl)} 
+                      alt={brand.name} 
+                      className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500" 
+                    />
+                  </div>
+                  <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
+                  <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {brand.location}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

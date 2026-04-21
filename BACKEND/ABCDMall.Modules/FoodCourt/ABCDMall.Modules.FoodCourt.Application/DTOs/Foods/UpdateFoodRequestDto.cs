@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Http;
 
 namespace ABCDMall.Modules.FoodCourt.Application.DTOs.Foods;
 
+using Microsoft.AspNetCore.Http;
+
 public sealed class UpdateFoodRequestDto
 {
     public string Name { get; set; } = string.Empty;

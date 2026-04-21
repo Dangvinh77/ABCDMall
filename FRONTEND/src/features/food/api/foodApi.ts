@@ -1,22 +1,13 @@
-import { api, BASE_URL } from "../../../core/api/api";
+import { api } from "../../../core/api/api";
+import type { FoodItemDto } from "../types/food";
 
+// GET
 export const getFoods = () => api.get("/food");
 
-//export const createFood = (data: any) => api.post("/food", data);
-
 export const getFoodBySlug = (slug: string) =>
-                                                 api.get(`/food/slug/${slug}`);
+  api.get<FoodItemDto>(`/food/slug/${slug}`);
 
-// export const uploadImage = async (file: File) => {
-//   const formData = new FormData();
-//   formData.append("file", file);
-
-//   const res = await fetch("http://localhost:5184/api/food/upload", {
-//     method: "POST",
-//     body: formData,
-//   });
-
-//   return res.json();
+// CREATE
 export const createFood = async (data: any, file?: File) => {
   const formData = new FormData();
 
@@ -29,26 +20,23 @@ export const createFood = async (data: any, file?: File) => {
     formData.append("imageUrl", data.imageUrl);
   }
 
-  const res = await fetch(`${BASE_URL}/food`, {
+  const res = await fetch("http://localhost:5184/api/food", {
     method: "POST",
-    body: formData, // 🔥 KHÔNG set header
+    body: formData, 
   });
 
   return res.json();
-
-  
 };
 
+// UPLOAD riêng (nếu cần)
 export const uploadFoodImage = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/food/upload`, {
+  const res = await fetch("http://localhost:5184/api/food/upload", {
     method: "POST",
     body: formData,
   });
 
-  return res.json();
+  return res.json(); // { imageUrl: "/images/foodcourt/xxx.png" }
 };
- 
-  

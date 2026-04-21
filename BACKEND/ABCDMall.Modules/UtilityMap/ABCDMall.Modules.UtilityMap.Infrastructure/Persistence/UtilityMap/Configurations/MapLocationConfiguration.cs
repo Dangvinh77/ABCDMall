@@ -9,9 +9,9 @@ public class MapLocationConfiguration : IEntityTypeConfiguration<MapLocation>
     public void Configure(EntityTypeBuilder<MapLocation> builder)
     {
         builder.ToTable("MapLocations");
-        
+
         builder.HasKey(l => l.Id);
-        
+
         builder.Property(l => l.ShopName)
             .IsRequired()
             .HasMaxLength(200);
@@ -31,5 +31,16 @@ public class MapLocationConfiguration : IEntityTypeConfiguration<MapLocation>
 
         builder.Property(l => l.Y)
             .HasColumnType("float");
+
+        builder.Property(l => l.Status)
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasDefaultValue("Available");
+
+        builder.Property(l => l.ShopInfoId)
+            .HasMaxLength(64);
+
+        builder.HasIndex(l => l.ShopInfoId);
+        builder.HasIndex(l => l.Status);
     }
 }
