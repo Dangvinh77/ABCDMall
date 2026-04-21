@@ -50,14 +50,6 @@ public static class FrontendFoodCourtSeed
 
     private static readonly FoodSeed[] FoodSeeds =
     [
-
-         new(
-            "1",
-            "Minh",
-            "string",
-            "A premium seafood counter featuring grilled lobster, oysters, sushi, and rotating weekend buffet specials for groups and families.",
-            "/img/minh/longwang.png",
-            "seafood"),
             
         new(
             "food-034",
@@ -254,12 +246,12 @@ public static class FrontendFoodCourtSeed
             "dookki-vietnam",
             "Dookki is the pioneer that brought the authentic Korean Topokki buffet model to Vietnam, creating a massive trend among the youth. Here, diners are more than just guests; they become \"chefs\" who can personally craft their own rice cake hotpot using exclusive sauce recipes and over 30 diverse ingredients, ranging from cheese-filled rice cakes and fish cakes to fresh seafood.",
              "/img/Dookki/logo.png",
-             "korean",
-             new List<string>
-            {
-                "/img/Dookki/logo1.jpg",
-                "/img/Dookki/logo2.jpeg"
-            }
+             "korean"
+            //  new List<string>
+            // {
+            //     "/img/Dookki/logo1.jpg",
+            //     "/img/Dookki/logo2.jpeg"
+            // }
 
             
             ),

@@ -78,8 +78,8 @@ public class FoodController : ControllerBase
         => Ok(await _foodQueryService.GetListAsync(keyword, cancellationToken));
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Manager")]
-    //[AllowAnonymous]
+    //[Authorize(Roles = "Admin,Manager")]
+    [AllowAnonymous]
     public async Task<IActionResult> CreateFood([FromForm] CreateFoodRequestDto request, CancellationToken cancellationToken = default)
     {
         var validationResult = await _createFoodValidator.ValidateAsync(request, cancellationToken);
@@ -120,8 +120,8 @@ public class FoodController : ControllerBase
     // }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin,Manager")]
-  //  [AllowAnonymous]
+   //[Authorize(Roles = "Admin,Manager")]
+    [AllowAnonymous]
     public async Task<IActionResult> UpdateFood(
         string id,
         [FromForm] UpdateFoodRequestDto request,
@@ -151,8 +151,8 @@ public class FoodController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin,Manager")]
-    //[AllowAnonymous]
+    //[Authorize(Roles = "Admin,Manager")]
+    [AllowAnonymous]
     public async Task<IActionResult> DeleteFood(string id, CancellationToken cancellationToken = default)
     {
         var deleted = await _foodCommandService.DeleteAsync(id, cancellationToken);

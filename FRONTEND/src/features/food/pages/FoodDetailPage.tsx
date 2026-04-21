@@ -40,6 +40,31 @@ const STORE_FOLDER_MAP: Record<string, string> = {
   "king-bbq": "KingBBQ",
 };
 const STORE_IMAGES: Record<string, string[]> = {
+  "babushka-a-la-carte": [
+   "/img/crystaljade/menu.webp",
+    "/img/crystaljade/menu1.webp",
+    "/img/crystaljade/menu2.webp",
+    "/img/crystaljade/menu3.jpg",
+    "/img/crystaljade/menu4.jpg",
+  ],
+
+    "bobapop": [
+   "/img/Bobapop/menu.jpg",
+    "/img/Bobapop/menu1.webp",
+    "/img/Bobapop/menu2.png",
+    "/img/Bobapop/menu3.webp",
+    "/img/Bobapop/menu4.jpg",
+  ],
+  
+    "boba-bella": [
+   "/img/Boba Bella Milk Tea/menu.jpg",
+    "/img/Boba Bella Milk Tea/menu1.jpg",
+    "/img/Boba Bella Milk Tea/menu2.jpg",
+    "/img/Boba Bella Milk Tea/menu3.jpg",
+    "/img/Boba Bella Milk Tea/menu4.jpg",
+  ],
+  
+  
   "dookki-vietnam": [
     "/img/Dookki/menu.jpg",
     "/img/Dookki/logo1.jpg",
@@ -47,6 +72,284 @@ const STORE_IMAGES: Record<string, string[]> = {
     "/img/Dookki/menu1.jpg",
     "/img/Dookki/menu2.webp",
   ],
+
+  "chang-kang-kung": [
+    "/img/Chang Kang Kung/menu.jpg",
+    "/img/Chang Kang Kung/menu1.webp",
+    "/img/Chang Kang Kung/menu2.jpg",
+    "/img/Chang Kang Kung/menu3.jpg",
+    "/img/Chang Kang Kung/menu4.webp",
+  ],
+
+  "bonchon": [
+    "/img/bonchon/menu.jpg",
+    "/img/bonchon/menu1.jpg ",
+    "/img/bonchon/menu2.jpg",
+    "/img/bonchon/menu3.png",
+    "/img/bonchon/menu4.jpg",
+  ],
+
+  "chang-modern-thai-cuisine": [
+    "/img/chang/menu.jpg",
+    "/img/chang/menu1.jpg",
+    "/img/chang/menu2.jpg",
+    "/img/chang/menu3.jpg",
+    "/img/chang/menu4.jpg",
+  ],
+
+  "chilli-thai": [
+    "/img/Chilli Thai/menu.webp",
+    "/img/Chilli Thai/menu1.webp",
+    "/img/Chilli Thai/menu2.webp",
+    "/img/Chilli Thai/menu3.webp",
+    "/img/Chilli Thai/menu4.jpg",
+  ],
+
+  "crystal-jade": [
+    "/img/crystaljade/menu.webp",
+    "/img/crystaljade/menu1.webp",
+    "/img/crystaljade/menu2.webp",
+    "/img/crystaljade/menu3.jpg",
+    "/img/crystaljade/menu4.jpg",
+  ],
+
+  "dao-niu-guo": [
+    "/img/daoniuguo/menu.jpg",
+    "/img/daoniuguo/menu1.jpg",
+    "/img/daoniuguo/menu2.jpg",
+    "/img/daoniuguo/menu3.jpg",
+    "/img/daoniuguo/menu4.jpg",
+  ],
+
+  "gogi-house": [
+    "/img/gogi/menu.jpg",
+    "/img/gogi/menu1.jpg",
+    "/img/gogi/menu2.jpg",
+    "/img/gogi/menu3.jpg",
+    "/img/gogi/menu4.jpg",
+  ],
+
+  "h-bbq-buffet": [
+    "/img/H BBQ Buffet/menu.jpg",
+    "/img/H BBQ Buffet/menu1.jpg",
+    "/img/H BBQ Buffet/menu2.jpg",
+    "/img/H BBQ Buffet/menu3.jpg",
+    "/img/H BBQ Buffet/menu4.jpg",
+  ],
+
+  "highlands-coffee": [
+    "/img/2lands/menu.jpg",
+    "/img/2lands/menu1.jpg",
+    "/img/2lands/menu2.webp",
+    "/img/2lands/menu3.jpg",
+    "/img/2lands/menu4.jpg",
+  ],
+
+   "starbucks": [
+    "/img/starbuck/menu.jpg",
+    "/img/starbuck/menu1.jpg",
+    "/img/starbuck/menu2.jpg",
+    "/img/starbuck/menu3.jpg",
+    "/img/starbuck/menu4.jpg",
+  ],
+
+  "hoang-yen-buffet": [
+    "/img/buffethoangyen/menu.jpg",
+    "/img/buffethoangyen/menu1.jpg",
+    "/img/buffethoangyen/menu2.jpg",
+    "/img/buffethoangyen/menu3.jpg",
+    "/img/buffethoangyen/menu4.jpg",
+  ],
+
+   "hot-pot-story": [
+    "/img/Hot Pot Story/menu.jpg",
+    "/img/Hot Pot Story/menu1.jpg",
+    "/img/Hot Pot Story/menu2.jpg",
+    "/img/Hot Pot Story/menu3.jpg",
+    "/img/Hot Pot Story/menu4.jpg",
+    "/img/Hot Pot Story/gallery.jpg",
+  ],
+
+  "joopii": [
+    "/img/Hot Pot Story/menu.jpg",
+    "/img/Hot Pot Story/menu1.jpg",
+    "/img/Hot Pot Story/menu2.jpg",
+    "/img/Hot Pot Story/menu3.jpg",
+    "/img/Hot Pot Story/menu4.jpg",
+    "/img/Hot Pot Story/gallery.jpg",
+  ],
+
+  "khao-lao": [
+    "/img/khaolao/menu.jpg",
+    "/img/khaolao/menu1.jpg",
+    "/img/khaolao/menu2.jpg",
+    "/img/khaolao/menu3.jpg",
+    "/img/khaolao/menu4.webp",
+  ],
+
+  "kichi-kichi": [
+    "/img/kichi/menu.jpg",
+    "/img/kichi/menu1.jpg",
+    "/img/kichi/menu2.webp",
+    "/img/kichi/menu3.jpg",
+    "/img/kichi/menu4.jpg",
+  ],
+
+  "king-bbq": [
+    "/img/King BBQ/menu.jpg",
+    "/img/King BBQ/menu1.jpg",
+    "/img/King BBQ/menu2.webp",
+    "/img/King BBQ/menu3.jpg",
+    "/img/King BBQ/menu4.jpg",
+  ],
+
+   "marukame-udon": [
+    "/img/Marukame Udon/menu.webp",
+    "/img/Marukame Udon/menu1.webp",
+    "/img/Marukame Udon/menu2.webp",
+    "/img/Marukame Udon/menu3.webp",
+    "/img/Marukame Udon/menu4.webp",
+  ],
+
+   "lok-lok-hotpot": [
+    "/img/Lok Lok Hotpot/menu.jpg",
+    "/img/Lok Lok Hotpot/menu1.jpg",
+    "/img/Lok Lok Hotpot/menu2.jpg",
+    "/img/Lok Lok Hotpot/menu3.jpg",
+    "/img/Lok Lok Hotpot/menu4.jpg",
+    "/img/Lok Lok Hotpot/gallery.jpg",
+  ],
+
+   "mei-wei": [
+    "/img/Mei Wei/menu.jpg",
+    "/img/Mei Wei/menu1.png",
+    "/img/Mei Wei/menu2.png",
+    "/img/Mei Wei/menu3.jpg",
+    "/img/Mei Wei/menu4.png",
+  ],
+
+  "mikado-sushi": [
+    "/img/Mikado Sushi/menu.jpg",
+    "/img/Mikado Sushi/menu1.jpg",
+    "/img/Mikado Sushi/menu2.jpg",
+    "/img/Mikado Sushi/menu3.jpg",
+    "/img/Mikado Sushi/menu4.webp",
+  ],
+
+   "sushi-kei": [
+    "/img/sushikei/menu.webp",
+    "/img/sushikei/menu1.webp",
+    "/img/sushikei/menu2.jpg",
+    "/img/sushikei/menu3.png",
+    "/img/sushikei/menu4.png",
+  ],
+
+   "tasaki-bbq": [
+     "/img/King BBQ/menu.jpg",
+    "/img/King BBQ/menu1.jpg",
+    "/img/King BBQ/menu2.webp",
+    "/img/King BBQ/menu3.jpg",
+    "/img/King BBQ/menu4.jpg",
+  ],
+
+   "sushix": [
+    "/img/Mikado Sushi/menu.jpg",
+    "/img/Mikado Sushi/menu1.jpg",
+    "/img/Mikado Sushi/menu2.jpg",
+    "/img/Mikado Sushi/menu3.jpg",
+    "/img/Mikado Sushi/menu4.webp",
+  ],
+
+   "thaiexpress": [
+    "/img/thaiexpress/menu.jpg",
+    "/img/thaiexpress/menu1.jpg",
+    "/img/thaiexpress/menu2.jpg",
+    "/img/thaiexpress/menu3.jpg",
+    "/img/thaiexpress/menu4.jpg",
+  ],
+
+   "the-pizza-company": [
+    "/img/pizzaCompany/menu.webp",
+    "/img/pizzaCompany/menu1.webp",
+    "/img/pizzaCompany/menu2.jpg",
+    "/img/pizzaCompany/menu3.jpg",
+    "/img/pizzaCompany/menu4.jpg",
+  ],
+
+   "texas-chicken": [
+    "/img/texaschicken/menu.webp",
+    "/img/texaschicken/menu1.jpg",
+    "/img/texaschicken/menu2.jpg",
+    "/img/texaschicken/menu3.webp",
+    "/img/texaschicken/menu4.webp",
+  ],
+
+  "ocean-blue": [
+     "/img/Lok Lok Hotpot/menu.jpg",
+    "/img/Lok Lok Hotpot/menu1.jpg",
+    "/img/Lok Lok Hotpot/menu2.jpg",
+    "/img/Lok Lok Hotpot/menu3.jpg",
+    "/img/Lok Lok Hotpot/menu4.jpg",
+    "/img/Lok Lok Hotpot/gallery.jpg",
+  ],
+
+  "lu-nuong-88": [
+    "/img/Lẩu Nướng 88/menu.jpg",
+    "/img/Lẩu Nướng 88/menu1.jpg",
+    "/img/Lẩu Nướng 88/menu2.jpg",
+    "/img/Lẩu Nướng 88/menu3.jpg",
+    "/img/Lẩu Nướng 88/menu4.jpg",
+  ],
+
+  "shabu-ya": [
+    "/img/Shabu Ya/menu.jpg",
+    "/img/Shabu Ya/menu1.jpg",
+    "/img/Shabu Ya/in_1.jpg",
+    "/img/Shabu Ya/in_3.jpg",
+    "/img/Shabu Ya/in.jpg",
+  ],
+
+   "tokyo-ramen-station": [
+    "/img/Marukame Udon/menu.webp",
+    "/img/Marukame Udon/menu1.webp",
+    "/img/Marukame Udon/menu2.webp",
+    "/img/Marukame Udon/menu3.webp",
+    "/img/Marukame Udon/menu4.webp",
+  ],
+
+   "taipan": [
+    "/img/taipan/menu.jpg",
+    "/img/taipan/menu1.jpg",
+    "/img/taipan/menu2.jpg",
+    "/img/taipan/menu3.jpg",
+    "/img/taipan/menu4.jpg",
+  ],
+
+  "wow-yakiniku": [
+    "/img/wowyakiniku/menu.jpg",
+    "/img/wowyakiniku/menu2.png",
+    "/img/wowyakiniku/menu3.jpg",
+    "/img/wowyakiniku/menu4.jpg",
+    "/img/wowyakiniku/menu5.jpg",
+  ],
+
+    "yamazaki-bakery": [
+    "/img/Yamazaki Bakery/menu.jpg",
+    "/img/Yamazaki Bakery/menu1.jpg",
+    "/img/Yamazaki Bakery/menu2.jpg",
+    "/img/Yamazaki Bakery/in.jpg",
+    "/img/Yamazaki Bakery/in_1.jpg",
+    "/img/Yamazaki Bakery/out.jpg",
+  ],
+
+
+
+
+
+
+
+
+
 };
 
 function generateMenuFromFolder(slug: string): FoodMenuItemDto[] {
@@ -474,7 +777,7 @@ export default function FoodDetailPage() {
     if (!menu || menu.length === 0) return [];
 
     return menu
-      .slice(0, 4)
+      .slice(0, 10)
       .map((item) => item.imageUrl)
       .filter(Boolean);
   }, [menu]);
