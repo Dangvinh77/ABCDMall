@@ -1,0 +1,771 @@
+Table "dbo"."__EFMigrationsHistory" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "dbo"."ForgotPasswordOtps" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "UserId" nvarchar(64) [not null]
+  "Email" nvarchar(256) [not null]
+  "Otp" nvarchar(10) [not null]
+  "NewPasswordHash" nvarchar(MAX) [not null]
+  "CreatedAt" datetime2 [not null]
+  "ExpiresAt" datetime2 [not null]
+  "IsUsed" bit [not null]
+  "UsedAt" datetime2
+}
+
+Table "dbo"."PasswordResetOtps" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "UserId" nvarchar(64) [not null]
+  "Otp" nvarchar(10) [not null]
+  "NewPasswordHash" nvarchar(MAX) [not null]
+  "CreatedAt" datetime2 [not null]
+  "ExpiresAt" datetime2 [not null]
+  "IsUsed" bit [not null]
+  "UsedAt" datetime2
+}
+
+Table "dbo"."ProfileUpdateHistories" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "UserId" nvarchar(64) [not null]
+  "Email" nvarchar(256) [not null]
+  "PreviousFullName" nvarchar(200)
+  "PreviousAddress" nvarchar(500)
+  "PreviousImage" nvarchar(500)
+  "PreviousCCCD" nvarchar(50)
+  "UpdatedFullName" nvarchar(200)
+  "UpdatedAddress" nvarchar(500)
+  "UpdatedImage" nvarchar(500)
+  "UpdatedCCCD" nvarchar(50)
+  "UpdatedAt" datetime2 [not null]
+}
+
+Table "dbo"."RefreshTokens" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "UserId" nvarchar(64) [not null]
+  "Token" nvarchar(500) [unique, not null]
+  "ExpiresAt" datetime2 [not null]
+  "CreatedAt" datetime2 [not null]
+  "IsRevoked" bit [not null]
+  "RevokedAt" datetime2
+}
+
+Table "dbo"."RentalAreas" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "AreaCode" nvarchar(50) [unique, not null]
+  "Floor" nvarchar(20) [not null]
+  "AreaName" nvarchar(200) [not null]
+  "Size" nvarchar(50) [not null]
+  "MonthlyRent" decimal(18,2) [not null]
+  "Status" nvarchar(50) [not null]
+  "TenantName" nvarchar(200)
+  "CreatedAt" datetime2 [not null]
+  "ShopInfoId" nvarchar(64)
+
+  Indexes {
+    ShopInfoId [type: nonclustered, name: "IX_RentalAreas_ShopInfoId"]
+  }
+}
+
+Table "dbo"."ShopInfos" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "ShopName" nvarchar(200) [not null]
+  "ManagerName" nvarchar(200)
+  "CCCD" nvarchar(50) [unique]
+  "RentalLocation" nvarchar(100) [not null]
+  "Month" nvarchar(50) [not null]
+  "LeaseStartDate" datetime2 [not null]
+  "ElectricityUsage" nvarchar(100) [not null]
+  "ElectricityFee" decimal(18,2) [not null]
+  "WaterUsage" nvarchar(100) [not null]
+  "WaterFee" decimal(18,2) [not null]
+  "ServiceFee" decimal(18,2) [not null]
+  "LeaseTermDays" int(10) [not null]
+  "TotalDue" decimal(18,2) [not null]
+  "ContractImage" nvarchar(500)
+  "ContractImages" nvarchar(500)
+  "CreatedAt" datetime2 [not null]
+  "Badge" nvarchar(120)
+  "Category" nvarchar(120) [not null, default: `N''`]
+  "CoverImageUrl" nvarchar(500) [not null, default: `N''`]
+  "Description" nvarchar(2000) [not null, default: `N''`]
+  "Floor" nvarchar(80) [not null, default: `N''`]
+  "IsPublicVisible" bit [not null, default: `CONVERT([bit],0)`]
+  "LocationSlot" nvarchar(100) [not null, default: `N''`]
+  "LogoUrl" nvarchar(500) [not null, default: `N''`]
+  "Offer" nvarchar(250)
+  "OpenHours" nvarchar(80) [not null, default: `N''`]
+  "OwnerShopInfoId" nvarchar(64)
+  "Slug" nvarchar(160) [unique, not null, default: `N''`]
+  "Summary" nvarchar(500) [not null, default: `N''`]
+  "Tags" nvarchar(500) [not null, default: `N''`]
+
+  Indexes {
+    OwnerShopInfoId [type: nonclustered, name: "IX_ShopInfos_OwnerShopInfoId"]
+  }
+}
+
+Table "dbo"."ShopMonthlyBills" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "ShopInfoId" nvarchar(64) [not null]
+  "BillKey" nvarchar(220) [unique, not null]
+  "ShopName" nvarchar(200) [not null]
+  "ManagerName" nvarchar(200)
+  "CCCD" nvarchar(50)
+  "RentalLocation" nvarchar(100) [not null]
+  "Month" nvarchar(50) [not null]
+  "UsageMonth" nvarchar(50) [not null]
+  "BillingMonthKey" nvarchar(20) [not null]
+  "UsageMonthKey" nvarchar(20) [not null]
+  "LeaseStartDate" datetime2 [not null]
+  "ElectricityUsage" nvarchar(100) [not null]
+  "ElectricityFee" decimal(18,2) [not null]
+  "WaterUsage" nvarchar(100) [not null]
+  "WaterFee" decimal(18,2) [not null]
+  "ServiceFee" decimal(18,2) [not null]
+  "LeaseTermDays" int(10) [not null]
+  "TotalDue" decimal(18,2) [not null]
+  "ContractImage" nvarchar(500)
+  "ContractImages" nvarchar(500)
+  "CreatedAt" datetime2 [not null]
+  "UpdatedAt" datetime2
+}
+
+Table "dbo"."Users" {
+  "Id" nvarchar(64) [pk, not null, default: `lower(replace(CONVERT([varchar]36,newid()),'-',''))`]
+  "Email" nvarchar(256) [unique, not null]
+  "Password" nvarchar(MAX) [not null]
+  "Role" nvarchar(50) [not null]
+  "FullName" nvarchar(200)
+  "ShopId" nvarchar(64)
+  "CreatedAt" datetime2
+  "UpdatedAt" datetime2
+  "Image" nvarchar(500)
+  "Address" nvarchar(500)
+  "CCCD" nvarchar(50) [unique]
+  "FailedLoginAttempts" int(10) [not null]
+  "LoginOtpCode" nvarchar(10)
+  "LoginOtpExpiresAt" datetime2
+  "IsActive" bit [not null, default: `CONVERT([bit],1)`]
+}
+
+Table "dbo"."sysdiagrams" {
+  "name" sysname(256) [unique, not null]
+  "principal_id" int(10) [unique, not null]
+  "diagram_id" int(10) [pk, not null, increment]
+  "version" int(10)
+  "definition" varbinary(MAX)
+}
+
+Table "events"."__EFMigrationsHistory_Events" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "events"."Events" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "Title" nvarchar(300) [not null]
+  "Description" nvarchar(4000) [not null]
+  "CoverImageUrl" nvarchar(1000) [not null]
+  "StartDate" datetime2 [not null]
+  "EndDate" datetime2 [not null]
+  "Location" nvarchar(500) [not null]
+  "EventType" int(10) [not null]
+  "ShopId" nvarchar(64)
+  "ShopName" nvarchar(300)
+  "IsHot" bit [not null, default: `CONVERT([bit],0)`]
+  "CreatedAt" datetime2 [not null]
+
+  Indexes {
+    EventType [type: nonclustered, name: "IX_Events_EventType"]
+    IsHot [type: nonclustered, name: "IX_Events_IsHot"]
+    (StartDate, EndDate) [type: nonclustered, name: "IX_Events_StartDate_EndDate"]
+  }
+}
+
+Table "foodcourt"."__EFMigrationsHistory_FoodCourt" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "foodcourt"."FoodItems" {
+  "Id" nvarchar(64) [pk, not null]
+  "Name" nvarchar(200) [not null]
+  "ImageUrl" nvarchar(1000) [not null]
+  "Slug" nvarchar(200) [unique, not null]
+  "MallSlug" nvarchar(200) [not null]
+  "CategorySlug" nvarchar(200) [not null]
+  "Description" nvarchar(4000) [not null]
+}
+
+Table "movies"."__EFMigrationsHistory_MoviesCatalog" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "movies"."Cinemas" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "Code" nvarchar(50) [unique, not null]
+  "Name" nvarchar(200) [not null]
+  "AddressLine1" nvarchar(300) [not null]
+  "AddressLine2" nvarchar(300)
+  "City" nvarchar(120) [not null]
+  "IsActive" bit [not null]
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    (City, IsActive) [type: nonclustered, name: "IX_Cinemas_City_IsActive"]
+  }
+}
+
+Table "movies"."Genres" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "Name" nvarchar(100) [unique, not null]
+  "Description" nvarchar(500)
+}
+
+Table "movies"."Movies" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "Title" nvarchar(250) [not null]
+  "Slug" nvarchar(250) [unique, not null]
+  "Synopsis" nvarchar(4000)
+  "DurationMinutes" int(10) [not null]
+  "PosterUrl" nvarchar(1000)
+  "TrailerUrl" nvarchar(1000)
+  "ReleaseDate" date
+  "RatingLabel" nvarchar(20)
+  "DefaultLanguage" int(10) [not null]
+  "Status" int(10) [not null]
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    (Status, ReleaseDate) [type: nonclustered, name: "IX_Movies_Status_ReleaseDate"]
+  }
+}
+
+Table "movies"."People" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "FullName" nvarchar(200) [not null]
+  "ProfileImageUrl" nvarchar(1000)
+  "Biography" nvarchar(4000)
+}
+
+Table "movies"."Halls" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "CinemaId" uniqueidentifier(16) [unique, not null]
+  "HallCode" nvarchar(50) [unique, not null]
+  "Name" nvarchar(150) [not null]
+  "HallType" int(10) [not null]
+  "SeatCapacity" int(10) [not null]
+  "IsActive" bit [not null]
+}
+
+Table "movies"."MovieGenres" {
+  "MovieId" uniqueidentifier(16) [pk, not null]
+  "GenreId" uniqueidentifier(16) [pk, not null]
+
+  Indexes {
+    GenreId [type: nonclustered, name: "IX_MovieGenres_GenreId"]
+  }
+}
+
+Table "movies"."MovieCredits" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "MovieId" uniqueidentifier(16) [not null]
+  "PersonId" uniqueidentifier(16) [not null]
+  "CreditType" nvarchar(50) [not null]
+  "RoleName" nvarchar(150) [not null]
+  "DisplayOrder" int(10) [not null]
+
+  Indexes {
+    (MovieId, PersonId, CreditType) [type: nonclustered, name: "IX_MovieCredits_MovieId_PersonId_CreditType"]
+    PersonId [type: nonclustered, name: "IX_MovieCredits_PersonId"]
+  }
+}
+
+Table "movies"."HallSeats" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "HallId" uniqueidentifier(16) [unique, not null]
+  "SeatCode" nvarchar(20) [unique, not null]
+  "RowLabel" nvarchar(10) [unique, not null]
+  "ColumnNumber" int(10) [unique, not null]
+  "SeatType" int(10) [not null]
+  "CoupleGroupCode" nvarchar(50)
+  "IsActive" bit [not null]
+}
+
+Table "movies"."Showtimes" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "MovieId" uniqueidentifier(16) [not null]
+  "CinemaId" uniqueidentifier(16) [not null]
+  "HallId" uniqueidentifier(16) [not null]
+  "BusinessDate" date [not null]
+  "StartAtUtc" datetime2 [not null]
+  "EndAtUtc" datetime2
+  "Language" int(10) [not null]
+  "BasePrice" decimal(18,2) [not null]
+  "Status" int(10) [not null]
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    (CinemaId, BusinessDate, Status) [type: nonclustered, name: "IX_Showtimes_CinemaId_BusinessDate_Status"]
+    (HallId, StartAtUtc) [type: nonclustered, name: "IX_Showtimes_HallId_StartAtUtc"]
+    (MovieId, BusinessDate, Status) [type: nonclustered, name: "IX_Showtimes_MovieId_BusinessDate_Status"]
+  }
+}
+
+Table "movies"."ShowtimeSeatInventory" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "ShowtimeId" uniqueidentifier(16) [unique, not null]
+  "HallSeatId" uniqueidentifier(16) [not null]
+  "SeatCode" nvarchar(20) [unique, not null]
+  "RowLabel" nvarchar(10) [not null]
+  "ColumnNumber" int(10) [not null]
+  "SeatType" int(10) [not null]
+  "CoupleGroupCode" nvarchar(50)
+  "Price" decimal(18,2) [not null]
+  "Status" int(10) [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    HallSeatId [type: nonclustered, name: "IX_ShowtimeSeatInventory_HallSeatId"]
+    (ShowtimeId, Status) [type: nonclustered, name: "IX_ShowtimeSeatInventory_ShowtimeId_Status"]
+  }
+}
+
+Table "movies"."__EFMigrationsHistory_MoviesBooking" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "movies"."AuditLogs" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "EntityName" nvarchar(100) [not null]
+  "EntityId" nvarchar(100) [not null]
+  "Action" nvarchar(50) [not null]
+  "ActorId" nvarchar(100)
+  "ChangesJson" nvarchar(MAX)
+  "CreatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    (EntityName, EntityId, CreatedAtUtc) [type: nonclustered, name: "IX_AuditLogs_EntityName_EntityId_CreatedAtUtc"]
+  }
+}
+
+Table "movies"."BookingHolds" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "HoldCode" nvarchar(32) [unique, not null]
+  "ShowtimeId" uniqueidentifier(16) [not null]
+  "Status" int(10) [not null]
+  "ExpiresAtUtc" datetime2 [not null]
+  "SessionId" nvarchar(100)
+  "SeatSubtotal" decimal(18,2) [not null]
+  "ComboSubtotal" decimal(18,2) [not null]
+  "DiscountAmount" decimal(18,2) [not null]
+  "GrandTotal" decimal(18,2) [not null]
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+  "ComboSnapshotJson" nvarchar(MAX)
+  "PromotionId" uniqueidentifier(16)
+  "PromotionSnapshotJson" nvarchar(MAX)
+  "ServiceFee" decimal(18,2) [not null, default: 0.0]
+
+  Indexes {
+    PromotionId [type: nonclustered, name: "IX_BookingHolds_PromotionId"]
+    (ShowtimeId, Status, ExpiresAtUtc) [type: nonclustered, name: "IX_BookingHolds_ShowtimeId_Status_ExpiresAtUtc"]
+  }
+}
+
+Table "movies"."GuestCustomers" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "FullName" nvarchar(200) [not null]
+  "Email" nvarchar(200) [not null]
+  "PhoneNumber" nvarchar(20) [not null]
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    Email [type: nonclustered, name: "IX_GuestCustomers_Email"]
+    PhoneNumber [type: nonclustered, name: "IX_GuestCustomers_PhoneNumber"]
+  }
+}
+
+Table "movies"."OutboxEvents" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "EventType" nvarchar(200) [not null]
+  "PayloadJson" nvarchar(MAX) [not null]
+  "Status" nvarchar(30) [not null]
+  "RetryCount" int(10) [not null]
+  "LastError" nvarchar(MAX)
+  "OccurredAtUtc" datetime2 [not null]
+  "ProcessedAtUtc" datetime2
+
+  Indexes {
+    (Status, OccurredAtUtc) [type: nonclustered, name: "IX_OutboxEvents_Status_OccurredAtUtc"]
+  }
+}
+
+Table "movies"."Promotions" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "Code" nvarchar(50) [unique, not null]
+  "Name" nvarchar(200) [not null]
+  "Description" nvarchar(1000) [not null]
+  "Status" int(10) [not null]
+  "ValidFromUtc" datetimeoffset
+  "ValidToUtc" datetimeoffset
+  "PercentageValue" decimal(5,2)
+  "FlatDiscountValue" decimal(18,2)
+  "MaximumDiscountAmount" decimal(18,2)
+  "MinimumSpendAmount" decimal(18,2)
+  "MaxRedemptions" int(10)
+  "MaxRedemptionsPerCustomer" int(10)
+  "IsAutoApplied" bit [not null]
+  "MetadataJson" nvarchar(MAX)
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    (Status, ValidFromUtc, ValidToUtc) [type: nonclustered, name: "IX_Promotions_Status_ValidFromUtc_ValidToUtc"]
+  }
+}
+
+Table "movies"."SnackCombos" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "Code" nvarchar(50) [unique, not null]
+  "Name" nvarchar(200) [not null]
+  "Description" nvarchar(1000) [not null]
+  "Price" decimal(18,2) [not null]
+  "IsActive" bit [not null]
+  "ImageUrl" nvarchar(1000)
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    IsActive [type: nonclustered, name: "IX_SnackCombos_IsActive"]
+  }
+}
+
+Table "movies"."BookingHoldSeats" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "BookingHoldId" uniqueidentifier(16) [unique, not null]
+  "SeatInventoryId" uniqueidentifier(16) [unique, not null]
+  "SeatCode" nvarchar(20) [not null]
+  "SeatType" nvarchar(30) [not null]
+  "UnitPrice" decimal(18,2) [not null]
+  "CoupleGroupCode" nvarchar(50)
+
+  Indexes {
+    SeatInventoryId [type: nonclustered, name: "IX_BookingHoldSeats_SeatInventoryId"]
+  }
+}
+
+Table "movies"."Bookings" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "BookingCode" nvarchar(32) [unique, not null]
+  "ShowtimeId" uniqueidentifier(16) [not null]
+  "GuestCustomerId" uniqueidentifier(16)
+  "BookingHoldId" uniqueidentifier(16) [unique]
+  "PromotionId" uniqueidentifier(16)
+  "Status" int(10) [not null]
+  "CustomerName" nvarchar(200) [not null]
+  "CustomerEmail" nvarchar(200) [not null]
+  "CustomerPhoneNumber" nvarchar(20) [not null]
+  "SeatSubtotal" decimal(18,2) [not null]
+  "ComboSubtotal" decimal(18,2) [not null]
+  "ServiceFee" decimal(18,2) [not null]
+  "DiscountAmount" decimal(18,2) [not null]
+  "GrandTotal" decimal(18,2) [not null]
+  "Currency" nvarchar(10) [not null]
+  "PromotionSnapshotJson" nvarchar(MAX)
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    GuestCustomerId [type: nonclustered, name: "IX_Bookings_GuestCustomerId"]
+    ShowtimeId [type: nonclustered, name: "IX_Bookings_ShowtimeId"]
+  }
+}
+
+Table "movies"."PromotionRedemptions" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "PromotionId" uniqueidentifier(16) [not null]
+  "BookingId" uniqueidentifier(16)
+  "GuestCustomerId" uniqueidentifier(16)
+  "CouponCode" nvarchar(50)
+  "DiscountAmount" decimal(18,2) [not null]
+  "RedeemedAtUtc" datetime2 [not null]
+
+  Indexes {
+    BookingId [type: nonclustered, name: "IX_PromotionRedemptions_BookingId"]
+    CouponCode [type: nonclustered, name: "IX_PromotionRedemptions_CouponCode"]
+    GuestCustomerId [type: nonclustered, name: "IX_PromotionRedemptions_GuestCustomerId"]
+    PromotionId [type: nonclustered, name: "IX_PromotionRedemptions_PromotionId"]
+  }
+}
+
+Table "movies"."PromotionRules" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "PromotionId" uniqueidentifier(16) [not null]
+  "RuleType" int(10) [not null]
+  "RuleValue" nvarchar(200) [not null]
+  "ThresholdValue" decimal(18,2)
+  "SortOrder" int(10) [not null]
+  "IsRequired" bit [not null]
+
+  Indexes {
+    PromotionId [type: nonclustered, name: "IX_PromotionRules_PromotionId"]
+    (PromotionId, SortOrder) [type: nonclustered, name: "IX_PromotionRules_PromotionId_SortOrder"]
+  }
+}
+
+Table "movies"."BookingItems" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "BookingId" uniqueidentifier(16) [not null]
+  "ItemType" nvarchar(30) [not null]
+  "ItemCode" nvarchar(50) [not null]
+  "Description" nvarchar(500) [not null]
+  "SeatInventoryId" uniqueidentifier(16)
+  "Quantity" int(10) [not null]
+  "UnitPrice" decimal(18,2) [not null]
+  "LineTotal" decimal(18,2) [not null]
+
+  Indexes {
+    BookingId [type: nonclustered, name: "IX_BookingItems_BookingId"]
+    SeatInventoryId [type: nonclustered, name: "IX_BookingItems_SeatInventoryId"]
+  }
+}
+
+Table "movies"."Payments" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "BookingId" uniqueidentifier(16) [not null]
+  "Provider" int(10) [not null]
+  "Status" int(10) [not null]
+  "Amount" decimal(18,2) [not null]
+  "Currency" nvarchar(10) [not null]
+  "PaymentIntentId" nvarchar(100)
+  "ProviderTransactionId" nvarchar(100) [unique]
+  "CallbackPayloadJson" nvarchar(MAX)
+  "FailureReason" nvarchar(500)
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+  "CompletedAtUtc" datetime2
+
+  Indexes {
+    BookingId [type: nonclustered, name: "IX_Payments_BookingId"]
+    Status [type: nonclustered, name: "IX_Payments_Status"]
+  }
+}
+
+Table "movies"."Tickets" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "BookingId" uniqueidentifier(16) [not null]
+  "BookingItemId" uniqueidentifier(16)
+  "SeatInventoryId" uniqueidentifier(16)
+  "TicketCode" nvarchar(50) [unique, not null]
+  "SeatCode" nvarchar(20)
+  "QrCodeContent" nvarchar(MAX)
+  "DeliveryStatus" nvarchar(30) [not null]
+  "IssuedAtUtc" datetime2 [not null]
+  "EmailSentAtUtc" datetime2
+  "EmailSendError" nvarchar(MAX)
+  "PdfFileName" nvarchar(255)
+  "UpdatedAtUtc" datetime2
+
+  Indexes {
+    BookingId [type: nonclustered, name: "IX_Tickets_BookingId"]
+    SeatInventoryId [type: nonclustered, name: "IX_Tickets_SeatInventoryId"]
+  }
+}
+
+Table "movies"."MovieFeedbackRequests" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "BookingId" uniqueidentifier(16) [unique, not null]
+  "MovieId" uniqueidentifier(16) [not null]
+  "ShowtimeId" uniqueidentifier(16) [unique, not null]
+  "PurchaserEmail" nvarchar(200) [not null]
+  "TokenHash" nvarchar(128) [unique]
+  "Status" int(10) [not null]
+  "AvailableAtUtc" datetime2 [not null]
+  "SentAtUtc" datetime2
+  "ExpiresAtUtc" datetime2
+  "SubmittedAtUtc" datetime2
+  "InvalidatedAtUtc" datetime2
+  "EmailRetryCount" int(10) [not null]
+  "LastEmailError" nvarchar(MAX)
+  "CreatedAtUtc" datetime2 [not null]
+  "UpdatedAtUtc" datetime2 [not null]
+
+  Indexes {
+    ExpiresAtUtc [type: nonclustered, name: "IX_MovieFeedbackRequests_ExpiresAtUtc"]
+    MovieId [type: nonclustered, name: "IX_MovieFeedbackRequests_MovieId"]
+    (Status, AvailableAtUtc) [type: nonclustered, name: "IX_MovieFeedbackRequests_Status_AvailableAtUtc"]
+  }
+}
+
+Table "movies"."MovieFeedbacks" {
+  "Id" uniqueidentifier(16) [pk, not null]
+  "FeedbackRequestId" uniqueidentifier(16) [unique]
+  "BookingId" uniqueidentifier(16)
+  "MovieId" uniqueidentifier(16) [not null]
+  "ShowtimeId" uniqueidentifier(16)
+  "Rating" int(10) [not null]
+  "Comment" nvarchar(2000) [not null]
+  "TagsJson" nvarchar(MAX)
+  "DisplayName" nvarchar(120)
+  "CreatedByEmail" nvarchar(200)
+  "ModerationStatus" int(10) [not null]
+  "IsVisible" bit [not null]
+  "CreatedAtUtc" datetime2 [not null]
+  "ModeratedAtUtc" datetime2
+  "ModeratedBy" nvarchar(120)
+  "ModerationReason" nvarchar(500)
+
+  Indexes {
+    BookingId [type: nonclustered, name: "IX_MovieFeedbacks_BookingId"]
+    (MovieId, IsVisible, ModerationStatus, CreatedAtUtc) [type: nonclustered, name: "IX_MovieFeedbacks_MovieId_IsVisible_ModerationStatus_CreatedAtUtc"]
+    (MovieId, Rating, CreatedAtUtc) [type: nonclustered, name: "IX_MovieFeedbacks_MovieId_Rating_CreatedAtUtc"]
+    ShowtimeId [type: nonclustered, name: "IX_MovieFeedbacks_ShowtimeId"]
+  }
+}
+
+Table "shops"."__EFMigrationsHistory_Shops" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "shops"."Shops" {
+  "Id" nvarchar(64) [pk, not null]
+  "Name" nvarchar(200) [not null]
+  "Slug" nvarchar(200) [unique, not null]
+  "Category" nvarchar(120) [not null]
+  "Floor" nvarchar(80) [not null]
+  "LocationSlot" nvarchar(80) [not null]
+  "Summary" nvarchar(1000) [not null]
+  "Description" nvarchar(4000) [not null]
+  "LogoUrl" nvarchar(1000) [not null]
+  "CoverImageUrl" nvarchar(1000) [not null]
+  "OpenHours" nvarchar(100) [not null]
+  "Badge" nvarchar(120)
+  "Offer" nvarchar(300)
+}
+
+Table "shops"."ShopProducts" {
+  "Id" nvarchar(64) [pk, not null]
+  "ShopId" nvarchar(64) [not null]
+  "Name" nvarchar(200) [not null]
+  "ImageUrl" nvarchar(1000) [not null]
+  "Price" decimal(18,2) [not null]
+  "OldPrice" decimal(18,2)
+  "DiscountPercent" int(10)
+  "IsFeatured" bit [not null]
+  "IsDiscounted" bit [not null]
+
+  Indexes {
+    ShopId [type: nonclustered, name: "IX_ShopProducts_ShopId"]
+  }
+}
+
+Table "shops"."ShopTags" {
+  "Id" nvarchar(64) [pk, not null]
+  "ShopId" nvarchar(64) [not null]
+  "Value" nvarchar(120) [not null]
+
+  Indexes {
+    ShopId [type: nonclustered, name: "IX_ShopTags_ShopId"]
+  }
+}
+
+Table "shops"."ShopVouchers" {
+  "Id" nvarchar(64) [pk, not null]
+  "ShopId" nvarchar(64) [not null]
+  "Code" nvarchar(80) [not null]
+  "Title" nvarchar(200) [not null]
+  "Description" nvarchar(1000) [not null]
+  "ValidUntil" nvarchar(120) [not null]
+  "IsActive" bit [not null]
+
+  Indexes {
+    ShopId [type: nonclustered, name: "IX_ShopVouchers_ShopId"]
+  }
+}
+
+Table "utility_map"."__EFMigrationsHistory_UtilityMap" {
+  "MigrationId" nvarchar(150) [pk, not null]
+  "ProductVersion" nvarchar(32) [not null]
+}
+
+Table "utility_map"."FloorPlans" {
+  "Id" int(10) [pk, not null, increment]
+  "FloorLevel" nvarchar(50) [not null]
+  "Description" nvarchar(500) [not null]
+  "BlueprintImageUrl" nvarchar(500) [not null]
+}
+
+Table "utility_map"."MapLocations" {
+  "Id" int(10) [pk, not null, increment]
+  "FloorPlanId" int(10) [not null]
+  "ShopName" nvarchar(200) [not null]
+  "LocationSlot" nvarchar(50) [not null]
+  "ShopUrl" nvarchar(500) [not null]
+  "X" float(53) [not null]
+  "Y" float(53) [not null]
+  "StorefrontImageUrl" nvarchar(500) [not null]
+
+  Indexes {
+    FloorPlanId [type: nonclustered, name: "IX_MapLocations_FloorPlanId"]
+  }
+}
+
+Ref "FK_BookingHoldSeats_BookingHolds_BookingHoldId":"movies"."BookingHolds"."Id" < "movies"."BookingHoldSeats"."BookingHoldId" [delete: cascade]
+
+Ref "FK_BookingItems_Bookings_BookingId":"movies"."Bookings"."Id" < "movies"."BookingItems"."BookingId" [delete: cascade]
+
+Ref "FK_Bookings_GuestCustomers_GuestCustomerId":"movies"."GuestCustomers"."Id" < "movies"."Bookings"."GuestCustomerId" [delete: set_null]
+
+Ref "FK_Halls_Cinemas_CinemaId":"movies"."Cinemas"."Id" < "movies"."Halls"."CinemaId" [delete: cascade]
+
+Ref "FK_HallSeats_Halls_HallId":"movies"."Halls"."Id" < "movies"."HallSeats"."HallId" [delete: cascade]
+
+Ref "FK_MovieCredits_Movies_MovieId":"movies"."Movies"."Id" < "movies"."MovieCredits"."MovieId" [delete: cascade]
+
+Ref "FK_MovieCredits_People_PersonId":"movies"."People"."Id" < "movies"."MovieCredits"."PersonId"
+
+Ref "FK_MovieFeedbackRequests_Bookings_BookingId":"movies"."Bookings"."Id" < "movies"."MovieFeedbackRequests"."BookingId" [delete: cascade]
+
+Ref "FK_MovieFeedbacks_Bookings_BookingId":"movies"."Bookings"."Id" < "movies"."MovieFeedbacks"."BookingId"
+
+Ref "FK_MovieFeedbacks_MovieFeedbackRequests_FeedbackRequestId":"movies"."MovieFeedbackRequests"."Id" < "movies"."MovieFeedbacks"."FeedbackRequestId"
+
+Ref "FK_MovieGenres_Genres_GenreId":"movies"."Genres"."Id" < "movies"."MovieGenres"."GenreId" [delete: cascade]
+
+Ref "FK_MovieGenres_Movies_MovieId":"movies"."Movies"."Id" < "movies"."MovieGenres"."MovieId" [delete: cascade]
+
+Ref "FK_Payments_Bookings_BookingId":"movies"."Bookings"."Id" < "movies"."Payments"."BookingId" [delete: cascade]
+
+Ref "FK_PromotionRedemptions_Promotions_PromotionId":"movies"."Promotions"."Id" < "movies"."PromotionRedemptions"."PromotionId" [delete: cascade]
+
+Ref "FK_PromotionRules_Promotions_PromotionId":"movies"."Promotions"."Id" < "movies"."PromotionRules"."PromotionId" [delete: cascade]
+
+Ref "FK_Showtimes_Halls_HallId":"movies"."Halls"."Id" < "movies"."Showtimes"."HallId"
+
+Ref "FK_Showtimes_Cinemas_CinemaId":"movies"."Cinemas"."Id" < "movies"."Showtimes"."CinemaId"
+
+Ref "FK_Showtimes_Movies_MovieId":"movies"."Movies"."Id" < "movies"."Showtimes"."MovieId"
+
+Ref "FK_ShowtimeSeatInventory_HallSeats_HallSeatId":"movies"."HallSeats"."Id" < "movies"."ShowtimeSeatInventory"."HallSeatId"
+
+Ref "FK_ShowtimeSeatInventory_Showtimes_ShowtimeId":"movies"."Showtimes"."Id" < "movies"."ShowtimeSeatInventory"."ShowtimeId" [delete: cascade]
+
+Ref "FK_Tickets_Bookings_BookingId":"movies"."Bookings"."Id" < "movies"."Tickets"."BookingId" [delete: cascade]
+
+Ref "FK_ShopProducts_Shops_ShopId":"shops"."Shops"."Id" < "shops"."ShopProducts"."ShopId" [delete: cascade]
+
+Ref "FK_ShopTags_Shops_ShopId":"shops"."Shops"."Id" < "shops"."ShopTags"."ShopId" [delete: cascade]
+
+Ref "FK_ShopVouchers_Shops_ShopId":"shops"."Shops"."Id" < "shops"."ShopVouchers"."ShopId" [delete: cascade]
+
+Ref "FK_MapLocations_FloorPlans_FloorPlanId":"utility_map"."FloorPlans"."Id" < "utility_map"."MapLocations"."FloorPlanId" [delete: cascade]
