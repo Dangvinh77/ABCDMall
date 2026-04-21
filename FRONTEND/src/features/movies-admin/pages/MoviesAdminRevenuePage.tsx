@@ -58,13 +58,13 @@ export function MoviesAdminRevenuePage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+      <section className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.28)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">Revenue</p>
             <h1 className="mt-2 text-3xl font-black uppercase tracking-[0.08em] text-white">Detailed revenue report</h1>
           </div>
-          <Badge className="border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200">
+          <Badge className="border border-white/10 bg-white/[0.04] px-3 py-1.5 text-gray-200">
             {loading ? "Loading..." : "Filtered report"}
           </Badge>
         </div>
@@ -96,7 +96,7 @@ export function MoviesAdminRevenuePage() {
             <option value="Failed">Failed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
-          <button onClick={() => void loadReport()} className="rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950">Apply</button>
+          <button onClick={() => void loadReport()} className="rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.12]">Apply</button>
         </div>
       </section>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -144,7 +144,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<UserSummaryResponseDto>>> GetUsers()
         => Ok(await _userQueryService.GetUsersAsync());
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "MoviesAdmin,Admin")]
     [HttpGet("movies-admins")]
     public async Task<ActionResult<IReadOnlyList<UserSummaryResponseDto>>> GetMoviesAdmins()
         => Ok(await _userQueryService.GetUsersByRoleAsync("MoviesAdmin"));

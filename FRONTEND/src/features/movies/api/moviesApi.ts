@@ -1,4 +1,5 @@
 import { api } from "../../../core/api/api";
+import { getImageUrl } from "../../../core/utils/image";
 
 export type MovieStatus = "NowShowing" | "ComingSoon" | string;
 export type SeatType = "regular" | "vip" | "couple";
@@ -37,6 +38,8 @@ export interface PromotionModel {
   accentTo: string;
   condition: string;
   expiry: string;
+  isFeatured: boolean;
+  displayPriority: number;
 }
 
 export interface SnackComboModel {
@@ -303,6 +306,13 @@ interface PromotionResponseDto {
   validFromUtc?: string | null;
   validToUtc?: string | null;
   isAutoApplied: boolean;
+  imageUrl?: string | null;
+  badgeText?: string | null;
+  accentFrom?: string | null;
+  accentTo?: string | null;
+  displayCondition?: string | null;
+  isFeatured?: boolean;
+  displayPriority?: number;
 }
 
 interface SnackComboResponseDto {
@@ -652,13 +662,15 @@ function mapPromotion(dto: PromotionResponseDto): PromotionModel {
     title: dto.name,
     description: dto.description,
     category,
-    discountLabel: dto.code,
+    discountLabel: dto.badgeText || dto.code,
     status: dto.status,
-    imageUrl: PROMO_IMAGES[category] ?? PROMO_IMAGES.all,
-    accentFrom: accent.from,
-    accentTo: accent.to,
-    condition: dto.isAutoApplied ? "Applied automatically when eligible" : "Select this offer before checkout",
+    imageUrl: getImageUrl(dto.imageUrl || PROMO_IMAGES[category] || PROMO_IMAGES.all),
+    accentFrom: dto.accentFrom || accent.from,
+    accentTo: dto.accentTo || accent.to,
+    condition: dto.displayCondition || (dto.isAutoApplied ? "Applied automatically when eligible" : "Select this offer before checkout"),
     expiry: formatExpiry(dto.validToUtc),
+    isFeatured: dto.isFeatured ?? false,
+    displayPriority: dto.displayPriority ?? 0,
   };
 }
 
@@ -906,6 +918,7 @@ export async function fetchPromotions(activeOnly = true) {
   // API FETCH NOTE:
   // Promotions are fetched from backend, then mapped to UI colors/images used by the promotions page.
   const response = await api.get<PromotionResponseDto[]>("/movies-promotions", { activeOnly });
+  // Keep backend ordering so newly created promos stay visible at the top.
   return response.map(mapPromotion);
 }
 

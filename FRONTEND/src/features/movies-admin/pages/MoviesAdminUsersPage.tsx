@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Badge } from "../../movies/component/ui/badge";
 import {
+  type MoviesAdminUserCreateRequest,
   type MoviesAdminUser,
   type MoviesAdminUserUpsertRequest,
+  type MoviesAdminUserUpdateRequest,
   moviesAdminApi,
 } from "../services/moviesAdminApi";
 
@@ -51,9 +53,22 @@ export function MoviesAdminUsersPage() {
       setError("");
 
       if (editingUserId) {
-        await moviesAdminApi.updateMoviesAdmin(editingUserId, form);
+        const payload: MoviesAdminUserUpdateRequest = {
+          email: form.email,
+          fullName: form.fullName,
+          address: form.address || undefined,
+          cccd: form.cccd || undefined,
+        };
+        await moviesAdminApi.updateMoviesAdmin(editingUserId, payload);
       } else {
-        await moviesAdminApi.createMoviesAdmin(form);
+        const payload: MoviesAdminUserCreateRequest = {
+          email: form.email,
+          password: form.password?.trim() ?? "",
+          fullName: form.fullName,
+          address: form.address || undefined,
+          cccd: form.cccd || undefined,
+        };
+        await moviesAdminApi.createMoviesAdmin(payload);
       }
 
       resetForm();
@@ -93,13 +108,13 @@ export function MoviesAdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+      <section className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.28)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">Admin users</p>
             <h1 className="mt-2 text-3xl font-black uppercase tracking-[0.08em] text-white">MoviesAdmin accounts</h1>
           </div>
-          <Badge className="border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200">
+          <Badge className="border border-white/10 bg-white/[0.04] px-3 py-1.5 text-gray-200">
             {users.length} accounts
           </Badge>
         </div>
@@ -111,12 +126,24 @@ export function MoviesAdminUsersPage() {
         <form onSubmit={handleSubmit} className="space-y-4 rounded-[2rem] border border-white/8 bg-white/[0.03] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
           <h2 className="text-lg font-black uppercase tracking-[0.08em] text-white">{editingUserId ? "Edit user" : "Create user"}</h2>
           <input value={form.email} onChange={(e) => setForm((c) => ({ ...c, email: e.target.value }))} placeholder="Email" className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
-          <input value={form.password ?? ""} onChange={(e) => setForm((c) => ({ ...c, password: e.target.value }))} placeholder={editingUserId ? "New password (optional)" : "Password"} className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+          {!editingUserId ? (
+            <input
+              type="password"
+              value={form.password ?? ""}
+              onChange={(e) => setForm((c) => ({ ...c, password: e.target.value }))}
+              placeholder="Password"
+              className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white"
+            />
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3 text-sm text-gray-400">
+              Password is not edited from this screen.
+            </div>
+          )}
           <input value={form.fullName} onChange={(e) => setForm((c) => ({ ...c, fullName: e.target.value }))} placeholder="Full name" className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
           <input value={form.address ?? ""} onChange={(e) => setForm((c) => ({ ...c, address: e.target.value }))} placeholder="Address" className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
           <input value={form.cccd ?? ""} onChange={(e) => setForm((c) => ({ ...c, cccd: e.target.value }))} placeholder="CCCD" className="w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
           <div className="flex gap-3">
-            <button type="submit" disabled={submitting} className="flex-1 rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50">{submitting ? "Saving..." : editingUserId ? "Update" : "Create"}</button>
+            <button type="submit" disabled={submitting} className="flex-1 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-white/90 disabled:opacity-50">{submitting ? "Saving..." : editingUserId ? "Update" : "Create"}</button>
             {editingUserId ? <button type="button" onClick={resetForm} className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white">Reset</button> : null}
           </div>
         </form>

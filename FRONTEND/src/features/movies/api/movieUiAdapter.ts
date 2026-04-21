@@ -169,7 +169,7 @@ function toHomePromo(promo: PromotionModel): HomePromo {
     id: PROMO_ID_BY_CODE[promo.discountLabel] ?? promo.id,
     title: promo.title,
     description: promo.description,
-    discount: PROMO_BADGE_BY_CODE[promo.discountLabel] ?? promo.discountLabel,
+    discount: promo.discountLabel || PROMO_BADGE_BY_CODE[promo.discountLabel] || promo.title,
     color: HOME_PROMO_COLORS[promo.category] ?? 'bg-gradient-to-br from-purple-600 to-purple-800',
     imageUrl: promo.imageUrl,
   };
@@ -180,7 +180,7 @@ export function toUiPromo(promo: PromotionModel): UiPromo {
     id: PROMO_ID_BY_CODE[promo.discountLabel] ?? promo.id,
     title: promo.title,
     desc: promo.description,
-    badge: PROMO_BADGE_BY_CODE[promo.discountLabel] ?? promo.discountLabel,
+    badge: promo.discountLabel || PROMO_BADGE_BY_CODE[promo.discountLabel] || promo.title,
     badgeColor: PROMO_BADGE_COLORS[promo.category] ?? 'from-purple-500 to-fuchsia-600',
     expiry: promo.expiry,
     condition: promo.condition,
@@ -188,7 +188,7 @@ export function toUiPromo(promo: PromotionModel): UiPromo {
     img: promo.imageUrl,
     accentFrom: promo.accentFrom,
     accentTo: promo.accentTo,
-    hot: ['WEEKEND', 'MOMO30', 'COMBOGOLD'].includes(promo.discountLabel),
+    hot: promo.isFeatured || ['WEEKEND', 'MOMO30', 'COMBOGOLD'].includes(promo.discountLabel),
   };
 }
 

@@ -18,8 +18,12 @@ public sealed class MoviesAdminEmailsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<MoviesAdminEmailLogItemDto>>> GetEmailLogs(CancellationToken cancellationToken = default)
-        => Ok(await _moviesAdminService.GetEmailLogsAsync(cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<MoviesAdminEmailLogItemDto>>> GetEmailLogs(
+        [FromQuery] string? query,
+        [FromQuery] string? deliveryStatus,
+        [FromQuery] string? outboxStatus,
+        CancellationToken cancellationToken = default)
+        => Ok(await _moviesAdminService.GetEmailLogsAsync(query, deliveryStatus, outboxStatus, cancellationToken));
 
     [HttpPost("{bookingId:guid}/resend")]
     public async Task<IActionResult> ResendTicketEmail(Guid bookingId, CancellationToken cancellationToken = default)

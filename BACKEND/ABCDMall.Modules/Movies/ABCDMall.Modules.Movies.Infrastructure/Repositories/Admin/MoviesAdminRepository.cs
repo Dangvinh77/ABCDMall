@@ -6,6 +6,8 @@ using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Admin;
 
@@ -216,6 +218,186 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         return true;
     }
 
+    public async Task<IReadOnlyList<MoviesAdminPromotionListItemDto>> GetPromotionsAsync(
+        string? status,
+        string? query,
+        bool activeOnly,
+        CancellationToken cancellationToken = default)
+    {
+        var promotionsQuery = _bookingDbContext.Promotions
+            .AsNoTracking()
+            .Include(x => x.Rules)
+            .Include(x => x.Redemptions)
+            .AsQueryable();
+
+        if (activeOnly)
+        {
+            promotionsQuery = promotionsQuery.Where(x => x.Status == PromotionStatus.Active);
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<PromotionStatus>(status, true, out var parsedStatus))
+        {
+            promotionsQuery = promotionsQuery.Where(x => x.Status == parsedStatus);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var normalizedQuery = query.Trim();
+            promotionsQuery = promotionsQuery.Where(x =>
+                x.Code.Contains(normalizedQuery) ||
+                x.Name.Contains(normalizedQuery) ||
+                x.Description.Contains(normalizedQuery));
+        }
+
+        var promotions = await promotionsQuery
+            .OrderByDescending(x => x.IsAutoApplied)
+            .ThenByDescending(x => x.UpdatedAtUtc)
+            .ToListAsync(cancellationToken);
+
+        return promotions.Select(ToPromotionListItemDto).ToList();
+    }
+
+    public async Task<MoviesAdminPromotionDetailDto?> GetPromotionByIdAsync(Guid promotionId, CancellationToken cancellationToken = default)
+    {
+        var promotion = await _bookingDbContext.Promotions
+            .AsNoTracking()
+            .Include(x => x.Rules.OrderBy(rule => rule.SortOrder))
+            .Include(x => x.Redemptions)
+            .FirstOrDefaultAsync(x => x.Id == promotionId, cancellationToken);
+
+        return promotion is null ? null : ToPromotionDetailDto(promotion);
+    }
+
+    public async Task<MoviesAdminPromotionDetailDto> CreatePromotionAsync(MoviesAdminPromotionUpsertDto request, CancellationToken cancellationToken = default)
+    {
+        ValidatePromotionRequest(request);
+
+        var normalizedCode = request.Code.Trim();
+        var existingPromotion = await _bookingDbContext.Promotions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Code == normalizedCode, cancellationToken);
+
+        if (existingPromotion is not null)
+        {
+            throw new InvalidOperationException(BuildPromotionCodeConflictMessage(existingPromotion));
+        }
+
+        var promotion = new Promotion
+        {
+            Id = Guid.NewGuid(),
+            Code = normalizedCode,
+            Name = request.Name.Trim(),
+            Description = request.Description.Trim(),
+            Status = ParsePromotionStatus(request.Status),
+            ValidFromUtc = request.ValidFromUtc,
+            ValidToUtc = request.ValidToUtc,
+            PercentageValue = request.PercentageValue,
+            FlatDiscountValue = request.FlatDiscountValue,
+            MaximumDiscountAmount = request.MaximumDiscountAmount,
+            MinimumSpendAmount = request.MinimumSpendAmount,
+            MaxRedemptions = request.MaxRedemptions,
+            MaxRedemptionsPerCustomer = request.MaxRedemptionsPerCustomer,
+            IsAutoApplied = request.IsAutoApplied,
+            MetadataJson = BuildPromotionMetadataJson(request),
+            CreatedAtUtc = DateTime.UtcNow,
+            UpdatedAtUtc = DateTime.UtcNow,
+            Rules = request.Rules
+                .OrderBy(rule => rule.SortOrder)
+                .Select(rule => new PromotionRule
+                {
+                    Id = Guid.NewGuid(),
+                    RuleType = ParsePromotionRuleType(rule.RuleType),
+                    RuleValue = rule.RuleValue.Trim(),
+                    ThresholdValue = rule.ThresholdValue,
+                    SortOrder = rule.SortOrder,
+                    IsRequired = rule.IsRequired
+                })
+                .ToList()
+        };
+
+        _bookingDbContext.Promotions.Add(promotion);
+        await _bookingDbContext.SaveChangesAsync(cancellationToken);
+
+        return ToPromotionDetailDto(promotion);
+    }
+
+    public async Task<MoviesAdminPromotionDetailDto?> UpdatePromotionAsync(Guid promotionId, MoviesAdminPromotionUpsertDto request, CancellationToken cancellationToken = default)
+    {
+        ValidatePromotionRequest(request);
+
+        var promotion = await _bookingDbContext.Promotions
+            .Include(x => x.Rules)
+            .Include(x => x.Redemptions)
+            .FirstOrDefaultAsync(x => x.Id == promotionId, cancellationToken);
+
+        if (promotion is null)
+        {
+            return null;
+        }
+
+        var normalizedCode = request.Code.Trim();
+        var existingPromotion = await _bookingDbContext.Promotions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Code == normalizedCode && x.Id != promotionId, cancellationToken);
+
+        if (existingPromotion is not null)
+        {
+            throw new InvalidOperationException(BuildPromotionCodeConflictMessage(existingPromotion));
+        }
+
+        promotion.Code = normalizedCode;
+        promotion.Name = request.Name.Trim();
+        promotion.Description = request.Description.Trim();
+        promotion.Status = ParsePromotionStatus(request.Status);
+        promotion.ValidFromUtc = request.ValidFromUtc;
+        promotion.ValidToUtc = request.ValidToUtc;
+        promotion.PercentageValue = request.PercentageValue;
+        promotion.FlatDiscountValue = request.FlatDiscountValue;
+        promotion.MaximumDiscountAmount = request.MaximumDiscountAmount;
+        promotion.MinimumSpendAmount = request.MinimumSpendAmount;
+        promotion.MaxRedemptions = request.MaxRedemptions;
+        promotion.MaxRedemptionsPerCustomer = request.MaxRedemptionsPerCustomer;
+        promotion.IsAutoApplied = request.IsAutoApplied;
+        promotion.MetadataJson = BuildPromotionMetadataJson(request);
+        promotion.UpdatedAtUtc = DateTime.UtcNow;
+
+        if (promotion.Rules.Count > 0)
+        {
+            _bookingDbContext.PromotionRules.RemoveRange(promotion.Rules);
+        }
+
+        promotion.Rules = request.Rules
+            .OrderBy(rule => rule.SortOrder)
+            .Select(rule => new PromotionRule
+            {
+                Id = Guid.NewGuid(),
+                PromotionId = promotion.Id,
+                RuleType = ParsePromotionRuleType(rule.RuleType),
+                RuleValue = rule.RuleValue.Trim(),
+                ThresholdValue = rule.ThresholdValue,
+                SortOrder = rule.SortOrder,
+                IsRequired = rule.IsRequired
+            })
+            .ToList();
+
+        await _bookingDbContext.SaveChangesAsync(cancellationToken);
+        return ToPromotionDetailDto(promotion);
+    }
+
+    public async Task<bool> DeletePromotionAsync(Guid promotionId, CancellationToken cancellationToken = default)
+    {
+        var promotion = await _bookingDbContext.Promotions.FirstOrDefaultAsync(x => x.Id == promotionId, cancellationToken);
+        if (promotion is null)
+        {
+            return false;
+        }
+
+        promotion.Status = PromotionStatus.Inactive;
+        promotion.UpdatedAtUtc = DateTime.UtcNow;
+        await _bookingDbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     public async Task<IReadOnlyList<MoviesAdminShowtimeListItemDto>> GetShowtimesAsync(
         Guid? movieId,
         DateOnly? businessDate,
@@ -346,19 +528,37 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         return true;
     }
 
-    public async Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(string? status, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
+        string? status,
+        string? paymentStatus,
+        Guid? movieId,
+        Guid? cinemaId,
+        string? query,
+        DateTime? dateFromUtc,
+        DateTime? dateToUtc,
+        CancellationToken cancellationToken = default)
     {
-        var query = _bookingDbContext.Bookings
+        var bookingQuery = _bookingDbContext.Bookings
             .AsNoTracking()
             .Include(x => x.Payments)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<BookingStatus>(status, true, out var parsedStatus))
         {
-            query = query.Where(x => x.Status == parsedStatus);
+            bookingQuery = bookingQuery.Where(x => x.Status == parsedStatus);
         }
 
-        var bookings = await query
+        if (dateFromUtc.HasValue)
+        {
+            bookingQuery = bookingQuery.Where(x => x.CreatedAtUtc >= dateFromUtc.Value);
+        }
+
+        if (dateToUtc.HasValue)
+        {
+            bookingQuery = bookingQuery.Where(x => x.CreatedAtUtc <= dateToUtc.Value);
+        }
+
+        var bookings = await bookingQuery
             .OrderByDescending(x => x.CreatedAtUtc)
             .Take(200)
             .ToListAsync(cancellationToken);
@@ -371,7 +571,7 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             .Where(x => showtimeIds.Contains(x.Id))
             .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-        return bookings.Select(x =>
+        var bookingResults = bookings.Select(x =>
         {
             var payment = x.Payments.OrderByDescending(p => p.CreatedAtUtc).FirstOrDefault();
             showtimeMap.TryGetValue(x.ShowtimeId, out var showtime);
@@ -393,8 +593,44 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
                 PaymentStatus = payment?.Status.ToString() ?? PaymentStatus.Pending.ToString(),
                 CreatedAtUtc = x.CreatedAtUtc
             };
-        }).ToList();
+        });
+
+        if (!string.IsNullOrWhiteSpace(paymentStatus))
+        {
+            bookingResults = bookingResults.Where(x => string.Equals(x.PaymentStatus, paymentStatus, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (movieId.HasValue)
+        {
+            bookingResults = bookingResults.Where(x =>
+                showtimeMap.TryGetValue(x.ShowtimeId, out var showtime)
+                && showtime.MovieId == movieId.Value);
+        }
+
+        if (cinemaId.HasValue)
+        {
+            bookingResults = bookingResults.Where(x =>
+                showtimeMap.TryGetValue(x.ShowtimeId, out var showtime)
+                && showtime.CinemaId == cinemaId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var normalizedQuery = query.Trim();
+            bookingResults = bookingResults.Where(x =>
+                ContainsIgnoreCase(x.BookingCode, normalizedQuery)
+                || ContainsIgnoreCase(x.CustomerName, normalizedQuery)
+                || ContainsIgnoreCase(x.CustomerEmail, normalizedQuery)
+                || ContainsIgnoreCase(x.CustomerPhoneNumber, normalizedQuery)
+                || ContainsIgnoreCase(x.MovieTitle, normalizedQuery)
+                || ContainsIgnoreCase(x.CinemaName, normalizedQuery));
+        }
+
+        return bookingResults.ToList();
     }
+
+    public Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(string? status, CancellationToken cancellationToken = default)
+        => GetBookingsAsync(status, null, null, null, null, null, null, cancellationToken);
 
     public async Task<MoviesAdminBookingDetailDto?> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
@@ -493,6 +729,11 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
     public async Task<IReadOnlyList<MoviesAdminPaymentListItemDto>> GetPaymentsAsync(
         string? status,
         string? provider,
+        Guid? movieId,
+        Guid? cinemaId,
+        string? query,
+        DateTime? dateFromUtc,
+        DateTime? dateToUtc,
         CancellationToken cancellationToken = default)
     {
         var payments = await _bookingDbContext.Payments
@@ -511,6 +752,16 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             payments = payments.Where(x => x.Provider == parsedProvider).ToList();
         }
 
+        if (dateFromUtc.HasValue)
+        {
+            payments = payments.Where(x => (x.CompletedAtUtc ?? x.CreatedAtUtc) >= dateFromUtc.Value).ToList();
+        }
+
+        if (dateToUtc.HasValue)
+        {
+            payments = payments.Where(x => (x.CompletedAtUtc ?? x.CreatedAtUtc) <= dateToUtc.Value).ToList();
+        }
+
         var bookings = await _bookingDbContext.Bookings
             .AsNoTracking()
             .Where(x => payments.Select(payment => payment.BookingId).Contains(x.Id))
@@ -525,7 +776,7 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             .AsNoTracking()
             .ToDictionaryAsync(x => x.Id, x => x.Title, cancellationToken);
 
-        return payments.Select(payment =>
+        var paymentResults = payments.Select(payment =>
         {
             bookings.TryGetValue(payment.BookingId, out var booking);
             var movieTitle = booking is not null
@@ -550,8 +801,39 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
                 UpdatedAtUtc = payment.UpdatedAtUtc,
                 CompletedAtUtc = payment.CompletedAtUtc
             };
-        }).ToList();
+        });
+
+        if (movieId.HasValue)
+        {
+            paymentResults = paymentResults.Where(x =>
+                bookings.TryGetValue(x.BookingId, out var booking)
+                && showtimeMap.TryGetValue(booking.ShowtimeId, out var showtime)
+                && showtime.MovieId == movieId.Value);
+        }
+
+        if (cinemaId.HasValue)
+        {
+            paymentResults = paymentResults.Where(x =>
+                bookings.TryGetValue(x.BookingId, out var booking)
+                && showtimeMap.TryGetValue(booking.ShowtimeId, out var showtime)
+                && showtime.CinemaId == cinemaId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var normalizedQuery = query.Trim();
+            paymentResults = paymentResults.Where(x =>
+                ContainsIgnoreCase(x.BookingCode, normalizedQuery)
+                || ContainsIgnoreCase(x.MovieTitle, normalizedQuery)
+                || ContainsIgnoreCase(x.CustomerEmail, normalizedQuery)
+                || ContainsIgnoreCase(x.ProviderTransactionId, normalizedQuery));
+        }
+
+        return paymentResults.ToList();
     }
+
+    public Task<IReadOnlyList<MoviesAdminPaymentListItemDto>> GetPaymentsAsync(string? status, string? provider, CancellationToken cancellationToken = default)
+        => GetPaymentsAsync(status, provider, null, null, null, null, null, cancellationToken);
 
     public async Task<MoviesAdminPaymentDetailDto?> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default)
     {
@@ -604,7 +886,11 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         };
     }
 
-    public async Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(
+        string? query,
+        string? deliveryStatus,
+        string? outboxStatus,
+        CancellationToken cancellationToken = default)
     {
         var bookings = await _bookingDbContext.Bookings
             .AsNoTracking()
@@ -639,7 +925,7 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             .OrderByDescending(x => x.IssuedAtUtc)
             .ToListAsync(cancellationToken);
 
-        return tickets
+        IEnumerable<MoviesAdminEmailLogItemDto> emailLogs = tickets
             .GroupBy(x => x.BookingId)
             .Select(group =>
             {
@@ -668,9 +954,35 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
                     OutboxLastError = outbox?.LastError
                 };
             })
-            .OrderByDescending(x => x.IssuedAtUtc)
-            .ToList();
+            .OrderByDescending(x => x.IssuedAtUtc);
+
+        if (!string.IsNullOrWhiteSpace(deliveryStatus))
+        {
+            emailLogs = emailLogs.Where(x => string.Equals(x.DeliveryStatus, deliveryStatus, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(outboxStatus))
+        {
+            emailLogs = emailLogs.Where(x => string.Equals(x.OutboxStatus, outboxStatus, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            var normalizedQuery = query.Trim();
+            emailLogs = emailLogs.Where(x =>
+                ContainsIgnoreCase(x.BookingCode, normalizedQuery)
+                || ContainsIgnoreCase(x.CustomerEmail, normalizedQuery)
+                || ContainsIgnoreCase(x.MovieTitle, normalizedQuery)
+                || ContainsIgnoreCase(x.PdfFileName, normalizedQuery)
+                || ContainsIgnoreCase(x.EmailSendError, normalizedQuery)
+                || ContainsIgnoreCase(x.OutboxLastError, normalizedQuery));
+        }
+
+        return emailLogs.ToList();
     }
+
+    public Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(CancellationToken cancellationToken = default)
+        => GetEmailLogsAsync(null, null, null, cancellationToken);
 
     public async Task ResendTicketEmailAsync(Guid bookingId, CancellationToken cancellationToken = default)
     {
@@ -950,6 +1262,142 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
     private static string? Normalize(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
+    private static MoviesAdminPromotionListItemDto ToPromotionListItemDto(Promotion promotion)
+    {
+        var metadata = ReadPromotionDisplayMetadata(promotion);
+
+        return new MoviesAdminPromotionListItemDto
+        {
+            Id = promotion.Id,
+            Code = promotion.Code,
+            Name = promotion.Name,
+            Description = promotion.Description,
+            Category = metadata.Category,
+            Status = promotion.Status.ToString(),
+            ValidFromUtc = promotion.ValidFromUtc,
+            ValidToUtc = promotion.ValidToUtc,
+            PercentageValue = promotion.PercentageValue,
+            FlatDiscountValue = promotion.FlatDiscountValue,
+            MaximumDiscountAmount = promotion.MaximumDiscountAmount,
+            MinimumSpendAmount = promotion.MinimumSpendAmount,
+            MaxRedemptions = promotion.MaxRedemptions,
+            MaxRedemptionsPerCustomer = promotion.MaxRedemptionsPerCustomer,
+            IsAutoApplied = promotion.IsAutoApplied,
+            ImageUrl = metadata.ImageUrl,
+            BadgeText = metadata.BadgeText,
+            AccentFrom = metadata.AccentFrom,
+            AccentTo = metadata.AccentTo,
+            DisplayCondition = metadata.DisplayCondition,
+            IsFeatured = metadata.IsFeatured,
+            DisplayPriority = metadata.DisplayPriority,
+            RuleCount = promotion.Rules.Count,
+            RedemptionCount = promotion.Redemptions.Count
+        };
+    }
+
+    private static MoviesAdminPromotionDetailDto ToPromotionDetailDto(Promotion promotion)
+    {
+        var metadata = ReadPromotionDisplayMetadata(promotion);
+
+        return new MoviesAdminPromotionDetailDto
+        {
+            Id = promotion.Id,
+            Code = promotion.Code,
+            Name = promotion.Name,
+            Description = promotion.Description,
+            Category = metadata.Category,
+            Status = promotion.Status.ToString(),
+            ValidFromUtc = promotion.ValidFromUtc,
+            ValidToUtc = promotion.ValidToUtc,
+            PercentageValue = promotion.PercentageValue,
+            FlatDiscountValue = promotion.FlatDiscountValue,
+            MaximumDiscountAmount = promotion.MaximumDiscountAmount,
+            MinimumSpendAmount = promotion.MinimumSpendAmount,
+            MaxRedemptions = promotion.MaxRedemptions,
+            MaxRedemptionsPerCustomer = promotion.MaxRedemptionsPerCustomer,
+            IsAutoApplied = promotion.IsAutoApplied,
+            ImageUrl = metadata.ImageUrl,
+            BadgeText = metadata.BadgeText,
+            AccentFrom = metadata.AccentFrom,
+            AccentTo = metadata.AccentTo,
+            DisplayCondition = metadata.DisplayCondition,
+            IsFeatured = metadata.IsFeatured,
+            DisplayPriority = metadata.DisplayPriority,
+            MetadataJson = promotion.MetadataJson,
+            RuleCount = promotion.Rules.Count,
+            RedemptionCount = promotion.Redemptions.Count,
+            Rules = promotion.Rules
+                .OrderBy(rule => rule.SortOrder)
+                .Select(rule => new MoviesAdminPromotionRuleDto
+                {
+                    RuleType = rule.RuleType.ToString(),
+                    RuleValue = rule.RuleValue,
+                    ThresholdValue = rule.ThresholdValue,
+                    SortOrder = rule.SortOrder,
+                    IsRequired = rule.IsRequired
+                })
+                .ToList()
+        };
+    }
+
+    private static void ValidatePromotionRequest(MoviesAdminPromotionUpsertDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Code))
+        {
+            throw new InvalidOperationException("Promotion code is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw new InvalidOperationException("Promotion name is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Description))
+        {
+            throw new InvalidOperationException("Promotion description is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Category))
+        {
+            throw new InvalidOperationException("Promotion category is required.");
+        }
+
+        if (!request.PercentageValue.HasValue && !request.FlatDiscountValue.HasValue)
+        {
+            throw new InvalidOperationException("Promotion must define a percentage or flat discount.");
+        }
+
+        if (request.PercentageValue.HasValue && (request.PercentageValue <= 0 || request.PercentageValue > 100))
+        {
+            throw new InvalidOperationException("Percentage discount must be between 0 and 100.");
+        }
+
+        if (request.FlatDiscountValue.HasValue && request.FlatDiscountValue <= 0)
+        {
+            throw new InvalidOperationException("Flat discount must be greater than 0.");
+        }
+
+        if (request.ValidFromUtc.HasValue && request.ValidToUtc.HasValue && request.ValidFromUtc > request.ValidToUtc)
+        {
+            throw new InvalidOperationException("Promotion validity range is invalid.");
+        }
+
+        foreach (var rule in request.Rules)
+        {
+            if (string.IsNullOrWhiteSpace(rule.RuleType))
+            {
+                throw new InvalidOperationException("Promotion rule type is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(rule.RuleValue))
+            {
+                throw new InvalidOperationException("Promotion rule value is required.");
+            }
+        }
+
+        _ = BuildPromotionMetadataJson(request);
+    }
+
     private static string Slugify(string value)
     {
         var chars = value
@@ -971,6 +1419,16 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             ? parsed
             : throw new InvalidOperationException("Invalid showtime status.");
 
+    private static PromotionStatus ParsePromotionStatus(string value)
+        => Enum.TryParse<PromotionStatus>(value, true, out var parsed)
+            ? parsed
+            : throw new InvalidOperationException("Invalid promotion status.");
+
+    private static PromotionRuleType ParsePromotionRuleType(string value)
+        => Enum.TryParse<PromotionRuleType>(value, true, out var parsed)
+            ? parsed
+            : throw new InvalidOperationException("Invalid promotion rule type.");
+
     private static LanguageType ParseLanguage(string value)
         => Enum.TryParse<LanguageType>(value, true, out var parsed)
             ? parsed
@@ -988,5 +1446,172 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         {
             return null;
         }
+    }
+
+    private static bool ContainsIgnoreCase(string? source, string value)
+        => !string.IsNullOrWhiteSpace(source)
+           && source.Contains(value, StringComparison.OrdinalIgnoreCase);
+
+    private static string BuildPromotionMetadataJson(MoviesAdminPromotionUpsertDto request)
+    {
+        JsonObject root = [];
+
+        if (!string.IsNullOrWhiteSpace(request.MetadataJson))
+        {
+            try
+            {
+                root = JsonNode.Parse(request.MetadataJson)?.AsObject() ?? [];
+            }
+            catch (Exception) when (request.MetadataJson is not null)
+            {
+                throw new InvalidOperationException("Metadata JSON must be a valid JSON object.");
+            }
+        }
+
+        root["category"] = NormalizeCategory(request.Category);
+        WriteOptional(root, "imageUrl", request.ImageUrl);
+        WriteOptional(root, "badgeText", request.BadgeText);
+        WriteOptional(root, "accentFrom", request.AccentFrom);
+        WriteOptional(root, "accentTo", request.AccentTo);
+        WriteOptional(root, "displayCondition", request.DisplayCondition);
+        root["isFeatured"] = request.IsFeatured;
+        root["displayPriority"] = request.DisplayPriority;
+
+        return root.ToJsonString();
+    }
+
+    private static string BuildPromotionCodeConflictMessage(Promotion promotion)
+        => promotion.Status == PromotionStatus.Inactive
+            ? "Promotion code already exists in an inactive campaign. Turn off 'Active only' and edit the existing promotion instead."
+            : $"Promotion code already exists in a {promotion.Status} campaign.";
+
+    private static PromotionDisplayMetadata ReadPromotionDisplayMetadata(Promotion promotion)
+    {
+        var metadata = new PromotionDisplayMetadata
+        {
+            Category = InferPromotionCategory(promotion),
+            BadgeText = promotion.Code,
+            DisplayCondition = promotion.IsAutoApplied
+                ? "Applied automatically when eligible"
+                : "Select this offer before checkout"
+        };
+
+        if (string.IsNullOrWhiteSpace(promotion.MetadataJson))
+        {
+            return metadata;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(promotion.MetadataJson);
+            metadata.Category = ReadString(document.RootElement, "category") is { Length: > 0 } category
+                ? NormalizeCategory(category)
+                : metadata.Category;
+            metadata.ImageUrl = ReadString(document.RootElement, "imageUrl");
+            metadata.BadgeText = ReadString(document.RootElement, "badgeText") ?? metadata.BadgeText;
+            metadata.AccentFrom = ReadString(document.RootElement, "accentFrom");
+            metadata.AccentTo = ReadString(document.RootElement, "accentTo");
+            metadata.DisplayCondition = ReadString(document.RootElement, "displayCondition") ?? metadata.DisplayCondition;
+            metadata.IsFeatured = ReadBool(document.RootElement, "isFeatured");
+            metadata.DisplayPriority = ReadInt(document.RootElement, "displayPriority");
+        }
+        catch (JsonException)
+        {
+            return metadata;
+        }
+
+        return metadata;
+    }
+
+    private static string InferPromotionCategory(Promotion promotion)
+    {
+        if (promotion.Rules.Any(rule => rule.RuleType == PromotionRuleType.Combo))
+        {
+            return "combo";
+        }
+
+        if (promotion.Rules.Any(rule => rule.RuleType == PromotionRuleType.PaymentProvider))
+        {
+            return "bank";
+        }
+
+        if (promotion.Rules.Any(rule => rule.RuleType == PromotionRuleType.BusinessDate))
+        {
+            return "weekend";
+        }
+
+        if (promotion.Rules.Any(rule => rule.RuleType == PromotionRuleType.BirthdayMonth))
+        {
+            return "member";
+        }
+
+        if (promotion.Rules.Any(rule => rule.RuleType == PromotionRuleType.SeatType))
+        {
+            return "ticket";
+        }
+
+        return "all";
+    }
+
+    private static string NormalizeCategory(string value)
+        => string.IsNullOrWhiteSpace(value) ? "all" : value.Trim().ToLowerInvariant();
+
+    private static void WriteOptional(JsonObject root, string propertyName, string? value)
+    {
+        var normalized = Normalize(value);
+        if (normalized is null)
+        {
+            root.Remove(propertyName);
+            return;
+        }
+
+        root[propertyName] = normalized;
+    }
+
+    private static string? ReadString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+
+        return property.ValueKind == JsonValueKind.String ? property.GetString() : null;
+    }
+
+    private static bool ReadBool(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return false;
+        }
+
+        return property.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => false
+        };
+    }
+
+    private static int ReadInt(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return 0;
+        }
+
+        return property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value) ? value : 0;
+    }
+
+    private sealed class PromotionDisplayMetadata
+    {
+        public string Category { get; set; } = "all";
+        public string? ImageUrl { get; set; }
+        public string? BadgeText { get; set; }
+        public string? AccentFrom { get; set; }
+        public string? AccentTo { get; set; }
+        public string? DisplayCondition { get; set; }
+        public bool IsFeatured { get; set; }
+        public int DisplayPriority { get; set; }
     }
 }

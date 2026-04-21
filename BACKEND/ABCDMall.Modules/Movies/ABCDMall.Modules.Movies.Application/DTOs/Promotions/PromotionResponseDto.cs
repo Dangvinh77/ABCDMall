@@ -11,4 +11,11 @@ public sealed class PromotionResponseDto
     public DateTimeOffset? ValidFromUtc { get; set; }
     public DateTimeOffset? ValidToUtc { get; set; }
     public bool IsAutoApplied { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? BadgeText { get; set; }
+    public string? AccentFrom { get; set; }
+    public string? AccentTo { get; set; }
+    public string? DisplayCondition { get; set; }
+    public bool IsFeatured { get; set; }
+    public int DisplayPriority { get; set; }
 }

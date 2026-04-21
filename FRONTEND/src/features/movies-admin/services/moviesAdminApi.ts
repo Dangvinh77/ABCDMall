@@ -1,4 +1,4 @@
-import { api } from "../../../core/api/api";
+import { api, http } from "../../../core/api/api";
 
 export interface MoviesAdminDashboardResponse {
   activeMovies: number;
@@ -75,6 +75,72 @@ export interface MoviesAdminShowtime {
   language: string;
   basePrice: number;
   status: string;
+}
+
+export interface MoviesAdminPromotionRule {
+  ruleType: string;
+  ruleValue: string;
+  thresholdValue?: number | null;
+  sortOrder: number;
+  isRequired: boolean;
+}
+
+export interface MoviesAdminPromotion {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  category: string;
+  status: string;
+  validFromUtc?: string | null;
+  validToUtc?: string | null;
+  percentageValue?: number | null;
+  flatDiscountValue?: number | null;
+  maximumDiscountAmount?: number | null;
+  minimumSpendAmount?: number | null;
+  maxRedemptions?: number | null;
+  maxRedemptionsPerCustomer?: number | null;
+  isAutoApplied: boolean;
+  imageUrl?: string | null;
+  badgeText?: string | null;
+  accentFrom?: string | null;
+  accentTo?: string | null;
+  displayCondition?: string | null;
+  isFeatured: boolean;
+  displayPriority: number;
+  ruleCount: number;
+  redemptionCount: number;
+}
+
+export interface MoviesAdminPromotionDetail extends MoviesAdminPromotion {
+  metadataJson?: string | null;
+  rules: MoviesAdminPromotionRule[];
+}
+
+export interface MoviesAdminPromotionUpsertRequest {
+  code: string;
+  name: string;
+  description: string;
+  category: string;
+  status: string;
+  validFromUtc?: string;
+  validToUtc?: string;
+  percentageValue?: number;
+  flatDiscountValue?: number;
+  maximumDiscountAmount?: number;
+  minimumSpendAmount?: number;
+  maxRedemptions?: number;
+  maxRedemptionsPerCustomer?: number;
+  isAutoApplied: boolean;
+  imageUrl?: string;
+  badgeText?: string;
+  accentFrom?: string;
+  accentTo?: string;
+  displayCondition?: string;
+  isFeatured: boolean;
+  displayPriority: number;
+  metadataJson?: string;
+  rules: MoviesAdminPromotionRule[];
 }
 
 export interface MoviesAdminShowtimeUpsertRequest {
@@ -162,6 +228,17 @@ export interface MoviesAdminUserUpsertRequest {
   cccd?: string;
 }
 
+export interface MoviesAdminUserCreateRequest extends MoviesAdminUserUpsertRequest {
+  password: string;
+}
+
+export interface MoviesAdminUserUpdateRequest {
+  email: string;
+  fullName: string;
+  address?: string;
+  cccd?: string;
+}
+
 export interface MoviesAdminPayment {
   id: string;
   bookingId: string;
@@ -214,6 +291,29 @@ export const moviesAdminApi = {
   getDashboard: () => api.get<MoviesAdminDashboardResponse>("/movies/admin/dashboard"),
   getLookups: () => api.get<MoviesAdminLookups>("/movies/admin/lookups"),
   getMovies: () => api.get<MoviesAdminMovie[]>("/movies/admin/movies"),
+  getPromotions: (params?: { status?: string; query?: string; activeOnly?: boolean }) =>
+    api.get<MoviesAdminPromotion[]>("/movies/admin/promotions", params),
+  getPromotionById: (promotionId: string) =>
+    api.get<MoviesAdminPromotionDetail>(`/movies/admin/promotions/${promotionId}`),
+  createPromotion: (payload: MoviesAdminPromotionUpsertRequest) =>
+    api.post<MoviesAdminPromotionDetail, MoviesAdminPromotionUpsertRequest>("/movies/admin/promotions", payload),
+  updatePromotion: (promotionId: string, payload: MoviesAdminPromotionUpsertRequest) =>
+    api.put<MoviesAdminPromotionDetail, MoviesAdminPromotionUpsertRequest>(`/movies/admin/promotions/${promotionId}`, payload),
+  deletePromotion: (promotionId: string) => api.delete<void>(`/movies/admin/promotions/${promotionId}`),
+  uploadPromotionImage: async (file: File): Promise<{ imageUrl: string }> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await http.post<{ imageUrl: string }>("/movies/admin/promotions/upload-image", formData);
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error("Unable to upload promotion image.");
+    }
+  },
   createMovie: (payload: MoviesAdminMovieUpsertRequest) =>
     api.post<MoviesAdminMovie, MoviesAdminMovieUpsertRequest>("/movies/admin/movies", payload),
   updateMovie: (movieId: string, payload: MoviesAdminMovieUpsertRequest) =>
@@ -226,26 +326,43 @@ export const moviesAdminApi = {
   updateShowtime: (showtimeId: string, payload: MoviesAdminShowtimeUpsertRequest) =>
     api.put<MoviesAdminShowtime, MoviesAdminShowtimeUpsertRequest>(`/movies/admin/showtimes/${showtimeId}`, payload),
   deleteShowtime: (showtimeId: string) => api.delete<void>(`/movies/admin/showtimes/${showtimeId}`),
-  getBookings: (params?: { status?: string }) => api.get<MoviesAdminBooking[]>("/movies/admin/bookings", params),
+  getBookings: (params?: {
+    status?: string;
+    paymentStatus?: string;
+    movieId?: string;
+    cinemaId?: string;
+    query?: string;
+    dateFromUtc?: string;
+    dateToUtc?: string;
+  }) => api.get<MoviesAdminBooking[]>("/movies/admin/bookings", params),
   getBookingById: (bookingId: string) => api.get<MoviesAdminBookingDetail>(`/movies/admin/bookings/${bookingId}`),
   getMoviesAdmins: () => api.get<MoviesAdminUser[]>("/Auth/movies-admins"),
-  createMoviesAdmin: (payload: MoviesAdminUserUpsertRequest) =>
-    api.post<{ message: string }, MoviesAdminUserUpsertRequest>("/Auth/movies-admins", {
+  createMoviesAdmin: (payload: MoviesAdminUserCreateRequest) =>
+    api.post<{ message: string }, MoviesAdminUserCreateRequest>("/Auth/movies-admins", {
       ...payload,
       role: "MoviesAdmin",
       shopName: null,
-    } as MoviesAdminUserUpsertRequest & { role: string; shopName: null }),
-  updateMoviesAdmin: (userId: string, payload: MoviesAdminUserUpsertRequest) =>
-    api.put<{ message: string }, MoviesAdminUserUpsertRequest>(`/Auth/movies-admins/${userId}`, {
+    } as MoviesAdminUserCreateRequest & { role: string; shopName: null }),
+  updateMoviesAdmin: (userId: string, payload: MoviesAdminUserUpdateRequest) =>
+    api.put<{ message: string }, MoviesAdminUserUpdateRequest>(`/Auth/movies-admins/${userId}`, {
       ...payload,
       role: "MoviesAdmin",
       shopName: null,
-    } as MoviesAdminUserUpsertRequest & { role: string; shopName: null }),
+    } as MoviesAdminUserUpdateRequest & { role: string; shopName: null }),
   deleteMoviesAdmin: (userId: string) => api.delete<void>(`/Auth/movies-admins/${userId}`),
-  getPayments: (params?: { status?: string; provider?: string }) =>
+  getPayments: (params?: {
+    status?: string;
+    provider?: string;
+    movieId?: string;
+    cinemaId?: string;
+    query?: string;
+    dateFromUtc?: string;
+    dateToUtc?: string;
+  }) =>
     api.get<MoviesAdminPayment[]>("/movies/admin/payments", params),
   getPaymentById: (paymentId: string) => api.get<MoviesAdminPaymentDetail>(`/movies/admin/payments/${paymentId}`),
-  getEmailLogs: () => api.get<MoviesAdminEmailLog[]>("/movies/admin/emails"),
+  getEmailLogs: (params?: { query?: string; deliveryStatus?: string; outboxStatus?: string }) =>
+    api.get<MoviesAdminEmailLog[]>("/movies/admin/emails", params),
   resendTicketEmail: (bookingId: string) => api.post<{ message: string }>(`/movies/admin/emails/${bookingId}/resend`),
   getRevenueReport: (params?: {
     dateFromUtc?: string;

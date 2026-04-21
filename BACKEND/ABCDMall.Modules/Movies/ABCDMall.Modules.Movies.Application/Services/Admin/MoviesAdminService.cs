@@ -29,6 +29,25 @@ public sealed class MoviesAdminService : IMoviesAdminService
     public Task<bool> DeleteMovieAsync(Guid movieId, CancellationToken cancellationToken = default)
         => _repository.DeleteMovieAsync(movieId, cancellationToken);
 
+    public Task<IReadOnlyList<MoviesAdminPromotionListItemDto>> GetPromotionsAsync(
+        string? status,
+        string? query,
+        bool activeOnly,
+        CancellationToken cancellationToken = default)
+        => _repository.GetPromotionsAsync(status, query, activeOnly, cancellationToken);
+
+    public Task<MoviesAdminPromotionDetailDto?> GetPromotionByIdAsync(Guid promotionId, CancellationToken cancellationToken = default)
+        => _repository.GetPromotionByIdAsync(promotionId, cancellationToken);
+
+    public Task<MoviesAdminPromotionDetailDto> CreatePromotionAsync(MoviesAdminPromotionUpsertDto request, CancellationToken cancellationToken = default)
+        => _repository.CreatePromotionAsync(request, cancellationToken);
+
+    public Task<MoviesAdminPromotionDetailDto?> UpdatePromotionAsync(Guid promotionId, MoviesAdminPromotionUpsertDto request, CancellationToken cancellationToken = default)
+        => _repository.UpdatePromotionAsync(promotionId, request, cancellationToken);
+
+    public Task<bool> DeletePromotionAsync(Guid promotionId, CancellationToken cancellationToken = default)
+        => _repository.DeletePromotionAsync(promotionId, cancellationToken);
+
     public Task<IReadOnlyList<MoviesAdminShowtimeListItemDto>> GetShowtimesAsync(Guid? movieId, DateOnly? businessDate, CancellationToken cancellationToken = default)
         => _repository.GetShowtimesAsync(movieId, businessDate, cancellationToken);
 
@@ -41,6 +60,25 @@ public sealed class MoviesAdminService : IMoviesAdminService
     public Task<bool> DeleteShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
         => _repository.DeleteShowtimeAsync(showtimeId, cancellationToken);
 
+    public Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
+        string? status,
+        string? paymentStatus,
+        Guid? movieId,
+        Guid? cinemaId,
+        string? query,
+        DateTime? dateFromUtc,
+        DateTime? dateToUtc,
+        CancellationToken cancellationToken = default)
+        => _repository.GetBookingsAsync(
+            status,
+            paymentStatus,
+            movieId,
+            cinemaId,
+            query,
+            dateFromUtc,
+            dateToUtc,
+            cancellationToken);
+
     public Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(string? status, CancellationToken cancellationToken = default)
         => _repository.GetBookingsAsync(status, cancellationToken);
 
@@ -50,11 +88,37 @@ public sealed class MoviesAdminService : IMoviesAdminService
     public Task<MoviesAdminLookupResponseDto> GetLookupsAsync(CancellationToken cancellationToken = default)
         => _repository.GetLookupsAsync(cancellationToken);
 
+    public Task<IReadOnlyList<MoviesAdminPaymentListItemDto>> GetPaymentsAsync(
+        string? status,
+        string? provider,
+        Guid? movieId,
+        Guid? cinemaId,
+        string? query,
+        DateTime? dateFromUtc,
+        DateTime? dateToUtc,
+        CancellationToken cancellationToken = default)
+        => _repository.GetPaymentsAsync(
+            status,
+            provider,
+            movieId,
+            cinemaId,
+            query,
+            dateFromUtc,
+            dateToUtc,
+            cancellationToken);
+
     public Task<IReadOnlyList<MoviesAdminPaymentListItemDto>> GetPaymentsAsync(string? status, string? provider, CancellationToken cancellationToken = default)
         => _repository.GetPaymentsAsync(status, provider, cancellationToken);
 
     public Task<MoviesAdminPaymentDetailDto?> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default)
         => _repository.GetPaymentByIdAsync(paymentId, cancellationToken);
+
+    public Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(
+        string? query,
+        string? deliveryStatus,
+        string? outboxStatus,
+        CancellationToken cancellationToken = default)
+        => _repository.GetEmailLogsAsync(query, deliveryStatus, outboxStatus, cancellationToken);
 
     public Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(CancellationToken cancellationToken = default)
         => _repository.GetEmailLogsAsync(cancellationToken);

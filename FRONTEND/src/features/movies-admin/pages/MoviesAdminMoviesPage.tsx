@@ -26,6 +26,11 @@ export function MoviesAdminMoviesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
+
+  const visibleMovies = showInactive
+    ? movies
+    : movies.filter((movie) => movie.status !== "Inactive" || movie.id === editingId);
 
   async function loadMovies() {
     try {
@@ -105,7 +110,7 @@ export function MoviesAdminMoviesPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+      <section className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.28)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
@@ -118,8 +123,8 @@ export function MoviesAdminMoviesPage() {
               Create, update or disable movies for the public booking flow.
             </p>
           </div>
-          <Badge className="border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200">
-            {movies.length} movies
+          <Badge className="border border-white/10 bg-white/[0.04] px-3 py-1.5 text-gray-200">
+            {visibleMovies.length} movies
           </Badge>
         </div>
       </section>
@@ -222,13 +227,24 @@ export function MoviesAdminMoviesPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
+            className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-white/90 disabled:opacity-50"
           >
             {submitting ? "Saving..." : editingId ? "Update movie" : "Create movie"}
           </button>
         </form>
 
         <div className="overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.03] shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+          <div className="flex items-center justify-between border-b border-white/8 px-4 py-3 text-sm text-white">
+            <span>{showInactive ? "Showing all movies" : "Showing active movies only"}</span>
+            <label className="flex items-center gap-2 text-gray-300">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={(event) => setShowInactive(event.target.checked)}
+              />
+              Show inactive
+            </label>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-white/8 text-left text-sm">
               <thead className="bg-white/[0.04]">
@@ -251,14 +267,14 @@ export function MoviesAdminMoviesPage() {
                     </td>
                   </tr>
                 ) : null}
-                {!loading && movies.length === 0 ? (
+                {!loading && visibleMovies.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-6 text-gray-400">
                       No movies found.
                     </td>
                   </tr>
                 ) : null}
-                {movies.map((movie) => (
+                {visibleMovies.map((movie) => (
                   <tr key={movie.id} className="bg-white/[0.02]">
                     <td className="px-4 py-3 text-white">{movie.title}</td>
                     <td className="px-4 py-3 text-gray-300">{movie.slug}</td>

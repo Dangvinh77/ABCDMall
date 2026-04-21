@@ -21,8 +21,21 @@ public sealed class MoviesAdminPaymentsController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<MoviesAdminPaymentListItemDto>>> GetPayments(
         [FromQuery] string? status,
         [FromQuery] string? provider,
+        [FromQuery] Guid? movieId,
+        [FromQuery] Guid? cinemaId,
+        [FromQuery] string? query,
+        [FromQuery] DateTime? dateFromUtc,
+        [FromQuery] DateTime? dateToUtc,
         CancellationToken cancellationToken = default)
-        => Ok(await _moviesAdminService.GetPaymentsAsync(status, provider, cancellationToken));
+        => Ok(await _moviesAdminService.GetPaymentsAsync(
+            status,
+            provider,
+            movieId,
+            cinemaId,
+            query,
+            dateFromUtc,
+            dateToUtc,
+            cancellationToken));
 
     [HttpGet("{paymentId:guid}")]
     public async Task<ActionResult<MoviesAdminPaymentDetailDto>> GetPaymentById(Guid paymentId, CancellationToken cancellationToken = default)

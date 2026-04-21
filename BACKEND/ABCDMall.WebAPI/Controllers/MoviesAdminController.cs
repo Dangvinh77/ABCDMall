@@ -2,6 +2,7 @@ using ABCDMall.Modules.Movies.Application.DTOs.Admin;
 using ABCDMall.Modules.Movies.Application.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace ABCDMall.WebAPI.Controllers;
 
@@ -79,6 +80,85 @@ public sealed class MoviesAdminController : ControllerBase
     public async Task<IActionResult> DeleteMovie(Guid movieId, CancellationToken cancellationToken = default)
         => await _moviesAdminService.DeleteMovieAsync(movieId, cancellationToken) ? NoContent() : NotFound();
 
+    [HttpGet("promotions")]
+    public async Task<ActionResult<IReadOnlyList<MoviesAdminPromotionListItemDto>>> GetPromotions(
+        [FromQuery] string? status,
+        [FromQuery] string? query,
+        [FromQuery] bool activeOnly = false,
+        CancellationToken cancellationToken = default)
+        => Ok(await _moviesAdminService.GetPromotionsAsync(status, query, activeOnly, cancellationToken));
+
+    [HttpGet("promotions/{promotionId:guid}")]
+    public async Task<ActionResult<MoviesAdminPromotionDetailDto>> GetPromotionById(Guid promotionId, CancellationToken cancellationToken = default)
+    {
+        var promotion = await _moviesAdminService.GetPromotionByIdAsync(promotionId, cancellationToken);
+        return promotion is null ? NotFound() : Ok(promotion);
+    }
+
+    [HttpPost("promotions")]
+    public async Task<ActionResult<MoviesAdminPromotionDetailDto>> CreatePromotion(
+        [FromBody] MoviesAdminPromotionUpsertDto request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var promotion = await _moviesAdminService.CreatePromotionAsync(request, cancellationToken);
+            return CreatedAtAction(nameof(GetPromotionById), new { promotionId = promotion.Id }, promotion);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Unable to create promotion.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+    }
+
+    [HttpPut("promotions/{promotionId:guid}")]
+    public async Task<ActionResult<MoviesAdminPromotionDetailDto>> UpdatePromotion(
+        Guid promotionId,
+        [FromBody] MoviesAdminPromotionUpsertDto request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var promotion = await _moviesAdminService.UpdatePromotionAsync(promotionId, request, cancellationToken);
+            return promotion is null ? NotFound() : Ok(promotion);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Unable to update promotion.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+    }
+
+    [HttpDelete("promotions/{promotionId:guid}")]
+    public async Task<IActionResult> DeletePromotion(Guid promotionId, CancellationToken cancellationToken = default)
+        => await _moviesAdminService.DeletePromotionAsync(promotionId, cancellationToken) ? NoContent() : NotFound();
+
+    [HttpPost("promotions/upload-image")]
+    public async Task<IActionResult> UploadPromotionImage(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        var imageUrl = await SavePromotionImageAsync(file, cancellationToken);
+        if (imageUrl is null)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Unable to upload promotion image.",
+                Detail = "Image file is required.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        return Ok(new { imageUrl });
+    }
+
     [HttpGet("showtimes")]
     public async Task<ActionResult<IReadOnlyList<MoviesAdminShowtimeListItemDto>>> GetShowtimes(
         [FromQuery] Guid? movieId,
@@ -131,4 +211,26 @@ public sealed class MoviesAdminController : ControllerBase
     [HttpDelete("showtimes/{showtimeId:guid}")]
     public async Task<IActionResult> DeleteShowtime(Guid showtimeId, CancellationToken cancellationToken = default)
         => await _moviesAdminService.DeleteShowtimeAsync(showtimeId, cancellationToken) ? NoContent() : NotFound();
+
+    private static async Task<string?> SavePromotionImageAsync(IFormFile? file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+        {
+            return null;
+        }
+
+        var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/movies/promotions");
+        if (!Directory.Exists(folder))
+        {
+            Directory.CreateDirectory(folder);
+        }
+
+        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var filePath = Path.Combine(folder, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream, cancellationToken);
+
+        return $"/images/movies/promotions/{fileName}";
+    }
 }

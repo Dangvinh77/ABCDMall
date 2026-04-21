@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Badge } from "../../movies/component/ui/badge";
+import { AdminDateInput, parseDisplayDateToIsoBoundary } from "../components/AdminDateInput";
 import { type MoviesAdminPayment, type MoviesAdminPaymentDetail, moviesAdminApi } from "../services/moviesAdminApi";
 
 function formatCurrency(value: number, currency: string) {
@@ -11,19 +12,35 @@ export function MoviesAdminPaymentsPage() {
   const [detail, setDetail] = useState<MoviesAdminPaymentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filters, setFilters] = useState({
+    status: "",
+    provider: "",
+    query: "",
+    dateFromUtc: "",
+    dateToUtc: "",
+  });
+
+  async function loadPayments() {
+    try {
+      setLoading(true);
+      setError("");
+      setPayments(await moviesAdminApi.getPayments({
+        status: filters.status || undefined,
+        provider: filters.provider || undefined,
+        query: filters.query || undefined,
+        dateFromUtc: parseDisplayDateToIsoBoundary(filters.dateFromUtc, "start"),
+        dateToUtc: parseDisplayDateToIsoBoundary(filters.dateToUtc, "end"),
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load payments.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    void (async () => {
-      try {
-        setLoading(true);
-        setError("");
-        setPayments(await moviesAdminApi.getPayments());
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unable to load payments.");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    void loadPayments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function openDetail(paymentId: string) {
@@ -37,16 +54,62 @@ export function MoviesAdminPaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+      <section className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.28)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">Payments</p>
             <h1 className="mt-2 text-3xl font-black uppercase tracking-[0.08em] text-white">Payment monitor</h1>
           </div>
-          <Badge className="border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200">{payments.length} payments</Badge>
+          <Badge className="border border-white/10 bg-white/[0.04] px-3 py-1.5 text-gray-200">{payments.length} payments</Badge>
         </div>
       </section>
       {error ? <div className="rounded-3xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div> : null}
+      <section className="flex flex-wrap gap-4">
+        <input
+          value={filters.query}
+          onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
+          placeholder="Search booking, email, transaction..."
+          className="min-w-[220px] flex-1 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white"
+        />
+        <select
+          value={filters.status}
+          onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
+          className="min-w-[220px] flex-1 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white"
+        >
+          <option value="">All payment statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Processing">Processing</option>
+          <option value="Succeeded">Succeeded</option>
+          <option value="Failed">Failed</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="Refunded">Refunded</option>
+        </select>
+        <select
+          value={filters.provider}
+          onChange={(event) => setFilters((current) => ({ ...current, provider: event.target.value }))}
+          className="min-w-[220px] flex-1 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white"
+        >
+          <option value="">All providers</option>
+          <option value="Mock">Mock</option>
+          <option value="Momo">Momo</option>
+          <option value="VnPay">VnPay</option>
+          <option value="Stripe">Stripe</option>
+          <option value="PayPal">PayPal</option>
+        </select>
+        <AdminDateInput
+          value={filters.dateFromUtc}
+          onChange={(value) => setFilters((current) => ({ ...current, dateFromUtc: value }))}
+          className="min-w-[220px] flex-1"
+        />
+        <div className="flex min-w-[280px] flex-1 gap-3">
+          <AdminDateInput
+            value={filters.dateToUtc}
+            onChange={(value) => setFilters((current) => ({ ...current, dateToUtc: value }))}
+            className="flex-1"
+          />
+          <button onClick={() => void loadPayments()} className="shrink-0 rounded-2xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.12]">Apply</button>
+        </div>
+      </section>
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px]">
         <div className="overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.03] shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
           <div className="overflow-x-auto">

@@ -543,6 +543,7 @@ public sealed class UserCommandService : IUserCommandService
         }
 
         var normalizedEmail = dto.Email.Trim();
+        var normalizedAddress = NormalizeOptionalValue(dto.Address);
         var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
         var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
 
@@ -581,6 +582,7 @@ public sealed class UserCommandService : IUserCommandService
             Email = normalizedEmail,
             Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FullName = dto.FullName.Trim(),
+            Address = normalizedAddress,
             Role = resolvedRole,
             ShopId = shopInfo?.Id,
             CCCD = normalizedCccd,

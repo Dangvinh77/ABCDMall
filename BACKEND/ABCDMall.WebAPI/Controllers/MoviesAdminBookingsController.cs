@@ -20,8 +20,22 @@ public sealed class MoviesAdminBookingsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<MoviesAdminBookingListItemDto>>> GetBookings(
         [FromQuery] string? status,
+        [FromQuery] string? paymentStatus,
+        [FromQuery] Guid? movieId,
+        [FromQuery] Guid? cinemaId,
+        [FromQuery] string? query,
+        [FromQuery] DateTime? dateFromUtc,
+        [FromQuery] DateTime? dateToUtc,
         CancellationToken cancellationToken = default)
-        => Ok(await _moviesAdminService.GetBookingsAsync(status, cancellationToken));
+        => Ok(await _moviesAdminService.GetBookingsAsync(
+            status,
+            paymentStatus,
+            movieId,
+            cinemaId,
+            query,
+            dateFromUtc,
+            dateToUtc,
+            cancellationToken));
 
     [HttpGet("{bookingId:guid}")]
     public async Task<ActionResult<MoviesAdminBookingDetailDto>> GetBookingById(Guid bookingId, CancellationToken cancellationToken = default)

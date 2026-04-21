@@ -4,6 +4,7 @@ import { MoviesAdminDashboardPage } from '../pages/MoviesAdminDashboardPage';
 import { MoviesAdminBookingsPage } from '../pages/MoviesAdminBookingsPage';
 import { MoviesAdminMoviesPage } from '../pages/MoviesAdminMoviesPage';
 import { MoviesAdminPaymentsPage } from '../pages/MoviesAdminPaymentsPage';
+import { MoviesAdminPromotionsPage } from '../pages/MoviesAdminPromotionsPage';
 import { MoviesAdminRevenuePage } from '../pages/MoviesAdminRevenuePage';
 import { MoviesAdminSectionPage } from '../pages/MoviesAdminSectionPage';
 import { MoviesAdminShell } from '../pages/MoviesAdminShell';
@@ -26,7 +27,7 @@ export function MoviesAdminRoutes() {
           <Route path="emails" element={<MoviesAdminEmailsPage />} />
           <Route path="guests" element={<MoviesAdminSectionPage sectionId="guests" />} />
           <Route path="settings" element={<MoviesAdminSectionPage sectionId="settings" />} />
-          <Route path="promotions" element={<MoviesAdminSectionPage sectionId="promotions" />} />
+          <Route path="promotions" element={<MoviesAdminPromotionsPage />} />
           <Route path="logs" element={<MoviesAdminSectionPage sectionId="logs" />} />
           <Route path="users" element={<MoviesAdminUsersPage />} />
           <Route path="*" element={<Navigate to="/movies/admin" replace />} />

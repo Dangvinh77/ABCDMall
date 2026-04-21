@@ -19,7 +19,7 @@ export function MoviesAdminSectionPage({ sectionId }: { sectionId: AdminSectionI
             <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-400">{section.description}</p>
           </div>
           <Badge className="border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200">
-            Frontend admin prototype
+            {section.metrics.length} metrics
           </Badge>
         </div>
 
@@ -91,7 +91,7 @@ export function MoviesAdminSectionPage({ sectionId }: { sectionId: AdminSectionI
               className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
-                Notes
+                Overview
               </p>
               <h3 className="mt-2 text-xl font-black uppercase tracking-[0.08em] text-white">
                 {panel.title}

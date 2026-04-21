@@ -27,6 +27,7 @@ import {
 import { Button } from '../component/ui/button';
 import { moviePaths } from '../routes/moviePaths';
 import { loadPromotionsUiData } from '../api/movieUiAdapter';
+import { getImageUrl } from '../../../core/utils/image';
 type FilterKey = 'all' | 'ticket' | 'combo' | 'member' | 'bank' | 'weekend';
 
 interface Promo {
@@ -258,7 +259,7 @@ function PromoCard({
     >
       <div className={`relative overflow-hidden ${featured ? 'h-52' : 'h-40'}`}>
         <img
-          src={promo.img}
+          src={getImageUrl(promo.img)}
           alt={promo.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
@@ -608,11 +609,11 @@ export function PromotionsPage() {
             <div className="overflow-hidden rounded-[2rem] border border-fuchsia-400/20 bg-[linear-gradient(135deg,rgba(17,24,39,0.96),rgba(9,9,23,0.96))] shadow-[0_24px_80px_rgba(76,29,149,0.22)]">
               <div className="grid gap-0 lg:grid-cols-[1.05fr,0.95fr]">
                 <div className="relative min-h-[300px] overflow-hidden">
-                  <img
-                    src={selectedPromo.img}
-                    alt={selectedPromo.title}
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
+                    <img
+                      src={getImageUrl(selectedPromo.img)}
+                      alt={selectedPromo.title}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#060818] via-[#060818]/88 to-transparent" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#060818] via-transparent to-transparent" />
                   <div className="relative z-10 flex h-full flex-col justify-end p-6 sm:p-8">

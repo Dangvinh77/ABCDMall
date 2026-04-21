@@ -34,10 +34,20 @@ export function MoviesAdminShowtimesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const filteredHalls = useMemo(
     () => lookups.halls.filter((hall) => hall.cinemaId === form.cinemaId),
     [lookups.halls, form.cinemaId],
+  );
+  const visibleShowtimes = useMemo(
+    () =>
+      showCancelled
+        ? showtimes
+        : showtimes.filter(
+            (showtime) => !["Cancelled", "Completed"].includes(showtime.status) || showtime.id === editingId,
+          ),
+    [editingId, showCancelled, showtimes],
   );
 
   async function loadData() {
@@ -121,7 +131,7 @@ export function MoviesAdminShowtimesPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/8 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+      <section className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.28)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
@@ -131,8 +141,8 @@ export function MoviesAdminShowtimesPage() {
               Schedule operations
             </h1>
           </div>
-          <Badge className="border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1.5 text-fuchsia-200">
-            {showtimes.length} showtimes
+          <Badge className="border border-white/10 bg-white/[0.04] px-3 py-1.5 text-gray-200">
+            {visibleShowtimes.length} showtimes
           </Badge>
         </div>
       </section>
@@ -237,13 +247,24 @@ export function MoviesAdminShowtimesPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
+            className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-white/90 disabled:opacity-50"
           >
             {submitting ? "Saving..." : editingId ? "Update showtime" : "Create showtime"}
           </button>
         </form>
 
         <div className="overflow-hidden rounded-[2rem] border border-white/8 bg-white/[0.03] shadow-[0_24px_80px_rgba(2,6,23,0.34)]">
+          <div className="flex items-center justify-between border-b border-white/8 px-4 py-3 text-sm text-white">
+            <span>{showCancelled ? "Showing all showtimes" : "Showing open and draft showtimes only"}</span>
+            <label className="flex items-center gap-2 text-gray-300">
+              <input
+                type="checkbox"
+                checked={showCancelled}
+                onChange={(event) => setShowCancelled(event.target.checked)}
+              />
+              Show cancelled/completed
+            </label>
+          </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-white/8 text-left text-sm">
               <thead className="bg-white/[0.04]">
@@ -261,12 +282,12 @@ export function MoviesAdminShowtimesPage() {
                     <td colSpan={8} className="px-4 py-6 text-gray-400">Loading showtimes...</td>
                   </tr>
                 ) : null}
-                {!loading && showtimes.length === 0 ? (
+                {!loading && visibleShowtimes.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-4 py-6 text-gray-400">No showtimes found.</td>
                   </tr>
                 ) : null}
-                {showtimes.map((showtime) => (
+                {visibleShowtimes.map((showtime) => (
                   <tr key={showtime.id} className="bg-white/[0.02]">
                     <td className="px-4 py-3 text-white">{showtime.movieTitle}</td>
                     <td className="px-4 py-3 text-gray-300">{showtime.cinemaName}</td>
