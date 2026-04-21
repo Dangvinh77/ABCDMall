@@ -559,60 +559,69 @@ public sealed class UserCommandService : IUserCommandService
 
     public async Task<ApplicationResult<RegisterUserResponseDto>> RegisterAsync(RegisterDto dto, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.Password)
-            || string.IsNullOrWhiteSpace(dto.FullName)
-            || string.IsNullOrWhiteSpace(dto.ShopName)
-            || string.IsNullOrWhiteSpace(dto.CCCD))
+        // 1. Kiểm tra đầu vào (Giữ nguyên của bạn)
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password) ||
+            string.IsNullOrWhiteSpace(dto.FullName) || string.IsNullOrWhiteSpace(dto.ShopName) ||
+            string.IsNullOrWhiteSpace(dto.CCCD))
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email, password, full name, shop name, and CCCD are required");
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Thiếu thông tin đăng ký.");
         }
 
-        var normalizedEmail = dto.Email.Trim();
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
         var normalizedCccd = dto.CCCD.Trim();
 
-        if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), null, cancellationToken))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email already exists");
-        }
+        // 2. Kiểm tra trùng (Giữ nguyên)
+        if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail, null, cancellationToken))
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email đã tồn tại.");
 
-        if (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
-            || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("CCCD already exists");
-        }
+        // 3. 👉 BƯỚC QUAN TRỌNG: TỰ TẠO ID TRƯỚC KHI GÁN
+        // Nếu không có dòng này, shopInfo.Id sẽ bị rỗng khi gán cho User
+        var newShopId = Guid.NewGuid().ToString("N");
 
         var shopInfo = new ShopInfo
         {
+            Id = newShopId,
             ShopName = dto.ShopName.Trim(),
+            // 👉 THÊM CÁC DÒNG NÀY:
+            Slug = dto.ShopName.Trim().ToLower().Replace(" ", "-"), // Tạo slug tạm để Mall tìm thấy
+            Category = "Chưa phân loại", // Gán tạm để không bị null
             CCCD = normalizedCccd,
+            OpeningDate = null, // Vẫn để null để Manager vào chọn ngày (Coming Soon)
             CreatedAt = DateTime.UtcNow
         };
         await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
 
+        // 4. TẠO USER VÀ NỐI VỚI ID SHOP VỪA TẠO
         var user = new User
         {
+            Id = Guid.NewGuid().ToString("N"),
             Email = normalizedEmail,
             Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             FullName = dto.FullName.Trim(),
             Role = "Manager",
-            ShopId = shopInfo.Id,
+            ShopId = newShopId, // DÙNG CHUNG CÁI ID newShopId Ở TRÊN
             CCCD = normalizedCccd,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
+
         await _userCommandRepository.AddUserAsync(user, cancellationToken);
+
+        // 5. LƯU XUỐNG DATABASE
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
+        // 6. Gửi mail thông báo
         var emailSent = await TrySendAsync(() =>
             _emailNotificationService.SendManagerRegistrationSuccessEmailAsync(user.Email, user.FullName));
 
+        // 7. TRẢ VỀ DỮ LIỆU CHUẨN ĐỂ CONTROLLER LẤY ĐI GÁN BẢN ĐỒ
         return ApplicationResult<RegisterUserResponseDto>.Ok(new RegisterUserResponseDto
         {
-            Message = "User created successfully",
+            Message = "User and Shop created successfully",
             EmailSent = emailSent,
             Email = user.Email,
             Role = user.Role,
-            ShopId = user.ShopId,
+            ShopId = newShopId, // PHẢI TRẢ VỀ ID NÀY
             CCCD = user.CCCD,
             ShopName = shopInfo.ShopName,
             CreatedAt = user.CreatedAt

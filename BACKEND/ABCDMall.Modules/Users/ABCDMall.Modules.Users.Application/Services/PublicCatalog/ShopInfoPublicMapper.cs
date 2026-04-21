@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 
-internal static class ShopInfoPublicMapper
+public static class ShopInfoPublicMapper
 {
     private const string DefaultImage =
         "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop";
@@ -53,7 +53,9 @@ internal static class ShopInfoPublicMapper
                 .OrderByDescending(x => x.IsActive)
                 .ThenBy(x => x.Title)
                 .Select(MapVoucher)
-                .ToList()
+                .ToList(),
+            ShopStatus = DeriveShopStatus(shopInfo.OpeningDate),
+            OpeningDate = shopInfo.OpeningDate,
         };
     }
 
@@ -91,7 +93,9 @@ internal static class ShopInfoPublicMapper
                 .OrderByDescending(x => x.IsActive)
                 .ThenBy(x => x.Title)
                 .Select(MapVoucher)
-                .ToList()
+                .ToList(),
+            ShopStatus = shop.ShopStatus,
+            OpeningDate = shop.OpeningDate,
         };
     }
 
@@ -185,4 +189,14 @@ internal static class ShopInfoPublicMapper
             ValidUntil = voucher.ValidUntil,
             IsActive = voucher.IsActive
         };
+
+    /// <summary>
+    /// Tính ShopStatus từ OpeningDate:
+    /// - OpeningDate trong tương lai → "ComingSoon"
+    /// - Ngày hiện tại hoặc quá khứ, hoặc null → "Active"
+    /// </summary>
+    public static string DeriveShopStatus(DateTime? openingDate)
+        => openingDate.HasValue && openingDate.Value.Date > DateTime.UtcNow.Date
+            ? "ComingSoon"
+            : "Active";
 }

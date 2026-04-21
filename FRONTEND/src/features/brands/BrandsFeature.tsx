@@ -1,7 +1,20 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { getShops, type Shop } from '../shops/api/shopApi';
+import { getShops } from '../shops/api/shopApi';
+import { getFoods } from '../food/api/foodApi';
 import { getImageUrl } from "@/core/utils/image";
+
+// Unified type for both shops and foods
+interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  location: string;
+  imageUrl: string;
+  logoUrl?: string;
+  type: 'shop' | 'food';
+}
 
 export const BrandsFeature = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -10,7 +23,7 @@ export const BrandsFeature = () => {
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [activeFloor, setActiveFloor] = useState<string | null>(null);
   
-  const [brands, setBrands] = useState<Shop[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +45,7 @@ export const BrandsFeature = () => {
   const categoryKeywords: Record<string, string[]> = {
     'thoi-trang': ['fashion', 'clothing', 'lifestyle', 'apparel', 'thời trang'],
     'phu-kien': ['jewelry', 'accessories', 'watch', 'shoes', 'bags', 'trang sức', 'phụ kiện'],
-    'am-thuc': ['food', 'beverage', 'restaurant', 'cafe', 'bakery', 'ẩm thực'],
+    'am-thuc': ['food', 'beverage', 'restaurant', 'cafe', 'bakery', 'ẩm thực', 'khu ẩm thực'],
     'lam-dep': ['health', 'beauty', 'cosmetic', 'spa', 'sức khỏe', 'làm đẹp'],
     'giao-duc': ['education', 'book', 'entertainment', 'nhà sách', 'giáo dục', 'giải trí']
   };
@@ -44,9 +57,38 @@ export const BrandsFeature = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getShops();
+        // Fetch both shops and foods in parallel
+        const [shopsData, foodsData] = await Promise.all([
+          getShops(),
+          getFoods().catch(() => []) // Handle food API errors gracefully
+        ]);
+        
         if (active) {
-          setBrands(data);
+          // Convert shops to Brand format
+          const shopBrands: Brand[] = shopsData.map(shop => ({
+            id: shop.id,
+            name: shop.name,
+            slug: shop.slug,
+            category: shop.category,
+            location: shop.location,
+            imageUrl: shop.imageUrl,
+            logoUrl: shop.logoUrl,
+            type: 'shop' as const
+          }));
+          
+          // Convert foods to Brand format
+          const foodBrands: Brand[] = Array.isArray(foodsData) ? foodsData.map((food: any) => ({
+            id: food.id,
+            name: food.name,
+            slug: food.slug,
+            category: 'ẩm thực', // Food category is always "ẩm thực"
+            location: food.description || 'Khu Ẩm Thực', // Use description as location fallback
+            imageUrl: food.imageUrl,
+            type: 'food' as const
+          })) : [];
+          
+          // Combine both arrays
+          setBrands([...shopBrands, ...foodBrands]);
         }
       } catch (err: unknown) {
         if (active) {
@@ -89,8 +131,9 @@ export const BrandsFeature = () => {
       const matchLetter = !activeLetter || brand.name.toUpperCase().startsWith(activeLetter);
       
       // Lọc Tầng (Khớp "Tầng 1" với "Floor 1" hoặc "Tầng 1" từ Backend)
+      // Foods don't have floor information, so they always match floor filters
       let matchFloor = true;
-      if (activeFloor) {
+      if (activeFloor && brand.type === 'shop') {
         const floorNumber = activeFloor.replace(/\D/g, ''); // Trích xuất số 1, 2, 3...
         const loc = brand.location.toLowerCase();
         matchFloor = loc.includes(`floor ${floorNumber}`) || 
@@ -211,26 +254,34 @@ export const BrandsFeature = () => {
               <div className="text-center py-20 text-2xl animate-pulse text-gray-400">Đang tải danh sách thương hiệu...</div>
             ) : filteredBrands.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredBrands.map(brand => (
-                  <Link 
-                    to={`/shops/${brand.slug}`} 
-                    key={brand.id}
-                    className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center p-6 text-center relative overflow-hidden"
-                  >
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    
-                    <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
-                      <img 
-                         // Ưu tiên hiện Logo, nếu không có mới hiện ảnh phụ
-                         src={getImageUrl(brand.logoUrl || brand.imageUrl)}
-                         alt={brand.name} 
-                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
-                      />
-                    </div>
-                    <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full text-ellipsis overflow-hidden whitespace-nowrap w-full">📍 {brand.location}</p>
-                  </Link>
-                ))}
+                {filteredBrands.map(brand => {
+                  // Determine the correct route based on brand type
+                  const route = brand.type === 'food' ? `/food-court/${brand.slug}` : `/shops/${brand.slug}`;
+                  
+                  return (
+                    <Link 
+                      to={route}
+                      key={brand.id}
+                      className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center p-6 text-center relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      
+                      <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
+                        <img 
+                           // Ưu tiên hiện Logo, nếu không có mới hiện ảnh phụ
+                           src={getImageUrl(brand.logoUrl || brand.imageUrl)}
+                           alt={brand.name} 
+                           className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
+                        />
+                      </div>
+                      <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
+                      <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full text-ellipsis overflow-hidden whitespace-nowrap w-full">
+                        📍 {brand.location}
+                        {brand.type === 'food' && ' (Ẩm Thực)'}
+                      </p>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-white rounded-[2rem] border-2 border-dashed border-gray-200 p-20 text-center flex flex-col items-center">

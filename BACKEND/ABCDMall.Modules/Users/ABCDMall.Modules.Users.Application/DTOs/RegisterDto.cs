@@ -11,5 +11,7 @@ namespace ABCDMall.Modules.Users.Application.DTOs
         public string ShopName { get; set; } = string.Empty;
 
         public string CCCD { get; set; } = string.Empty;
+
+          public int? MapLocationId { get; set; }
     }
 }

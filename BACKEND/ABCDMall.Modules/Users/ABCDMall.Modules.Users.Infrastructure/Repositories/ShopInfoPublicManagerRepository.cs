@@ -87,6 +87,8 @@ public sealed class ShopInfoPublicManagerRepository : IShopInfoPublicManagerRepo
         existing.OpenHours = shop.OpenHours;
         existing.Badge = shop.Badge;
         existing.Offer = shop.Offer;
+        existing.ShopStatus = shop.ShopStatus;
+        existing.OpeningDate = shop.OpeningDate;
     }
 
     public async Task ReplaceProductsAsync(

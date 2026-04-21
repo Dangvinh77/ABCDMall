@@ -41,11 +41,10 @@ export const InteractiveMap = () => {
           <button
             key={floor.id}
             onClick={() => handleFloorSwitch(floor)}
-            className={`px-7 py-2.5 rounded-2xl font-bold text-base transition-all duration-300 ${
-              activeFloor.id === floor.id
-                ? 'bg-mall-primary text-white shadow-[0_4px_18px_rgba(255,65,108,0.4)] scale-105'
-                : 'bg-white text-gray-500 border-2 border-gray-100 hover:border-mall-primary/40 hover:text-mall-primary'
-            }`}
+            className={`px-7 py-2.5 rounded-2xl font-bold text-base transition-all duration-300 ${activeFloor.id === floor.id
+              ? 'bg-mall-primary text-white shadow-[0_4px_18px_rgba(255,65,108,0.4)] scale-105'
+              : 'bg-white text-gray-500 border-2 border-gray-100 hover:border-mall-primary/40 hover:text-mall-primary'
+              }`}
           >
             {floor.floorLevel}
           </button>
@@ -69,47 +68,49 @@ export const InteractiveMap = () => {
               key={activeFloor.id}
               src={`${API_BASE}${activeFloor.blueprintImageUrl}`}
               alt={`Sơ đồ ${activeFloor.floorLevel}`}
-              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${
-                imgLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'
+                }`}
               onLoad={() => setImgLoaded(true)}
             />
 
-            {/* RENDER CÁC ĐIỂM GHIM (PINS) */}
-            {activeFloor.locations.map((loc) => {
-              const isActive = selectedPin?.id === loc.id;
-              const isCinema = loc.shopUrl === '/movies';
 
-              return (
-                <button
-                  key={loc.id}
-                  onClick={() => setSelectedPin(loc)}
-                  style={{ top: `${loc.y}%`, left: `${loc.x}%` }}
-                  className="absolute z-30 -translate-x-1/2 -translate-y-1/2 group"
-                >
-                  <div
-                    className={`rounded-full border-2 shadow-lg flex items-center justify-center transition-all duration-300
-                    ${isCinema ? 'w-10 h-10 text-base bg-gray-800 text-white' : 'w-6 h-6'}
-                    ${
-                      isActive
-                        ? 'bg-yellow-400 border-white scale-150'
-                        : isCinema
-                        ? 'border-white hover:scale-110'
-                        : 'bg-red-500 border-white hover:scale-125'
-                    }`}
+           {/* RENDER CÁC ĐIỂM GHIM (PINS) ĐÃ FIX LỖI BỘ LỌC */}
+            {activeFloor.locations
+              // Lọc cực mạnh: Không hiển thị nếu là Available HOẶC nếu ShopName bị rỗng
+              .filter(loc => loc.status !== "Available" && loc.shopName && loc.shopName.trim() !== "")
+              .map((loc) => {
+                const isActive = selectedPin?.id === loc.id;
+                const isCinema = loc.shopUrl === '/movies';
+
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => setSelectedPin(loc)}
+                    style={{ top: `${loc.y}%`, left: `${loc.x}%` }}
+                    className="absolute z-30 -translate-x-1/2 -translate-y-1/2 group"
                   >
-                    {isCinema && '🎬'}
-                  </div>
+                    <div
+                      className={`rounded-full border-2 shadow-lg flex items-center justify-center transition-all duration-300
+                      ${isCinema ? 'w-10 h-10 text-base bg-gray-800 text-white' : 'w-6 h-6'}
+                      ${isActive
+                          ? 'bg-yellow-400 border-white scale-150'
+                          : isCinema
+                            ? 'border-white hover:scale-110'
+                            : 'bg-red-500 border-white hover:scale-125'
+                        }`}
+                    >
+                      {isCinema && '🎬'}
+                    </div>
 
-                  {/* Tooltip khi di chuột qua */}
-                  {!isActive && (
-                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
-                      {loc.shopName}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                    {/* Tooltip khi di chuột qua */}
+                    {!isActive && (
+                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
+                        {loc.shopName}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
           </div>
         </div>
 

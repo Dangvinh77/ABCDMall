@@ -6,4 +6,5 @@ public sealed class ShopTag
     public string ShopId { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
     public Shop Shop { get; set; } = null!;
+    public object Name { get; set; }
 }

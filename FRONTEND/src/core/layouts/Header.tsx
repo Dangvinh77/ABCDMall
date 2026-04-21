@@ -151,13 +151,6 @@ export const Header = () => {
               </div>
             </div>
           </div>
-
-          <NavLink to="/movies" className={navClass}>
-            Rạp Phim
-          </NavLink>
-          <NavLink to="/amenities" className={navClass}>
-            Tiện Ích
-          </NavLink>
           {profile ? (
             <Link
               to="/dashboard"

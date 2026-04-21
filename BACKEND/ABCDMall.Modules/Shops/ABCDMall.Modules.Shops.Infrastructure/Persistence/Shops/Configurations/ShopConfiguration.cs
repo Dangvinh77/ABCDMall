@@ -30,5 +30,12 @@ public sealed class ShopConfiguration : IEntityTypeConfiguration<Shop>
         builder.HasMany(x => x.Tags).WithOne(x => x.Shop).HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.Products).WithOne(x => x.Shop).HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(x => x.Vouchers).WithOne(x => x.Shop).HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Cascade);
+        builder.Property(x => x.ShopStatus)
+          .IsRequired()
+          .HasMaxLength(20)
+          .HasDefaultValue("Active");
+
+        builder.Property(x => x.OpeningDate);
+        builder.HasIndex(x => x.ShopStatus);
     }
 }

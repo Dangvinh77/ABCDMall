@@ -1057,13 +1057,18 @@
 │   │   │   │   │   ├── ShopCatalogItemDto.cs
 │   │   │   │   │   ├── ShopDetailDto.cs
 │   │   │   │   │   ├── ShopProductDto.cs
-│   │   │   │   │   └── ShopVoucherDto.cs
+│   │   │   │   │   ├── ShopVoucherDto.cs
+│   │   │   │   │   └── UpsertManagedShopRequestDto.cs
 │   │   │   │   ├── DependencyInjection.cs
 │   │   │   │   ├── Services
-│   │   │   │   │   └── Catalog
-│   │   │   │   │       ├── IShopCatalogQueryService.cs
-│   │   │   │   │       ├── IShopCatalogRepository.cs
-│   │   │   │   │       └── ShopCatalogQueryService.cs
+│   │   │   │   │   ├── Catalog
+│   │   │   │   │   │   ├── IShopCatalogQueryService.cs
+│   │   │   │   │   │   ├── IShopCatalogRepository.cs
+│   │   │   │   │   │   └── ShopCatalogQueryService.cs
+│   │   │   │   │   └── Manager
+│   │   │   │   │       ├── IShopManagerRepository.cs
+│   │   │   │   │       ├── IShopManagerService.cs
+│   │   │   │   │       └── ShopManagerService.cs
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       ├── net8.0
@@ -1161,6 +1166,8 @@
 │   │   │       │       ├── Migrations
 │   │   │       │       │   ├── 20260418082427_InitShops.Designer.cs
 │   │   │       │       │   ├── 20260418082427_InitShops.cs
+│   │   │       │       │   ├── 20260419164256_AddShopOwner.Designer.cs
+│   │   │       │       │   ├── 20260419164256_AddShopOwner.cs
 │   │   │       │       │   └── ShopsDbContextModelSnapshot.cs
 │   │   │       │       ├── ShopsDbContext.cs
 │   │   │       │       └── ShopsDbContextFactory.cs
@@ -1235,7 +1242,9 @@
 │   │   │   │   │   ├── CreateRentalAreaDto.cs
 │   │   │   │   │   ├── LoginDto.cs
 │   │   │   │   │   ├── PublicCatalog
-│   │   │   │   │   │   └── PublicShopDto.cs
+│   │   │   │   │   │   ├── PublicShopDto.cs
+│   │   │   │   │   │   ├── ShopCreationStatusDto.cs
+│   │   │   │   │   │   └── UpsertShopInfoPublicRequestDto.cs
 │   │   │   │   │   ├── RefreshTokenDto.cs
 │   │   │   │   │   ├── RegisterDto.cs
 │   │   │   │   │   ├── RegisterTenantDto.cs
@@ -1268,7 +1277,11 @@
 │   │   │   │   │   ├── PublicCatalog
 │   │   │   │   │   │   ├── IPublicShopCatalogReadRepository.cs
 │   │   │   │   │   │   ├── IPublicShopCatalogService.cs
-│   │   │   │   │   │   └── PublicShopCatalogService.cs
+│   │   │   │   │   │   ├── IShopInfoPublicManagerRepository.cs
+│   │   │   │   │   │   ├── IShopInfoPublicManagerService.cs
+│   │   │   │   │   │   ├── PublicShopCatalogService.cs
+│   │   │   │   │   │   ├── ShopInfoPublicManagerService.cs
+│   │   │   │   │   │   └── ShopInfoPublicMapper.cs
 │   │   │   │   │   ├── RentalAreas
 │   │   │   │   │   │   ├── IRentalAreaCommandRepository.cs
 │   │   │   │   │   │   ├── IRentalAreaCommandService.cs
@@ -1327,6 +1340,9 @@
 │   │   │   │   │   ├── ForgotPasswordOtp.cs
 │   │   │   │   │   ├── PasswordResetOtp.cs
 │   │   │   │   │   ├── ProfileUpdateHistory.cs
+│   │   │   │   │   ├── PublicShop.cs
+│   │   │   │   │   ├── PublicShopProduct.cs
+│   │   │   │   │   ├── PublicShopVoucher.cs
 │   │   │   │   │   ├── RefreshToken.cs
 │   │   │   │   │   ├── RentalArea.cs
 │   │   │   │   │   ├── ShopInfo.cs
@@ -1378,6 +1394,9 @@
 │   │   │       │   │   ├── ModelConfigurationDefaults.cs
 │   │   │       │   │   ├── PasswordResetOtpConfiguration.cs
 │   │   │       │   │   ├── ProfileUpdateHistoryConfiguration.cs
+│   │   │       │   │   ├── PublicShopConfiguration.cs
+│   │   │       │   │   ├── PublicShopProductConfiguration.cs
+│   │   │       │   │   ├── PublicShopVoucherConfiguration.cs
 │   │   │       │   │   ├── RefreshTokenConfiguration.cs
 │   │   │       │   │   ├── RentalAreaConfiguration.cs
 │   │   │       │   │   ├── ShopInfoConfiguration.cs
@@ -1387,11 +1406,20 @@
 │   │   │       │   └── Migrations
 │   │   │       │       ├── 20260418015304_InitMoviesUsers.Designer.cs
 │   │   │       │       ├── 20260418015304_InitMoviesUsers.cs
+│   │   │       │       ├── 20260420025110_AddPublicShopFieldsToShopInfos.Designer.cs
+│   │   │       │       ├── 20260420025110_AddPublicShopFieldsToShopInfos.cs
+│   │   │       │       ├── 20260420041437_AddShopInfoIdToRentalAreas.Designer.cs
+│   │   │       │       ├── 20260420041437_AddShopInfoIdToRentalAreas.cs
+│   │   │       │       ├── 20260420044506_AddOwnerShopInfoIdToShopInfos.Designer.cs
+│   │   │       │       ├── 20260420044506_AddOwnerShopInfoIdToShopInfos.cs
+│   │   │       │       ├── 20260420052000_AddIsActiveToUsers.Designer.cs
+│   │   │       │       ├── 20260420052000_AddIsActiveToUsers.cs
 │   │   │       │       └── MallDbContextModelSnapshot.cs
 │   │   │       ├── Repositories
 │   │   │       │   ├── PublicShopCatalogReadRepository.cs
 │   │   │       │   ├── RentalAreaCommandRepository.cs
 │   │   │       │   ├── RentalAreaReadRepository.cs
+│   │   │       │   ├── ShopInfoPublicManagerRepository.cs
 │   │   │       │   ├── ShopMonthlyBillReadRepository.cs
 │   │   │       │   ├── UserCommandRepository.cs
 │   │   │       │   └── UserReadRepository.cs
@@ -1451,9 +1479,12 @@
 │   │       │   ├── ABCDMall.Modules.UtilityMap.Application.csproj
 │   │       │   ├── DTOs
 │   │       │   │   └── Maps
+│   │       │   │       ├── AssignSlotRequestDto.cs
 │   │       │   │       ├── CreateFloorPlanRequestDto.cs
 │   │       │   │       ├── CreateMapLocationRequestDto.cs
+│   │       │   │       ├── FloorPlanAdminDto.cs
 │   │       │   │       ├── FloorPlanDto.cs
+│   │       │   │       ├── MapLocationAdminDto.cs
 │   │       │   │       ├── MapLocationDto.cs
 │   │       │   │       └── UpdateFloorPlanRequestDto.cs
 │   │       │   ├── DependencyInjection.cs
@@ -1928,6 +1959,7 @@
 │   │   └── wwwroot
 │   │       ├── images
 │   │       │   ├── contracts
+│   │       │   │   ├── 860a0f6832fe4025bb34082d474130b9.jpg
 │   │       │   │   ├── chau-accessories-contract.png
 │   │       │   │   ├── huy-sneakers-contract.png
 │   │       │   │   ├── lan-cosmetics-contract.png
@@ -1968,14 +2000,28 @@
 │   │       │   │   ├── floor-tang2.png
 │   │       │   │   ├── floor-tang3.png
 │   │       │   │   └── floor-tang4.png
-│   │       │   └── profiles
-│   │       │       ├── admin-default.png
-│   │       │       ├── manager-1-old.png
-│   │       │       ├── manager-1.png
-│   │       │       ├── manager-2.png
-│   │       │       ├── manager-3.png
-│   │       │       ├── manager-4.png
-│   │       │       └── manager-5.png
+│   │       │   ├── profiles
+│   │       │   │   ├── admin-default.png
+│   │       │   │   ├── bc3c55f88029441ebbf4e2629b7b2b58.jpg
+│   │       │   │   ├── manager-1-old.png
+│   │       │   │   ├── manager-1.png
+│   │       │   │   ├── manager-2.png
+│   │       │   │   ├── manager-3.png
+│   │       │   │   ├── manager-4.png
+│   │       │   │   └── manager-5.png
+│   │       │   └── shops
+│   │       │       ├── covers
+│   │       │       │   ├── 90326d70ecba45efb03e16cd768014a6.jpg
+│   │       │       │   ├── c298d28f512244719bfdb22db914e4c7.jpg
+│   │       │       │   └── ceaa5c59ce624f7599a816f8068be8a7.jpg
+│   │       │       ├── logos
+│   │       │       │   ├── 04b2e84f91b24d67bb679f00842f84cb.jpg
+│   │       │       │   ├── 861e161d68c242bf87ce1728f3cd061f.jpg
+│   │       │       │   └── ad0a5d2e16f0437b951ee17af039fcea.jpg
+│   │       │       └── products
+│   │       │           ├── b0000471c07c457fa649ba52f530cba6.jpg
+│   │       │           ├── c8efa03a05e541acb6c9691fc067143b.jpg
+│   │       │           └── d2063ca15f4043e8833b7008185e5120.jpg
 │   │       ├── img
 │   │       │   ├── 2lands
 │   │       │   │   ├── logo.png
@@ -2321,6 +2367,8 @@
 │   │   │   └── utils
 │   │   │       └── image.ts
 │   │   ├── features
+│   │   │   ├── admin
+│   │   │   │   └── components
 │   │   │   ├── amenities
 │   │   │   │   └── AmenitiesFeature.tsx
 │   │   │   ├── auth
@@ -2329,6 +2377,7 @@
 │   │   │   │   │   ├── Dashboard.jsx
 │   │   │   │   │   ├── ForgotPassword.jsx
 │   │   │   │   │   ├── Login.jsx
+│   │   │   │   │   ├── ManagerShops.jsx
 │   │   │   │   │   ├── Profile.jsx
 │   │   │   │   │   ├── Register.jsx
 │   │   │   │   │   ├── RentalAreas.jsx
@@ -2339,9 +2388,7 @@
 │   │   │   │   └── services
 │   │   │   │       └── auth.jsx
 │   │   │   ├── brands
-│   │   │   │   ├── BrandsFeature.tsx
-│   │   │   │   └── api
-│   │   │   │       └── brandsMockData.ts
+│   │   │   │   └── BrandsFeature.tsx
 │   │   │   ├── contact
 │   │   │   │   └── ContactFeature.tsx
 │   │   │   ├── directory
@@ -2480,4 +2527,4 @@
 ├── package.json
 └── project_tree.txt
 
-647 directories, 1834 files
+653 directories, 1875 files
