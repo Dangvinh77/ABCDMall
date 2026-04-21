@@ -3,48 +3,48 @@ export const AmenitiesFeature = () => {
   const amenities = [
     {
       id: 1,
-      title: "Miễn Phí Wifi",
-      description: "Khách hàng có thể truy cập Wifi miễn phí tốc độ cao tại tất cả các khu vực công cộng trong không gian của ABCD Mall.",
+      title: "Free Wi-Fi",
+      description: "Guests can enjoy high-speed complimentary Wi-Fi across all public areas of ABCD Mall.",
       icon: "🛜",
       gradient: "from-blue-400 to-cyan-400",
       image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=600&auto=format&fit=crop"
     },
     {
       id: 2,
-      title: "Sạc Điện Thoại",
-      description: "Hỗ trợ trạm sạc thiết bị di động hoàn toàn miễn phí giúp bạn thoải mái mua sắm mà không lo cạn năng lượng.",
+      title: "Phone Charging",
+      description: "Free mobile device charging stations are available so you can shop without worrying about running out of battery.",
       icon: "🔋",
       gradient: "from-green-400 to-emerald-400",
       image: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?q=80&w=600&auto=format&fit=crop"
     },
     {
       id: 3,
-      title: "Xe Đẩy & Xe Lăn",
-      description: "ABCD Mall cung cấp dịch vụ mượn Xe Đẩy Em Bé và Xe Lăn hoàn toàn miễn phí tại Quầy Thông Tin tầng 1.",
+      title: "Strollers & Wheelchairs",
+      description: "ABCD Mall provides complimentary baby strollers and wheelchairs at the information desk on Floor 1.",
       icon: "♿",
       gradient: "from-purple-500 to-indigo-500",
       image: "https://images.unsplash.com/photo-1506869640319-fea1a28a1158?q=80&w=600&auto=format&fit=crop"
     },
     {
       id: 4,
-      title: "Máy Rút Tiền ATM",
-      description: "Hệ thống máy ATM của các ngân hàng lớn (Vietcombank, ACB, Techcombank...) được bố trí tiện lợi ngay tại Tầng 1.",
+      title: "ATM Machines",
+      description: "ATMs from major banks are conveniently located on Floor 1.",
       icon: "🏧",
       gradient: "from-yellow-400 to-orange-400",
       image: "https://images.unsplash.com/photo-1621961458348-f013d219b50c?q=80&w=600&auto=format&fit=crop"
     },
     {
       id: 5,
-      title: "Bãi Đậu Xe Thông Minh",
-      description: "Hệ thống hầm đỗ xe 7 tầng rộng rãi, ứng dụng công nghệ nhận diện biển số và hướng dẫn đỗ xe tự động.",
+      title: "Smart Parking",
+      description: "A spacious 7-level parking system with license plate recognition and smart parking guidance technology.",
       icon: "🅿️",
       gradient: "from-slate-600 to-slate-800",
       image: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?q=80&w=600&auto=format&fit=crop"
     },
     {
       id: 6,
-      title: "Phòng Chăm Sóc Em Bé",
-      description: "Không gian riêng tư, ấm cúng được trang bị đầy đủ bàn thay tã, máy hâm sữa dành riêng cho mẹ và bé tại Tầng 2.",
+      title: "Baby Care Room",
+      description: "A private and comfortable space on Floor 2 with diaper-changing stations and baby bottle warmers for parents and infants.",
       icon: "🍼",
       gradient: "from-pink-400 to-rose-400",
       image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=600&auto=format&fit=crop"
@@ -58,10 +58,10 @@ export const AmenitiesFeature = () => {
         {/* HEADER */}
         <div className="text-center mb-16 animate-[fadeIn_0.8s_ease-out]">
           <h1 className="text-4xl md:text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500 mb-4 tracking-tight">
-            Tiện Ích & Dịch Vụ
+            Amenities & Services
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto font-medium">
-            ABCD Mall không ngừng nâng tầm chất lượng dịch vụ nhằm mang lại trải nghiệm mua sắm trọn vẹn và thoải mái nhất cho mọi khách hàng.
+            ABCD Mall continuously improves its services to deliver the most complete and comfortable experience for every visitor.
           </p>
         </div>
 

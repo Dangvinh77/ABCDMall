@@ -19,6 +19,9 @@ namespace ABCDMall.Modules.Users.Infrastructure
         public DbSet<ShopInfo> ShopInfos => Set<ShopInfo>();
         public DbSet<RentalArea> RentalAreas => Set<RentalArea>();
         public DbSet<ShopMonthlyBill> ShopMonthlyBills => Set<ShopMonthlyBill>();
+        public DbSet<PublicShop> PublicShops => Set<PublicShop>();
+        public DbSet<PublicShopProduct> PublicShopProducts => Set<PublicShopProduct>();
+        public DbSet<PublicShopVoucher> PublicShopVouchers => Set<PublicShopVoucher>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +33,9 @@ namespace ABCDMall.Modules.Users.Infrastructure
             modelBuilder.ApplyConfiguration(new RentalAreaConfiguration());
             modelBuilder.ApplyConfiguration(new ShopInfoConfiguration());
             modelBuilder.ApplyConfiguration(new ShopMonthlyBillConfiguration());
+            modelBuilder.ApplyConfiguration(new PublicShopConfiguration());
+            modelBuilder.ApplyConfiguration(new PublicShopProductConfiguration());
+            modelBuilder.ApplyConfiguration(new PublicShopVoucherConfiguration());
             base.OnModelCreating(modelBuilder);
         }
     }

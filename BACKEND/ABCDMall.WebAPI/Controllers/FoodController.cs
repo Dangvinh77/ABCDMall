@@ -87,6 +87,9 @@ public class FoodController : ControllerBase
             return ValidationProblem(ToValidationProblemDetails(validationResult));
         }
 
+        var imageUrl = await SaveImageAsync(request.ImageFile);
+        request.ImageUrl = imageUrl ?? request.ImageUrl;
+
         await _foodCommandService.CreateAsync(request, cancellationToken);
 
         return Ok(new { message = "Food created successfully" });
@@ -100,6 +103,12 @@ public class FoodController : ControllerBase
         if (!validationResult.IsValid)
         {
             return ValidationProblem(ToValidationProblemDetails(validationResult));
+        }
+
+        var imageUrl = await SaveImageAsync(request.ImageFile);
+        if (imageUrl is not null)
+        {
+            request.ImageUrl = imageUrl;
         }
 
         var updated = await _foodCommandService.UpdateAsync(id, request, cancellationToken);
@@ -124,6 +133,19 @@ public class FoodController : ControllerBase
         return Ok(new { message = "Food deleted successfully" });
     }
 
+    [HttpPost("upload")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> UploadFoodImage(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        var imageUrl = await SaveImageAsync(file);
+        if (imageUrl is null)
+        {
+            return BadRequest(new { message = "Image file is required." });
+        }
+
+        return Ok(new { imageUrl });
+    }
+
     private static ValidationProblemDetails ToValidationProblemDetails(FluentValidation.Results.ValidationResult validationResult)
     {
         return new ValidationProblemDetails(
@@ -132,5 +154,27 @@ public class FoodController : ControllerBase
                 .ToDictionary(
                     group => group.Key,
                     group => group.Select(x => x.ErrorMessage).ToArray()));
+    }
+
+    private async Task<string?> SaveImageAsync(IFormFile? file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return null;
+        }
+
+        var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/foodcourt");
+        if (!Directory.Exists(folder))
+        {
+            Directory.CreateDirectory(folder);
+        }
+
+        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var filePath = Path.Combine(folder, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/images/foodcourt/{fileName}";
     }
 }

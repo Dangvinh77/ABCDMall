@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IRentalAreaCommandRepository, RentalAreaCommandRepository>();
         services.AddScoped<IShopMonthlyBillReadRepository, ShopMonthlyBillReadRepository>();
         services.AddScoped<IPublicShopCatalogReadRepository, PublicShopCatalogReadRepository>();
+        services.AddScoped<IShopInfoPublicManagerRepository, ShopInfoPublicManagerRepository>();
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<ITokenService, TokenService>();

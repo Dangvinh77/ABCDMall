@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IRentalAreaCommandService, RentalAreaCommandService>();
         services.AddScoped<IShopInfoQueryService, ShopInfoQueryService>();
         services.AddScoped<IPublicShopCatalogService, PublicShopCatalogService>();
+        services.AddScoped<IShopInfoPublicManagerService, ShopInfoPublicManagerService>();
 
         return services;
     }

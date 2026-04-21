@@ -6,6 +6,7 @@ const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagemen
 const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
 const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
 const Login = lazy(() => import("../features/auth/pages/Login"));
+const ManagerShops = lazy(() => import("../features/auth/pages/ManagerShops"));
 const Profile = lazy(() => import("../features/auth/pages/Profile"));
 const Register = lazy(() => import("../features/auth/pages/Register"));
 const RentalAreasAdmin = lazy(() => import("../features/auth/pages/RentalAreasAdmin"));
@@ -22,13 +23,14 @@ const AmenitiesPage = lazy(() => import("../pages/amenities/AmenitiesPage").then
 const BrandsPage = lazy(() => import("../pages/brands/BrandsPage").then((module) => ({ default: module.BrandsPage })));
 const ContactPage = lazy(() => import("../pages/contact/ContactPage").then((module) => ({ default: module.ContactPage })));
 const MapPage = lazy(() => import("../pages/directory/MapPage").then((module) => ({ default: module.MapPage })));
+const EventsPage = lazy(() => import("../pages/events/EventsPage").then((module) => ({ default: module.EventsPage })));
 const FeedbackPage = lazy(() => import("../pages/feedbacks/FeedbackPage").then((module) => ({ default: module.FeedbackPage })));
 const FaqPage = lazy(() => import("../pages/support/FaqPage").then((module) => ({ default: module.FaqPage })));
 
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center px-6 py-20 text-center text-gray-500">
-      Dang tai noi dung...
+      Loading content...
     </div>
   );
 }
@@ -45,6 +47,7 @@ export function AppRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/manager-shops" element={<ManagerShops />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
@@ -64,11 +67,12 @@ export function AppRoutes() {
         <Route path="/movies/admin/*" element={<MoviesAdminRoutes />} />
 
         <Route path="/shops/*" element={<ShopsRoutes />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route
           path="/gallery"
           element={
             <div className="min-h-[50vh] p-20 text-center text-2xl font-bold">
-              Trang Thu vien (Sap ra mat)
+              Gallery Page (Coming Soon)
             </div>
           }
         />

@@ -23,7 +23,7 @@ export const ShopDetailFeature = () => {
         const response = await fetch(`http://localhost:5184/api/shops/${slug.toLowerCase()}`);
        
         if (!response.ok) {
-          throw new Error('Không tìm thấy cửa hàng');
+          throw new Error('Store not found');
         }
         
         const data = await response.json();
@@ -46,20 +46,21 @@ export const ShopDetailFeature = () => {
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <div className="animate-spin text-5xl">⏳</div>
-      <p className="text-gray-500 font-medium">Đang tải thông tin cửa hàng...</p>
+      <p className="text-gray-500 font-medium">Loading store information...</p>
     </div>
   );
 
   if (error || !shop) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <div className="text-5xl">🏪</div>
-      <p className="text-red-500 font-bold text-xl">{error || 'Không tìm thấy cửa hàng!'}</p>
-      <Link to="/directory" className="px-6 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800">Quay lại Bản đồ</Link>
+      <p className="text-red-500 font-bold text-xl">{error || 'Store not found!'}</p>
+      <Link to="/map" className="px-6 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800">Back to Map</Link>
     </div>
   );
 
   const featuredProducts = shop.products?.filter(p => p.isFeatured) || [];
   const discountedProducts = shop.products?.filter(p => p.isDiscounted) || [];
+  const displayFloor = String(shop.floor).replace("Tầng", "Floor");
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20">
@@ -106,12 +107,12 @@ export const ShopDetailFeature = () => {
           </p>
           <div className="flex gap-4 shrink-0 bg-gray-50 p-4 rounded-2xl border border-gray-100">
             <div className="text-center px-4 border-r border-gray-200">
-              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Giờ mở cửa</p>
+              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Opening Hours</p>
               <p className="text-lg font-black text-gray-800">{shop.openTime} - {shop.closeTime}</p>
             </div>
             <div className="text-center px-4">
-              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Vị trí</p>
-              <p className="text-lg font-black text-red-500">{shop.floor} • Lô {shop.locationSlot}</p>
+              <p className="text-xs text-gray-400 font-bold uppercase mb-1">Location</p>
+              <p className="text-lg font-black text-red-500">{displayFloor} • Unit {shop.locationSlot}</p>
             </div>
           </div>
         </div>
@@ -121,7 +122,7 @@ export const ShopDetailFeature = () => {
           <div>
             <div className="flex items-center gap-3 mb-8">
               <span className="w-2 h-8 bg-gray-800 rounded-full"></span>
-              <h2 className="text-3xl font-black text-gray-800">Sản Phẩm Tiêu Biểu</h2>
+              <h2 className="text-3xl font-black text-gray-800">Featured Products</h2>
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -147,7 +148,7 @@ export const ShopDetailFeature = () => {
             <div className="flex items-center gap-3 mb-8">
               <span className="w-2 h-8 bg-red-500 rounded-full"></span>
               <h2 className="text-3xl font-black text-red-600 flex items-center gap-2">
-                Săn Deal Giảm Giá 🔥
+                Best Deals 🔥
               </h2>
             </div>
             
@@ -180,7 +181,7 @@ export const ShopDetailFeature = () => {
         {/* 5. VOUCHER / MÃ GIẢM GIÁ */}
         {shop.vouchers && shop.vouchers.length > 0 && (
           <div className="pt-10 border-t border-gray-200">
-            <h2 className="text-2xl font-black text-gray-800 mb-6 text-center">🎟️ Lưu Mã Ưu Đãi Ngay</h2>
+            <h2 className="text-2xl font-black text-gray-800 mb-6 text-center">🎟️ Save Your Offer Codes</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {shop.vouchers.map(v => (
                 <div key={v.id} className="relative flex bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-0.5 shadow-lg hover:-translate-y-1 transition-transform cursor-pointer">
@@ -192,7 +193,7 @@ export const ShopDetailFeature = () => {
                     <div className="p-4 flex-1">
                       <h3 className="font-bold text-gray-800 text-lg">{v.title}</h3>
                       <p className="text-sm text-gray-500 mt-1 mb-3">{v.description}</p>
-                      <span className="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded">HSD: {v.validUntil}</span>
+                      <span className="text-xs font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded">Valid until: {v.validUntil}</span>
                     </div>
                   </div>
                 </div>
@@ -206,10 +207,10 @@ export const ShopDetailFeature = () => {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <span className="w-2 h-8 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></span>
-              <h2 className="text-3xl font-black text-gray-800">Thương Hiệu Tương Tự</h2>
+              <h2 className="text-3xl font-black text-gray-800">Similar Brands</h2>
             </div>
             <Link to="/brands" className="text-red-500 font-bold hover:underline flex items-center gap-1">
-              Xem tất cả <span className="text-xl">→</span>
+              View all <span className="text-xl">→</span>
             </Link>
           </div>
 
@@ -232,7 +233,7 @@ export const ShopDetailFeature = () => {
                   />
                 </div>
                 <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {brand.floor}</p>
+                <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {String(brand.floor).replace("Tầng", "Floor")}</p>
               </Link>
             ))}
           </div>

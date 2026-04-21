@@ -34,11 +34,10 @@ export default function ShopPage() {
             Shopping Directory
           </p>
           <h1 className="mt-4 max-w-3xl text-4xl font-black md:text-6xl">
-            Khám phá cửa hàng với hình ảnh và thông tin được đồng bộ trực tiếp từ API.
+            Explore stores with images and details synced directly from the API.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-slate-200">
-            Danh sách cửa hàng, vị trí và ảnh bìa được tải động từ backend để nội dung trên trang
-            luôn bám theo dữ liệu thực tế.
+            Store listings, locations, and cover images are loaded dynamically from the backend so the page always reflects real data.
           </p>
           <div className="mt-10 max-w-xl rounded-[1.75rem] bg-white p-2 shadow-2xl">
             <input
@@ -58,12 +57,12 @@ export default function ShopPage() {
               API Connected
             </p>
             <h2 className="mt-2 text-2xl font-black text-slate-900">
-              Hình ảnh cửa hàng đang được render từ dữ liệu API thay vì nội dung tĩnh.
+              Store imagery is now rendered from API data instead of static content.
             </h2>
           </div>
           <div className="text-sm text-slate-500">
             <p>{shops.length} stores available</p>
-            <p>Ảnh cover sẽ tự đổi theo dữ liệu cửa hàng đang hiển thị.</p>
+            <p>Cover imagery updates automatically based on the current store data.</p>
           </div>
         </div>
 

@@ -149,11 +149,11 @@ return (
       <div className="md:col-span-2">
 
         <h2 className="text-2xl font-bold mb-6">
-          Introduce
+          Overview
         </h2>
 
         <p className="text-gray-700 whitespace-pre-line leading-7 text-[15px]">
-          {food.description || "Chưa có mô tả"}
+          {food.description || "No description available"}
         </p>
 
       </div>
@@ -178,7 +178,7 @@ return (
         </div>
 
         <button className="mt-6 w-full bg-red-500 text-white py-3 rounded-xl hover:bg-red-600 transition">
-          Xem menu
+          View Menu
         </button>
 
       </div>

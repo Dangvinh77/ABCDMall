@@ -11,16 +11,24 @@ export const BrandsFeature = () => {
   const [activeFloor, setActiveFloor] = useState<string | null>(null);
 
   const categories = [
-    { name: 'Tất cả', slug: 'all' },
-    { name: 'Thời Trang', slug: 'thoi-trang' },
-    { name: 'Trang Sức & Phụ Kiện', slug: 'phu-kien' },
-    { name: 'Ẩm Thực', slug: 'am-thuc' },
-    { name: 'Giáo Dục', slug: 'giao-duc' },
-    { name: 'Giải Trí', slug: 'giai-tri' },
+    { name: 'All', slug: 'all' },
+    { name: 'Fashion', slug: 'thoi-trang' },
+    { name: 'Jewelry & Accessories', slug: 'phu-kien' },
+    { name: 'Dining', slug: 'am-thuc' },
+    { name: 'Education', slug: 'giao-duc' },
+    { name: 'Entertainment', slug: 'giai-tri' },
   ];
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-  const floors = ["Tầng 1", "Tầng 2", "Tầng 3", "Tầng 4"];
+  const floors = [
+    { value: "Tầng 1", label: "Floor 1" },
+    { value: "Tầng 2", label: "Floor 2" },
+    { value: "Tầng 3", label: "Floor 3" },
+    { value: "Tầng 4", label: "Floor 4" },
+  ];
+
+  const getFloorLabel = (floor: string) =>
+    floors.find((item) => item.value === floor)?.label ?? floor;
 
   const filteredBrands = useMemo(() => {
     return mockBrandsData.filter(brand => {
@@ -39,14 +47,14 @@ export const BrandsFeature = () => {
         {/* HEADER */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500 mb-6 tracking-tight">
-            {categories.find(c => c.slug === currentCategory)?.name || 'Thương Hiệu'}
+            {categories.find(c => c.slug === currentCategory)?.name || 'Brands'}
           </h1>
           
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-3xl mx-auto">
             <div className="relative w-full md:w-1/2">
               <input 
                 type="text" 
-                placeholder="Tìm tên thương hiệu..." 
+                placeholder="Search brand names..."
                 className="w-full pl-6 pr-12 py-3.5 rounded-full border-2 border-transparent shadow-md focus:outline-none focus:border-red-400 transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -75,14 +83,14 @@ export const BrandsFeature = () => {
             <div className="bg-white rounded-[2rem] p-5 shadow-lg border border-gray-100">
               <div className="flex items-center gap-2 mb-4 px-2">
                 <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-orange-400 rounded-full"></div>
-                <h3 className="font-black text-gray-800 uppercase tracking-wide">Chữ Cái</h3>
+                <h3 className="font-black text-gray-800 uppercase tracking-wide">Alphabet</h3>
               </div>
               <div className="grid grid-cols-5 gap-2">
                 <button 
                   onClick={() => setActiveLetter(null)}
                   className={`col-span-5 py-2 text-sm font-bold rounded-xl transition-all ${!activeLetter ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                 >
-                  Tất cả
+                  All
                 </button>
                 {alphabet.map(letter => (
                   <button 
@@ -100,22 +108,22 @@ export const BrandsFeature = () => {
             <div className="bg-white rounded-[2rem] p-5 shadow-lg border border-gray-100">
                <div className="flex items-center gap-2 mb-4 px-2">
                 <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-orange-400 rounded-full"></div>
-                <h3 className="font-black text-gray-800 uppercase tracking-wide">Vị Trí Tầng</h3>
+                <h3 className="font-black text-gray-800 uppercase tracking-wide">Floor</h3>
               </div>
               <div className="flex flex-col gap-2">
                 <button 
                   onClick={() => setActiveFloor(null)}
                   className={`py-3 px-4 text-sm font-bold rounded-xl transition-all text-left ${!activeFloor ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                 >
-                  Tất cả các tầng
+                  All floors
                 </button>
                 {floors.map(floor => (
                   <button 
-                    key={floor}
-                    onClick={() => setActiveFloor(floor)}
-                    className={`py-3 px-4 text-sm font-bold rounded-xl transition-all text-left flex justify-between items-center ${activeFloor === floor ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md translate-x-1' : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-500'}`}
+                    key={floor.value}
+                    onClick={() => setActiveFloor(floor.value)}
+                    className={`py-3 px-4 text-sm font-bold rounded-xl transition-all text-left flex justify-between items-center ${activeFloor === floor.value ? 'bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md translate-x-1' : 'bg-gray-50 text-gray-600 hover:bg-red-50 hover:text-red-500'}`}
                   >
-                    <span>{floor}</span>
+                    <span>{floor.label}</span>
                     <span className="text-[10px] opacity-70">📍</span>
                   </button>
                 ))}
@@ -145,19 +153,19 @@ export const BrandsFeature = () => {
                       />
                     </div>
                     <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {brand.floor}</p>
+                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.floor)}</p>
                   </Link>
                 ))}
               </div>
             ) : (
               <div className="bg-white rounded-[2rem] border-2 border-dashed border-gray-200 p-20 text-center flex flex-col items-center">
                 <span className="text-6xl mb-4">🏬</span>
-                <h3 className="text-2xl font-bold text-gray-400">Chưa có thương hiệu phù hợp!</h3>
+                <h3 className="text-2xl font-bold text-gray-400">No matching brands found!</h3>
                 <button 
                   onClick={() => {setSearchTerm(''); setActiveFloor(null); setActiveLetter(null);}}
                   className="mt-6 px-8 py-3 bg-red-50 text-red-500 font-bold rounded-full hover:bg-red-100 transition-colors shadow-sm"
                 >
-                  Xóa bộ lọc
+                  Clear filters
                 </button>
               </div>
             )}

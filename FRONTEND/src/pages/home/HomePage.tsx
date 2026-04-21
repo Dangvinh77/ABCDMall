@@ -14,8 +14,8 @@ export const HomePage = () => {
 
       {/* 3. Phần giới thiệu thêm */}
       <section className="max-w-7xl mx-auto px-4 mt-16 pb-20 text-center">
-        <h2 className="text-3xl font-extrabold text-mall-dark">Chào mừng đến với ABCD Mall</h2>
-        <p className="text-gray-500 mt-4 text-lg">Khám phá không gian mua sắm và giải trí hàng đầu với hơn 250,000 m2.</p>
+        <h2 className="text-3xl font-extrabold text-mall-dark">Welcome to ABCD Mall</h2>
+        <p className="text-gray-500 mt-4 text-lg">Discover a leading shopping and entertainment destination spanning more than 250,000 m2.</p>
         <div className="w-24 h-1 bg-mall-primary mx-auto mt-6 rounded-full"></div>
       </section>
     </main>

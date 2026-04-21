@@ -11,34 +11,34 @@ export const Footer = () => {
             <span className="text-mall-accent">ABCD</span> Mall
           </h3>
           <p className="text-sm leading-relaxed">
-            Trung tâm mua sắm, ẩm thực và giải trí hàng đầu với hơn 250,000 m2 trải nghiệm đẳng cấp dành cho bạn và gia đình.
+            A leading shopping, dining, and entertainment destination with more than 250,000 m2 of premium experiences for you and your family.
           </p>
         </div>
 
         {/* Cột 2: Liên kết nhanh */}
         <div>
-          <h4 className="text-white font-bold text-lg mb-4">Khám Phá</h4>
+          <h4 className="text-white font-bold text-lg mb-4">Explore</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/shops" className="hover:text-mall-accent transition-colors">Cửa hàng nổi bật</Link></li>
-            <li><Link to="/food-court" className="hover:text-mall-accent transition-colors">Khu ẩm thực</Link></li>
-            <li><Link to="/movies" className="hover:text-mall-accent transition-colors">Rạp chiếu phim</Link></li>
-            <li><Link to="/map" className="hover:text-mall-accent transition-colors">Sơ đồ tầng</Link></li>
+            <li><Link to="/shops" className="hover:text-mall-accent transition-colors">Featured Stores</Link></li>
+            <li><Link to="/food-court" className="hover:text-mall-accent transition-colors">Food Court</Link></li>
+            <li><Link to="/movies" className="hover:text-mall-accent transition-colors">Cinema</Link></li>
+            <li><Link to="/map" className="hover:text-mall-accent transition-colors">Floor Map</Link></li>
           </ul>
         </div>
 
         {/* Cột 3: Hỗ trợ khách hàng */}
         <div>
-          <h4 className="text-white font-bold text-lg mb-4">Hỗ Trợ</h4>
+          <h4 className="text-white font-bold text-lg mb-4">Support</h4>
           <ul className="space-y-2 text-sm">
-            <li><Link to="/contact" className="hover:text-mall-accent transition-colors">Liên hệ (Contact Us)</Link></li>
-            <li><Link to="/faq" className="hover:text-mall-accent transition-colors">Câu hỏi thường gặp</Link></li>
-            <li><Link to="/feedback" className="hover:text-mall-accent transition-colors">Gửi phản hồi</Link></li>
+            <li><Link to="/contact" className="hover:text-mall-accent transition-colors">Contact Us</Link></li>
+            <li><Link to="/faq" className="hover:text-mall-accent transition-colors">Frequently Asked Questions</Link></li>
+            <li><Link to="/feedback" className="hover:text-mall-accent transition-colors">Send Feedback</Link></li>
           </ul>
         </div>
 
         {/* Cột 4: Thông tin liên hệ & Social */}
         <div>
-          <h4 className="text-white font-bold text-lg mb-4">Liên Hệ</h4>
+          <h4 className="text-white font-bold text-lg mb-4">Contact</h4>
           <ul className="space-y-2 text-sm mb-6">
             <li>📍 123 Suburban Place, Mumbai</li>
             <li>📞 +91 1800-ABCD-MALL</li>

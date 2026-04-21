@@ -11,6 +11,8 @@ export const InteractiveMap = () => {
   const [devCoords, setDevCoords] = useState<{ x: number; y: number } | null>(null);
 
   const API_BASE = 'http://localhost:5184';
+  const getFloorLabel = (label: string) => label.replace("Tầng", "Floor");
+  const displayDescription = activeFloor ? activeFloor.description.replace("Tầng", "Floor") : "";
 
   // Hàm tính toán toạ độ khi click
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -29,7 +31,7 @@ export const InteractiveMap = () => {
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center text-gray-400">
         <div className="text-4xl mb-4 animate-bounce">🗺️</div>
-        <p className="font-semibold">Đang tải sơ đồ...</p>
+        <p className="font-semibold">Loading map...</p>
       </div>
     </div>
   );
@@ -55,7 +57,7 @@ export const InteractiveMap = () => {
     <div className="w-full px-4 lg:px-8 xl:px-12 py-12 mx-auto">
       {/* THANH CHỌN TẦNG */}
       <div className="flex justify-center flex-wrap gap-3 mb-10">
-        {floors.map((floor) => (
+            {floors.map((floor) => (
           <button
             key={floor.id}
             onClick={() => handleFloorSwitch(floor)}
@@ -64,7 +66,7 @@ export const InteractiveMap = () => {
               : 'bg-white text-gray-500 border-2 border-gray-100 hover:border-mall-primary/40 hover:text-mall-primary'
               }`}
           >
-            {floor.floorLevel}
+            {getFloorLabel(floor.floorLevel)}
           </button>
         ))}
       </div>
@@ -76,8 +78,8 @@ export const InteractiveMap = () => {
         <div className="w-full lg:w-3/4 bg-white rounded-[2rem] p-4 shadow-2xl border border-gray-100">
           <div className="mb-3 px-2 flex justify-between items-center">
             <div>
-              <h2 className="text-lg font-extrabold text-mall-dark">{activeFloor.description}</h2>
-              <p className="text-sm text-gray-400">{activeFloor.locations.length} cửa hàng</p>
+              <h2 className="text-lg font-extrabold text-mall-dark">{displayDescription}</h2>
+              <p className="text-sm text-gray-400">{activeFloor.locations.length} stores</p>
             </div>
 
             {/* Box hiển thị tọa độ góc phải */}
@@ -97,7 +99,7 @@ export const InteractiveMap = () => {
             <img
               key={activeFloor.id}
               src={`${API_BASE}${activeFloor.blueprintImageUrl}`}
-              alt={`Sơ đồ ${activeFloor.floorLevel}`}
+              alt={`Map of ${getFloorLabel(activeFloor.floorLevel)}`}
               className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
               onLoad={() => setImgLoaded(true)}
             />
@@ -169,17 +171,17 @@ export const InteractiveMap = () => {
 
               <div className="text-center px-2">
                 <span className="inline-block bg-red-50 text-red-500 text-xs font-extrabold px-3 py-1 rounded-full mb-3">
-                  📍 Lô {selectedPin.locationSlot}
+                  📍 Unit {selectedPin.locationSlot}
                 </span>
 
                 <h3 className="text-2xl font-black text-gray-800 mb-2">{selectedPin.shopName}</h3>
                 <p className="text-gray-400 text-sm mb-5">
-                  {activeFloor.floorLevel}
+                  {getFloorLabel(activeFloor.floorLevel)}
                 </p>
 
                 {/* Hiện toạ độ Dev (Bạn có thể xóa phần này khi deploy thật) */}
                 <div className="mb-6 p-3 bg-gray-50 rounded-xl font-mono text-xs text-gray-500 border border-gray-100 text-left">
-                  <strong>Toạ độ Pin:</strong><br />
+                  <strong>Pin Coordinates:</strong><br />
                   X: {selectedPin.x}<br />
                   Y: {selectedPin.y}
                 </div>
@@ -189,7 +191,7 @@ export const InteractiveMap = () => {
                   href={selectedPin.shopUrl}
                   className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center"
                 >
-                  Xem Gian Hàng &rarr;
+                  View Store &rarr;
                 </a>
               </div>
             </div>
@@ -198,8 +200,8 @@ export const InteractiveMap = () => {
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl mb-5 shadow-sm animate-bounce">
                 📌
               </div>
-              <h3 className="text-lg font-bold text-gray-500 mb-2">Chưa chọn cửa hàng</h3>
-              <p className="text-gray-400 text-sm">Bấm vào điểm ghim trên bản đồ để xem thông tin chi tiết.</p>
+              <h3 className="text-lg font-bold text-gray-500 mb-2">No store selected</h3>
+              <p className="text-gray-400 text-sm">Click a pin on the map to view its details.</p>
             </div>
           )}
         </div>
