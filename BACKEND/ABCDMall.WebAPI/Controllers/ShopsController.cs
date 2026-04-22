@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Users.Application.DTOs.PublicCatalog;
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
+using ABCDMall.Modules.UtilityMap.Application.Services.Maps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,13 +13,16 @@ public class ShopsController : ControllerBase
 {
     private readonly IPublicShopCatalogService _shopCatalogService;
     private readonly IShopInfoPublicManagerService _shopManagerService;
+    private readonly IMapCommandService _mapCommandService;
 
     public ShopsController(
         IPublicShopCatalogService shopCatalogService,
-        IShopInfoPublicManagerService shopManagerService)
+        IShopInfoPublicManagerService shopManagerService,
+        IMapCommandService mapCommandService)
     {
         _shopCatalogService = shopCatalogService;
         _shopManagerService = shopManagerService;
+        _mapCommandService = mapCommandService;
     }
 
     [AllowAnonymous]
@@ -90,6 +94,7 @@ public class ShopsController : ControllerBase
         try
         {
             var shop = await _shopManagerService.CreateMyShopAsync(ownerShopId, request, cancellationToken);
+            await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, shop.ShopStatus, cancellationToken);
             return CreatedAtAction(nameof(GetShopBySlug), new { slug = shop.Slug }, shop);
         }
         catch (InvalidOperationException ex)
@@ -114,6 +119,11 @@ public class ShopsController : ControllerBase
         try
         {
             var shop = await _shopManagerService.UpdateMyShopAsync(ownerShopId, id, request, cancellationToken);
+            if (shop is not null)
+            {
+                await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, shop.ShopStatus, cancellationToken);
+            }
+
             return shop is null ? NotFound() : Ok(shop);
         }
         catch (InvalidOperationException ex)

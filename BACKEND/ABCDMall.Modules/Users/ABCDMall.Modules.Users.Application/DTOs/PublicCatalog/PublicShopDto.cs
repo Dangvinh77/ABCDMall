@@ -18,6 +18,8 @@ public sealed class PublicShopDto
     public string CoverImageUrl { get; set; } = string.Empty;
     public string Floor { get; set; } = string.Empty;
     public string LocationSlot { get; set; } = string.Empty;
+    public string ShopStatus { get; set; } = "Active";
+    public DateTime? OpeningDate { get; set; }
     public IReadOnlyList<PublicShopProductDto> Products { get; set; } = [];
     public IReadOnlyList<PublicShopVoucherDto> Vouchers { get; set; } = [];
 }

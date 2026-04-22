@@ -44,6 +44,8 @@ internal static class ShopInfoPublicMapper
             CoverImageUrl = coverImageUrl,
             Floor = floor,
             LocationSlot = locationSlot,
+            ShopStatus = DeriveShopStatus(shopInfo.OpeningDate),
+            OpeningDate = shopInfo.OpeningDate,
             Products = (products ?? [])
                 .OrderByDescending(x => x.IsFeatured)
                 .ThenBy(x => x.Name)
@@ -82,6 +84,8 @@ internal static class ShopInfoPublicMapper
             CoverImageUrl = coverImageUrl,
             Floor = FirstNotEmpty(shop.Floor, "Mall floor"),
             LocationSlot = FirstNotEmpty(shop.LocationSlot, "ABCD Mall"),
+            ShopStatus = FirstNotEmpty(shop.ShopStatus, "Active"),
+            OpeningDate = shop.OpeningDate,
             Products = (products ?? [])
                 .OrderByDescending(x => x.IsFeatured)
                 .ThenBy(x => x.Name)
@@ -101,6 +105,18 @@ internal static class ShopInfoPublicMapper
         slug = Regex.Replace(slug, @"[^a-z0-9\s-]", string.Empty);
         slug = Regex.Replace(slug, @"\s+", "-");
         return Regex.Replace(slug, "-+", "-").Trim('-');
+    }
+
+    public static string DeriveShopStatus(DateTime? openingDate)
+    {
+        if (!openingDate.HasValue)
+        {
+            return "Active";
+        }
+
+        return openingDate.Value.Date > DateTime.UtcNow.Date
+            ? "ComingSoon"
+            : "Active";
     }
 
     private static string[] BuildTags(ShopInfo shopInfo, RentalArea? rentalArea)

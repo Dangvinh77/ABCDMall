@@ -34,6 +34,8 @@ public static class FrontendShopsSeed
             shop.OpenHours = seed.OpenHours;
             shop.Badge = seed.Badge;
             shop.Offer = seed.Offer;
+            shop.ShopStatus = seed.ShopStatus;
+            shop.OpeningDate = seed.OpeningDate;
 
             shop.Tags.Clear();
             foreach (var tag in seed.Tags.Distinct(StringComparer.OrdinalIgnoreCase))
@@ -122,6 +124,8 @@ public static class FrontendShopsSeed
         string OpenHours,
         string? Badge,
         string? Offer,
+        string ShopStatus,
+        DateTime? OpeningDate,
         string[] Tags,
         ProductSeed[] Products,
         VoucherSeed[] Vouchers);
@@ -142,6 +146,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Featured Store",
             "LifeWear picks updated weekly",
+            "Active",
+            null,
             ["Fashion", "Floor 1", "Japanese Brand"],
             [
                 new("shop-uniqlo-product-1", "Uniqlo U Crew Neck T-Shirt", "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/455359/item/vngoods_00_455359.jpg", 249000m, null, null, true, false),
@@ -164,6 +170,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Featured Store",
             "Members save 15% on regular-price items",
+            "Active",
+            null,
             ["Sports", "Floor 1", "Sneakers"],
             [
                 new("shop-adidas-product-1", "Samba OG", "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/3bbecbdf584e40398446a8bf0117cf62_9366/Giay_Samba_OG_trang_B75806_01_standard.jpg", 2700000m, null, null, true, false),
@@ -186,6 +194,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Hot Drop",
             "New Air Max arrivals this week",
+            "Active",
+            null,
             ["Sports", "Floor 1", "Running"],
             [
                 new("shop-nike-product-1", "Nike Air Force 1 '07", "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/b7d9211c-26e7-431a-ac24-b0540fb3c00f/air-force-1-07-mens-shoes-jBrhbr.png", 2939000m, null, null, true, false),
@@ -207,6 +217,8 @@ public static class FrontendShopsSeed
             "/img/levi/out.jpg",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Denim", "Floor 1", "Fashion"],
             [
@@ -230,6 +242,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             null,
             "Selected accessories on seasonal markdown",
+            "Active",
+            null,
             ["Accessories", "Floor 1", "Women"],
             [
                 new("shop-charles-keith-product-1", "Gabine Saddle Bag", "https://www.charleskeith.vn/dw/image/v2/BCWJ_PRD/on/demandware.static/-/Sites-vn-products/default/dw5b078020/images/hi-res/2021-L3-CK2-80781610-1-01-1.jpg?sw=1152&sh=1536", 2150000m, null, null, true, false),
@@ -252,6 +266,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "New Arrival",
             "20% off first purchase",
+            "Active",
+            null,
             ["Beauty", "Floor 1", "Skincare"],
             [
                 new("shop-beauty-box-product-1", "CLIO Cushion", "https://product.hstatic.net/200000000133/product/clio_kill_cover_the_new_founwear_cushion_03_linen_1_fd3a928c0c1f4e199990141cc131100b_master.jpg", 850000m, null, null, true, false),
@@ -273,6 +289,8 @@ public static class FrontendShopsSeed
             "/img/pnj/pnj_out.png",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Jewelry", "Floor 1", "Premium"],
             [
@@ -296,6 +314,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             null,
             null,
+            "Active",
+            null,
             ["Accessories", "Floor 1", "Leather"],
             [
                 new("shop-pedro-product-1", "Leather Loafers", "https://media.maisononline.vn/sys_master/images/hea/h19/9274577879070/PM1-40940172-1_01.jpg", 2590000m, null, null, true, false),
@@ -317,6 +337,8 @@ public static class FrontendShopsSeed
             "/img/casio/out.png",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Watches", "Floor 1", "Accessories"],
             [
@@ -340,6 +362,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Family Favorite",
             "Gift bookmark on selected literature purchases",
+            "Active",
+            null,
             ["Books", "Floor 2", "Stationery"],
             [
                 new("shop-phuong-nam-product-1", "Muon Kiep Nhan Sinh", "https://nhasachphuongnam.com/images/detailed/164/muon-kiep-nhan-sinh-b2.jpg", 168000m, null, null, true, false),
@@ -362,6 +386,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Collector Hotspot",
             "Limited blind-box drops every weekend",
+            "Active",
+            null,
             ["Collectibles", "Floor 2", "Toys"],
             [
                 new("shop-pop-mart-product-1", "Labubu Tasty Macarons", "https://media.karousell.com/media/photos/products/2023/12/3/pop_mart_labubu_macaron_1701584742_91a0c02c_progressive.jpg", 450000m, null, null, true, false),
@@ -383,6 +409,8 @@ public static class FrontendShopsSeed
             "/img/miniso/out.jpg",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Lifestyle", "Floor 2", "Gifts"],
             [
@@ -406,6 +434,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             null,
             null,
+            "Active",
+            null,
             ["Fashion", "Floor 2", "Casual"],
             [
                 new("shop-ninomaxx-product-1", "Polo Shirt", "https://ninomaxxconcept.com/wp-content/uploads/2023/11/2311025-1.jpg", 459000m, null, null, true, false),
@@ -428,6 +458,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Local Brand",
             "Free shipping on 500K orders",
+            "Active",
+            null,
             ["Streetwear", "Floor 2", "Local Brand"],
             [
                 new("shop-levents-product-1", "Classic Zipper Hoodie", "https://product.hstatic.net/1000312752/product/ao_khoac_ni_hoodie_zip_local_brand_levents_classic_zipper_hoodie_black_2_0c3bf310b1a04d2ab9c704f0f089f268_master.jpg", 650000m, null, null, true, false),
@@ -449,6 +481,8 @@ public static class FrontendShopsSeed
             "/img/rabity/out.jpg",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Kids", "Floor 2", "Family"],
             [
@@ -472,6 +506,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Youth Pick",
             null,
+            "Active",
+            null,
             ["Streetwear", "Floor 2", "Local Brand"],
             [
                 new("shop-boo-product-1", "Marvel Graphic Tee", "https://boo.vn/wp-content/uploads/2023/12/1-4-600x800.jpg", 349000m, null, null, true, false),
@@ -493,6 +529,8 @@ public static class FrontendShopsSeed
             "/img/johnhenry/out.jpg",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Menswear", "Floor 2", "Smart Casual"],
             [
@@ -516,6 +554,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             null,
             "10% off large luggage this week",
+            "Active",
+            null,
             ["Travel", "Floor 2", "Bags"],
             [
                 new("shop-lugvn-product-1", "Echolac Luggage", "https://lug.vn/images/products/2023/11/17/large/vali-nhua-echolac-pc185sa-20-do_1700201633.jpg", 2500000m, null, null, true, false),
@@ -537,6 +577,8 @@ public static class FrontendShopsSeed
             "09:30 - 23:00",
             "Night Pick",
             "Arcade combo discounted today",
+            "Active",
+            null,
             ["Entertainment", "Floor 3", "Bowling"],
             [
                 new("shop-powerbowl-product-1", "Bowling Ticket", "https://powerbowl.vn/wp-content/uploads/2020/12/127116810_1079374095844426_8373307559135062638_o.jpg", 70000m, null, null, true, false),
@@ -558,6 +600,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             null,
             "10% off new arrivals",
+            "Active",
+            null,
             ["Streetwear", "Floor 3", "Sneakers"],
             [
                 new("shop-vans-product-1", "Old Skool", "https://media.maisononline.vn/sys_master/images/h64/h5b/9239846387742/VN000D3HY28_01.jpg", 1750000m, null, null, true, false),
@@ -579,6 +623,8 @@ public static class FrontendShopsSeed
             "/img/converse/out.jpg",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Streetwear", "Floor 3", "Sneakers"],
             [
@@ -602,6 +648,8 @@ public static class FrontendShopsSeed
             "09:30 - 22:00",
             "Premium Tech",
             "Buy PS5 and receive a bonus controller",
+            "Active",
+            null,
             ["Technology", "Floor 4", "Gaming"],
             [
                 new("shop-sony-center-product-1", "PlayStation 5", "https://sonycenter.sony.com.vn/Data/Sites/1/Product/3729/ps5_01.png", 14990000m, null, null, true, false),
@@ -623,6 +671,8 @@ public static class FrontendShopsSeed
             "/img/lego/out.webp",
             "09:30 - 22:00",
             null,
+            null,
+            "Active",
             null,
             ["Toys", "Floor 4", "Family"],
             [

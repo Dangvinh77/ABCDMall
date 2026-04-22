@@ -23,6 +23,8 @@ public sealed class ShopConfiguration : IEntityTypeConfiguration<Shop>
         builder.Property(x => x.OpenHours).HasMaxLength(100).IsRequired();
         builder.Property(x => x.Badge).HasMaxLength(120);
         builder.Property(x => x.Offer).HasMaxLength(300);
+        builder.Property(x => x.ShopStatus).HasMaxLength(20).HasDefaultValue("Active").IsRequired();
+        builder.Property(x => x.OpeningDate);
         builder.HasIndex(x => x.Slug).IsUnique();
 
         builder.HasMany(x => x.Tags).WithOne(x => x.Shop).HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Cascade);

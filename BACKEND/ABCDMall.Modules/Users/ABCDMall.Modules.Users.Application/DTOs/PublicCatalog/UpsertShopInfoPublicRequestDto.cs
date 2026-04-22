@@ -20,6 +20,7 @@ public sealed class UpsertShopInfoPublicRequestDto
     public string OpenHours { get; set; } = "09:30 - 22:00";
     public string? Badge { get; set; }
     public string? Offer { get; set; }
+    public DateTime? OpeningDate { get; set; }
     public string[] Tags { get; set; } = [];
 }
 

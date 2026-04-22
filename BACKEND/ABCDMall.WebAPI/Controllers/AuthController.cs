@@ -3,6 +3,7 @@ using ABCDMall.Modules.Users.Application.DTOs.Auth;
 using ABCDMall.Modules.Users.Application.DTOs.Common;
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Application.DTOs;
+using ABCDMall.Modules.UtilityMap.Application.Services.Maps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,11 +17,16 @@ public class AuthController : ControllerBase
 {
     private readonly IUserCommandService _userCommandService;
     private readonly IUserQueryService _userQueryService;
+    private readonly IMapCommandService _mapCommandService;
 
-    public AuthController(IUserCommandService userCommandService, IUserQueryService userQueryService)
+    public AuthController(
+        IUserCommandService userCommandService,
+        IUserQueryService userQueryService,
+        IMapCommandService mapCommandService)
     {
         _userCommandService = userCommandService;
         _userQueryService = userQueryService;
+        _mapCommandService = mapCommandService;
     }
 
     [HttpPost("login")]
@@ -272,6 +278,13 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         var result = await _userCommandService.RegisterAsync(dto);
+        if (result.Status == ApplicationResultStatus.Ok
+            && dto.MapLocationId.HasValue
+            && !string.IsNullOrWhiteSpace(result.Value?.ShopId))
+        {
+            await _mapCommandService.ReserveSlotAsync(dto.MapLocationId.Value, result.Value.ShopId);
+        }
+
         return result.Status switch
         {
             ApplicationResultStatus.Ok => Ok(new

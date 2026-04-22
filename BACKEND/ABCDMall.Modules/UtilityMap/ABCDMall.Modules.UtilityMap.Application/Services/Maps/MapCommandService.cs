@@ -84,4 +84,53 @@ public sealed class MapCommandService : IMapCommandService
 
         return result;
     }
+
+    public async Task<bool> ReserveSlotAsync(int locationId, string shopInfoId, CancellationToken cancellationToken = default)
+    {
+        var location = await _repo.GetLocationByIdAsync(locationId, cancellationToken);
+        if (location is null)
+        {
+            _logger.LogWarning("Cannot reserve map location {LocationId} because it does not exist.", locationId);
+            return false;
+        }
+
+        location.Status = "Reserved";
+        location.ShopInfoId = shopInfoId;
+        await _repo.UpdateLocationSlotAsync(location, cancellationToken);
+        _logger.LogInformation("Reserved map location {LocationId} for shop info {ShopInfoId}.", locationId, shopInfoId);
+        return true;
+    }
+
+    public async Task<bool> ReleaseSlotAsync(int locationId, CancellationToken cancellationToken = default)
+    {
+        var location = await _repo.GetLocationByIdAsync(locationId, cancellationToken);
+        if (location is null)
+        {
+            _logger.LogWarning("Cannot release map location {LocationId} because it does not exist.", locationId);
+            return false;
+        }
+
+        location.Status = "Available";
+        location.ShopInfoId = null;
+        await _repo.UpdateLocationSlotAsync(location, cancellationToken);
+        _logger.LogInformation("Released map location {LocationId}.", locationId);
+        return true;
+    }
+
+    public async Task<bool> UpdateSlotStatusByShopInfoIdAsync(string shopInfoId, string status, CancellationToken cancellationToken = default)
+    {
+        var normalizedStatus = string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim();
+        var result = await _repo.UpdateLocationStatusByShopInfoIdAsync(shopInfoId, normalizedStatus, cancellationToken);
+
+        if (result)
+        {
+            _logger.LogInformation("Updated map slot status for shop info {ShopInfoId} to {Status}.", shopInfoId, normalizedStatus);
+        }
+        else
+        {
+            _logger.LogWarning("Cannot update map slot status for shop info {ShopInfoId} because no mapped location exists.", shopInfoId);
+        }
+
+        return result;
+    }
 }

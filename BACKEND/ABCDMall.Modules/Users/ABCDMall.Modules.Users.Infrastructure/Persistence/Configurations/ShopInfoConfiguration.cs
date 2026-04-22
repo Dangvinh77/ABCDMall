@@ -27,6 +27,7 @@ internal sealed class ShopInfoConfiguration : IEntityTypeConfiguration<ShopInfo>
         entity.Property(x => x.OpenHours).HasMaxLength(80).IsRequired();
         entity.Property(x => x.Badge).HasMaxLength(120);
         entity.Property(x => x.Offer).HasMaxLength(250);
+        entity.Property(x => x.OpeningDate);
         entity.Property(x => x.Tags).HasMaxLength(500).IsRequired();
         entity.Property(x => x.IsPublicVisible).HasDefaultValue(false);
         entity.Property(x => x.ManagerName).HasMaxLength(200);

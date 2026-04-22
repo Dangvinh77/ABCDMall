@@ -30,6 +30,8 @@ namespace ABCDMall.Modules.Users.Domain.Entities
 
         public string? Offer { get; set; }
 
+        public DateTime? OpeningDate { get; set; }
+
         public string Tags { get; set; } = string.Empty;
 
         public bool IsPublicVisible { get; set; }

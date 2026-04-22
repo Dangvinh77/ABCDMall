@@ -25,5 +25,7 @@ internal sealed class PublicShopConfiguration : IEntityTypeConfiguration<PublicS
         entity.Property(x => x.OpenHours).HasMaxLength(100).IsRequired();
         entity.Property(x => x.Badge).HasMaxLength(120);
         entity.Property(x => x.Offer).HasMaxLength(300);
+        entity.Property(x => x.ShopStatus).HasMaxLength(20).IsRequired();
+        entity.Property(x => x.OpeningDate);
     }
 }

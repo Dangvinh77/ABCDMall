@@ -4,6 +4,7 @@ using ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
 {
     [DbContext(typeof(ShopsDbContext))]
-    partial class ShopsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422091513_AddShopStatusAndOpeningDate")]
+    partial class AddShopStatusAndOpeningDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

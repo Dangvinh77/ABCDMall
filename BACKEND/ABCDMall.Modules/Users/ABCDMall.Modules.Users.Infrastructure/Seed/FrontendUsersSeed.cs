@@ -130,6 +130,7 @@ public static class FrontendUsersSeed
             rentalArea.MonthlyRent = seed.MonthlyRent;
             rentalArea.Status = seed.Status;
             rentalArea.TenantName = seed.TenantName;
+            rentalArea.ShopInfoId = seed.ShopInfoId;
             rentalArea.CreatedAt = seed.CreatedAt == default ? now : seed.CreatedAt;
         }
 
@@ -540,16 +541,16 @@ public static class FrontendUsersSeed
 
         public static readonly RentalAreaSeed[] RentalAreas =
         [
-            new("rental-area-001", "A-101", "1", "Fashion Corner", "42m2", 25000000m, "Rented", "Minh Fashion", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-002", "A-102", "1", "Accessory Hub", "30m2", 18000000m, "Available", null, new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-003", "B-201", "2", "Beauty Studio", "35m2", 22000000m, "Rented", "Lan Cosmetics", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-004", "C-301", "3", "Lifestyle Kiosk", "28m2", 16000000m, "Rented", "Huy Sneakers", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-005", "D-102", "1", "Accessories Lane", "26m2", 17500000m, "Rented", "Chau Accessories", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-006", "D-103", "1", "Gift Box", "24m2", 15000000m, "Available", null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-007", "E-210", "2", "Streetwear Point", "40m2", 24000000m, "Available", null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-008", "F-305", "3", "Beauty Corner", "33m2", 21000000m, "Available", null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-009", "G-115", "1", "Toy House", "32m2", 19500000m, "Available", null, new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
-            new("rental-area-010", "H-410", "4", "Premium Lounge", "55m2", 32000000m, "Available", null, new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc))
+            new("rental-area-001", "A-101", "1", "Fashion Corner", "42m2", 25000000m, "Rented", "Minh Fashion", "shop-001", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-002", "A-102", "1", "Accessory Hub", "30m2", 18000000m, "Available", null, null, new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-003", "B-201", "2", "Beauty Studio", "35m2", 22000000m, "Rented", "Lan Cosmetics", "shop-002", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-004", "C-301", "3", "Lifestyle Kiosk", "28m2", 16000000m, "Rented", "Huy Sneakers", "shop-003", new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-005", "D-102", "1", "Accessories Lane", "26m2", 17500000m, "Rented", "Chau Accessories", "shop-004", new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-006", "D-103", "1", "Gift Box", "24m2", 15000000m, "Available", null, null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-007", "E-210", "2", "Streetwear Point", "40m2", 24000000m, "Available", null, null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-008", "F-305", "3", "Beauty Corner", "33m2", 21000000m, "Available", null, null, new DateTime(2026, 4, 2, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-009", "G-115", "1", "Toy House", "32m2", 19500000m, "Available", null, null, new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc)),
+            new("rental-area-010", "H-410", "4", "Premium Lounge", "55m2", 32000000m, "Available", null, null, new DateTime(2026, 4, 3, 0, 0, 0, DateTimeKind.Utc))
         ];
 
         public static readonly MonthlyBillSeed[] MonthlyBills =
@@ -692,6 +693,7 @@ public static class FrontendUsersSeed
         decimal MonthlyRent,
         string Status,
         string? TenantName,
+        string? ShopInfoId,
         DateTime CreatedAt);
 
     private sealed record MonthlyBillSeed(

@@ -155,6 +155,7 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
         shopInfo.OpenHours = request.OpenHours;
         shopInfo.Badge = request.Badge;
         shopInfo.Offer = request.Offer;
+        shopInfo.OpeningDate = request.OpeningDate;
         shopInfo.Tags = string.Join(", ", request.Tags);
     }
 
@@ -193,7 +194,9 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
             CoverImageUrl = shopInfo.CoverImageUrl,
             OpenHours = shopInfo.OpenHours,
             Badge = shopInfo.Badge,
-            Offer = shopInfo.Offer
+            Offer = shopInfo.Offer,
+            ShopStatus = ShopInfoPublicMapper.DeriveShopStatus(shopInfo.OpeningDate),
+            OpeningDate = shopInfo.OpeningDate
         }, cancellationToken);
     }
 

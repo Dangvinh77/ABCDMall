@@ -15,6 +15,8 @@ public sealed class Shop
     public string OpenHours { get; set; } = "09:30 - 22:00";
     public string? Badge { get; set; }
     public string? Offer { get; set; }
+    public string ShopStatus { get; set; } = "Active";
+    public DateTime? OpeningDate { get; set; }
     public ICollection<ShopTag> Tags { get; set; } = new List<ShopTag>();
     public ICollection<ShopProduct> Products { get; set; } = new List<ShopProduct>();
     public ICollection<ShopVoucher> Vouchers { get; set; } = new List<ShopVoucher>();

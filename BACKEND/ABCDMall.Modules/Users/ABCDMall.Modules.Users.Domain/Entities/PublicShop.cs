@@ -16,4 +16,6 @@ public sealed class PublicShop
     public string OpenHours { get; set; } = "09:30 - 22:00";
     public string? Badge { get; set; }
     public string? Offer { get; set; }
+    public string ShopStatus { get; set; } = "Active";
+    public DateTime? OpeningDate { get; set; }
 }

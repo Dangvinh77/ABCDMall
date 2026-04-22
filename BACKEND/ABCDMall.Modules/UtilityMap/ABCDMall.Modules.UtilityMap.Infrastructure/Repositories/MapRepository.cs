@@ -35,6 +35,12 @@ public class MapRepository : IMapRepository
             .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
     }
 
+    public Task<MapLocation?> GetLocationByIdAsync(int id, CancellationToken cancellationToken = default)
+        => _context.MapLocations.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+    public Task<MapLocation?> GetLocationByShopInfoIdAsync(string shopInfoId, CancellationToken cancellationToken = default)
+        => _context.MapLocations.FirstOrDefaultAsync(x => x.ShopInfoId == shopInfoId, cancellationToken);
+
     public async Task CreateFloorPlanAsync(FloorPlan floorPlan, CancellationToken cancellationToken = default)
     {
         _context.FloorPlans.Add(floorPlan);
@@ -65,6 +71,25 @@ public class MapRepository : IMapRepository
         if (loc == null) return false;
 
         _context.MapLocations.Remove(loc);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task UpdateLocationSlotAsync(MapLocation location, CancellationToken cancellationToken = default)
+    {
+        _context.MapLocations.Update(location);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> UpdateLocationStatusByShopInfoIdAsync(string shopInfoId, string status, CancellationToken cancellationToken = default)
+    {
+        var location = await _context.MapLocations.FirstOrDefaultAsync(x => x.ShopInfoId == shopInfoId, cancellationToken);
+        if (location is null)
+        {
+            return false;
+        }
+
+        location.Status = status;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }

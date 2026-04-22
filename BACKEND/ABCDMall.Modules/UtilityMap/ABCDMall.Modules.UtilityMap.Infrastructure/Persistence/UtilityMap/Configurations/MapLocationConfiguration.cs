@@ -26,6 +26,14 @@ public class MapLocationConfiguration : IEntityTypeConfiguration<MapLocation>
         builder.Property(l => l.StorefrontImageUrl)
             .HasMaxLength(500);
 
+        builder.Property(l => l.Status)
+            .IsRequired()
+            .HasDefaultValue("Available")
+            .HasMaxLength(30);
+
+        builder.Property(l => l.ShopInfoId)
+            .HasMaxLength(64);
+
         builder.Property(l => l.X)
             .HasColumnType("float");
 
