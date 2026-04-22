@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -9,26 +9,68 @@ import {
   Users,
   Globe,
   Shield,
-  MapPin,
   ChevronRight,
   Ticket,
   Play,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
-import { vnd } from '../data/booking';
-import { getScheduleDates, formatScheduleDateParam, type MovieSchedule } from '../data/schedules';
 import { getDefaultBookingDate } from '../data/promotions';
+import { formatScheduleDateParam, getScheduleDates, type MovieSchedule } from '../data/schedules';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
 import { loadMovieDetailUiData } from '../api/movieUiAdapter';
+import { createMovieFeedback, fetchMovieFeedbacks } from '../api/moviesApi';
 import type { Movie } from '../data/movie';
 
-const HALL_TYPE_COLORS: Record<string, string> = {
-  '2D': 'bg-gray-700 text-gray-200',
-  '3D': 'bg-blue-700 text-blue-100',
-  IMAX: 'bg-purple-700 text-purple-100',
-  '4DX': 'bg-orange-700 text-orange-100',
-};
+interface MovieFeedback {
+  id: string;
+  author: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
+const ratingOptions = [5, 4, 3, 2, 1];
+
+function getFeedbackStorageKey(movieId: string) {
+  return `abcd-cinema-feedback:${movieId}`;
+}
+
+function buildDefaultMovieFeedback(movie: Movie): MovieFeedback[] {
+  const leadGenre = movie.genre.split(', ')[0] ?? 'Movie';
+
+  return [
+    {
+      id: `${movie.id}-review-1`,
+      author: 'Minh Anh',
+      rating: Math.min(5, Math.max(4, Math.round(movie.rating / 2))),
+      comment: `${movie.title} co nhip phim cuon, hinh anh dep va phan ${leadGenre.toLowerCase()} duoc lam kha tron ven.`,
+      createdAt: '2 ngay truoc',
+    },
+    {
+      id: `${movie.id}-review-2`,
+      author: 'Gia Huy',
+      rating: Math.min(5, Math.max(3, Math.floor(movie.rating / 2))),
+      comment: 'Trai nghiem xem rat on, am thanh tot. Minh thich cach phim giu cam xuc den doan cuoi.',
+      createdAt: '5 ngay truoc',
+    },
+  ];
+}
+
+function formatFeedbackDate(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
 
 export function MovieDetailPage() {
   const { movieId } = useParams<{ movieId: string }>();
@@ -44,28 +86,41 @@ export function MovieDetailPage() {
   const [apiMovie, setApiMovie] = useState<Movie | undefined>();
   const [apiMovieSchedule, setApiMovieSchedule] = useState<MovieSchedule | undefined>();
   const [isLoading, setIsLoading] = useState(Boolean(movieId));
+  const [submittedFeedback, setSubmittedFeedback] = useState<MovieFeedback[]>([]);
+  const [reviewerName, setReviewerName] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [feedbackRatingFilter, setFeedbackRatingFilter] = useState<number | null>(null);
+  const [apiAverageRating, setApiAverageRating] = useState<number | null>(null);
+  const [apiRatingBreakdown, setApiRatingBreakdown] = useState<Record<number, number> | null>(null);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const movie = apiMovie;
   const movieSchedule = apiMovieSchedule;
-  const scheduleMovieId = movie?.id.replace(/-(now|soon)-\d+$/, '') ?? movieId?.replace(/-(now|soon)-\d+$/, '');
-  const bookingDateLabel = new Date(`${bookingDate}T00:00:00`).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-  const buildBookingUrl = (cinemaId: string, showtime: string, hallType: string, showtimeId?: string) => {
-    const params = new URLSearchParams(location.search);
-    params.set('cinema', cinemaId);
-    params.set('showtime', showtime);
-    params.set('hallType', hallType);
-    params.set('date', bookingDate);
-    if (showtimeId) {
-      params.set('showtimeId', showtimeId);
+  const scheduleMovieId =
+    movieSchedule?.movie.id.replace(/-(now|soon)-\d+$/, '') ??
+    movie?.id.replace(/-(now|soon)-\d+$/, '') ??
+    movieId?.replace(/-(now|soon)-\d+$/, '');
+  const feedbackMovieId = movie?.apiId ?? movieId;
+  const feedbackStorageKey = movie ? getFeedbackStorageKey(movie.id) : undefined;
+  const defaultFeedback = useMemo(() => (movie ? buildDefaultMovieFeedback(movie) : []), [movie]);
+  const feedbacks = useMemo(
+    () => {
+      const source = submittedFeedback.length > 0 ? submittedFeedback : defaultFeedback;
+      return feedbackRatingFilter ? source.filter((feedback) => feedback.rating === feedbackRatingFilter) : source;
+    },
+    [defaultFeedback, feedbackRatingFilter, submittedFeedback],
+  );
+  const averageFeedbackRating = useMemo(() => {
+    if (apiAverageRating !== null) {
+      return apiAverageRating;
     }
 
-    return `${moviePaths.booking(movieId ?? '')}?${params.toString()}`;
-  };
+    if (feedbacks.length === 0) {
+      return movie?.rating ? movie.rating / 2 : 0;
+    }
+
+    return feedbacks.reduce((total, feedback) => total + feedback.rating, 0) / feedbacks.length;
+  }, [apiAverageRating, feedbacks, movie?.rating]);
 
   const buildShowtimesUrl = () => {
     const params = new URLSearchParams(location.search);
@@ -73,13 +128,6 @@ export function MovieDetailPage() {
     params.set('date', bookingDate);
 
     return `${moviePaths.showtimes()}?${params.toString()}`;
-  };
-
-  const buildMovieDateUrl = (dateParam: string) => {
-    const params = new URLSearchParams(location.search);
-    params.set('date', dateParam);
-
-    return `${moviePaths.detail(movieId ?? '')}?${params.toString()}`;
   };
 
   useEffect(() => {
@@ -94,8 +142,6 @@ export function MovieDetailPage() {
       }
 
       try {
-        // API FETCH NOTE:
-        // Detail keeps the original visual layout but swaps the movie/showtime objects with API-backed data.
         const data = await loadMovieDetailUiData(currentMovieId, bookingDate);
         if (!active) return;
 
@@ -120,6 +166,107 @@ export function MovieDetailPage() {
       active = false;
     };
   }, [bookingDate, movieId]);
+
+  useEffect(() => {
+    if (!feedbackStorageKey || !feedbackMovieId) {
+      setSubmittedFeedback([]);
+      return;
+    }
+
+    let active = true;
+    const storageKey = feedbackStorageKey;
+
+    async function loadFeedbacks() {
+      try {
+        const response = await fetchMovieFeedbacks(feedbackMovieId as string, feedbackRatingFilter);
+        if (!active) return;
+
+        setSubmittedFeedback(response.items.map((feedback) => ({
+          id: feedback.id,
+          author: feedback.displayName,
+          rating: feedback.rating,
+          comment: feedback.comment,
+          createdAt: formatFeedbackDate(feedback.createdAtUtc),
+        })));
+        setApiAverageRating(response.averageRating);
+        setApiRatingBreakdown(response.ratingBreakdown);
+      } catch (error) {
+        if (!active) return;
+
+        try {
+          const raw = localStorage.getItem(storageKey);
+          setSubmittedFeedback(raw ? (JSON.parse(raw) as MovieFeedback[]) : []);
+        } catch {
+          setSubmittedFeedback([]);
+        }
+        setApiAverageRating(null);
+        setApiRatingBreakdown(null);
+        console.warn('Movie feedback API failed; using bundled/local fallback feedback.', error);
+      }
+    }
+
+    void loadFeedbacks();
+    setFeedbackSubmitted(false);
+    setReviewerName('');
+    setReviewRating(5);
+    setReviewComment('');
+    return () => {
+      active = false;
+    };
+  }, [feedbackMovieId, feedbackRatingFilter, feedbackStorageKey]);
+
+  const handleFeedbackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!feedbackStorageKey || !reviewComment.trim()) {
+      return;
+    }
+
+    try {
+      if (!feedbackMovieId) {
+        throw new Error('Movie id is missing.');
+      }
+
+      const created = await createMovieFeedback(feedbackMovieId, {
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+        displayName: reviewerName.trim() || undefined,
+      });
+
+      const newFeedback: MovieFeedback = {
+        id: created.id,
+        author: created.displayName,
+        rating: created.rating,
+        comment: created.comment,
+        createdAt: formatFeedbackDate(created.createdAtUtc),
+      };
+
+      setSubmittedFeedback((currentFeedback) => [newFeedback, ...currentFeedback]);
+      setApiAverageRating(null);
+    } catch (error) {
+      console.warn('Create feedback API failed; saving feedback locally for this browser.', error);
+      const newFeedback: MovieFeedback = {
+        id:
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}`,
+        author: reviewerName.trim() || 'Khach hang ABCD',
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+        createdAt: 'Vua xong',
+      };
+
+      setSubmittedFeedback((currentFeedback) => {
+        const nextFeedback = [newFeedback, ...currentFeedback];
+        localStorage.setItem(feedbackStorageKey, JSON.stringify(nextFeedback));
+        return nextFeedback;
+      });
+    }
+
+    setReviewerName('');
+    setReviewRating(5);
+    setReviewComment('');
+    setFeedbackSubmitted(true);
+  };
 
   if (isLoading) {
     return (
@@ -159,7 +306,7 @@ export function MovieDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
+      <header className="relative z-40 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -318,149 +465,189 @@ export function MovieDetailPage() {
           </div>
         </div>
 
-        {!movie.isComingSoon && movieSchedule && movieSchedule.cinemaSchedules.length > 0 && (
-          <div className="mt-12 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
-              <div className="flex items-center gap-2 text-gray-400">
-                <MapPin className="size-4 text-purple-400" />
-                <span className="text-sm font-medium uppercase tracking-wider">Showtimes</span>
+        <div className="mt-12 space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+            <div className="flex items-center gap-2 text-gray-400">
+              <MessageSquare className="size-4 text-purple-400" />
+              <span className="text-sm font-medium uppercase tracking-wider">Ratings & feedback</span>
+            </div>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+            <div className="rounded-2xl bg-gray-800/50 p-5 ring-1 ring-gray-700/50">
+              <p className="text-sm font-medium uppercase tracking-wider text-gray-500">Audience score</p>
+              <div className="mt-4 flex items-end gap-2">
+                <span className="text-5xl font-black text-white">{averageFeedbackRating.toFixed(1)}</span>
+                <span className="pb-2 text-lg font-semibold text-gray-400">/5</span>
               </div>
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent" />
+              <div className="mt-3 flex gap-1">
+                {ratingOptions.map((rating) => (
+                  <Star
+                    key={rating}
+                    className={[
+                      'size-5',
+                      rating <= Math.round(averageFeedbackRating)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-600',
+                    ].join(' ')}
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-sm text-gray-400">{feedbacks.length} feedback for this movie</p>
+
+              <div className="mt-6 space-y-3">
+                {ratingOptions.map((rating) => {
+                  const count = apiRatingBreakdown?.[rating] ?? feedbacks.filter((feedback) => feedback.rating === rating).length;
+                  const breakdownTotal = apiRatingBreakdown
+                    ? Object.values(apiRatingBreakdown).reduce((total, value) => total + value, 0)
+                    : feedbacks.length;
+                  const percentage = breakdownTotal > 0 ? (count / breakdownTotal) * 100 : 0;
+
+                  return (
+                    <div key={rating} className="grid grid-cols-[36px_1fr_28px] items-center gap-2 text-xs">
+                      <span className="font-semibold text-gray-400">{rating} star</span>
+                      <div className="h-2 overflow-hidden rounded-full bg-gray-700">
+                        <div className="h-full rounded-full bg-yellow-400" style={{ width: `${percentage}%` }} />
+                      </div>
+                      <span className="text-right text-gray-500">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              {availableDates.map((dateOption) => {
-                const dateParam = formatScheduleDateParam(dateOption.date);
-                const isActive = dateParam === bookingDate;
-
-                return (
+            <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={dateParam}
-                    onClick={() => navigate(buildMovieDateUrl(dateParam))}
+                    type="button"
+                    onClick={() => setFeedbackRatingFilter(null)}
                     className={[
-                      'flex shrink-0 flex-col items-center rounded-xl border px-4 py-2 transition-all duration-150',
-                      isActive
-                        ? 'border-purple-500/60 bg-gradient-to-b from-purple-600/25 to-purple-900/20 shadow-[0_0_16px_rgba(168,85,247,0.2)]'
-                        : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]',
+                      'rounded-lg border px-3 py-1.5 text-xs font-semibold transition',
+                      feedbackRatingFilter === null
+                        ? 'border-purple-400 bg-purple-500/20 text-purple-100'
+                        : 'border-gray-700 bg-gray-900/60 text-gray-400 hover:border-gray-500 hover:text-white',
                     ].join(' ')}
                   >
-                    <span
-                      className={`text-[11px] font-semibold uppercase leading-none ${isActive ? 'text-purple-300' : 'text-gray-500'}`}
-                    >
-                      {dateOption.dayLabel}
-                    </span>
-                    <span className={`mt-0.5 text-xl font-black leading-none ${isActive ? 'text-white' : 'text-gray-300'}`}>
-                      {dateOption.day}
-                    </span>
-                    <span className={`text-[11px] leading-none ${isActive ? 'text-purple-400' : 'text-gray-600'}`}>
-                      {dateOption.date.toLocaleDateString('en-US', { month: 'short' })}
-                    </span>
+                    All
                   </button>
-                );
-              })}
-            </div>
-
-            <div className="space-y-4">
-              {movieSchedule.cinemaSchedules.map((cinema) => {
-                const hallTypes = [...new Set(cinema.showtimes.map((showtime) => showtime.hallType))];
-                const firstAvailableShowtime = cinema.showtimes.find((showtime) => showtime.availableSeats > 0);
-
-                return (
-                  <div
-                    key={cinema.cinemaId}
-                    className="overflow-hidden rounded-2xl bg-gray-800/50 ring-1 ring-gray-700/50 transition-all hover:bg-gray-800/80 hover:ring-purple-500/30"
+                  {ratingOptions.map((rating) => (
+                    <button
+                      key={rating}
+                      type="button"
+                      onClick={() => setFeedbackRatingFilter(rating)}
+                      className={[
+                        'rounded-lg border px-3 py-1.5 text-xs font-semibold transition',
+                        feedbackRatingFilter === rating
+                          ? 'border-yellow-400 bg-yellow-400/15 text-yellow-100'
+                          : 'border-gray-700 bg-gray-900/60 text-gray-400 hover:border-gray-500 hover:text-white',
+                      ].join(' ')}
+                    >
+                      {rating} star
+                    </button>
+                  ))}
+                </div>
+                {feedbacks.map((feedback) => (
+                  <article
+                    key={feedback.id}
+                    className="rounded-2xl bg-gray-800/50 p-4 ring-1 ring-gray-700/50"
                   >
-                    <div className="border-b border-gray-700/50 p-4 sm:p-5">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <div className="size-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
-                            <h3 className="font-bold text-white">{cinema.cinemaName}</h3>
-                          </div>
-                          <p className="flex items-start gap-1.5 text-sm text-gray-400">
-                            <MapPin className="mt-0.5 size-3.5 shrink-0 text-gray-500" />
-                            {cinema.cinemaAddress}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5 sm:shrink-0">
-                          {hallTypes.map((type) => (
-                            <span
-                              key={type}
-                              className={`rounded-md px-2 py-0.5 text-xs font-bold ${HALL_TYPE_COLORS[type] ?? 'bg-gray-700 text-gray-200'}`}
-                            >
-                              {type}
-                            </span>
-                          ))}
-                        </div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 className="font-bold text-white">{feedback.author}</h3>
+                        <p className="text-xs text-gray-500">{feedback.createdAt}</p>
                       </div>
-                    </div>
-
-                    <div className="p-4 sm:p-5">
-                      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-gray-500">
-                        {bookingDateLabel}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {cinema.showtimes.map((showtime) => (
-                          <button
-                            key={showtime.id}
-                            disabled={showtime.availableSeats === 0}
-                            onClick={() =>
-                              navigate(buildBookingUrl(cinema.cinemaId, showtime.time, showtime.hallType, showtime.id))
-                            }
-                            className="group relative overflow-hidden rounded-xl border border-gray-600 bg-gray-900/50 px-4 py-2 text-left text-sm font-semibold text-white transition-all hover:border-purple-500/70 hover:bg-purple-500/10 hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{showtime.time}</span>
-                              <span
-                                className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${HALL_TYPE_COLORS[showtime.hallType] ?? 'bg-gray-700 text-gray-200'}`}
-                              >
-                                {showtime.hallType}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-[11px] font-medium text-gray-400">
-                              From {vnd(showtime.priceFrom)}
-                            </p>
-                          </button>
+                      <div className="flex gap-1">
+                        {ratingOptions.map((rating) => (
+                          <Star
+                            key={rating}
+                            className={[
+                              'size-4',
+                              rating <= feedback.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600',
+                            ].join(' ')}
+                          />
                         ))}
                       </div>
                     </div>
+                    <p className="mt-3 leading-relaxed text-gray-300">{feedback.comment}</p>
+                  </article>
+                ))}
+              </div>
 
-                    <div className="border-t border-gray-700/50 px-4 py-3 sm:px-5">
-                      <Button
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 sm:w-auto"
-                        size="sm"
-                        disabled={!firstAvailableShowtime}
-                        onClick={() =>
-                          firstAvailableShowtime &&
-                          navigate(
-                            buildBookingUrl(
-                              cinema.cinemaId,
-                              firstAvailableShowtime.time,
-                              firstAvailableShowtime.hallType,
-                              firstAvailableShowtime.id,
-                            ),
-                          )
-                        }
+              <form
+                onSubmit={handleFeedbackSubmit}
+                className="rounded-2xl bg-gray-800/50 p-5 ring-1 ring-gray-700/50"
+              >
+                <h3 className="text-lg font-bold text-white">Share your feedback</h3>
+                <p className="mt-1 text-sm text-gray-400">Your review will be saved for this movie.</p>
+
+                <label className="mt-5 block text-sm font-semibold text-gray-300" htmlFor="reviewer-name">
+                  Name
+                </label>
+                <input
+                  id="reviewer-name"
+                  value={reviewerName}
+                  onChange={(event) => setReviewerName(event.target.value)}
+                  placeholder="Your name"
+                  className="mt-2 w-full rounded-xl border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                />
+
+                <fieldset className="mt-5">
+                  <legend className="text-sm font-semibold text-gray-300">Rating</legend>
+                  <div className="mt-2 flex gap-2">
+                    {ratingOptions.toReversed().map((rating) => (
+                      <button
+                        key={rating}
+                        type="button"
+                        onClick={() => setReviewRating(rating)}
+                        className="rounded-lg p-1 transition hover:bg-yellow-400/10 focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
+                        aria-label={`${rating} star`}
                       >
-                        <Ticket className="mr-2 size-4" />
-                        Choose showtime & book
-                        <ChevronRight className="ml-1 size-3.5" />
-                      </Button>
-                    </div>
+                        <Star
+                          className={[
+                            'size-7',
+                            rating <= reviewRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600',
+                          ].join(' ')}
+                        />
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
+                </fieldset>
+
+                <label className="mt-5 block text-sm font-semibold text-gray-300" htmlFor="review-comment">
+                  Feedback
+                </label>
+                <textarea
+                  id="review-comment"
+                  value={reviewComment}
+                  onChange={(event) => setReviewComment(event.target.value)}
+                  required
+                  rows={5}
+                  placeholder="Tell us what you think about this movie..."
+                  className="mt-2 w-full resize-none rounded-xl border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                />
+
+                {feedbackSubmitted && (
+                  <p className="mt-3 rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-300">
+                    Thanks, your feedback has been added for this movie.
+                  </p>
+                )}
+
+                <Button
+                  type="submit"
+                  className="mt-5 w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                >
+                  <Send className="mr-2 size-4" />
+                  Submit feedback
+                </Button>
+              </form>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
-      <footer className="border-t border-gray-800 bg-gray-950 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          &copy; 2026 ABCD Cinema. Online ticket booking made fast and simple.
-        </div>
-      </footer>
     </div>
   );
 }

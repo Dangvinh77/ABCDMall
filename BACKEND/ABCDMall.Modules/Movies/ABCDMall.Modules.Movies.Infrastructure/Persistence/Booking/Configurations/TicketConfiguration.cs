@@ -26,6 +26,12 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(x => x.QrCodeContent)
             .HasColumnType("nvarchar(max)");
 
+        builder.Property(x => x.PdfFileName)
+            .HasMaxLength(255);
+
+        builder.Property(x => x.EmailSendError)
+            .HasColumnType("nvarchar(max)");
+
         builder.HasIndex(x => x.TicketCode).IsUnique();
         builder.HasIndex(x => x.BookingId);
         builder.HasIndex(x => x.SeatInventoryId);

@@ -10,15 +10,18 @@ public sealed class BookingQuoteService : IBookingQuoteService
     private const decimal ServiceFeePerSeat = 10000m;
 
     private readonly IShowtimeRepository _showtimeRepository;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
     private readonly IPromotionRepository _promotionRepository;
     private readonly IPromotionEvaluationService _promotionEvaluationService;
 
     public BookingQuoteService(
         IShowtimeRepository showtimeRepository,
+        IShowtimeBookingPolicy showtimeBookingPolicy,
         IPromotionRepository promotionRepository,
         IPromotionEvaluationService promotionEvaluationService)
     {
         _showtimeRepository = showtimeRepository;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
         _promotionRepository = promotionRepository;
         _promotionEvaluationService = promotionEvaluationService;
     }
@@ -32,6 +35,7 @@ public sealed class BookingQuoteService : IBookingQuoteService
         {
             throw new InvalidOperationException("Showtime not found.");
         }
+        _showtimeBookingPolicy.EnsureBookableForUser(showtime, DateTime.UtcNow);
 
         var seatMap = await _showtimeRepository.GetSeatMapByShowtimeIdAsync(request.ShowtimeId, cancellationToken);
         var seats = seatMap

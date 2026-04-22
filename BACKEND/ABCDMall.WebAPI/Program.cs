@@ -14,17 +14,17 @@ using ABCDMall.Modules.Shops.Infrastructure.Seed;
 using ABCDMall.Modules.Users.Application;
 using ABCDMall.Modules.Users.Infrastructure;
 using ABCDMall.Modules.Users.Infrastructure.Seed;
-using ABCDMall.Modules.UtilityMap.Application;
-using ABCDMall.Modules.UtilityMap.Infrastructure;
-using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
-using ABCDMall.Modules.UtilityMap.Infrastructure.Seed;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using ABCDMall.Modules.Events.Application;
 using ABCDMall.Modules.Events.Infrastructure;
 using ABCDMall.Modules.Events.Infrastructure.Persistence.Events;
 using ABCDMall.Modules.Events.Infrastructure.Seed;
- 
+using ABCDMall.Modules.UtilityMap.Application;
+using ABCDMall.Modules.UtilityMap.Infrastructure;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Seed;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,165 +110,161 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+static string GetResetFlagName(string taskName)
+    => $"Reset{taskName}Database";
+
+static StartupDbTask CreateStartupDbTask(
+    string name,
+    DbContext context,
+    bool shouldReset,
+    bool shouldSeed,
+    Func<CancellationToken, Task> seedAsync)
+    => new(
+        Name: name,
+        Context: context,
+        ShouldReset: shouldReset,
+        ShouldSeed: shouldSeed,
+        MigrateAsync: cancellationToken => context.Database.MigrateAsync(cancellationToken),
+        SeedAsync: seedAsync);
+
+static async Task ResetDatabasesOnceAsync(
+    IReadOnlyList<StartupDbTask> tasks,
+    ILogger logger,
+    CancellationToken cancellationToken = default)
+{
+    var groupedTasks = tasks
+        .Where(task => task.ShouldReset)
+        .GroupBy(task => task.Context.Database.GetConnectionString(), StringComparer.OrdinalIgnoreCase);
+
+    foreach (var group in groupedTasks)
+    {
+        var connectionString = group.Key;
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            logger.LogWarning(
+                "Skipping database reset for contexts {Contexts} because the connection string could not be resolved.",
+                string.Join(", ", group.Select(task => task.Name)));
+            continue;
+        }
+
+        var representativeTask = group.First();
+        var triggeredBy = string.Join(", ", group.Select(task => GetResetFlagName(task.Name)));
+        var groupedNames = string.Join(", ", group.Select(task => task.Name));
+
+        logger.LogWarning(
+            "Reset requested by {Flags}. Deleting shared database once for contexts: {Contexts}.",
+            triggeredBy,
+            groupedNames);
+
+        await representativeTask.Context.Database.EnsureDeletedAsync(cancellationToken);
+    }
+}
+
+static async Task MigrateAndSeedAsync(
+    StartupDbTask task,
+    ILogger logger,
+    CancellationToken cancellationToken = default)
+{
+    try
+    {
+        logger.LogInformation("Starting {Name} database initialization.", task.Name);
+
+        await task.MigrateAsync(cancellationToken);
+
+        if (task.ShouldSeed)
+        {
+            await task.SeedAsync(cancellationToken);
+        }
+
+        logger.LogInformation("{Name} database initialization completed.", task.Name);
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(
+            ex,
+            "{Name} database migration/seed was skipped because startup database initialization failed.",
+            task.Name);
+    }
+}
+
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    var catalogDbContext = scope.ServiceProvider.GetRequiredService<MoviesCatalogDbContext>();
+    var bookingDbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
+    var foodCourtDbContext = scope.ServiceProvider.GetRequiredService<FoodCourtDbContext>();
+    var shopsDbContext = scope.ServiceProvider.GetRequiredService<ShopsDbContext>();
+    var eventsDbContext = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
+    var usersDbContext = scope.ServiceProvider.GetRequiredService<MallDbContext>();
+    var utilityMapDbContext = scope.ServiceProvider.GetRequiredService<UtilityMapDbContext>();
+
+    var startupTasks = new List<StartupDbTask>
+    {
+        CreateStartupDbTask(
+            name: "MoviesCatalog",
+            context: catalogDbContext,
+            shouldReset: resetMoviesDatabase,
+            shouldSeed: seedMoviesData,
+            seedAsync: cancellationToken => FrontendMoviesSeed.SeedCatalogAsync(catalogDbContext)),
+        CreateStartupDbTask(
+            name: "MoviesBooking",
+            context: bookingDbContext,
+            shouldReset: resetMoviesDatabase,
+            shouldSeed: seedMoviesData,
+            seedAsync: cancellationToken => FrontendMoviesSeed.SeedBookingAsync(bookingDbContext)),
+        CreateStartupDbTask(
+            name: "FoodCourt",
+            context: foodCourtDbContext,
+            shouldReset: resetFoodCourtDatabase,
+            shouldSeed: seedFoodCourtData,
+            seedAsync: cancellationToken => FrontendFoodCourtSeed.SeedAsync(foodCourtDbContext)),
+        CreateStartupDbTask(
+            name: "Shops",
+            context: shopsDbContext,
+            shouldReset: resetShopsDatabase,
+            shouldSeed: seedShopsData,
+            seedAsync: cancellationToken => FrontendShopsSeed.SeedAsync(shopsDbContext)),
+        CreateStartupDbTask(
+            name: "Events",
+            context: eventsDbContext,
+            shouldReset: resetEventsDatabase,
+            shouldSeed: seedEventsData,
+            seedAsync: cancellationToken => FrontendEventsSeed.SeedAsync(eventsDbContext)),
+        CreateStartupDbTask(
+            name: "Users",
+            context: usersDbContext,
+            shouldReset: resetUsersDatabase,
+            shouldSeed: seedUsersData,
+            seedAsync: cancellationToken => FrontendUsersSeed.SeedAsync(usersDbContext, cancellationToken)),
+        CreateStartupDbTask(
+            name: "UtilityMap",
+            context: utilityMapDbContext,
+            shouldReset: resetUtilityMapDatabase,
+            shouldSeed: seedUtilityMapData,
+            seedAsync: cancellationToken => FrontendUtilityMapSeed.SeedAsync(utilityMapDbContext))
+    };
 
     try
     {
-        logger.LogInformation("Starting Movies catalog database initialization.");
-        var catalogDbContext = scope.ServiceProvider.GetRequiredService<MoviesCatalogDbContext>();
-        if (resetMoviesDatabase)
-        {
-            logger.LogWarning("ResetMoviesDatabase is enabled. Deleting Movies catalog database.");
-            await catalogDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await catalogDbContext.Database.MigrateAsync();
-        if (seedMoviesData)
-        {
-            await FrontendMoviesSeed.SeedCatalogAsync(catalogDbContext);
-        }
-
-        logger.LogInformation("Movies catalog database initialization completed.");
-
-        logger.LogInformation("Starting Movies booking database initialization.");
-        var bookingDbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
-        if (resetMoviesDatabase)
-        {
-            logger.LogWarning("ResetMoviesDatabase is enabled. Deleting Movies booking database.");
-            await bookingDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await bookingDbContext.Database.MigrateAsync();
-        if (seedMoviesData)
-        {
-            await FrontendMoviesSeed.SeedBookingAsync(bookingDbContext);
-        }
-
-        logger.LogInformation("Movies booking database initialization completed.");
+        await ResetDatabasesOnceAsync(startupTasks, logger);
     }
     catch (Exception ex)
     {
-        // Không chặn app khởi động nếu local DB chưa cấu hình xong.
-        // Điều này giúp team vẫn vào được Swagger/logs để kiểm tra wiring trước.
-        logger.LogWarning(ex, "Movies database migration/seed was skipped because startup database initialization failed.");
+        logger.LogWarning(ex, "Shared database reset failed during startup initialization.");
     }
 
-    try
+    foreach (var task in startupTasks)
     {
-        logger.LogInformation("Starting FoodCourt database initialization.");
-        var foodCourtDbContext = scope.ServiceProvider.GetRequiredService<FoodCourtDbContext>();
-        if (resetFoodCourtDatabase)
-        {
-            logger.LogWarning("ResetFoodCourtDatabase is enabled. Deleting FoodCourt database.");
-            await foodCourtDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await foodCourtDbContext.Database.MigrateAsync();
-        if (seedFoodCourtData)
-        {
-            await FrontendFoodCourtSeed.SeedAsync(foodCourtDbContext);
-        }
-
-        logger.LogInformation("FoodCourt database initialization completed.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "FoodCourt database migration/seed was skipped because startup database initialization failed.");
-    }
-
-    try
-    {
-        logger.LogInformation("Starting Shops database initialization.");
-        var shopsDbContext = scope.ServiceProvider.GetRequiredService<ShopsDbContext>();
-        if (resetShopsDatabase)
-        {
-            logger.LogWarning("ResetShopsDatabase is enabled. Deleting Shops database.");
-            await shopsDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await shopsDbContext.Database.MigrateAsync();
-        if (seedShopsData)
-        {
-            await FrontendShopsSeed.SeedAsync(shopsDbContext);
-        }
-
-        logger.LogInformation("Shops database initialization completed.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Shops database migration/seed was skipped because startup database initialization failed.");
-    }
-
-    try
-    {
-        logger.LogInformation("Starting Events database initialization.");
-        var eventsDbContext = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
-        if (resetEventsDatabase)
-        {
-            logger.LogWarning("ResetEventsDatabase is enabled. Deleting Events database.");
-            await eventsDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await eventsDbContext.Database.MigrateAsync();
-        if (seedEventsData)
-        {
-            await FrontendEventsSeed.SeedAsync(eventsDbContext);
-        }
-
-        logger.LogInformation("Events database initialization completed.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Events database migration/seed was skipped because startup database initialization failed.");
-    }
-
-    try
-    {
-        logger.LogInformation("Starting Users database initialization.");
-        var usersDbContext = scope.ServiceProvider.GetRequiredService<MallDbContext>();
-        if (resetUsersDatabase)
-        {
-            logger.LogWarning("ResetUsersDatabase is enabled. Deleting Users database.");
-            await usersDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await usersDbContext.Database.MigrateAsync();
-        if (seedUsersData)
-        {
-            await FrontendUsersSeed.SeedAsync(usersDbContext);
-        }
-
-        logger.LogInformation("Users database initialization completed.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Users database migration/seed was skipped because startup database initialization failed.");
-    }
-
-    try
-    {
-        logger.LogInformation("Starting UtilityMap database initialization.");
-        var mapDbContext = scope.ServiceProvider.GetRequiredService<UtilityMapDbContext>();
-        if (resetUtilityMapDatabase)
-        {
-            logger.LogWarning("ResetUtilityMapDatabase is enabled. Deleting UtilityMap database.");
-            await mapDbContext.Database.EnsureDeletedAsync();
-        }
-
-        await mapDbContext.Database.MigrateAsync();
-        if (seedUtilityMapData)
-        {
-            await FrontendUtilityMapSeed.SeedAsync(mapDbContext);
-        }
-
-        logger.LogInformation("UtilityMap database initialization completed.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "UtilityMap database migration/seed was skipped because startup database initialization failed.");
+        await MigrateAndSeedAsync(task, logger);
     }
 }
 
 app.Run();
+
+sealed record StartupDbTask(
+    string Name,
+    DbContext Context,
+    bool ShouldReset,
+    bool ShouldSeed,
+    Func<CancellationToken, Task> MigrateAsync,
+    Func<CancellationToken, Task> SeedAsync);

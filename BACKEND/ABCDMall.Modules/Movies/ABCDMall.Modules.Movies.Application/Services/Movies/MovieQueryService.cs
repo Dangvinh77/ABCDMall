@@ -2,6 +2,8 @@ using ABCDMall.Modules.Movies.Application.DTOs.Movies;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
+using ABCDMall.Modules.Movies.Application.Contracts;
+using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 
@@ -11,15 +13,18 @@ public sealed class MovieQueryService : IMovieQueryService
 {
     private readonly IMapper _mapper;
     private readonly IMovieRepository _movieRepository;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
     private readonly ILogger<MovieQueryService> _logger;
 
     public MovieQueryService(
         IMovieRepository movieRepository,
         IMapper mapper,
+        IShowtimeBookingPolicy showtimeBookingPolicy,
         ILogger<MovieQueryService> logger)
     {
         _movieRepository = movieRepository;
         _mapper = mapper;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
         _logger = logger;
     }
 
@@ -120,7 +125,10 @@ public sealed class MovieQueryService : IMovieQueryService
             return null;
         }
 
-        var showtimes = await _movieRepository.GetShowtimesByMovieIdAsync(movieId, businessDate, cancellationToken);
+        var utcNow = DateTime.UtcNow;
+        var showtimes = (await _movieRepository.GetShowtimesByMovieIdAsync(movieId, businessDate, cancellationToken))
+            .Where(showtime => _showtimeBookingPolicy.IsVisibleForUser(showtime, utcNow))
+            .ToList();
         _logger.LogInformation(
             "Fetched {ShowtimeCount} showtimes for movie {MovieId} with businessDate filter {BusinessDate}.",
             showtimes.Count,
@@ -150,8 +158,10 @@ public sealed class MovieQueryService : IMovieQueryService
                                 CinemaId = cinemaGroup.Key,
                                 CinemaCode = firstShowtime.Cinema?.Code ?? string.Empty,
                                 CinemaName = firstShowtime.Cinema?.Name ?? string.Empty,
-                                Showtimes = _mapper.Map<IReadOnlyList<ShowtimeResponseDto>>(
-                                    cinemaGroup.OrderBy(showtime => showtime.StartAtUtc).ToList())
+                                Showtimes = cinemaGroup
+                                    .OrderBy(showtime => showtime.StartAtUtc)
+                                    .Select(showtime => MapShowtime(showtime, utcNow))
+                                    .ToList()
                             };
                         })
                         .OrderBy(cinema => cinema.CinemaName)
@@ -174,5 +184,27 @@ public sealed class MovieQueryService : IMovieQueryService
     private static bool IsFeaturedMovie(Movie movie)
     {
         return movie.Status is MovieStatus.NowShowing or MovieStatus.ComingSoon;
+    }
+
+    private ShowtimeResponseDto MapShowtime(Showtime showtime, DateTime utcNow)
+    {
+        var bookingDecision = _showtimeBookingPolicy.EvaluateForUser(showtime, utcNow);
+
+        return new ShowtimeResponseDto
+        {
+            ShowtimeId = showtime.Id,
+            MovieId = showtime.MovieId,
+            CinemaId = showtime.CinemaId,
+            HallId = showtime.HallId,
+            HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
+            BusinessDate = showtime.BusinessDate,
+            StartAtUtc = showtime.StartAtUtc,
+            EndAtUtc = showtime.EndAtUtc,
+            Language = MoviesContractValueMapper.ToContractValue(showtime.Language),
+            BasePrice = showtime.BasePrice,
+            Status = showtime.Status.ToString(),
+            IsBookable = bookingDecision.IsBookable,
+            BookingUnavailableReason = bookingDecision.UnavailableReason
+        };
     }
 }

@@ -8,6 +8,8 @@ namespace ABCDMall.Modules.Users.Application.DTOs
 
         public string FullName { get; set; } = string.Empty;
 
+        public string? Role { get; set; }
+
         public string ShopName { get; set; } = string.Empty;
 
         public string? Address { get; set; }

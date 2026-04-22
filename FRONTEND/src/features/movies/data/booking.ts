@@ -1,5 +1,5 @@
 export type SeatType = 'regular' | 'vip' | 'couple';
-export type PaymentMethod = 'momo' | 'vnpay' | 'visa' | 'atm';
+export type PaymentMethod = 'stripe' | 'momo' | 'vnpay' | 'atm';
 export type SnackComboId = string;
 export type HallType = '2D' | '3D' | 'IMAX' | '4DX';
 

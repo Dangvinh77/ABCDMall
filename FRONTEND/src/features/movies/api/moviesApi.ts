@@ -59,6 +59,8 @@ export interface ShowtimeLiteModel {
   priceFrom: number;
   status: string;
   language: "sub" | "dub";
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
 }
 
 export interface CinemaShowtimeGroupModel {
@@ -88,6 +90,8 @@ export interface ShowtimeDetailModel {
   language: "sub" | "dub";
   basePrice: number;
   status: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
 }
 
 export interface SeatMapSeatModel {
@@ -105,6 +109,8 @@ export interface SeatMapModel {
   showtimeId: string;
   hallId: string;
   hallType: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
   seats: SeatMapSeatModel[];
 }
 
@@ -156,6 +162,25 @@ export interface BookingHoldModel {
   seats: BookingHoldSeatModel[];
 }
 
+export interface MovieFeedbackModel {
+  id: string;
+  movieId: string;
+  rating: number;
+  comment: string;
+  displayName: string;
+  tags: string[];
+  createdAtUtc: string;
+}
+
+export interface MovieFeedbackListModel {
+  movieId: string;
+  ratingFilter?: number | null;
+  totalCount: number;
+  averageRating: number;
+  ratingBreakdown: Record<number, number>;
+  items: MovieFeedbackModel[];
+}
+
 interface MovieListItemResponseDto {
   movieId: string;
   title: string;
@@ -202,6 +227,8 @@ interface MovieShowtimesResponseDto {
         language: string;
         basePrice: number;
         status: string;
+        isBookable: boolean;
+        bookingUnavailableReason?: string | null;
       }>;
     }>;
   }>;
@@ -221,6 +248,8 @@ interface ShowtimeListItemDto {
   language: string;
   basePrice: number;
   status: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string | null;
 }
 
 interface ShowtimeDetailResponseDto {
@@ -242,12 +271,16 @@ interface ShowtimeDetailResponseDto {
   language: string;
   basePrice: number;
   status: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string | null;
 }
 
 interface SeatMapResponseDto {
   showtimeId: string;
   hallId: string;
   hallType: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string | null;
   seats: Array<{
     seatInventoryId: string;
     seatCode: string;
@@ -312,6 +345,78 @@ interface BookingHoldResponseDto {
   }>;
 }
 
+interface CreateBookingResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId: string;
+  status: string;
+  grandTotal: number;
+  currency: string;
+  paymentRequired: boolean;
+}
+
+interface PaymentResponseDto {
+  paymentId: string;
+  bookingId: string;
+  bookingCode: string;
+  provider: string;
+  providerTransactionId?: string | null;
+  status: string;
+  amount: number;
+  currency: string;
+  bookingStatus: string;
+  failureReason?: string | null;
+  completedAtUtc?: string | null;
+}
+
+interface BookingDetailResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId?: string | null;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+  serviceFee: number;
+  discountAmount: number;
+  grandTotal: number;
+  currency: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+interface StripeCheckoutSessionResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  holdId?: string | null;
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
+}
+
+interface MovieFeedbackResponseDto {
+  id: string;
+  movieId: string;
+  rating: number;
+  comment: string;
+  displayName: string;
+  tags: string[];
+  createdAtUtc: string;
+}
+
+interface MovieFeedbackListResponseDto {
+  movieId: string;
+  ratingFilter?: number | null;
+  totalCount: number;
+  averageRating: number;
+  ratingBreakdown: Record<string, number>;
+  items: MovieFeedbackResponseDto[];
+}
+
 export interface QuoteRequestPayload {
   showtimeId: string;
   seatInventoryIds: string[];
@@ -327,6 +432,84 @@ export interface QuoteRequestPayload {
 export interface CreateBookingHoldPayload extends QuoteRequestPayload {
   sessionId?: string | null;
   guestCustomerId?: string | null;
+}
+
+export interface CreateBookingPayload {
+  holdId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+}
+
+export interface BookingModel {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId: string;
+  status: string;
+  grandTotal: number;
+  currency: string;
+  paymentRequired: boolean;
+}
+
+export interface BookingDetailModel {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId?: string | null;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+  serviceFee: number;
+  discountAmount: number;
+  grandTotal: number;
+  currency: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+export interface StripeCheckoutSessionModel {
+  bookingId: string;
+  bookingCode: string;
+  holdId?: string | null;
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
+}
+
+export interface ApplyPaymentResultPayload {
+  provider: string;
+  providerTransactionId: string;
+  status: string;
+  amount: number;
+  currency: string;
+  rawPayload?: string | null;
+  failureReason?: string | null;
+}
+
+export interface PaymentResultModel {
+  paymentId: string;
+  bookingId: string;
+  bookingCode: string;
+  provider: string;
+  providerTransactionId?: string | null;
+  status: string;
+  amount: number;
+  currency: string;
+  bookingStatus: string;
+  failureReason?: string | null;
+  completedAtUtc?: string | null;
+}
+
+export interface CreateMovieFeedbackPayload {
+  rating: number;
+  comment: string;
+  displayName?: string | null;
+  email?: string | null;
+  tags?: string[];
 }
 
 const DEFAULT_POSTER =
@@ -527,6 +710,8 @@ function groupShowtimesByMovieWithLookup(showtimes: ShowtimeListItemDto[], movie
       priceFrom: item.basePrice,
       status: item.status,
       language: mapLanguage(item.language),
+      isBookable: item.isBookable,
+      bookingUnavailableReason: item.bookingUnavailableReason ?? undefined,
     });
 
     grouped.set(movieKey, movieEntry);
@@ -577,6 +762,54 @@ export async function fetchMovieDetail(movieId: string) {
   } satisfies MovieDetailModel;
 }
 
+function mapMovieFeedback(dto: MovieFeedbackResponseDto): MovieFeedbackModel {
+  return {
+    id: dto.id,
+    movieId: dto.movieId,
+    rating: dto.rating,
+    comment: dto.comment,
+    displayName: dto.displayName,
+    tags: dto.tags ?? [],
+    createdAtUtc: dto.createdAtUtc,
+  };
+}
+
+export async function fetchMovieFeedbacks(movieId: string, rating?: number | null) {
+  const apiMovieId = await resolveMovieApiId(movieId);
+  const response = await api.get<MovieFeedbackListResponseDto>(`/movies/${apiMovieId}/feedbacks`, {
+    rating: rating ?? undefined,
+    page: 1,
+    pageSize: 20,
+  });
+
+  return {
+    movieId: response.movieId,
+    ratingFilter: response.ratingFilter,
+    totalCount: response.totalCount,
+    averageRating: response.averageRating,
+    ratingBreakdown: Object.fromEntries(
+      Object.entries(response.ratingBreakdown ?? {}).map(([star, count]) => [Number(star), count]),
+    ) as Record<number, number>,
+    items: response.items.map(mapMovieFeedback),
+  } satisfies MovieFeedbackListModel;
+}
+
+export async function createMovieFeedback(movieId: string, payload: CreateMovieFeedbackPayload) {
+  const apiMovieId = await resolveMovieApiId(movieId);
+  const response = await api.post<MovieFeedbackResponseDto, CreateMovieFeedbackPayload>(
+    `/movies/${apiMovieId}/feedbacks`,
+    {
+      rating: payload.rating,
+      comment: payload.comment,
+      displayName: payload.displayName ?? undefined,
+      email: payload.email ?? undefined,
+      tags: payload.tags ?? [],
+    },
+  );
+
+  return mapMovieFeedback(response);
+}
+
 export async function fetchMovieShowtimes(movieId: string, businessDate: string) {
   // API FETCH NOTE:
   // Query params are passed as the second argument; api.get turns this into
@@ -617,6 +850,8 @@ export async function fetchMovieShowtimes(movieId: string, businessDate: string)
             priceFrom: showtime.basePrice,
             status: showtime.status,
             language: mapLanguage(showtime.language),
+            isBookable: showtime.isBookable,
+            bookingUnavailableReason: showtime.bookingUnavailableReason ?? undefined,
           }),
         ),
       }),
@@ -710,6 +945,8 @@ export async function fetchShowtimeDetail(showtimeId: string) {
     language: mapLanguage(response.language),
     basePrice: response.basePrice,
     status: response.status,
+    isBookable: response.isBookable,
+    bookingUnavailableReason: response.bookingUnavailableReason ?? undefined,
   } satisfies ShowtimeDetailModel;
 }
 
@@ -744,6 +981,8 @@ export async function fetchSeatMap(showtimeId: string) {
     showtimeId: response.showtimeId,
     hallId: response.hallId,
     hallType: response.hallType,
+    isBookable: response.isBookable,
+    bookingUnavailableReason: response.bookingUnavailableReason ?? undefined,
     seats: mappedSeats,
   } satisfies SeatMapModel;
 }
@@ -812,6 +1051,94 @@ export async function createBookingHold(payload: CreateBookingHoldPayload) {
 export async function fetchBookingHold(holdId: string) {
   const response = await api.get<BookingHoldResponseDto>(`/bookings/holds/${holdId}`);
   return mapBookingHold(response);
+}
+
+export async function createBooking(payload: CreateBookingPayload) {
+  const response = await api.post<CreateBookingResponseDto, CreateBookingPayload>("/bookings", {
+    holdId: payload.holdId,
+    customerName: payload.customerName,
+    customerEmail: payload.customerEmail,
+    customerPhoneNumber: payload.customerPhoneNumber,
+  });
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    showtimeId: response.showtimeId,
+    holdId: response.holdId,
+    status: response.status,
+    grandTotal: response.grandTotal,
+    currency: response.currency,
+    paymentRequired: response.paymentRequired,
+  } satisfies BookingModel;
+}
+
+export async function fetchBookingDetail(bookingCode: string) {
+  const response = await api.get<BookingDetailResponseDto>(`/bookings/${bookingCode}`);
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    showtimeId: response.showtimeId,
+    holdId: response.holdId ?? undefined,
+    status: response.status,
+    customerName: response.customerName,
+    customerEmail: response.customerEmail,
+    customerPhoneNumber: response.customerPhoneNumber,
+    seatSubtotal: response.seatSubtotal,
+    comboSubtotal: response.comboSubtotal,
+    serviceFee: response.serviceFee,
+    discountAmount: response.discountAmount,
+    grandTotal: response.grandTotal,
+    currency: response.currency,
+    createdAtUtc: response.createdAtUtc,
+    updatedAtUtc: response.updatedAtUtc,
+  } satisfies BookingDetailModel;
+}
+
+export async function createStripeCheckoutSession(bookingId: string) {
+  const response = await api.post<StripeCheckoutSessionResponseDto, { bookingId: string }>(
+    "/payments/checkout-session/stripe",
+    { bookingId },
+  );
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    holdId: response.holdId ?? undefined,
+    sessionId: response.sessionId,
+    checkoutUrl: response.checkoutUrl,
+    expiresAtUtc: response.expiresAtUtc,
+  } satisfies StripeCheckoutSessionModel;
+}
+
+export async function applyPaymentResult(bookingId: string, payload: ApplyPaymentResultPayload) {
+  const response = await api.post<PaymentResponseDto, ApplyPaymentResultPayload>(
+    `/bookings/${bookingId}/payment-result`,
+    {
+      provider: payload.provider,
+      providerTransactionId: payload.providerTransactionId,
+      status: payload.status,
+      amount: payload.amount,
+      currency: payload.currency,
+      rawPayload: payload.rawPayload ?? undefined,
+      failureReason: payload.failureReason ?? undefined,
+    },
+  );
+
+  return {
+    paymentId: response.paymentId,
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    provider: response.provider,
+    providerTransactionId: response.providerTransactionId,
+    status: response.status,
+    amount: response.amount,
+    currency: response.currency,
+    bookingStatus: response.bookingStatus,
+    failureReason: response.failureReason,
+    completedAtUtc: response.completedAtUtc,
+  } satisfies PaymentResultModel;
 }
 
 export async function confirmBookingHold(holdId: string) {

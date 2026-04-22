@@ -79,7 +79,6 @@ public class FoodController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin,Manager")]
-    //[AllowAnonymous]
     public async Task<IActionResult> CreateFood([FromForm] CreateFoodRequestDto request, CancellationToken cancellationToken = default)
     {
         var validationResult = await _createFoodValidator.ValidateAsync(request, cancellationToken);
@@ -88,44 +87,17 @@ public class FoodController : ControllerBase
             return ValidationProblem(ToValidationProblemDetails(validationResult));
         }
 
-       // await _foodCommandService.CreateAsync(request, cancellationToken);
-
-       var imageUrl = await SaveImageAsync(request.ImageFile);
-
+        var imageUrl = await SaveImageAsync(request.ImageFile);
         request.ImageUrl = imageUrl ?? request.ImageUrl;
 
-        await _foodCommandService.CreateAsync(request,cancellationToken);
+        await _foodCommandService.CreateAsync(request, cancellationToken);
 
         return Ok(new { message = "Food created successfully" });
     }
 
-    // [HttpPut("{id}")]
-    // [Authorize(Roles = "Admin,Manager")]
-    // [AllowAnonymous]
-    // public async Task<IActionResult> UpdateFood(string id, [FromForm] UpdateFoodRequestDto request, CancellationToken cancellationToken = default)
-    // {
-    //     var validationResult = await _updateFoodValidator.ValidateAsync(request, cancellationToken);
-    //     if (!validationResult.IsValid)
-    //     {
-    //         return ValidationProblem(ToValidationProblemDetails(validationResult));
-    //     }
-
-    //     var updated = await _foodCommandService.UpdateAsync(id, request, cancellationToken);
-    //     if (!updated)
-    //     {
-    //         return NotFound();
-    //     }
-
-    //     return Ok(new { message = "Food updated successfully" });
-    // }
-
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin,Manager")]
-  //  [AllowAnonymous]
-    public async Task<IActionResult> UpdateFood(
-        string id,
-        [FromForm] UpdateFoodRequestDto request,
-        CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpdateFood(string id, [FromForm] UpdateFoodRequestDto request, CancellationToken cancellationToken = default)
     {
         var validationResult = await _updateFoodValidator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
@@ -133,15 +105,13 @@ public class FoodController : ControllerBase
             return ValidationProblem(ToValidationProblemDetails(validationResult));
         }
 
-        // 🔥 THÊM ĐOẠN NÀY
         var imageUrl = await SaveImageAsync(request.ImageFile);
-        if (imageUrl != null)
+        if (imageUrl is not null)
         {
             request.ImageUrl = imageUrl;
         }
 
         var updated = await _foodCommandService.UpdateAsync(id, request, cancellationToken);
-
         if (!updated)
         {
             return NotFound();
@@ -152,7 +122,6 @@ public class FoodController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin,Manager")]
-    //[AllowAnonymous]
     public async Task<IActionResult> DeleteFood(string id, CancellationToken cancellationToken = default)
     {
         var deleted = await _foodCommandService.DeleteAsync(id, cancellationToken);
@@ -162,6 +131,19 @@ public class FoodController : ControllerBase
         }
 
         return Ok(new { message = "Food deleted successfully" });
+    }
+
+    [HttpPost("upload")]
+    [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> UploadFoodImage(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        var imageUrl = await SaveImageAsync(file);
+        if (imageUrl is null)
+        {
+            return BadRequest(new { message = "Image file is required." });
+        }
+
+        return Ok(new { imageUrl });
     }
 
     private static ValidationProblemDetails ToValidationProblemDetails(FluentValidation.Results.ValidationResult validationResult)
@@ -174,41 +156,25 @@ public class FoodController : ControllerBase
                     group => group.Select(x => x.ErrorMessage).ToArray()));
     }
 
-    // [HttpPost("upload")]
-    // public async Task<IActionResult> Upload(IFormFile file)
-    // {
-    // if (file == null || file.Length == 0)
-    //     return BadRequest("No file");
-
-    // var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/foodcourt");
-    // if (!Directory.Exists(uploadsFolder))
-    //     Directory.CreateDirectory(uploadsFolder);
-
-    // var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-    // var filePath = Path.Combine(uploadsFolder, fileName);
-
-    // using var stream = new FileStream(filePath, FileMode.Create);
-    // await file.CopyToAsync(stream);
-
-    // return Ok(new { imageUrl = $"/images/foodcourt/{fileName}" });
-    // }
-
     private async Task<string?> SaveImageAsync(IFormFile? file)
-{
-    if (file == null || file.Length == 0)
-        return null;
+    {
+        if (file == null || file.Length == 0)
+        {
+            return null;
+        }
 
-    var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/foodcourt");
+        var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/foodcourt");
+        if (!Directory.Exists(folder))
+        {
+            Directory.CreateDirectory(folder);
+        }
 
-    if (!Directory.Exists(folder))
-        Directory.CreateDirectory(folder);
+        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var filePath = Path.Combine(folder, fileName);
 
-    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-    var filePath = Path.Combine(folder, fileName);
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
 
-    using var stream = new FileStream(filePath, FileMode.Create);
-    await file.CopyToAsync(stream);
-
-    return $"/images/foodcourt/{fileName}";
-}
+        return $"/images/foodcourt/{fileName}";
+    }
 }

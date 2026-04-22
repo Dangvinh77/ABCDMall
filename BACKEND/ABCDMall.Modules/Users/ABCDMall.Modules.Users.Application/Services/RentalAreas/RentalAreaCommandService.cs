@@ -176,7 +176,11 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             return ApplicationResult<MessageResponseDto>.BadRequest("This rental area does not have a tenant");
         }
 
-        var shopInfo = await _rentalAreaCommandRepository.GetShopInfoByRentalAreaAsync(rentalArea.AreaCode, rentalArea.TenantName, cancellationToken);
+        var shopInfo = await _rentalAreaCommandRepository.GetShopInfoByRentalAreaAsync(
+            rentalArea.AreaCode,
+            rentalArea.TenantName,
+            rentalArea.ShopInfoId,
+            cancellationToken);
         if (shopInfo is null)
         {
             return ApplicationResult<MessageResponseDto>.NotFound("Shop info for this rental area does not exist");

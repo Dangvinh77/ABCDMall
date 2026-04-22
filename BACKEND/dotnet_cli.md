@@ -204,6 +204,35 @@ dotnet ef database update --project .\ABCDMall.Modules\Shops\ABCDMall.Modules.Sh
 dotnet ef database update --project .\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Infrastructure\ABCDMall.Modules.UtilityMap.Infrastructure.csproj --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj --context UtilityMapDbContext
 ```
 
+### Movies Booking: cap nhat den migration cu the
+
+Dung khi DB movies booking thieu schema moi, vi du webhook Stripe loi do thieu cac cot `EmailSendError`, `EmailSentAtUtc`, `PdfFileName`, `UpdatedAtUtc`.
+
+```bash
+dotnet ef database update 20260419103000_AddTicketEmailDelivery `
+  --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MoviesBookingDbContext
+```
+
+### Movies Booking: cap nhat den migration moi nhat
+
+```bash
+dotnet ef database update `
+  --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MoviesBookingDbContext
+```
+
+### Kiem tra danh sach migrations cua Movies Booking
+
+```bash
+dotnet ef migrations list `
+  --project .\ABCDMall.Modules\Movies\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj `
+  --startup-project .\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj `
+  --context MoviesBookingDbContext
+```
+
 ## Drop database
 
 Mau chung:

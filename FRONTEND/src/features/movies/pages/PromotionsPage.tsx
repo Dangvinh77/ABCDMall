@@ -439,7 +439,7 @@ export function PromotionsPage() {
 
   return (
     <div className="min-h-screen bg-[#060818] text-white overflow-x-hidden">
-      <nav className="sticky top-0 z-50 border-b border-white/[0.05] bg-[#060818]/90 backdrop-blur-2xl">
+      <nav className="relative z-40 border-b border-white/[0.05] bg-[#060818]/90 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
           <button
             onClick={() => navigate(moviePaths.home())}
@@ -1064,24 +1064,6 @@ không cần đăng ký, không cần tài khoản</span>.
         </div>
       </section>
 
-     
-      <footer className="border-t border-white/[0.05] bg-[#060818] py-8">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-pink-600">
-                <Film className="size-3.5 text-white" />
-              </div>
-              <span className="font-bold text-white">ABCD Cinema</span>
-              <span className="text-gray-600">&bull;</span>
-              <span className="text-xs text-gray-600">ABCD Mall</span>
-            </div>
-            <p className="text-xs text-gray-600">
-              &copy; 2026 ABCD Cinema. Online ticket platform &bull; No login required.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

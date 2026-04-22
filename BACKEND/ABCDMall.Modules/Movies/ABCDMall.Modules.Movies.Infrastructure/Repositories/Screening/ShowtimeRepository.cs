@@ -29,7 +29,6 @@ public sealed class ShowtimeRepository : IShowtimeRepository
             .Include(showtime => showtime.Movie)
             .Include(showtime => showtime.Cinema)
             .Include(showtime => showtime.Hall)
-            .Where(showtime => showtime.Status == ShowtimeStatus.Open)
             .AsQueryable();
 
         if (movieId.HasValue)

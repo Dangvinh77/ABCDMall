@@ -16,6 +16,7 @@ public sealed class PublicShopCatalogReadRepository : IPublicShopCatalogReadRepo
     public async Task<IReadOnlyList<ShopInfo>> GetShopInfosAsync(CancellationToken cancellationToken = default)
     {
         return await _context.ShopInfos
+            .AsNoTracking()
             .OrderBy(x => x.ShopName)
             .ToListAsync(cancellationToken);
     }
@@ -23,6 +24,7 @@ public sealed class PublicShopCatalogReadRepository : IPublicShopCatalogReadRepo
     public async Task<IReadOnlyList<RentalArea>> GetRentalAreasAsync(CancellationToken cancellationToken = default)
     {
         return await _context.RentalAreas
+            .AsNoTracking()
             .OrderBy(x => x.AreaCode)
             .ToListAsync(cancellationToken);
     }

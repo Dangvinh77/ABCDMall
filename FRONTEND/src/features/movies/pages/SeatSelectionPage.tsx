@@ -273,6 +273,7 @@ export function SeatSelectionPage() {
   const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
   const [apiMovie, setApiMovie] = useState<MovieDetailModel | null>(null);
   const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
+  const [seatMapUnavailableReason, setSeatMapUnavailableReason] = useState<string | null>(null);
   const [apiQuote, setApiQuote] = useState<BookingQuoteModel | null>(null);
   const [isSeatMapLoading, setIsSeatMapLoading] = useState(Boolean(showtimeId));
   const [isShowtimeLoading, setIsShowtimeLoading] = useState(Boolean(showtimeId));
@@ -298,6 +299,7 @@ export function SeatSelectionPage() {
 
     try {
       const seatMap = await fetchSeatMap(showtimeId);
+      setSeatMapUnavailableReason(seatMap.isBookable ? null : (seatMap.bookingUnavailableReason ?? 'This showtime is not available for booking.'));
       if (seatMap.seats.length > 0) {
         const nextSeats = buildSeatsFromApi(seatMap);
         setSeats((previousSeats) =>
@@ -508,13 +510,18 @@ export function SeatSelectionPage() {
   const displayHallName =
     apiShowtime?.hallName ??
     (showtimeId && isShowtimeLoading ? null : (HALL_NAMES[hallType] ?? hallType));
+  const showtimeUnavailableReason =
+    apiShowtime?.isBookable === false
+      ? apiShowtime.bookingUnavailableReason ?? 'This showtime is not available for booking.'
+      : seatMapUnavailableReason;
+  const isShowtimeBookable = !showtimeUnavailableReason;
   const total = useMemo(
     () => apiQuote?.grandTotal ?? promoTotals.total,
     [apiQuote?.grandTotal, promoTotals.total],
   );
 
   useEffect(() => {
-    if (!showtimeId || selected.length === 0 || selected.some((seat) => !seat.seatInventoryId)) {
+    if (!isShowtimeBookable || !showtimeId || selected.length === 0 || selected.some((seat) => !seat.seatInventoryId)) {
       setApiQuote(null);
       return;
     }
@@ -561,7 +568,7 @@ export function SeatSelectionPage() {
     return () => {
       active = false;
     };
-  }, [apiPromotions, comboOptions, promoId, selected, selectedSnackCombos, showtimeId]);
+  }, [apiPromotions, comboOptions, isShowtimeBookable, promoId, selected, selectedSnackCombos, showtimeId]);
 
   const updateComboQuantity = useCallback((comboId: string, nextQuantity: number) => {
     setComboQuantities((prev) => {
@@ -579,6 +586,11 @@ export function SeatSelectionPage() {
 
     if (!showtimeId || selected.some((seat) => !seat.seatInventoryId)) {
       window.alert('This showtime is not ready for online booking yet. Please choose a live showtime again.');
+      return;
+    }
+
+    if (!isShowtimeBookable) {
+      window.alert(showtimeUnavailableReason ?? 'This showtime is not available for booking.');
       return;
     }
 
@@ -737,7 +749,7 @@ export function SeatSelectionPage() {
 
   return (
     <div className="min-h-screen bg-[#07091a] text-white">
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
+      <header className="relative z-40 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <button
             onClick={() => navigate(`${moviePaths.detail(movieId ?? '')}?${new URLSearchParams({ ...(promoId ? { promo: promoId } : {}), date: bookingDate }).toString()}`)}
@@ -821,6 +833,13 @@ export function SeatSelectionPage() {
                 <AlertCircle className="size-4 shrink-0" />
                 Seats will be held for another{' '}
                 <span className="font-bold">{countdown(timeLeft)}</span>. Please complete your booking soon!
+              </div>
+            )}
+
+            {!isShowtimeBookable && (
+              <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-950/40 px-3 py-2.5 text-sm text-amber-300 ring-1 ring-amber-500/20">
+                <AlertCircle className="size-4 shrink-0" />
+                {showtimeUnavailableReason}
               </div>
             )}
           </div>
@@ -1002,7 +1021,7 @@ export function SeatSelectionPage() {
             </div>
           </div>
         </div>
-        <div className="mt-4 shrink-0 lg:mt-0 lg:w-[320px] xl:w-[360px] lg:sticky lg:top-[4.5rem]">
+        <div className="mt-4 shrink-0 lg:mt-0 lg:w-[320px] xl:w-[360px]">
           <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-gradient-to-b from-slate-900/90 to-[#0e1128] p-5 shadow-2xl ring-1 ring-inset ring-white/[0.04]">
             {/* Top glow */}
             <div className="pointer-events-none absolute -top-10 right-0 h-24 w-32 rounded-full bg-pink-600/10 blur-2xl" />
@@ -1227,7 +1246,7 @@ export function SeatSelectionPage() {
 
             {/* CTA */}
             <Button
-              disabled={selected.length === 0}
+              disabled={selected.length === 0 || !isShowtimeBookable}
               onClick={goToCheckout}
               className="h-12 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-base font-semibold hover:from-purple-500 hover:to-pink-500 disabled:cursor-not-allowed disabled:opacity-40 shadow-lg shadow-purple-900/30"
               size="lg"
@@ -1339,7 +1358,7 @@ export function SeatSelectionPage() {
             )}
           </div>
           <Button
-            disabled={selected.length === 0}
+            disabled={selected.length === 0 || !isShowtimeBookable}
             onClick={goToCheckout}
             className="shrink-0 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-40 shadow-lg shadow-purple-900/30"
           >

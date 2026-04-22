@@ -231,6 +231,73 @@ public class AuthController : ControllerBase
         => Ok(await _userQueryService.GetUsersAsync());
 
     [Authorize(Roles = "Admin")]
+    [HttpGet("movies-admins")]
+    public async Task<ActionResult<IReadOnlyList<UserSummaryResponseDto>>> GetMoviesAdmins()
+        => Ok(await _userQueryService.GetUsersByRoleAsync("MoviesAdmin"));
+
+    [Authorize(Roles = "MoviesAdmin,Admin")]
+    [HttpPost("movies-admins")]
+    public async Task<IActionResult> RegisterMoviesAdmin(RegisterDto dto)
+    {
+        dto.Role = "MoviesAdmin";
+        var result = await _userCommandService.RegisterAsync(dto);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent,
+                email = result.Value.Email,
+                role = result.Value.Role,
+                createdAt = result.Value.CreatedAt
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
+    [Authorize(Roles = "MoviesAdmin,Admin")]
+    [HttpPut("movies-admins/{id}")]
+    public async Task<IActionResult> UpdateMoviesAdmin(string id, UpdateUserAccountDto dto)
+    {
+        dto.Role = "MoviesAdmin";
+        var result = await _userCommandService.UpdateUserAccountAsync(id, dto);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
+    [Authorize(Roles = "MoviesAdmin,Admin")]
+    [HttpDelete("movies-admins/{id}")]
+    public async Task<IActionResult> DeleteMoviesAdmin(string id)
+    {
+        var result = await _userCommandService.DeleteUserAccountAsync(id);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpPut("users/{id}")]
     [RequestSizeLimit(10_000_000)]
     public async Task<IActionResult> UpdateUserAccount(string id, [FromForm] UpdateUserAccountDto dto)

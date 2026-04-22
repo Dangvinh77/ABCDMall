@@ -98,7 +98,7 @@ const PAYMENT_METHODS: {
     bg: 'bg-blue-950/40',
   },
   {
-    id: 'visa',
+    id: 'stripe',
     label: 'Visa / Mastercard',
     sub: 'Thẻ tín dụng quốc tế',
     icon: <CreditCard className="size-5" />,

@@ -11,7 +11,11 @@ namespace ABCDMall.Modules.Movies.Domain.Entities
         public string? SeatCode { get; set; } // Mã ghế (ví dụ: A1, B2) - chỉ áp dụng nếu vé này là vé ngồi
         public string? QrCodeContent { get; set; } // Nội dung mã QR (có thể là URL hoặc dữ liệu mã hóa khác)
         public string DeliveryStatus { get; set; } = "Pending"; // Trạng thái giao vé (ví dụ: Pending, Delivered)
+        public string? PdfFileName { get; set; } // Tên file PDF đã render để gửi email cho khách.
         public DateTime IssuedAtUtc { get; set; } // Thời điểm phát hành vé
+        public DateTime? EmailSentAtUtc { get; set; } // Thời điểm email vé được gửi thành công.
+        public string? EmailSendError { get; set; } // Lỗi gửi email gần nhất để retry/debug.
+        public DateTime? UpdatedAtUtc { get; set; }
 
         // Navigation properties
         public Bookingg? Booking { get; set; } // Tham chiếu đến Booking

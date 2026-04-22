@@ -1,9 +1,12 @@
 using System.Data;
 using System.Data.Common;
+using System.Text.Json;
 using ABCDMall.Modules.Movies.Application.Services.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
+using ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -12,10 +15,14 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings;
 public sealed class PaymentRepository : IPaymentRepository
 {
     private readonly MoviesBookingDbContext _bookingDbContext;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
 
-    public PaymentRepository(MoviesBookingDbContext bookingDbContext)
+    public PaymentRepository(
+        MoviesBookingDbContext bookingDbContext,
+        IShowtimeBookingPolicy showtimeBookingPolicy)
     {
         _bookingDbContext = bookingDbContext;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
     }
 
     public async Task<PaymentProcessingResult> ApplyPaymentResultAsync(
@@ -37,12 +44,20 @@ public sealed class PaymentRepository : IPaymentRepository
         var booking = await _bookingDbContext.Bookings
             .Include(x => x.Items)
             .Include(x => x.Payments)
+            .Include(x => x.Tickets)
             .FirstOrDefaultAsync(x => x.Id == bookingId, cancellationToken);
 
         if (booking is null)
         {
             throw new InvalidOperationException("Booking not found.");
         }
+
+        var showtime = await ReadShowtimeAsync(transaction, booking.ShowtimeId, cancellationToken);
+        if (showtime is null)
+        {
+            throw new InvalidOperationException("Showtime not found.");
+        }
+        _showtimeBookingPolicy.EnsureBookableForUser(showtime, utcNow);
 
         if (!decimal.Equals(decimal.Round(booking.GrandTotal, 2), decimal.Round(amount, 2)))
         {
@@ -67,6 +82,8 @@ public sealed class PaymentRepository : IPaymentRepository
             if (booking.Status != BookingStatus.Confirmed && status == PaymentStatus.Succeeded)
             {
                 await CompleteBookingAsync(booking, utcNow, cancellationToken);
+                await IssueTicketsAndQueueEmailIfMissingAsync(booking, utcNow, cancellationToken);
+                await CreateFeedbackRequestIfMissingAsync(booking, showtime, utcNow, cancellationToken);
                 await _bookingDbContext.SaveChangesAsync(cancellationToken);
             }
 
@@ -108,6 +125,8 @@ public sealed class PaymentRepository : IPaymentRepository
         if (status == PaymentStatus.Succeeded)
         {
             await CompleteBookingAsync(booking, utcNow, cancellationToken);
+            await IssueTicketsAndQueueEmailIfMissingAsync(booking, utcNow, cancellationToken);
+            await CreateFeedbackRequestIfMissingAsync(booking, showtime, utcNow, cancellationToken);
         }
 
         await _bookingDbContext.SaveChangesAsync(cancellationToken);
@@ -200,6 +219,101 @@ public sealed class PaymentRepository : IPaymentRepository
         hold.UpdatedAtUtc = utcNow;
     }
 
+    private async Task IssueTicketsAndQueueEmailIfMissingAsync(
+        Bookingg booking,
+        DateTime utcNow,
+        CancellationToken cancellationToken)
+    {
+        var seatItems = booking.Items
+            .Where(x => string.Equals(x.ItemType, "Seat", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.ItemCode)
+            .ToArray();
+
+        if (seatItems.Length == 0)
+        {
+            return;
+        }
+
+        var existingTicketItemIds = booking.Tickets
+            .Where(x => x.BookingItemId.HasValue)
+            .Select(x => x.BookingItemId!.Value)
+            .ToHashSet();
+
+        foreach (var item in seatItems.Where(item => !existingTicketItemIds.Contains(item.Id)))
+        {
+            var ticketCode = GenerateTicketCode(booking.BookingCode, item.ItemCode);
+            var qrCodeContent = $"ABCDMALL|BOOKING:{booking.BookingCode}|TICKET:{ticketCode}|SEAT:{item.ItemCode}";
+
+            var ticket = new Ticket
+            {
+                Id = Guid.NewGuid(),
+                BookingId = booking.Id,
+                BookingItemId = item.Id,
+                SeatInventoryId = item.SeatInventoryId,
+                TicketCode = ticketCode,
+                SeatCode = item.ItemCode,
+                QrCodeContent = qrCodeContent,
+                DeliveryStatus = TicketDeliveryStatuses.EmailPending,
+                IssuedAtUtc = utcNow,
+                UpdatedAtUtc = utcNow
+            };
+
+            booking.Tickets.Add(ticket);
+            _bookingDbContext.Tickets.Add(ticket);
+        }
+
+        var alreadyQueued = await _bookingDbContext.OutboxEvents.AnyAsync(
+            x => x.EventType == TicketEmailOutboxEvent.EventType
+                && x.PayloadJson.Contains(booking.Id.ToString()),
+            cancellationToken);
+
+        if (alreadyQueued)
+        {
+            return;
+        }
+
+        _bookingDbContext.OutboxEvents.Add(new OutboxEvent
+        {
+            Id = Guid.NewGuid(),
+            EventType = TicketEmailOutboxEvent.EventType,
+            PayloadJson = JsonSerializer.Serialize(new { bookingId = booking.Id }),
+            Status = "Pending",
+            OccurredAtUtc = utcNow
+        });
+    }
+
+    private async Task CreateFeedbackRequestIfMissingAsync(
+        Bookingg booking,
+        Showtime showtime,
+        DateTime utcNow,
+        CancellationToken cancellationToken)
+    {
+        var exists = await _bookingDbContext.MovieFeedbackRequests
+            .AnyAsync(
+                x => x.BookingId == booking.Id && x.ShowtimeId == booking.ShowtimeId,
+                cancellationToken);
+
+        if (exists)
+        {
+            return;
+        }
+
+        var availableAtUtc = (showtime.EndAtUtc ?? showtime.StartAtUtc).AddHours(24);
+
+        _bookingDbContext.MovieFeedbackRequests.Add(new MovieFeedbackRequest
+        {
+            Id = Guid.NewGuid(),
+            BookingId = booking.Id,
+            MovieId = showtime.MovieId,
+            ShowtimeId = booking.ShowtimeId,
+            PurchaserEmail = booking.CustomerEmail,
+            Status = MovieFeedbackRequestStatus.Pending,
+            AvailableAtUtc = availableAtUtc,
+            CreatedAtUtc = utcNow,
+            UpdatedAtUtc = utcNow
+        });
+    }
+
     private async Task MarkSeatsBookedAsync(
         Guid showtimeId,
         IReadOnlyCollection<Guid> seatInventoryIds,
@@ -241,6 +355,41 @@ public sealed class PaymentRepository : IPaymentRepository
         {
             throw new InvalidOperationException("Selected seats could not be booked.");
         }
+    }
+
+    private async Task<Showtime?> ReadShowtimeAsync(
+        IDbContextTransaction transaction,
+        Guid showtimeId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = _bookingDbContext.Database.GetDbConnection().CreateCommand();
+        command.Transaction = transaction.GetDbTransaction();
+        command.CommandText = """
+            SELECT [Id], [MovieId], [CinemaId], [HallId], [BusinessDate], [StartAtUtc], [EndAtUtc], [Language], [BasePrice], [Status]
+            FROM [movies].[Showtimes]
+            WHERE [Id] = @showtimeId
+            """;
+        AddParameter(command, "@showtimeId", showtimeId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new Showtime
+        {
+            Id = reader.GetGuid(0),
+            MovieId = reader.GetGuid(1),
+            CinemaId = reader.GetGuid(2),
+            HallId = reader.GetGuid(3),
+            BusinessDate = DateOnly.FromDateTime(reader.GetDateTime(4)),
+            StartAtUtc = reader.GetDateTime(5),
+            EndAtUtc = reader.IsDBNull(6) ? null : reader.GetDateTime(6),
+            Language = (LanguageType)reader.GetInt32(7),
+            BasePrice = reader.GetDecimal(8),
+            Status = (ShowtimeStatus)reader.GetInt32(9)
+        };
     }
 
     private async Task<IReadOnlyCollection<SeatStatusRow>> ReadSeatStatusRowsAsync(
@@ -329,6 +478,13 @@ public sealed class PaymentRepository : IPaymentRepository
         parameter.ParameterName = name;
         parameter.Value = value;
         command.Parameters.Add(parameter);
+    }
+
+    private static string GenerateTicketCode(string bookingCode, string seatCode)
+    {
+        var bookingSuffix = bookingCode.Length <= 8 ? bookingCode : bookingCode[^8..];
+        var suffix = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        return $"TCK-{bookingSuffix}-{seatCode}-{suffix}";
     }
 
     private sealed record SeatStatusRow(Guid Id, string SeatCode, SeatInventoryStatus Status);

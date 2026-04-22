@@ -35,6 +35,14 @@ public sealed class UserReadRepository : IUserReadRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<User>> GetUsersByRoleAsync(string role, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .Where(x => x.Role == role)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyDictionary<string, string>> GetShopNamesByIdsAsync(CancellationToken cancellationToken = default)
     {
         return await _context.ShopInfos

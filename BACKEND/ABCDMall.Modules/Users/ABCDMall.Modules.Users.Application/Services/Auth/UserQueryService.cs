@@ -28,6 +28,19 @@ public sealed class UserQueryService : IUserQueryService
     public async Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         var users = await _userReadRepository.GetUsersAsync(cancellationToken);
+        return await MapUsersAsync(users, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersByRoleAsync(string role, CancellationToken cancellationToken = default)
+    {
+        var users = await _userReadRepository.GetUsersByRoleAsync(role, cancellationToken);
+        return await MapUsersAsync(users, cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<UserSummaryResponseDto>> MapUsersAsync(
+        IReadOnlyList<Domain.Entities.User> users,
+        CancellationToken cancellationToken)
+    {
         var shopNamesById = await _userReadRepository.GetShopNamesByIdsAsync(cancellationToken);
 
         var responses = _mapper.Map<List<UserSummaryResponseDto>>(users);

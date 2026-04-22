@@ -20,6 +20,11 @@ internal sealed class FakeBookingHoldRepository : IBookingHoldRepository
         throw new NotSupportedException();
     }
 
+    public Task ExtendExpirationAsync(Guid holdId, DateTime expiresAtUtc, CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException();
+    }
+
     public Task<int> ExpireAsync(DateTime utcNow, CancellationToken cancellationToken = default)
     {
         throw new NotSupportedException();

@@ -8,6 +8,8 @@ Desktop.ini
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea/
+.agents
+.trae
 *.sln.docstates
 
 # ==========================================

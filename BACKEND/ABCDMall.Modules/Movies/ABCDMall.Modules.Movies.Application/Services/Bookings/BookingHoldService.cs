@@ -19,17 +19,20 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
         private static readonly TimeSpan HoldDuration = TimeSpan.FromMinutes(10); //thời gian giữ ghế mặc định là 10 phút
 
         private readonly IShowtimeRepository _showtimeRepository; //lấy thông tin showtime để kiểm tra tình trạng ghế
+        private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
         private readonly IBookingQuoteService _bookingQuoteService; //dịch vụ để tính toán giá trị đặt chỗ
         private readonly IBookingHoldRepository _bookingHoldRepository; //repository để quản lý hold
         private readonly IPromotionRepository _promotionRepository;
 
         public BookingHoldService(
             IShowtimeRepository showtimeRepository,
+            IShowtimeBookingPolicy showtimeBookingPolicy,
             IBookingQuoteService bookingQuoteService,
             IBookingHoldRepository bookingHoldRepository,
             IPromotionRepository promotionRepository)
         {
             _showtimeRepository = showtimeRepository;
+            _showtimeBookingPolicy = showtimeBookingPolicy;
             _bookingQuoteService = bookingQuoteService;
             _bookingHoldRepository = bookingHoldRepository;
             _promotionRepository = promotionRepository;
@@ -48,6 +51,7 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
             {
                 throw new InvalidOperationException("Showtime is not open for booking");
             }
+            _showtimeBookingPolicy.EnsureBookableForUser(showtime, DateTime.UtcNow);
             //lấy dữ liệu toàn bộ ghế
             var seatMap = await _showtimeRepository.GetSeatMapByShowtimeIdAsync(request.ShowtimeId, cancellationToken);
             //lọc các ghế user chọn

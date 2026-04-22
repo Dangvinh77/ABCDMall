@@ -1,10 +1,11 @@
 import { api } from "../../../core/api/api";
+import type { FoodItemDto } from "../types/food";
 
 // GET
 export const getFoods = () => api.get("/food");
 
 export const getFoodBySlug = (slug: string) =>
-  api.get(`/food/slug/${slug}`);
+  api.get<FoodItemDto>(`/food/slug/${slug}`);
 
 // CREATE
 export const createFood = async (data: any, file?: File) => {

@@ -1,8 +1,16 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type SyntheticEvent } from 'react';
 // IMPORT THÊM getShops VÀ type Shop
 import { getShopBySlug, getShops, type ShopDetail, type Shop } from './api/shopApi'; 
 import { getImageUrl } from "@/core/utils/image";
+
+function useFallbackImage(fallbackUrl: string) {
+  return (event: SyntheticEvent<HTMLImageElement>) => {
+    const fallback = getImageUrl(fallbackUrl);
+    if (!fallback || event.currentTarget.src === fallback) return;
+    event.currentTarget.src = fallback;
+  };
+}
 
 export const ShopDetailFeature = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -70,6 +78,7 @@ export const ShopDetailFeature = () => {
 
   const featuredProducts = shop.products?.filter(p => p.isFeatured) || [];
   const discountedProducts = shop.products?.filter(p => p.isDiscounted) || [];
+  const handleImageError = useFallbackImage(shop.logoUrl || shop.coverImageUrl || shop.imageUrl);
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20">
@@ -141,7 +150,11 @@ export const ShopDetailFeature = () => {
                     <img 
                     //src={p.imageUrl}
                     src={getImageUrl(p.imageUrl)}
-                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name} />
+                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                     alt={p.name}
+                     referrerPolicy="no-referrer"
+                     onError={handleImageError}
+                    />
                   </div>
                   <h3 className="font-bold text-gray-800 line-clamp-2 min-h-[3rem] mb-2">{p.name}</h3>
                   <p className="text-gray-900 font-black text-xl">{p.price.toLocaleString()} ₫</p>
@@ -172,7 +185,11 @@ export const ShopDetailFeature = () => {
                     <img
                     //src={p.imageUrl} 
                     src={getImageUrl(p.imageUrl)}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={p.name}/>
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    alt={p.name}
+                    referrerPolicy="no-referrer"
+                    onError={handleImageError}
+                    />
                   </div>
                   <h3 className="font-bold text-gray-800 line-clamp-2 min-h-[3rem] mb-2">{p.name}</h3>
                   <div className="flex items-end gap-2">

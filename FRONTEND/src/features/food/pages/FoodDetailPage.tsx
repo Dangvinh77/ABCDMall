@@ -35,10 +35,6 @@ import { getImageUrl } from "../../../core/utils/image";
 // };
 
 
-const STORE_FOLDER_MAP: Record<string, string> = {
-  "dookki-vietnam": "Dookki",
-  "king-bbq": "KingBBQ",
-};
 const STORE_IMAGES: Record<string, string[]> = {
   "dookki-vietnam": [
     "/img/Dookki/menu.jpg",
@@ -55,8 +51,8 @@ function generateMenuFromFolder(slug: string): FoodMenuItemDto[] {
   if (!images) return [];
 
   return images.map((img, i) => ({
-    // name: `${slug} item ${i + 1}`,
-    //price: `${39 + i * 10}K`,
+    name: `${titleCase(slug)} item ${i + 1}`,
+    price: `${39 + i * 10}K`,
     note: "Signature dish",
     tag: i === 0 ? "Signature" : "Popular",
     imageUrl: img,
@@ -387,7 +383,7 @@ function MenuModal({
                   </div>
                   <p className="mt-4 text-sm leading-7 text-gray-600">{active.note}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {active.ingredients.map((ingredient) => (
+                    {active.ingredients.map((ingredient: string) => (
                       <span key={ingredient} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 shadow-sm">
                         {ingredient}
                       </span>
@@ -467,17 +463,22 @@ export default function FoodDetailPage() {
   const menu = useMemo(() => {
     if (!food) return [];
     const slug = food.slug?.toLowerCase() ?? "";
-    return generateMenuFromFolder(slug);
-  }, [food]);
+    const localMenu = generateMenuFromFolder(slug);
+    return localMenu.length > 0 ? localMenu : fallbackMenu(food, category);
+  }, [category, food]);
 
   const gallery = useMemo(() => {
-    if (!menu || menu.length === 0) return [];
+    if (!food) return [];
 
-    return menu
+    if (!menu || menu.length === 0) return fallbackGallery(food, category);
+
+    const menuImages = menu
       .slice(0, 4)
       .map((item) => item.imageUrl)
       .filter(Boolean);
-  }, [menu]);
+
+    return menuImages.length > 0 ? menuImages : fallbackGallery(food, category);
+  }, [category, food, menu]);
 
 
   const heroImage = imageSrc(food?.imageUrl ?? gallery[0] ?? "");

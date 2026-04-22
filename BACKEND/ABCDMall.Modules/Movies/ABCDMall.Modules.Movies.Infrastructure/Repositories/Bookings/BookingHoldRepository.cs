@@ -101,6 +101,29 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings
             return true;
         }
 
+        public async Task ExtendExpirationAsync(
+            Guid holdId,
+            DateTime expiresAtUtc,
+            CancellationToken cancellationToken = default)
+        {
+            var hold = await _dbContext.BookingHolds
+                .FirstOrDefaultAsync(x => x.Id == holdId, cancellationToken);
+
+            if (hold is null || hold.Status != BookingHoldStatus.Active)
+            {
+                return;
+            }
+
+            if (hold.ExpiresAtUtc >= expiresAtUtc)
+            {
+                return;
+            }
+
+            hold.ExpiresAtUtc = expiresAtUtc;
+            hold.UpdatedAtUtc = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task<int> ExpireAsync(DateTime utcNow, CancellationToken cancellationToken = default)
         {
             //hàm cập nhật những hold Active đã hết hạn thành Expired, trả về số lượng hold đã được cập nhật

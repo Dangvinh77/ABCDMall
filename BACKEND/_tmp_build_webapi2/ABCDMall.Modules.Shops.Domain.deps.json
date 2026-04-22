@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "ABCDMall.Modules.Shops.Domain/1.0.0": {
+        "runtime": {
+          "ABCDMall.Modules.Shops.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ABCDMall.Modules.Shops.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
