@@ -7,9 +7,10 @@ public sealed class CreateBookingRequestDtoValidator : AbstractValidator<CreateB
 {
     public CreateBookingRequestDtoValidator()
     {
-        RuleFor(x => x.HoldId)
+        RuleFor(x => x.HoldIds)
             .NotEmpty()
-            .WithMessage("HoldId is required.");
+            .Must(holdIds => holdIds.Distinct().Count() == holdIds.Count)
+            .WithMessage("HoldIds must contain at least one unique hold id.");
 
         RuleFor(x => x.CustomerName)
             .NotEmpty()
