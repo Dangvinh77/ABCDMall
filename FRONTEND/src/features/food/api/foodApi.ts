@@ -1,11 +1,10 @@
 import { api, BASE_URL } from "../../../core/api/api";
 
-export const getFoods = () => api.get("/food");
+export const getFoods = <T = unknown>() => api.get<T>("/food");
 
 //export const createFood = (data: any) => api.post("/food", data);
 
-export const getFoodBySlug = (slug: string) =>
-                                                 api.get(`/food/slug/${slug}`);
+export const getFoodBySlug = <T = unknown>(slug: string) => api.get<T>(`/food/slug/${slug}`);
 
 // export const uploadImage = async (file: File) => {
 //   const formData = new FormData();

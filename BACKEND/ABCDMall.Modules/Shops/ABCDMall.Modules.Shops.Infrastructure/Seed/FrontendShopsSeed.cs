@@ -92,6 +92,7 @@ public static class FrontendShopsSeed
     private sealed record ProductSeed(
         string Id,
         string Name,
+        // Seed products keep stable catalog URLs. /images/shops/products is reserved for runtime uploads.
         string ImageUrl,
         decimal Price,
         decimal? OldPrice = null,
