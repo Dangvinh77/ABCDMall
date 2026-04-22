@@ -34,7 +34,7 @@ export default function FoodPage() {
         </div>
       </div>
 
-      <div className="mx-auto -mt-10 max-w-6xl px-6 md:px-10">
+      <div className="mx-auto -mt-0 max-w-6xl px-6 md:px-10">
         <div className="rounded-3xl border border-gray-100 bg-white p-3 shadow-2xl">
           <div className="flex items-center gap-3 px-3">
             <span className="text-gray-400">🔍</span>
