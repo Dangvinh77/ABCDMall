@@ -26,6 +26,22 @@ public sealed class BookingRepository : IBookingRepository
             .FirstOrDefaultAsync(x => x.Id == holdId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<BookingHold>> GetHoldsForBookingAsync(
+        IReadOnlyCollection<Guid> holdIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (holdIds.Count == 0)
+        {
+            return Array.Empty<BookingHold>();
+        }
+
+        return await _dbContext.BookingHolds
+            .AsNoTracking()
+            .Include(x => x.Seats)
+            .Where(x => holdIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<Bookingg?> GetByHoldIdAsync(
         Guid holdId,
         CancellationToken cancellationToken = default)
@@ -34,6 +50,19 @@ public sealed class BookingRepository : IBookingRepository
             .AsNoTracking()
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.BookingHoldId == holdId, cancellationToken);
+    }
+
+    public Task<Bookingg?> GetByCombinedHoldIdsAsync(
+        IReadOnlyCollection<Guid> holdIds,
+        CancellationToken cancellationToken = default)
+    {
+        if (holdIds.Count == 0)
+        {
+            return Task.FromResult<Bookingg?>(null);
+        }
+
+        var primaryHoldId = holdIds.OrderBy(x => x).First();
+        return GetByHoldIdAsync(primaryHoldId, cancellationToken);
     }
 
     public Task<Bookingg?> GetByIdAsync(
@@ -113,6 +142,65 @@ public sealed class BookingRepository : IBookingRepository
         }
 
         _dbContext.Bookings.Add(booking);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+
+        return booking;
+    }
+
+    public async Task<Bookingg> AddPendingBookingAsync(
+        Bookingg booking,
+        GuestCustomer? newGuestCustomer,
+        IReadOnlyCollection<Guid> holdIds,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        if (holdIds.Count == 0)
+        {
+            throw new InvalidOperationException("Booking hold is required.");
+        }
+
+        var primaryHoldId = holdIds.OrderBy(x => x).First();
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable,
+            cancellationToken);
+
+        var existing = await _dbContext.Bookings
+            .Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.BookingHoldId == primaryHoldId, cancellationToken);
+
+        if (existing is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+            return existing;
+        }
+
+        var holds = await _dbContext.BookingHolds
+            .Where(x => holdIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+
+        var allActive = holds.Count == holdIds.Count
+            && holds.All(x => x.Status == BookingHoldStatus.Active && x.ExpiresAtUtc > utcNow);
+
+        if (!allActive)
+        {
+            throw new InvalidOperationException("One or more booking holds are no longer active.");
+        }
+
+        if (newGuestCustomer is not null)
+        {
+            _dbContext.GuestCustomers.Add(newGuestCustomer);
+        }
+
+        _dbContext.Bookings.Add(booking);
+
+        foreach (var hold in holds)
+        {
+            hold.Status = BookingHoldStatus.Converted;
+            hold.UpdatedAtUtc = utcNow;
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
