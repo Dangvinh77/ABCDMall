@@ -8,7 +8,7 @@ namespace ABCDMall.Modules.FoodCourt.Tests;
 public sealed class FrontendFoodCourtSeedTests
 {
     [Fact]
-    public async Task SeedAsync_UsesLocalMallBrandsAndImgAssets()
+    public async Task SeedAsync_UsesExpandedFoodCourtStoreCatalog()
     {
         var options = new DbContextOptionsBuilder<FoodCourtDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
@@ -22,41 +22,27 @@ public sealed class FrontendFoodCourtSeedTests
             .OrderBy(item => item.Id)
             .ToListAsync();
 
-        Assert.Collection(items,
-            item =>
-            {
-                Assert.Equal("food-001", item.Id);
-                Assert.Equal("Lok Lok Hotpot", item.Name);
-                Assert.Equal("lok-lok-hotpot", item.Slug);
-                Assert.Equal("/img/Lok Lok Hotpot/out.jpg", item.ImageUrl);
-            },
-            item =>
-            {
-                Assert.Equal("food-002", item.Id);
-                Assert.Equal("Boba Bella Milk Tea", item.Name);
-                Assert.Equal("boba-bella", item.Slug);
-                Assert.Equal("/img/Boba Bella Milk Tea/menu.jpg", item.ImageUrl);
-            },
-            item =>
-            {
-                Assert.Equal("food-003", item.Id);
-                Assert.Equal("Crystal Jade", item.Name);
-                Assert.Equal("crystal-jade", item.Slug);
-                Assert.Equal("/img/crystaljade/menu.webp", item.ImageUrl);
-            },
-            item =>
-            {
-                Assert.Equal("food-004", item.Id);
-                Assert.Equal("King BBQ", item.Name);
-                Assert.Equal("king-bbq", item.Slug);
-                Assert.Equal("/img/King BBQ/out.jpg", item.ImageUrl);
-            },
-            item =>
-            {
-                Assert.Equal("food-005", item.Id);
-                Assert.Equal("Marukame Udon", item.Name);
-                Assert.Equal("marukame-udon", item.Slug);
-                Assert.Equal("/img/Marukame Udon/out.jpg", item.ImageUrl);
-            });
+        Assert.Equal(38, items.Count);
+
+        var starbucks = Assert.Single(items, item => item.Id == "food-001");
+        Assert.Equal("STARBUCKS", starbucks.Name);
+        Assert.Equal("starbucks", starbucks.Slug);
+        Assert.Equal("/img/starbuck/logo.png", starbucks.ImageUrl);
+        Assert.Equal("coffee", starbucks.CategorySlug);
+
+        var crystalJade = Assert.Single(items, item => item.Id == "food-015");
+        Assert.Equal("Crystal Jade", crystalJade.Name);
+        Assert.Equal("crystal-jade", crystalJade.Slug);
+        Assert.Equal("/img/crystaljade/logo.png", crystalJade.ImageUrl);
+
+        var oceanBlue = Assert.Single(items, item => item.Id == "food-034");
+        Assert.Equal("Ocean Blue Seafood Buffet", oceanBlue.Name);
+        Assert.Equal("ocean-blue", oceanBlue.Slug);
+        Assert.Contains("unsplash.com", oceanBlue.ImageUrl, StringComparison.OrdinalIgnoreCase);
+
+        var tokyoRamen = Assert.Single(items, item => item.Id == "food-038");
+        Assert.Equal("Tokyo Ramen Station", tokyoRamen.Name);
+        Assert.Equal("tokyo-ramen-station", tokyoRamen.Slug);
+        Assert.Equal("japanese", tokyoRamen.CategorySlug);
     }
 }
