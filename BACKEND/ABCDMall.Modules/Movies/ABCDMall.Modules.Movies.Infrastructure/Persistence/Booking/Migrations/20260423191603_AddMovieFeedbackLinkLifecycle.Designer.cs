@@ -4,6 +4,7 @@ using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
 {
     [DbContext(typeof(MoviesBookingDbContext))]
-    partial class MoviesBookingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423191603_AddMovieFeedbackLinkLifecycle")]
+    partial class AddMovieFeedbackLinkLifecycle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

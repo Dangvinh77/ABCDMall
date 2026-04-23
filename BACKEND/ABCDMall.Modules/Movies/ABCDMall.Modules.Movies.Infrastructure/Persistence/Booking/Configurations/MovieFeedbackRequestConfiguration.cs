@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Domain.Entities;
+using ABCDMall.Modules.Movies.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,10 +23,15 @@ public class MovieFeedbackRequestConfiguration : IEntityTypeConfiguration<MovieF
         builder.Property(x => x.LastEmailError)
             .HasColumnType("nvarchar(max)");
 
+        builder.Property(x => x.ExpiredReason)
+            .HasConversion<int?>();
+
         builder.HasIndex(x => new { x.BookingId, x.ShowtimeId }).IsUnique();
         builder.HasIndex(x => x.MovieId);
         builder.HasIndex(x => new { x.Status, x.AvailableAtUtc });
+        builder.HasIndex(x => new { x.Status, x.FirstOpenedAtUtc });
         builder.HasIndex(x => x.ExpiresAtUtc);
+        builder.HasIndex(x => x.LastOpenedAtUtc);
         builder.HasIndex(x => x.TokenHash)
             .IsUnique()
             .HasFilter("[TokenHash] IS NOT NULL");

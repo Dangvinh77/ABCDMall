@@ -14,8 +14,11 @@ public class MovieFeedbackRequest
     public DateTime AvailableAtUtc { get; set; }
     public DateTime? SentAtUtc { get; set; }
     public DateTime? ExpiresAtUtc { get; set; }
+    public DateTime? FirstOpenedAtUtc { get; set; }
+    public DateTime? LastOpenedAtUtc { get; set; }
     public DateTime? SubmittedAtUtc { get; set; }
     public DateTime? InvalidatedAtUtc { get; set; }
+    public MovieFeedbackRequestExpiredReason? ExpiredReason { get; set; }
     public int EmailRetryCount { get; set; }
     public string? LastEmailError { get; set; }
     public DateTime CreatedAtUtc { get; set; }
