@@ -40,32 +40,55 @@ public sealed class StripePaymentService : IStripePaymentService
             throw new InvalidOperationException($"Booking is already {booking.Status}.");
         }
 
-        if (!booking.BookingHoldId.HasValue)
+        var seatInventoryIds = booking.Items
+            .Where(item => string.Equals(item.ItemType, "Seat", StringComparison.OrdinalIgnoreCase) && item.SeatInventoryId.HasValue)
+            .Select(item => item.SeatInventoryId!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (seatInventoryIds.Length == 0)
         {
-            throw new InvalidOperationException("Booking does not have a linked hold.");
+            throw new InvalidOperationException("Booking does not have any linked seat holds.");
         }
 
-        var hold = await _bookingHoldRepository.GetByIdAsync(booking.BookingHoldId.Value, cancellationToken);
-        if (hold is null)
+        var now = DateTime.UtcNow;
+        var holds = await _bookingHoldRepository.GetActiveByShowtimeAndSeatInventoryIdsAsync(
+            booking.ShowtimeId,
+            seatInventoryIds,
+            now,
+            cancellationToken);
+
+        if (holds.Count == 0)
         {
             throw new InvalidOperationException("Booking hold not found.");
         }
 
-        if (hold.Status != BookingHoldStatus.Active)
+        var coveredSeatInventoryIds = holds
+            .SelectMany(hold => hold.Seats)
+            .Select(seat => seat.SeatInventoryId)
+            .Distinct()
+            .ToHashSet();
+
+        if (seatInventoryIds.Any(seatInventoryId => !coveredSeatInventoryIds.Contains(seatInventoryId)))
         {
-            throw new InvalidOperationException($"Booking hold is already {hold.Status}.");
+            throw new InvalidOperationException("One or more booking holds are no longer active.");
         }
 
-        var now = DateTime.UtcNow;
-        if (hold.ExpiresAtUtc <= now)
+        if (holds.Any(hold => hold.ExpiresAtUtc <= now))
         {
             await _bookingHoldRepository.ExpireAsync(now, cancellationToken);
             throw new InvalidOperationException("Booking hold has expired.");
         }
 
         var requiredExpiry = now.Add(CheckoutSessionDuration);
-        var expiresAtUtc = hold.ExpiresAtUtc > requiredExpiry ? hold.ExpiresAtUtc : requiredExpiry;
-        await _bookingHoldRepository.ExtendExpirationAsync(hold.Id, expiresAtUtc, cancellationToken);
+        var expiresAtUtc = holds.Max(hold => hold.ExpiresAtUtc) > requiredExpiry
+            ? holds.Max(hold => hold.ExpiresAtUtc)
+            : requiredExpiry;
+
+        foreach (var hold in holds)
+        {
+            await _bookingHoldRepository.ExtendExpirationAsync(hold.Id, expiresAtUtc, cancellationToken);
+        }
 
         var session = await _stripePaymentGateway.CreateCheckoutSessionAsync(
             new StripeCheckoutSessionRequest
@@ -116,6 +139,34 @@ public sealed class StripePaymentService : IStripePaymentService
                 },
                 cancellationToken);
 
+            return;
+        }
+
+        if (string.Equals(webhookEvent.EventType, "checkout.session.expired", StringComparison.OrdinalIgnoreCase)
+            && webhookEvent.BookingId.HasValue)
+        {
+            var booking = await _bookingRepository.GetByIdAsync(webhookEvent.BookingId.Value, cancellationToken);
+            if (booking is null)
+            {
+                return;
+            }
+
+            var seatInventoryIds = booking.Items
+                .Where(item => string.Equals(item.ItemType, "Seat", StringComparison.OrdinalIgnoreCase) && item.SeatInventoryId.HasValue)
+                .Select(item => item.SeatInventoryId!.Value)
+                .Distinct()
+                .ToArray();
+
+            var activeHolds = await _bookingHoldRepository.GetActiveByShowtimeAndSeatInventoryIdsAsync(
+                booking.ShowtimeId,
+                seatInventoryIds,
+                DateTime.UtcNow,
+                cancellationToken);
+
+            foreach (var hold in activeHolds)
+            {
+                await _bookingHoldRepository.ReleaseAsync(hold.Id, DateTime.UtcNow, cancellationToken);
+            }
             return;
         }
 

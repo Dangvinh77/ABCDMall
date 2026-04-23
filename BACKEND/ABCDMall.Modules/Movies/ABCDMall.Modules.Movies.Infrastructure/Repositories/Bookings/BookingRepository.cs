@@ -195,12 +195,6 @@ public sealed class BookingRepository : IBookingRepository
 
         _dbContext.Bookings.Add(booking);
 
-        foreach (var hold in holds)
-        {
-            hold.Status = BookingHoldStatus.Converted;
-            hold.UpdatedAtUtc = utcNow;
-        }
-
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 

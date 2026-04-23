@@ -17,5 +17,6 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings
         Task<bool> ReleaseAsync(Guid holdId, DateTime utcNow, CancellationToken cancellationToken = default);//hủy hold theo id, trả về true nếu hủy thành công, false nếu không tìm thấy hoặc đã hết hạn
         Task<int> ExpireAsync(DateTime utcNow, CancellationToken cancellationToken = default);//hết hạn các hold, trả về số lượng hold đã hết hạn
         Task<IReadOnlySet<Guid>> GetActiveSeatInventoryIdsAsync(Guid showtimeId, DateTime utcNow, CancellationToken cancellationToken = default);//lấy danh sách ghế đang bị hold active của một suất chiếu để seat-map hiển thị đúng trạng thái
+        Task<IReadOnlyList<BookingHold>> GetActiveByShowtimeAndSeatInventoryIdsAsync(Guid showtimeId, IReadOnlyCollection<Guid> seatInventoryIds, DateTime utcNow, CancellationToken cancellationToken = default);
     }
 }

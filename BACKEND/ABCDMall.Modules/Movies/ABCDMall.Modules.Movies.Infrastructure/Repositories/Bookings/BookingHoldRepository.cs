@@ -166,5 +166,25 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings
             return seatInventoryIds.ToHashSet();
         }
 
+        public async Task<IReadOnlyList<BookingHold>> GetActiveByShowtimeAndSeatInventoryIdsAsync(
+            Guid showtimeId,
+            IReadOnlyCollection<Guid> seatInventoryIds,
+            DateTime utcNow,
+            CancellationToken cancellationToken = default)
+        {
+            if (seatInventoryIds.Count == 0)
+            {
+                return Array.Empty<BookingHold>();
+            }
+
+            return await _dbContext.BookingHolds
+                .Include(x => x.Seats)
+                .Where(hold => hold.ShowtimeId == showtimeId
+                    && hold.Status == BookingHoldStatus.Active
+                    && hold.ExpiresAtUtc > utcNow
+                    && hold.Seats.Any(seat => seatInventoryIds.Contains(seat.SeatInventoryId)))
+                .ToListAsync(cancellationToken);
+        }
+
     }
 }

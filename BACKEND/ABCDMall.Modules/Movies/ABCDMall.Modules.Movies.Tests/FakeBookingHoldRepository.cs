@@ -50,6 +50,22 @@ internal sealed class FakeBookingHoldRepository : IBookingHoldRepository
         return Task.FromResult(emptySet);
     }
 
+    public Task<IReadOnlyList<BookingHold>> GetActiveByShowtimeAndSeatInventoryIdsAsync(
+        Guid showtimeId,
+        IReadOnlyCollection<Guid> seatInventoryIds,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<BookingHold> holds = _holds
+            .Where(hold => hold.ShowtimeId == showtimeId
+                && hold.Status == Domain.Enums.BookingHoldStatus.Active
+                && hold.ExpiresAtUtc > utcNow
+                && hold.Seats.Any(seat => seatInventoryIds.Contains(seat.SeatInventoryId)))
+            .ToList();
+
+        return Task.FromResult(holds);
+    }
+
     public Task<BookingHold?> ConfirmAsync(Guid holdId, DateTime utcNow, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();

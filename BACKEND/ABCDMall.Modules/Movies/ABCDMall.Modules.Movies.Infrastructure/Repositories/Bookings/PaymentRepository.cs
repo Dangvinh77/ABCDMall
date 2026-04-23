@@ -175,36 +175,49 @@ public sealed class PaymentRepository : IPaymentRepository
             throw new InvalidOperationException($"Booking is already {booking.Status}.");
         }
 
-        if (!booking.BookingHoldId.HasValue)
+        var seatInventoryIds = booking.Items
+            .Where(item => string.Equals(item.ItemType, "Seat", StringComparison.OrdinalIgnoreCase) && item.SeatInventoryId.HasValue)
+            .Select(item => item.SeatInventoryId!.Value)
+            .Distinct()
+            .ToArray();
+
+        if (seatInventoryIds.Length == 0)
         {
-            throw new InvalidOperationException("Booking does not have a linked hold.");
+            throw new InvalidOperationException("Booking does not have any linked seat holds.");
         }
 
-        var hold = await _bookingDbContext.BookingHolds
+        var holds = await _bookingDbContext.BookingHolds
             .Include(x => x.Seats)
-            .FirstOrDefaultAsync(x => x.Id == booking.BookingHoldId.Value, cancellationToken);
+            .Where(x => x.ShowtimeId == booking.ShowtimeId
+                && x.Status == BookingHoldStatus.Active
+                && x.Seats.Any(seat => seatInventoryIds.Contains(seat.SeatInventoryId)))
+            .ToListAsync(cancellationToken);
 
-        if (hold is null)
+        if (holds.Count == 0)
         {
             throw new InvalidOperationException("Booking hold not found.");
         }
 
-        if (hold.Status != BookingHoldStatus.Active)
+        var coveredSeatInventoryIds = holds
+            .SelectMany(hold => hold.Seats)
+            .Select(seat => seat.SeatInventoryId)
+            .Distinct()
+            .ToHashSet();
+
+        if (seatInventoryIds.Any(seatInventoryId => !coveredSeatInventoryIds.Contains(seatInventoryId)))
         {
-            throw new InvalidOperationException($"Booking hold is already {hold.Status}.");
+            throw new InvalidOperationException("One or more booking holds are no longer active.");
         }
 
-        if (hold.ExpiresAtUtc <= utcNow)
+        if (holds.Any(hold => hold.ExpiresAtUtc <= utcNow))
         {
-            hold.Status = BookingHoldStatus.Expired;
-            hold.UpdatedAtUtc = utcNow;
+            foreach (var hold in holds.Where(hold => hold.ExpiresAtUtc <= utcNow))
+            {
+                hold.Status = BookingHoldStatus.Expired;
+                hold.UpdatedAtUtc = utcNow;
+            }
             throw new InvalidOperationException("Booking hold has expired.");
         }
-
-        var seatInventoryIds = hold.Seats
-            .Select(x => x.SeatInventoryId)
-            .Distinct()
-            .ToArray();
 
         await MarkSeatsBookedAsync(
             booking.ShowtimeId,
@@ -215,8 +228,11 @@ public sealed class PaymentRepository : IPaymentRepository
         booking.Status = BookingStatus.Confirmed;
         booking.UpdatedAtUtc = utcNow;
 
-        hold.Status = BookingHoldStatus.Converted;
-        hold.UpdatedAtUtc = utcNow;
+        foreach (var hold in holds)
+        {
+            hold.Status = BookingHoldStatus.Converted;
+            hold.UpdatedAtUtc = utcNow;
+        }
     }
 
     private async Task IssueTicketsAndQueueEmailIfMissingAsync(

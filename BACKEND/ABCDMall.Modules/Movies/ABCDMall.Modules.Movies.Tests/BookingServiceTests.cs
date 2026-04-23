@@ -48,6 +48,24 @@ public sealed class BookingServiceTests
         Assert.Contains("expired", error.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task CreateAsync_should_leave_multi_hold_seats_active_until_payment_is_confirmed()
+    {
+        var repository = new FakeBookingRepository();
+        var service = BuildService(repository);
+        var holdIds = repository.SeedActiveHoldsForSameShowtime();
+
+        await service.CreateAsync(new CreateBookingRequestDto
+        {
+            HoldIds = holdIds,
+            CustomerName = "Alice",
+            CustomerEmail = "alice@example.com",
+            CustomerPhoneNumber = "0900000000"
+        }, CancellationToken.None);
+
+        Assert.All(repository.GetHoldStatuses(holdIds), status => Assert.Equal(BookingHoldStatus.Active, status));
+    }
+
     private static BookingService BuildService(FakeBookingRepository repository)
     {
         return new BookingService(
@@ -76,6 +94,9 @@ public sealed class BookingServiceTests
             _holds.AddRange([active, expired]);
             return [active.Id, expired.Id];
         }
+
+        public IReadOnlyCollection<BookingHoldStatus> GetHoldStatuses(IReadOnlyCollection<Guid> holdIds)
+            => _holds.Where(x => holdIds.Contains(x.Id)).Select(x => x.Status).ToArray();
 
         public Task<Bookingg?> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
             => Task.FromResult(_bookings.FirstOrDefault(x => x.Id == bookingId));
@@ -107,12 +128,6 @@ public sealed class BookingServiceTests
         public Task<Bookingg> AddPendingBookingAsync(Bookingg booking, GuestCustomer? newGuestCustomer, IReadOnlyCollection<Guid> holdIds, DateTime utcNow, CancellationToken cancellationToken = default)
         {
             _bookings.Add(booking);
-            foreach (var hold in _holds.Where(x => holdIds.Contains(x.Id)))
-            {
-                hold.Status = BookingHoldStatus.Converted;
-                hold.UpdatedAtUtc = utcNow;
-            }
-
             return Task.FromResult(booking);
         }
 
