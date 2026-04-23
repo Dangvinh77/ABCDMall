@@ -63,6 +63,7 @@ interface ComboOption {
 interface Seat {
   id: string;
   seatInventoryId?: string;
+  coupleGroupCode?: string;
   row: string;
   col: number;
   type: SeatType;
@@ -78,6 +79,58 @@ function countdown(s: number) {
   return `${m}:${sec}`;
 }
 
+function getRemainingSeconds(expiresAtUtc: string) {
+  return Math.max(0, Math.floor((new Date(expiresAtUtc).getTime() - Date.now()) / 1000));
+}
+
+function findLinkedCoupleSeats(clicked: Seat, allSeats: Seat[]): Seat[] {
+  if (clicked.type !== 'couple') {
+    return [clicked];
+  }
+
+  if (clicked.coupleGroupCode) {
+    const linkedSeats = allSeats
+      .filter(
+        (seat) =>
+          seat.type === 'couple' && seat.coupleGroupCode === clicked.coupleGroupCode,
+      )
+      .sort((left, right) => left.col - right.col);
+
+    if (linkedSeats.length > 0) {
+      return linkedSeats;
+    }
+  }
+
+  if (clicked.row !== COUPLE_ROW) {
+    return [clicked];
+  }
+
+  const pairStartCol = clicked.col % 2 === 0 ? clicked.col - 1 : clicked.col;
+  const linkedSeats = allSeats
+    .filter(
+      (seat) =>
+        seat.row === clicked.row &&
+        seat.type === 'couple' &&
+        seat.col >= pairStartCol &&
+        seat.col < pairStartCol + 2,
+    )
+    .sort((left, right) => left.col - right.col);
+
+  return linkedSeats.length > 0 ? linkedSeats : [clicked];
+}
+
+function mapHoldSeatIdsToUiSeatIds(hold: BookingHoldModel, allSeats: Seat[]): string[] {
+  const holdSeatInventoryIds = new Set(
+    (hold.seats ?? []).map((seat) => seat.seatInventoryId).filter(Boolean),
+  );
+
+  return allSeats
+    .filter(
+      (seat) => seat.seatInventoryId && holdSeatInventoryIds.has(seat.seatInventoryId),
+    )
+    .map((seat) => seat.id);
+}
+
 function buildSeatsFromApi(seatMap: Awaited<ReturnType<typeof fetchSeatMap>>): Seat[][] {
   const rows = new Map<string, Seat[]>();
 
@@ -85,6 +138,7 @@ function buildSeatsFromApi(seatMap: Awaited<ReturnType<typeof fetchSeatMap>>): S
     const nextSeat: Seat = {
       id: seat.seatCode,
       seatInventoryId: seat.seatInventoryId,
+      coupleGroupCode: seat.coupleGroupCode,
       row: seat.row,
       col: seat.col,
       type: seat.seatType,
@@ -160,13 +214,13 @@ function SeatButton({
     // available
     if (seat.type === 'vip') {
       variant =
-        'bg-amber-950/60 border-amber-600/40 hover:border-amber-400 hover:bg-amber-900/60 hover:scale-110 text-amber-500 cursor-pointer';
+        'bg-amber-950/60 border-amber-600/40 hover:border-amber-400 hover:bg-amber-900/60 text-amber-500 cursor-pointer';
     } else if (seat.type === 'couple') {
       variant =
-        'bg-rose-950/60 border-rose-600/30 hover:border-rose-400 hover:bg-rose-900/50 hover:scale-110 text-rose-400 cursor-pointer';
+        'bg-rose-950/60 border-rose-600/30 hover:border-rose-400 hover:bg-rose-900/50 text-rose-400 cursor-pointer';
     } else {
       variant =
-        'bg-slate-700/50 border-slate-600/50 hover:border-purple-500 hover:bg-purple-900/30 hover:scale-110 text-slate-400 hover:text-purple-300 cursor-pointer';
+        'bg-slate-700/50 border-slate-600/50 hover:border-purple-500 hover:bg-purple-900/30 text-slate-400 hover:text-purple-300 cursor-pointer';
     }
   }
 
@@ -233,6 +287,30 @@ function getSelectedSnackCombos(comboQuantities: Record<string, number>): Select
     .map(([id, quantity]) => ({ id: id as SelectedSnackCombo['id'], quantity }));
 }
 
+function SeatHoldCountdown({ expiresAtUtc }: { expiresAtUtc: string }) {
+  const [remainingSeconds, setRemainingSeconds] = useState(() => getRemainingSeconds(expiresAtUtc));
+
+  useEffect(() => {
+    setRemainingSeconds(getRemainingSeconds(expiresAtUtc));
+
+    const intervalId = window.setInterval(() => {
+      setRemainingSeconds(getRemainingSeconds(expiresAtUtc));
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [expiresAtUtc]);
+
+  const isLow = remainingSeconds < 120;
+
+  return (
+    <span
+      className={`ml-1 font-mono text-[10px] ${isLow ? 'text-red-400 animate-pulse' : 'text-gray-400'}`}
+    >
+      {countdown(remainingSeconds)}
+    </span>
+  );
+}
+
 export function SeatSelectionPage() {
   const { movieId } = useParams<{ movieId: string }>();
   const [searchParams] = useSearchParams();
@@ -245,7 +323,6 @@ export function SeatSelectionPage() {
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? getDefaultBookingDate();
   const [seats, setSeats] = useState<Seat[][]>([]);
-  const [nowMs, setNowMs] = useState(() => Date.now());
   const [comboQuantities, setComboQuantities] = useState<Record<string, number>>({});
   const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
   const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
@@ -257,11 +334,6 @@ export function SeatSelectionPage() {
   const [isShowtimeLoading, setIsShowtimeLoading] = useState(Boolean(showtimeId));
   const [selectedSeatHolds, setSelectedSeatHolds] = useState<Record<string, BookingHoldModel>>({});
   const conflictedSeatIdsRef = useRef<Set<string>>(new Set());
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
 
   const refreshSeatMap = useCallback(async (options?: { showLoading?: boolean }) => {
     if (!showtimeId) {
@@ -385,8 +457,13 @@ export function SeatSelectionPage() {
   const toggleSeat = useCallback(async (clicked: Seat) => {
     if (clicked.status === 'booked' || clicked.status === 'held') return;
 
+    const allSeats = seats.flat();
+
     if (clicked.status === 'selected') {
       const existingHold = selectedSeatHolds[clicked.id];
+      const linkedSeatIds = existingHold
+        ? mapHoldSeatIdsToUiSeatIds(existingHold, allSeats)
+        : [clicked.id];
 
       if (existingHold) {
         try {
@@ -399,47 +476,64 @@ export function SeatSelectionPage() {
 
       setSelectedSeatHolds((previous) => {
         const next = { ...previous };
-        delete next[clicked.id];
+        for (const seatId of linkedSeatIds) {
+          delete next[seatId];
+        }
         return next;
       });
 
       setSeats((prev) =>
         prev.map((row) =>
           row.map((seat) =>
-            seat.id === clicked.id ? { ...seat, status: 'available' as const } : seat,
+            linkedSeatIds.includes(seat.id) ? { ...seat, status: 'available' as const } : seat,
           ),
         ),
       );
       return;
     }
 
-    if (!showtimeId || !clicked.seatInventoryId) {
+    const linkedSeats = findLinkedCoupleSeats(clicked, allSeats);
+    const seatInventoryIds = linkedSeats
+      .map((seat) => seat.seatInventoryId)
+      .filter((seatInventoryId): seatInventoryId is string => Boolean(seatInventoryId));
+
+    if (
+      !showtimeId ||
+      seatInventoryIds.length === 0 ||
+      seatInventoryIds.length !== linkedSeats.length ||
+      linkedSeats.some((seat) => seat.status !== 'available')
+    ) {
       return;
     }
 
     try {
       const hold = await createBookingHold({
         showtimeId,
-        seatInventoryIds: [clicked.seatInventoryId],
+        seatInventoryIds,
         snackCombos: [],
       });
 
-      setSelectedSeatHolds((previous) => ({
-        ...previous,
-        [clicked.id]: hold,
-      }));
+      const heldSeatIds = mapHoldSeatIdsToUiSeatIds(hold, allSeats);
+
+      setSelectedSeatHolds((previous) => {
+        const next = { ...previous };
+        for (const seatId of heldSeatIds) {
+          next[seatId] = hold;
+        }
+        return next;
+      });
 
       setSeats((prev) =>
         prev.map((row) =>
           row.map((seat) =>
-            seat.id === clicked.id ? { ...seat, status: 'selected' as const } : seat,
+            heldSeatIds.includes(seat.id) ? { ...seat, status: 'selected' as const } : seat,
           ),
         ),
       );
     } catch (error) {
       console.warn('Create booking hold API failed on seat page.', error);
     }
-  }, [selectedSeatHolds, showtimeId]);
+  }, [seats, selectedSeatHolds, showtimeId]);
 
   const selected = useMemo(() => seats.flat().filter((s) => s.status === 'selected'), [seats]);
   const subtotal = useMemo(
@@ -474,25 +568,6 @@ export function SeatSelectionPage() {
     [selectedSnackCombos]
   );
   const serviceFee = apiQuote?.serviceFeeTotal ?? selected.length * SERVICE_FEE;
-
-  function getRemainingSeconds(expiresAtUtc: string) {
-    return Math.max(0, Math.floor((new Date(expiresAtUtc).getTime() - nowMs) / 1000));
-  }
-
-  // Find the earliest expiring seat for the header countdown
-  const earliestExpiry = useMemo(() => {
-    const holds = Object.values(selectedSeatHolds);
-    if (holds.length === 0) return null;
-    let earliest = holds[0];
-    for (const h of holds) {
-      if (new Date(h.expiresAtUtc).getTime() < new Date(earliest.expiresAtUtc).getTime()) {
-        earliest = h;
-      }
-    }
-    return earliest;
-  }, [selectedSeatHolds]);
-  const headerTimeLeft = earliestExpiry ? getRemainingSeconds(earliestExpiry.expiresAtUtc) : 10 * 60;
-  const isLow = headerTimeLeft < 120;
   const bookingDateLabel = useMemo(
     () =>
       new Date(`${bookingDate}T00:00:00`).toLocaleDateString('en-US', {
@@ -593,46 +668,42 @@ export function SeatSelectionPage() {
     };
   }, [apiPromotions, comboOptions, isShowtimeBookable, promoId, selected, selectedSnackCombos, showtimeId]);
 
-  // Auto-expire seats whose per-seat timer has reached zero
+  // Reconcile selected seats with backend hold expiry without rerendering the full page every second.
   useEffect(() => {
-    const expiredSeatIds = Object.values(selectedSeatHolds)
-      .filter((hold) => getRemainingSeconds(hold.expiresAtUtc) <= 0)
-      .map((hold) => {
-        const matchedSeat = seats.flat().find((s) =>
-          s.seatInventoryId && hold.seats?.some?.((hs: { seatInventoryId: string }) => hs.seatInventoryId === s.seatInventoryId)
-        );
-        return matchedSeat?.id;
-      })
-      .filter((id): id is string => Boolean(id));
+    if (Object.keys(selectedSeatHolds).length === 0) {
+      return;
+    }
 
-    // Also check by hold key (seatId used as key in selectedSeatHolds)
-    const expiredByKey = Object.entries(selectedSeatHolds)
-      .filter(([, hold]) => getRemainingSeconds(hold.expiresAtUtc) <= 0)
-      .map(([seatId]) => seatId);
+    const intervalId = window.setInterval(() => {
+      const expiredSeatIds = Object.entries(selectedSeatHolds)
+        .filter(([, hold]) => getRemainingSeconds(hold.expiresAtUtc) <= 0)
+        .map(([seatId]) => seatId);
 
-    const allExpired = [...new Set([...expiredSeatIds, ...expiredByKey])];
-
-    if (allExpired.length === 0) return;
-
-    setSelectedSeatHolds((prev) => {
-      const next = { ...prev };
-      for (const seatId of allExpired) {
-        delete next[seatId];
+      if (expiredSeatIds.length === 0) {
+        return;
       }
-      return next;
-    });
 
-    setSeats((prev) =>
-      prev.map((row) =>
-        row.map((seat) =>
-          allExpired.includes(seat.id) ? { ...seat, status: 'available' as const } : seat,
+      setSelectedSeatHolds((previous) => {
+        const next = { ...previous };
+        for (const seatId of expiredSeatIds) {
+          delete next[seatId];
+        }
+        return next;
+      });
+
+      setSeats((previous) =>
+        previous.map((row) =>
+          row.map((seat) =>
+            expiredSeatIds.includes(seat.id) ? { ...seat, status: 'available' as const } : seat,
+          ),
         ),
-      ),
-    );
+      );
 
-    void refreshSeatMap({ showLoading: false });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nowMs]);
+      void refreshSeatMap({ showLoading: false });
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [refreshSeatMap, selectedSeatHolds]);
 
   const updateComboQuantity = useCallback((comboId: string, nextQuantity: number) => {
     setComboQuantities((prev) => {
@@ -672,9 +743,9 @@ export function SeatSelectionPage() {
     }
 
     // Gather holdIds from per-seat holds already created
-    const holdIds = Object.values(selectedSeatHolds)
+    const holdIds = Array.from(new Set(Object.values(selectedSeatHolds)
       .map((hold) => hold.holdId)
-      .filter(Boolean);
+      .filter(Boolean)));
 
     if (holdIds.length === 0) {
       window.alert('Seat holds are not available. Please select seats again.');
@@ -799,17 +870,7 @@ export function SeatSelectionPage() {
             <span className="font-bold tracking-tight">ABCD Cinema</span>
           </div>
 
-          {/* Countdown */}
-          <div
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-sm font-semibold ring-1 transition-all ${
-              isLow
-                ? 'bg-red-950/60 text-red-400 ring-red-500/40 animate-pulse'
-                : 'bg-purple-950/50 text-purple-300 ring-purple-500/20'
-            }`}
-          >
-            <Clock className="size-3.5" />
-            {countdown(headerTimeLeft)}
-          </div>
+          <div />
         </div>
       </header>
       <main className="container mx-auto px-3 py-5 sm:px-4 sm:py-6 lg:flex lg:items-start lg:gap-6 xl:gap-8">
@@ -859,15 +920,6 @@ export function SeatSelectionPage() {
                 </div>
               </div>
             </div>
-
-            {/* Low time warning */}
-            {isLow && (
-              <div className="mt-4 flex items-center gap-2 rounded-xl bg-red-950/50 px-3 py-2.5 text-sm text-red-400 ring-1 ring-red-500/20">
-                <AlertCircle className="size-4 shrink-0" />
-                Seats will be held for another{' '}
-                <span className="font-bold">{countdown(headerTimeLeft)}</span>. Please complete your booking soon!
-              </div>
-            )}
 
             {!isShowtimeBookable && (
               <div className="mt-4 flex items-center gap-2 rounded-xl bg-amber-950/40 px-3 py-2.5 text-sm text-amber-300 ring-1 ring-amber-500/20">
@@ -1095,8 +1147,6 @@ export function SeatSelectionPage() {
                 <div className="flex flex-wrap gap-1.5">
                   {selected.map((s) => {
                     const hold = selectedSeatHolds[s.id];
-                    const remaining = hold ? getRemainingSeconds(hold.expiresAtUtc) : null;
-                    const seatIsLow = remaining !== null && remaining < 120;
                     return (
                       <div
                         key={s.id}
@@ -1109,11 +1159,7 @@ export function SeatSelectionPage() {
                         }`}
                       >
                         <span>{s.id}</span>
-                        {remaining !== null && (
-                          <span className={`ml-1 font-mono text-[10px] ${seatIsLow ? 'text-red-400 animate-pulse' : 'text-gray-400'}`}>
-                            {countdown(remaining)}
-                          </span>
-                        )}
+                        {hold ? <SeatHoldCountdown expiresAtUtc={hold.expiresAtUtc} /> : null}
                       </div>
                     );
                   })}
