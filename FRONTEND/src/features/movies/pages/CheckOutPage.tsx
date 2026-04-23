@@ -38,13 +38,11 @@ import { Badge } from '../component/ui/badge';
 import {
   createBooking,
   createStripeCheckoutSession,
-  fetchBookingHold,
   fetchPromotions,
   fetchSnackCombos,
   fetchShowtimeDetail,
   quoteBooking,
   releaseBookingHold,
-  type BookingHoldModel,
   type BookingQuoteModel,
   type PromotionModel,
   type SnackComboModel,
@@ -137,13 +135,6 @@ const SEAT_ICON: Record<SeatType, React.ReactNode> = {
   vip: <Star className="size-2.5 fill-current" />,
   couple: <Heart className="size-2.5 fill-current" />,
 };
-
-function mapHoldSeatType(value: string): SeatType {
-  const normalized = value.toLowerCase();
-  if (normalized.includes('vip')) return 'vip';
-  if (normalized.includes('couple')) return 'couple';
-  return 'regular';
-}
 
 function StepBar({ current }: { current: 1 | 2 | 3 }) {
   const steps = [
@@ -262,22 +253,17 @@ export function CheckoutPage() {
   const hallType = searchParams.get('hallType') ?? '2D';
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? bookingState?.bookingDate ?? getDefaultBookingDate();
-  const holdId = searchParams.get('holdId') ?? bookingState?.holdId;
-
-  const [apiHold, setApiHold] = useState<BookingHoldModel | null>(null);
+  const holdIds = useMemo(() => {
+    const stateHoldIds = bookingState?.seats
+      .map((seat) => seat.hold?.holdId)
+      .filter((holdId): holdId is string => Boolean(holdId)) ?? [];
+    const queryHoldId = searchParams.get('holdId');
+    return Array.from(new Set(queryHoldId ? [...stateHoldIds, queryHoldId] : stateHoldIds));
+  }, [bookingState?.seats, searchParams]);
   const [apiQuote, setApiQuote] = useState<BookingQuoteModel | null>(null);
   const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
   const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
-  const holdSeats = useMemo(
-    () =>
-      apiHold?.seats.map((seat) => ({
-        id: seat.seatCode,
-        type: mapHoldSeatType(seat.seatType),
-        seatInventoryId: seat.seatInventoryId,
-      })) ?? null,
-    [apiHold]
-  );
-  const seats = holdSeats ?? bookingState?.seats ?? [];
+  const seats = useMemo(() => bookingState?.seats ?? [], [bookingState?.seats]);
   const localSubtotal = useMemo(
     () => seats.reduce((sum, seat) => sum + getSeatPrice(hallType, seat.type), 0),
     [hallType, seats]
@@ -292,7 +278,7 @@ export function CheckoutPage() {
     () => comboSummary.reduce((sum, combo) => sum + combo.lineTotal, 0),
     [comboSummary]
   );
-  const subtotal = apiQuote?.seatSubtotal ?? apiHold?.seatSubtotal ?? bookingState?.subtotal ?? localSubtotal;
+  const subtotal = apiQuote?.seatSubtotal ?? bookingState?.subtotal ?? localSubtotal;
   const serviceFee = apiQuote?.serviceFeeTotal ?? bookingState?.serviceFee ?? localServiceFee;
 
   const [stage, setStage] = useState<Stage>('form');
@@ -308,7 +294,7 @@ export function CheckoutPage() {
   } = useForm<FormValues>({ mode: 'onBlur' });
 
   const birthday = useWatch({ control, name: 'birthday' });
-  const total = apiQuote?.grandTotal ?? apiHold?.grandTotal ?? bookingState?.total ?? subtotal + serviceFee + comboSubtotal;
+  const total = apiQuote?.grandTotal ?? bookingState?.total ?? subtotal + serviceFee + comboSubtotal;
   const bookingDateLabel = useMemo(
     () =>
       new Date(`${bookingDate}T00:00:00`).toLocaleDateString('en-US', {
@@ -352,33 +338,6 @@ export function CheckoutPage() {
       active = false;
     };
   }, [showtimeId]);
-
-  useEffect(() => {
-    if (!holdId) return;
-
-    let active = true;
-    const currentHoldId = holdId;
-
-    async function loadBookingHoldFromApi() {
-      try {
-        const hold = await fetchBookingHold(currentHoldId);
-        if (active) {
-          setApiHold(hold);
-        }
-      } catch (error) {
-        if (active) {
-          setApiHold(null);
-        }
-        console.warn("Booking hold API failed.", error);
-      }
-    }
-
-    void loadBookingHoldFromApi();
-
-    return () => {
-      active = false;
-    };
-  }, [holdId]);
 
   useEffect(() => {
     let active = true;
@@ -477,21 +436,25 @@ export function CheckoutPage() {
     : '';
 
   const backToSeats = useCallback(async () => {
-    if (holdId) {
-      try {
-        await releaseBookingHold(holdId);
-      } catch (error) {
-        console.warn("Release booking hold API failed; navigating back to seats anyway.", error);
-      }
+    if (holdIds.length > 0) {
+      await Promise.all(
+        holdIds.map(async (holdId) => {
+          try {
+            await releaseBookingHold(holdId);
+          } catch (error) {
+            console.warn("Release booking hold API failed; navigating back to seats anyway.", error);
+          }
+        }),
+      );
     }
 
     navigate(-1);
-  }, [holdId, navigate]);
+  }, [holdIds, navigate]);
 
   const onSubmit = async () => {
     setStage('loading');
     try {
-      if (!holdId) {
+      if (holdIds.length === 0) {
         window.alert("Booking hold was not found. Please choose your seats again.");
         setStage('form');
         return;
@@ -503,7 +466,7 @@ export function CheckoutPage() {
       }
 
       const booking = await createBooking({
-        holdId,
+        holdIds,
         customerName: values.fullName,
         customerEmail: values.email,
         customerPhoneNumber: values.phone,

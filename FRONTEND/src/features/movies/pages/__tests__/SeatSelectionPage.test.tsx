@@ -14,6 +14,7 @@ const moviesApiMock = vi.hoisted(() => ({
   fetchSnackCombos: vi.fn(),
   fetchShowtimeDetail: vi.fn(),
   quoteBooking: vi.fn(),
+  releaseBookingHold: vi.fn(),
   resolvePromotionApiIdFromUiId: vi.fn(),
 }));
 
@@ -131,7 +132,7 @@ describe("SeatSelectionPage", () => {
       expect(screen.getByRole("button", { name: /Seat A1/i })).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("button", { name: /Seat A1/i }));
+    await user.click(getSeatMapSeatButton());
 
     expect(moviesApiMock.createBookingHold).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -140,4 +141,30 @@ describe("SeatSelectionPage", () => {
       }),
     );
   });
+
+  it("releases the specific seat hold when the selected seat is clicked again", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={["/movies/movie-1/booking?showtimeId=showtime-1&cinema=abcd-mall&showtime=11%3A30&hallType=2D&date=2026-04-22"]}>
+        <Routes>
+          <Route path="/movies/:movieId/booking" element={<SeatSelectionPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Seat A1/i })).toBeInTheDocument();
+    });
+
+    await user.click(getSeatMapSeatButton());
+    await user.click(getSeatMapSeatButton());
+
+    expect(moviesApiMock.createBookingHold).toHaveBeenCalledTimes(1);
+    expect(moviesApiMock.releaseBookingHold).toHaveBeenCalledWith("hold-a1");
+  });
 });
+
+function getSeatMapSeatButton() {
+  return screen.getAllByRole("button", { name: /Seat A1/i }).at(0)!;
+}

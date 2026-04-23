@@ -371,7 +371,7 @@ interface CreateBookingResponseDto {
   bookingId: string;
   bookingCode: string;
   showtimeId: string;
-  holdId: string;
+  holdIds: string[];
   status: string;
   grandTotal: number;
   currency: string;
@@ -469,7 +469,7 @@ export interface CreateBookingHoldPayload extends QuoteRequestPayload {
 }
 
 export interface CreateBookingPayload {
-  holdId: string;
+  holdIds: string[];
   customerName: string;
   customerEmail: string;
   customerPhoneNumber: string;
@@ -479,7 +479,7 @@ export interface BookingModel {
   bookingId: string;
   bookingCode: string;
   showtimeId: string;
-  holdId: string;
+  holdIds: string[];
   status: string;
   grandTotal: number;
   currency: string;
@@ -1112,7 +1112,7 @@ export async function fetchBookingHold(holdId: string) {
 
 export async function createBooking(payload: CreateBookingPayload) {
   const response = await api.post<CreateBookingResponseDto, CreateBookingPayload>("/bookings", {
-    holdId: payload.holdId,
+    holdIds: payload.holdIds,
     customerName: payload.customerName,
     customerEmail: payload.customerEmail,
     customerPhoneNumber: payload.customerPhoneNumber,
@@ -1122,7 +1122,7 @@ export async function createBooking(payload: CreateBookingPayload) {
     bookingId: response.bookingId,
     bookingCode: response.bookingCode,
     showtimeId: response.showtimeId,
-    holdId: response.holdId,
+    holdIds: response.holdIds,
     status: response.status,
     grandTotal: response.grandTotal,
     currency: response.currency,

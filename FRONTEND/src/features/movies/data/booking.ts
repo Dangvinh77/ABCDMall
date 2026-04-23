@@ -68,10 +68,18 @@ export const SNACK_COMBOS: SnackCombo[] = [
   },
 ];
 
+export interface SelectedSeatHold {
+  holdId: string;
+  holdCode?: string;
+  expiresAtUtc: string;
+  remainingSeconds: number;
+}
+
 export interface SelectedSeat {
   id: string;
   type: SeatType;
   seatInventoryId?: string;
+  hold?: SelectedSeatHold;
 }
 
 export interface SelectedSnackCombo {
@@ -80,10 +88,6 @@ export interface SelectedSnackCombo {
 }
 
 export interface BookingState {
-  holdId?: string;
-  holdCode?: string;
-  holdExpiresAtUtc?: string;
-  holdRemainingSeconds?: number;
   seats: SelectedSeat[];
   subtotal: number;
   serviceFee: number;
