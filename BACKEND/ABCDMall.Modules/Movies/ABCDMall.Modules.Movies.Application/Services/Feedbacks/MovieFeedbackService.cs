@@ -11,6 +11,7 @@ namespace ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 public sealed class MovieFeedbackService : IMovieFeedbackService
 {
     private const int MaxPageSize = 50;
+    private const int MaxSubmissionsPerRequest = 3;
 
     private readonly IMovieRepository _movieRepository;
     private readonly IMovieFeedbackRepository _feedbackRepository;
@@ -174,22 +175,30 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
     {
         return request.Status == MovieFeedbackRequestStatus.Sent
             && request.SentAtUtc.HasValue
+            && request.AvailableAtUtc <= utcNow
             && request.ExpiresAtUtc.HasValue
             && request.ExpiresAtUtc.Value > utcNow
-            && request.SubmittedAtUtc is null
+            && request.Feedbacks.Count < MaxSubmissionsPerRequest
             && request.InvalidatedAtUtc is null;
     }
 
     private static string? GetRequestMessage(MovieFeedbackRequest request, DateTime utcNow)
     {
-        if (request.Status == MovieFeedbackRequestStatus.Submitted || request.SubmittedAtUtc.HasValue)
+        if (request.Status == MovieFeedbackRequestStatus.Submitted
+            || request.SubmittedAtUtc.HasValue
+            || request.Feedbacks.Count >= MaxSubmissionsPerRequest)
         {
-            return "Feedback link was already used.";
+            return "You have already submitted feedback for this movie.";
         }
 
         if (request.ExpiresAtUtc.HasValue && request.ExpiresAtUtc.Value <= utcNow)
         {
-            return "Feedback link has expired.";
+            return "You have already submitted feedback for this movie.";
+        }
+
+        if (request.AvailableAtUtc > utcNow)
+        {
+            return "Feedback form will be available after this showtime ends.";
         }
 
         if (request.Status == MovieFeedbackRequestStatus.Pending)

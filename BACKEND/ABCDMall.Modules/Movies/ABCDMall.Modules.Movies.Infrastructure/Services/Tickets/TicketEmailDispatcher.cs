@@ -1,10 +1,14 @@
+using System.Security.Cryptography;
+using System.Text;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
+using ABCDMall.Modules.Movies.Infrastructure.Options;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Emails;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 
@@ -14,6 +18,7 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
     private readonly MoviesCatalogDbContext _catalogDbContext;
     private readonly ITicketPdfRenderer _pdfRenderer;
     private readonly ITicketEmailSender _emailSender;
+    private readonly StripeSettings _stripeSettings;
     private readonly ILogger<TicketEmailDispatcher> _logger;
 
     public TicketEmailDispatcher(
@@ -21,12 +26,14 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         MoviesCatalogDbContext catalogDbContext,
         ITicketPdfRenderer pdfRenderer,
         ITicketEmailSender emailSender,
+        IOptions<StripeSettings> stripeSettings,
         ILogger<TicketEmailDispatcher> logger)
     {
         _bookingDbContext = bookingDbContext;
         _catalogDbContext = catalogDbContext;
         _pdfRenderer = pdfRenderer;
         _emailSender = emailSender;
+        _stripeSettings = stripeSettings.Value;
         _logger = logger;
     }
 
@@ -73,13 +80,14 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         var ticketDocument = BuildTicketDocument(booking, showtime, succeededPayment);
         var pdfBytes = _pdfRenderer.Render(ticketDocument);
         var fileName = $"ABCD-Cinema-Ticket-{booking.BookingCode}.pdf";
+        var feedbackLink = await PrepareFeedbackLinkAsync(booking, cancellationToken);
 
         await _emailSender.SendAsync(new TicketEmailMessage
         {
             ToEmail = booking.CustomerEmail,
             ToName = string.IsNullOrWhiteSpace(booking.CustomerName) ? "ABCD Cinema guest" : booking.CustomerName,
             Subject = $"Payment successful - your ABCD Cinema ticket {booking.BookingCode}",
-            HtmlBody = BuildEmailBody(booking, ticketDocument),
+            HtmlBody = BuildEmailBody(booking, ticketDocument, feedbackLink),
             AttachmentFileName = fileName,
             AttachmentContentType = "application/pdf",
             AttachmentBytes = pdfBytes
@@ -96,6 +104,38 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
 
         await _bookingDbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Ticket email sent for booking {BookingCode}.", booking.BookingCode);
+    }
+
+    private async Task<string?> PrepareFeedbackLinkAsync(Bookingg booking, CancellationToken cancellationToken)
+    {
+        var feedbackRequest = await _bookingDbContext.MovieFeedbackRequests
+            .FirstOrDefaultAsync(
+                x => x.BookingId == booking.Id && x.ShowtimeId == booking.ShowtimeId,
+                cancellationToken);
+
+        if (feedbackRequest is null)
+        {
+            return null;
+        }
+
+        if (feedbackRequest.Status is MovieFeedbackRequestStatus.Submitted
+            or MovieFeedbackRequestStatus.Cancelled
+            or MovieFeedbackRequestStatus.Expired)
+        {
+            return null;
+        }
+
+        var token = GenerateFeedbackToken();
+        feedbackRequest.TokenHash = HashToken(token);
+        feedbackRequest.Status = MovieFeedbackRequestStatus.Sent;
+        feedbackRequest.SentAtUtc = DateTime.UtcNow;
+        feedbackRequest.UpdatedAtUtc = DateTime.UtcNow;
+
+        var baseUrl = string.IsNullOrWhiteSpace(_stripeSettings.FrontendBaseUrl)
+            ? "http://localhost:5173"
+            : _stripeSettings.FrontendBaseUrl.TrimEnd('/');
+
+        return $"{baseUrl}/movies/feedback/{Uri.EscapeDataString(token)}";
     }
 
     private static TicketDocumentModel BuildTicketDocument(
@@ -153,8 +193,19 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         };
     }
 
-    private static string BuildEmailBody(Bookingg booking, TicketDocumentModel document)
+    private static string BuildEmailBody(Bookingg booking, TicketDocumentModel document, string? feedbackLink)
     {
+        var feedbackParagraph = string.IsNullOrWhiteSpace(feedbackLink)
+            ? string.Empty
+            : $$"""
+            <p>
+                After the show ends, you can share feedback for
+                <strong>{{System.Net.WebUtility.HtmlEncode(document.MovieTitle)}}</strong> here:
+                <a href="{{System.Net.WebUtility.HtmlEncode(feedbackLink)}}">Open movie feedback</a>.
+                This link is available from the end of the showtime for 72 hours and allows up to 3 submissions.
+            </p>
+            """;
+
         return $$"""
             <p>Hello {{System.Net.WebUtility.HtmlEncode(document.CustomerName)}},</p>
             <p>Your payment for booking <strong>{{System.Net.WebUtility.HtmlEncode(booking.BookingCode)}}</strong> was successful.</p>
@@ -166,7 +217,22 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
                 <strong>Total:</strong> {{System.Net.WebUtility.HtmlEncode(document.TotalText)}}
             </p>
             <p>Please arrive 15 minutes before showtime.</p>
+            {{feedbackParagraph}}
             <p>ABCD Cinema</p>
             """;
+    }
+
+    private static string GenerateFeedbackToken()
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+    }
+
+    private static string HashToken(string token)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(hashBytes);
     }
 }

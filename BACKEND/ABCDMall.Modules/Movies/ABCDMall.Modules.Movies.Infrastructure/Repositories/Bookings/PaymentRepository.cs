@@ -298,7 +298,7 @@ public sealed class PaymentRepository : IPaymentRepository
             return;
         }
 
-        var availableAtUtc = (showtime.EndAtUtc ?? showtime.StartAtUtc).AddHours(24);
+        var availableAtUtc = showtime.EndAtUtc ?? showtime.StartAtUtc;
 
         _bookingDbContext.MovieFeedbackRequests.Add(new MovieFeedbackRequest
         {
@@ -309,6 +309,7 @@ public sealed class PaymentRepository : IPaymentRepository
             PurchaserEmail = booking.CustomerEmail,
             Status = MovieFeedbackRequestStatus.Pending,
             AvailableAtUtc = availableAtUtc,
+            ExpiresAtUtc = availableAtUtc.AddHours(72),
             CreatedAtUtc = utcNow,
             UpdatedAtUtc = utcNow
         });

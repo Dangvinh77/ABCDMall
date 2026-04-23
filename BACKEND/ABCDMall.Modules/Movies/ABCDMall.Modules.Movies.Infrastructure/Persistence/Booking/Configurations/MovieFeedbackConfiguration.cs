@@ -36,7 +36,6 @@ public class MovieFeedbackConfiguration : IEntityTypeConfiguration<MovieFeedback
         builder.HasIndex(x => x.BookingId);
         builder.HasIndex(x => x.ShowtimeId);
         builder.HasIndex(x => x.FeedbackRequestId)
-            .IsUnique()
             .HasFilter("[FeedbackRequestId] IS NOT NULL");
 
         builder.HasOne(x => x.Booking)
@@ -45,8 +44,8 @@ public class MovieFeedbackConfiguration : IEntityTypeConfiguration<MovieFeedback
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(x => x.FeedbackRequest)
-            .WithOne(x => x.Feedback)
-            .HasForeignKey<MovieFeedback>(x => x.FeedbackRequestId)
+            .WithMany(x => x.Feedbacks)
+            .HasForeignKey(x => x.FeedbackRequestId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

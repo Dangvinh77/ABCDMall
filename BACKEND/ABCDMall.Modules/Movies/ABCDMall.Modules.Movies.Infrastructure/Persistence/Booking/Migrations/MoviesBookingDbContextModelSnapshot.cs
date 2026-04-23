@@ -395,7 +395,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Migrations
                     b.HasIndex("BookingId");
 
                     b.HasIndex("FeedbackRequestId")
-                        .IsUnique()
                         .HasFilter("[FeedbackRequestId] IS NOT NULL");
 
                     b.HasIndex("MovieId", "IsVisible", "ModerationStatus", "CreatedAtUtc");

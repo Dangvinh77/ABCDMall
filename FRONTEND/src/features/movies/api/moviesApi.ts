@@ -184,6 +184,18 @@ export interface MovieFeedbackListModel {
   items: MovieFeedbackModel[];
 }
 
+export interface PublicMovieFeedbackRequestModel {
+  feedbackRequestId: string;
+  movieId: string;
+  showtimeId: string;
+  movieTitle: string;
+  availableAtUtc: string;
+  expiresAtUtc?: string | null;
+  status: string;
+  canSubmit: boolean;
+  message?: string | null;
+}
+
 interface MovieListItemResponseDto {
   movieId: string;
   title: string;
@@ -425,6 +437,18 @@ interface MovieFeedbackListResponseDto {
   averageRating: number;
   ratingBreakdown: Record<string, number>;
   items: MovieFeedbackResponseDto[];
+}
+
+interface PublicMovieFeedbackRequestResponseDto {
+  feedbackRequestId: string;
+  movieId: string;
+  showtimeId: string;
+  movieTitle: string;
+  availableAtUtc: string;
+  expiresAtUtc?: string | null;
+  status: string;
+  canSubmit: boolean;
+  message?: string | null;
 }
 
 export interface QuoteRequestPayload {
@@ -815,6 +839,26 @@ export async function createMovieFeedback(movieId: string, payload: CreateMovieF
       comment: payload.comment,
       displayName: payload.displayName ?? undefined,
       email: payload.email ?? undefined,
+      tags: payload.tags ?? [],
+    },
+  );
+
+  return mapMovieFeedback(response);
+}
+
+export async function fetchPublicMovieFeedbackRequest(token: string) {
+  return api.get<PublicMovieFeedbackRequestResponseDto>(
+    `/movie-feedback/public/${encodeURIComponent(token)}`,
+  );
+}
+
+export async function submitMovieFeedbackByToken(token: string, payload: CreateMovieFeedbackPayload) {
+  const response = await api.post<MovieFeedbackResponseDto, CreateMovieFeedbackPayload>(
+    `/movie-feedback/public/${encodeURIComponent(token)}`,
+    {
+      rating: payload.rating,
+      comment: payload.comment,
+      displayName: payload.displayName ?? undefined,
       tags: payload.tags ?? [],
     },
   );

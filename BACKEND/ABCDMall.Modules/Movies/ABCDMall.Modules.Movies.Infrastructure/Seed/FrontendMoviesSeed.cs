@@ -13,7 +13,7 @@ public static class FrontendMoviesSeed
     public static async Task SeedCatalogAsync(MoviesCatalogDbContext db, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = GetVietnamDate(now);
 
         await SeedGenresAsync(db, ct);
         await SeedCinemasAsync(db, now, ct);
@@ -247,7 +247,7 @@ public static class FrontendMoviesSeed
                         var id = Id($"showtime:{movieSeed.Key}:{cinemaCode}:{date:yyyyMMdd}:{cinemaSeed.Showtimes[index]}:{hallType}");
                         if (existingShowtimes.Contains(id)) continue;
 
-                        var start = date.ToDateTime(TimeOnly.Parse(cinemaSeed.Showtimes[index]), DateTimeKind.Utc);
+                        var start = ToUtcShowtimeStart(date, cinemaSeed.Showtimes[index]);
                         showtimes.Add(new Showtime
                         {
                             Id = id,
@@ -487,6 +487,14 @@ public static class FrontendMoviesSeed
     }
 
     private static Guid Id(string value) => new(MD5.HashData(Encoding.UTF8.GetBytes($"abcd-mall-fe:{value}")));
+
+    private static DateOnly GetVietnamDate(DateTime utcNow) => DateOnly.FromDateTime(utcNow.AddHours(7));
+
+    private static DateTime ToUtcShowtimeStart(DateOnly businessDate, string vietnamLocalTime)
+    {
+        var localStart = businessDate.ToDateTime(TimeOnly.Parse(vietnamLocalTime), DateTimeKind.Unspecified);
+        return DateTime.SpecifyKind(localStart.AddHours(-7), DateTimeKind.Utc);
+    }
 
     private static string[] SplitGenres(string value) => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 

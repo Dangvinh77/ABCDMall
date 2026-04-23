@@ -58,7 +58,7 @@ public sealed class MovieFeedbackRepository : IMovieFeedbackRepository
         CancellationToken cancellationToken = default)
     {
         return _dbContext.MovieFeedbackRequests
-            .Include(x => x.Feedback)
+            .Include(x => x.Feedbacks)
             .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
     }
 
@@ -71,7 +71,7 @@ public sealed class MovieFeedbackRepository : IMovieFeedbackRepository
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         var trackedRequest = await _dbContext.MovieFeedbackRequests
-            .Include(x => x.Feedback)
+            .Include(x => x.Feedbacks)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (trackedRequest is null)
@@ -79,14 +79,27 @@ public sealed class MovieFeedbackRepository : IMovieFeedbackRepository
             throw new InvalidOperationException("Feedback request not found.");
         }
 
-        if (trackedRequest.Feedback is not null || trackedRequest.Status == MovieFeedbackRequestStatus.Submitted)
+        if (trackedRequest.Status != MovieFeedbackRequestStatus.Sent
+            || trackedRequest.InvalidatedAtUtc.HasValue
+            || trackedRequest.AvailableAtUtc > utcNow
+            || !trackedRequest.ExpiresAtUtc.HasValue
+            || trackedRequest.ExpiresAtUtc.Value <= utcNow)
         {
-            throw new InvalidOperationException("Feedback link was already used.");
+            throw new InvalidOperationException("You have already submitted feedback for this movie.");
         }
 
-        trackedRequest.Status = MovieFeedbackRequestStatus.Submitted;
-        trackedRequest.SubmittedAtUtc = utcNow;
-        trackedRequest.InvalidatedAtUtc = utcNow;
+        if (trackedRequest.Status == MovieFeedbackRequestStatus.Submitted || trackedRequest.Feedbacks.Count >= 3)
+        {
+            throw new InvalidOperationException("You have already submitted feedback for this movie.");
+        }
+
+        if (trackedRequest.Feedbacks.Count == 2)
+        {
+            trackedRequest.Status = MovieFeedbackRequestStatus.Submitted;
+            trackedRequest.SubmittedAtUtc = utcNow;
+            trackedRequest.InvalidatedAtUtc = utcNow;
+        }
+
         trackedRequest.UpdatedAtUtc = utcNow;
 
         _dbContext.MovieFeedbacks.Add(feedback);

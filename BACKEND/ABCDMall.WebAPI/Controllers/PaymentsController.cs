@@ -70,6 +70,17 @@ public sealed class PaymentsController : ControllerBase
                 Status = StatusCodes.Status400BadRequest
             });
         }
+        catch (StripeException ex)
+        {
+            _logger.LogWarning(ex, "Stripe checkout session creation failed for booking {BookingId}.", request.BookingId);
+
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Stripe checkout session creation failed.",
+                Detail = ex.StripeError?.Message ?? ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
     }
 
     [HttpPost("webhooks/stripe")]

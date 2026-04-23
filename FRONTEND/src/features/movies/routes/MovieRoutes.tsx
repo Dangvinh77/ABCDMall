@@ -7,6 +7,7 @@ import { SeatSelectionPage } from '../pages/SeatSelectionPage'
 import { CheckoutPage } from '../pages/CheckOutPage'
 import { MoviePaymentSuccessPage } from '../pages/MoviePaymentSuccessPage'
 import { MoviePaymentCancelPage } from '../pages/MoviePaymentCancelPage'
+import { MoviePublicFeedbackPage } from '../pages/MoviePublicFeedbackPage'
 
 export function MoviesRoutes() {
   return (
@@ -14,6 +15,7 @@ export function MoviesRoutes() {
       <Route index element={<MovieHomePage />} />
       <Route path="promotions" element={<PromotionsPage />} />
       <Route path="showtimes" element={<SchedulePage />} />
+      <Route path="feedback/:token" element={<MoviePublicFeedbackPage />} />
       <Route path=":movieId" element={<MovieDetailPage />} />
       <Route path=":movieId/booking" element={<SeatSelectionPage />} />
       <Route path=":movieId/checkout" element={<CheckoutPage />} />
