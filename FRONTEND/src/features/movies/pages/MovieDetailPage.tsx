@@ -88,9 +88,9 @@ export function MovieDetailPage() {
   const movie = apiMovie;
   const movieSchedule = apiMovieSchedule;
   const scheduleMovieId =
-    movieSchedule?.movie.id.replace(/-(now|soon)-\d+$/, '') ??
-    movie?.id.replace(/-(now|soon)-\d+$/, '') ??
-    movieId?.replace(/-(now|soon)-\d+$/, '');
+    movieSchedule?.movie.id ??
+    movie?.id ??
+    movieId;
   const feedbackMovieId = movie?.apiId ?? movieId;
   const defaultFeedback = useMemo(() => (movie ? buildDefaultMovieFeedback(movie) : []), [movie]);
   const feedbacks = useMemo(

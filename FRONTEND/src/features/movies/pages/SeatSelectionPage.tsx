@@ -22,9 +22,7 @@ import {
   type SeatType,
 } from '../data/booking';
 import {
-  evaluatePromotion,
   getDefaultBookingDate,
-  getPromotionFinalTotal,
 } from '../data/promotions';
 import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
@@ -43,6 +41,7 @@ import {
   type BookingQuoteModel,
   type MovieDetailModel,
   type PromotionModel,
+  type PromotionRuleModel,
   type SnackComboModel,
   type ShowtimeDetailModel,
 } from '../api/moviesApi';
@@ -72,6 +71,7 @@ interface Seat {
 const COLS = 12;
 const AISLE_AFTER = 6;
 const COUPLE_ROW = 'H';
+const CINEMA_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
 function countdown(s: number) {
   const m = Math.floor(s / 60).toString().padStart(2, '0');
@@ -287,6 +287,216 @@ function getSelectedSnackCombos(comboQuantities: Record<string, number>): Select
     .map(([id, quantity]) => ({ id: id as SelectedSnackCombo['id'], quantity }));
 }
 
+function formatCinemaTime(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: CINEMA_TIME_ZONE,
+  });
+}
+
+function normalizePromotionRuleType(ruleType: string) {
+  return ruleType.trim().toLowerCase();
+}
+
+function isShowtimeSpecificRule(rule: PromotionRuleModel) {
+  const normalizedType = normalizePromotionRuleType(rule.ruleType);
+  return normalizedType === 'showtime' || normalizedType === 'businessdate';
+}
+
+function formatPromotionRule(rule: PromotionRuleModel) {
+  const normalizedType = normalizePromotionRuleType(rule.ruleType);
+
+  switch (normalizedType) {
+    case 'showtime':
+      if (rule.ruleValue.toLowerCase() === 'morning') {
+        return 'Morning show only (09:00 - before 11:00)';
+      }
+      return `Only for this showtime window: ${rule.ruleValue}`;
+    case 'businessdate':
+      if (rule.ruleValue.toLowerCase() === 'weekend') {
+        return 'Only applies on Saturday and Sunday';
+      }
+      return `Only applies on ${rule.ruleValue}`;
+    case 'seatcount': {
+      const seatCount = rule.thresholdValue ?? Number(rule.ruleValue || '0') ?? 0;
+      return `Minimum ${seatCount} ticket${seatCount === 1 ? '' : 's'}`;
+    }
+    case 'seattype':
+      return `Requires ${rule.ruleValue.toLowerCase()} seat selection`;
+    case 'paymentprovider':
+      return `Pay with ${rule.ruleValue}`;
+    case 'combo':
+      return 'Requires the matching snack combo in this order';
+    case 'birthdaymonth':
+      return 'Valid during your birthday month';
+    case 'minimumspend':
+      return `Minimum spend ${vnd(rule.thresholdValue ?? Number(rule.ruleValue || '0') ?? 0)}`;
+    case 'couponcode':
+      return `Use code ${rule.ruleValue}`;
+    default:
+      return rule.ruleValue;
+  }
+}
+
+interface PromotionApplyState {
+  canApplyNow: boolean;
+  message: string;
+  ctaLabel: string;
+}
+
+function getRequiredSeatCount(rule: PromotionRuleModel) {
+  if (typeof rule.thresholdValue === 'number' && !Number.isNaN(rule.thresholdValue)) {
+    return rule.thresholdValue;
+  }
+
+  const parsedValue = Number(rule.ruleValue);
+  return Number.isFinite(parsedValue) ? parsedValue : 0;
+}
+
+function getPromotionApplyState(params: {
+  promotion: PromotionModel;
+  selectedSeats: Seat[];
+  selectedSnackCombos: SelectedSnackCombo[];
+  comboOptions: ComboOption[];
+  bookingDate: string;
+  showtime: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+}): PromotionApplyState {
+  const {
+    promotion,
+    selectedSeats,
+    selectedSnackCombos,
+    comboOptions,
+    bookingDate,
+    showtime,
+    seatSubtotal,
+    comboSubtotal,
+  } = params;
+
+  if (selectedSeats.length === 0) {
+    return {
+      canApplyNow: false,
+      message: 'Choose your seats first to apply this promotion.',
+      ctaLabel: 'Choose seats first',
+    };
+  }
+
+  if (
+    typeof promotion.minimumSpendAmount === 'number'
+    && seatSubtotal + comboSubtotal < promotion.minimumSpendAmount
+  ) {
+    return {
+      canApplyNow: false,
+      message: `Minimum spend ${vnd(promotion.minimumSpendAmount)} is required.`,
+      ctaLabel: 'Need higher subtotal',
+    };
+  }
+
+  const seatTypes = new Set(selectedSeats.map((seat) => seat.type.toLowerCase()));
+  const comboMatches = new Set(
+    selectedSnackCombos.flatMap((selectedCombo) => {
+      const combo = findComboOption(comboOptions, selectedCombo.id);
+      return [selectedCombo.id.toLowerCase(), combo?.apiId?.toLowerCase()].filter(
+        (value): value is string => Boolean(value),
+      );
+    }),
+  );
+
+  for (const rule of promotion.rules) {
+    const ruleType = normalizePromotionRuleType(rule.ruleType);
+
+    switch (ruleType) {
+      case 'seatcount': {
+        const requiredSeatCount = getRequiredSeatCount(rule);
+        if (selectedSeats.length < requiredSeatCount) {
+          return {
+            canApplyNow: false,
+            message: `Select at least ${requiredSeatCount} seats to unlock this offer.`,
+            ctaLabel: `Need ${requiredSeatCount} seats`,
+          };
+        }
+        break;
+      }
+      case 'seattype':
+        if (!seatTypes.has(rule.ruleValue.toLowerCase())) {
+          return {
+            canApplyNow: false,
+            message: `This offer requires ${rule.ruleValue.toLowerCase()} seats in the order.`,
+            ctaLabel: `Need ${rule.ruleValue} seats`,
+          };
+        }
+        break;
+      case 'combo': {
+        if (!comboMatches.has(rule.ruleValue.toLowerCase())) {
+          return {
+            canApplyNow: false,
+            message: 'Add the required snack combo first, then apply this promotion.',
+            ctaLabel: 'Need matching combo',
+          };
+        }
+        break;
+      }
+      case 'paymentprovider':
+        return {
+          canApplyNow: false,
+          message: `This offer is applied after you choose ${rule.ruleValue} at checkout.`,
+          ctaLabel: 'Apply at checkout',
+        };
+      case 'couponcode':
+        return {
+          canApplyNow: false,
+          message: `This promotion requires coupon code ${rule.ruleValue}.`,
+          ctaLabel: 'Coupon required',
+        };
+      case 'birthdaymonth':
+        if (rule.ruleValue.trim().toLowerCase() !== 'currentmonth') {
+          const parsedMonth = Number(rule.ruleValue);
+          const bookingMonth = new Date(`${bookingDate}T00:00:00`).getMonth() + 1;
+          if (Number.isFinite(parsedMonth) && parsedMonth !== bookingMonth) {
+            return {
+              canApplyNow: false,
+              message: 'This birthday promotion is not available for the selected booking month.',
+              ctaLabel: 'Month not eligible',
+            };
+          }
+        }
+        break;
+      case 'showtime': {
+        if (rule.ruleValue.trim().toLowerCase() === 'morning') {
+          const showtimeHour = Number(showtime.split(':')[0]);
+          if (!Number.isFinite(showtimeHour) || showtimeHour < 9 || showtimeHour >= 11) {
+            return {
+              canApplyNow: false,
+              message: 'This offer is only valid for showtimes between 09:00 and 10:59.',
+              ctaLabel: 'Wrong showtime',
+            };
+          }
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return {
+    canApplyNow: true,
+    message: 'All current booking conditions are satisfied. You can apply this promotion now.',
+    ctaLabel: 'Apply now',
+  };
+}
+
 function SeatHoldCountdown({ expiresAtUtc }: { expiresAtUtc: string }) {
   const [remainingSeconds, setRemainingSeconds] = useState(() => getRemainingSeconds(expiresAtUtc));
 
@@ -322,10 +532,12 @@ export function SeatSelectionPage() {
   const hallType = searchParams.get('hallType') ?? '2D';
   const promoId = searchParams.get('promo');
   const bookingDate = searchParams.get('date') ?? getDefaultBookingDate();
+  const [appliedPromotionId, setAppliedPromotionId] = useState<string | null>(promoId);
   const [seats, setSeats] = useState<Seat[][]>([]);
   const [comboQuantities, setComboQuantities] = useState<Record<string, number>>({});
   const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
   const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
+  const [seatMapPromotions, setSeatMapPromotions] = useState<PromotionModel[]>([]);
   const [apiMovie, setApiMovie] = useState<MovieDetailModel | null>(null);
   const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
   const [seatMapUnavailableReason, setSeatMapUnavailableReason] = useState<string | null>(null);
@@ -338,6 +550,7 @@ export function SeatSelectionPage() {
   const refreshSeatMap = useCallback(async (options?: { showLoading?: boolean }) => {
     if (!showtimeId) {
       setSeats([]);
+      setSeatMapPromotions([]);
       setIsSeatMapLoading(false);
       return false;
     }
@@ -349,6 +562,7 @@ export function SeatSelectionPage() {
 
     try {
       const seatMap = await fetchSeatMap(showtimeId);
+      setSeatMapPromotions(seatMap.promotions ?? []);
       setSeatMapUnavailableReason(seatMap.isBookable ? null : (seatMap.bookingUnavailableReason ?? 'This showtime is not available for booking.'));
       if (seatMap.seats.length > 0) {
         const nextSeats = buildSeatsFromApi(seatMap);
@@ -366,6 +580,7 @@ export function SeatSelectionPage() {
       return true;
     } catch (error) {
       setSeats([]);
+      setSeatMapPromotions([]);
       console.warn('Seat map API failed.', error);
       return false;
     } finally {
@@ -578,28 +793,23 @@ export function SeatSelectionPage() {
       }),
     [bookingDate]
   );
-  const promoEvaluation = useMemo(
+  const showtimeApplicablePromotions = useMemo(
     () =>
-      evaluatePromotion({
-        promoId,
-        seats: selected.map((seat) => ({ id: seat.id, type: seat.type })),
-        subtotal,
-        serviceFee,
-        hallType,
-        showtime,
-        bookingDate,
-        snackCombos: selectedSnackCombos,
+      [...seatMapPromotions].sort((left, right) => {
+        if (left.isFeatured !== right.isFeatured) {
+          return left.isFeatured ? -1 : 1;
+        }
+
+        return left.displayPriority - right.displayPriority;
       }),
-    [bookingDate, hallType, promoId, selected, selectedSnackCombos, serviceFee, showtime, subtotal]
-  );
-  const promoTotals = useMemo(
-    () => getPromotionFinalTotal(subtotal + serviceFee, promoEvaluation, selectedSnackCombos),
-    [promoEvaluation, selectedSnackCombos, serviceFee, subtotal]
+    [seatMapPromotions],
   );
   const selectedPromotion = useMemo(() => {
-    const promotionApiId = resolvePromotionApiIdFromUiId(apiPromotions, promoId);
-    return apiPromotions.find((promotion) => promotion.id === promotionApiId) ?? null;
-  }, [apiPromotions, promoId]);
+    const promotionApiId = resolvePromotionApiIdFromUiId(apiPromotions, appliedPromotionId);
+    return showtimeApplicablePromotions.find((promotion) => promotion.id === promotionApiId)
+      ?? apiPromotions.find((promotion) => promotion.id === promotionApiId)
+      ?? null;
+  }, [apiPromotions, appliedPromotionId, showtimeApplicablePromotions]);
   const displayMovie = apiMovie;
   const displayMovieTitle = apiMovie?.title ?? apiShowtime?.movieTitle ?? 'Unknown movie';
   const displayPosterUrl = apiMovie?.imageUrl ?? apiShowtime?.moviePosterUrl;
@@ -608,14 +818,34 @@ export function SeatSelectionPage() {
   const displayHallName =
     apiShowtime?.hallName ??
     (showtimeId && isShowtimeLoading ? null : (HALL_NAMES[hallType] ?? hallType));
+  const displayShowtime = formatCinemaTime(apiShowtime?.startAtUtc) ?? showtime;
   const showtimeUnavailableReason =
     apiShowtime?.isBookable === false
       ? apiShowtime.bookingUnavailableReason ?? 'This showtime is not available for booking.'
       : seatMapUnavailableReason;
   const isShowtimeBookable = !showtimeUnavailableReason;
   const total = useMemo(
-    () => apiQuote?.grandTotal ?? promoTotals.total,
-    [apiQuote?.grandTotal, promoTotals.total],
+    () => apiQuote?.grandTotal ?? subtotal + serviceFee + comboSubtotal,
+    [apiQuote?.grandTotal, comboSubtotal, serviceFee, subtotal],
+  );
+  const promotionApplyStates = useMemo(
+    () =>
+      Object.fromEntries(
+        showtimeApplicablePromotions.map((promotion) => [
+          promotion.id,
+          getPromotionApplyState({
+            promotion,
+            selectedSeats: selected,
+            selectedSnackCombos,
+            comboOptions,
+            bookingDate,
+            showtime,
+            seatSubtotal: subtotal,
+            comboSubtotal,
+          }),
+        ]),
+      ) as Record<string, PromotionApplyState>,
+    [bookingDate, comboOptions, comboSubtotal, selected, selectedSnackCombos, showtime, showtimeApplicablePromotions, subtotal],
   );
 
   useEffect(() => {
@@ -647,7 +877,7 @@ export function SeatSelectionPage() {
           showtimeId: currentShowtimeId,
           seatInventoryIds: selected.map((seat) => seat.seatInventoryId as string),
           snackCombos,
-          promotionId: resolvePromotionApiIdFromUiId(apiPromotions, promoId),
+          promotionId: resolvePromotionApiIdFromUiId(apiPromotions, appliedPromotionId),
         });
 
         if (active) {
@@ -666,7 +896,15 @@ export function SeatSelectionPage() {
     return () => {
       active = false;
     };
-  }, [apiPromotions, comboOptions, isShowtimeBookable, promoId, selected, selectedSnackCombos, showtimeId]);
+  }, [apiPromotions, appliedPromotionId, comboOptions, isShowtimeBookable, selected, selectedSnackCombos, showtimeId]);
+
+  const applyPromotion = useCallback((promotionId: string) => {
+    setAppliedPromotionId(promotionId);
+  }, []);
+
+  const removeAppliedPromotion = useCallback(() => {
+    setAppliedPromotionId(null);
+  }, []);
 
   // Reconcile selected seats with backend hold expiry without rerendering the full page every second.
   useEffect(() => {
@@ -738,8 +976,8 @@ export function SeatSelectionPage() {
       showtimeId,
     });
 
-    if (promoId) {
-      params.set('promo', promoId);
+    if (appliedPromotionId) {
+      params.set('promo', appliedPromotionId);
     }
 
     // Gather holdIds from per-seat holds already created
@@ -776,7 +1014,7 @@ export function SeatSelectionPage() {
           comboSubtotal,
           discountAmount: apiQuote?.discountTotal ?? 0,
           combos: selectedSnackCombos,
-          promoId,
+          promoId: appliedPromotionId,
           bookingDate,
         },
       }
@@ -856,7 +1094,7 @@ export function SeatSelectionPage() {
       <header className="relative z-40 border-b border-white/[0.06] bg-[#07091a]/95 backdrop-blur-2xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <button
-            onClick={() => navigate(`${moviePaths.detail(movieId ?? '')}?${new URLSearchParams({ ...(promoId ? { promo: promoId } : {}), date: bookingDate }).toString()}`)}
+            onClick={() => navigate(`${moviePaths.detail(movieId ?? '')}?${new URLSearchParams({ ...(appliedPromotionId ? { promo: appliedPromotionId } : {}), date: bookingDate }).toString()}`)}
             className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all hover:bg-white/[0.06] hover:text-white"
           >
             <ArrowLeft className="size-4" />
@@ -906,7 +1144,7 @@ export function SeatSelectionPage() {
                   />
                   <InfoRow
                     icon={<Clock className="size-3.5 text-pink-400" />}
-                    label={`${showtime} - ${bookingDateLabel}`}
+                    label={`${displayShowtime} - ${bookingDateLabel}`}
                   />
                   <InfoRow
                     icon={<Film className="size-3.5 text-cyan-400" />}
@@ -1053,6 +1291,128 @@ export function SeatSelectionPage() {
                 </div>
               </div>
               )}
+              {showtimeApplicablePromotions.length > 0 ? (
+                <div className="mt-6 rounded-2xl border border-fuchsia-500/15 bg-fuchsia-950/10 p-4 ring-1 ring-fuchsia-500/10">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-fuchsia-300/70">
+                        Promotions
+                      </p>
+                      <h3 className="mt-2 text-base font-semibold text-white">
+                        Offers available for this showtime
+                      </h3>
+                      <p className="mt-1 text-sm text-fuchsia-100/70">
+                        Seat-specific conditions are shown first, then the remaining booking rules.
+                      </p>
+                    </div>
+                    <Badge className="bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-500/25">
+                      {showtimeApplicablePromotions.length} offers
+                    </Badge>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                    {showtimeApplicablePromotions.map((promotion) => {
+                      const showtimeRules = promotion.rules.filter(isShowtimeSpecificRule);
+                      const generalRules = promotion.rules.filter((rule) => !isShowtimeSpecificRule(rule));
+                      const isSelectedForBooking = selectedPromotion?.id === promotion.id;
+                      const applyState = promotionApplyStates[promotion.id];
+
+                      return (
+                        <div
+                          key={promotion.id}
+                          className={`rounded-2xl border p-4 ring-1 ${
+                            isSelectedForBooking
+                              ? 'border-fuchsia-400/40 bg-fuchsia-500/10 ring-fuchsia-400/20'
+                              : 'border-white/[0.06] bg-white/[0.03] ring-white/[0.04]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-white">{promotion.title}</p>
+                              <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                                {promotion.description}
+                              </p>
+                            </div>
+                            <Badge
+                              className={
+                                isSelectedForBooking
+                                  ? 'bg-emerald-500/15 text-emerald-200 ring-1 ring-emerald-500/25'
+                                  : 'bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-500/25'
+                              }
+                            >
+                              {isSelectedForBooking ? 'Selected' : promotion.discountLabel}
+                            </Badge>
+                          </div>
+
+                          <p className="mt-3 text-xs text-fuchsia-100/75">{promotion.condition}</p>
+                          <p className="mt-2 text-xs text-gray-400">{applyState.message}</p>
+
+                          {showtimeRules.length > 0 ? (
+                            <div className="mt-4">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-fuchsia-300/75">
+                                Showtime conditions
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {showtimeRules.map((rule) => (
+                                  <span
+                                    key={rule.id}
+                                    className="rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1 text-[11px] font-medium text-fuchsia-100"
+                                  >
+                                    {formatPromotionRule(rule)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          {generalRules.length > 0 ? (
+                            <div className="mt-4">
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-gray-500">
+                                Other conditions
+                              </p>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {generalRules.map((rule) => (
+                                  <span
+                                    key={rule.id}
+                                    className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-gray-300"
+                                  >
+                                    {formatPromotionRule(rule)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
+
+                          <div className="mt-4 flex items-center justify-end gap-2">
+                            {isSelectedForBooking ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={removeAppliedPromotion}
+                                className="border-fuchsia-400/30 text-fuchsia-100 hover:bg-fuchsia-500/10"
+                              >
+                                Remove
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                size="sm"
+                                disabled={!applyState.canApplyNow}
+                                onClick={() => applyPromotion(promotion.id)}
+                                className="bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white hover:from-fuchsia-500 hover:to-pink-500 disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                {applyState.ctaLabel}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-8 border-t border-white/[0.05] pt-6">
                 <div className="grid gap-4 lg:grid-cols-2">
                   <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4">
@@ -1129,7 +1489,7 @@ export function SeatSelectionPage() {
                 </p>
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Clock className="size-3 shrink-0 text-pink-400" />
-                  {showtime} &nbsp;-&nbsp; {bookingDateLabel}
+                  {displayShowtime} &nbsp;-&nbsp; {bookingDateLabel}
                 </p>
                 <p className="flex items-center gap-1.5 text-xs text-gray-400">
                   <Film className="size-3 shrink-0 text-cyan-400" />
@@ -1232,36 +1592,6 @@ export function SeatSelectionPage() {
                   </Badge>
                 </div>
               </div>
-            ) : promoEvaluation ? (
-              <div className="mb-4 rounded-2xl border border-fuchsia-500/20 bg-fuchsia-950/20 p-4 ring-1 ring-fuchsia-500/10">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-fuchsia-300/80">
-                      Selected promotion
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-white">{promoEvaluation.promo.title}</p>
-                    <p className="mt-1 text-xs text-fuchsia-100/75">{promoEvaluation.message}</p>
-                    {promoEvaluation.bonusLabel && (
-                      <p className="mt-2 text-xs font-medium text-amber-300">{promoEvaluation.bonusLabel}</p>
-                    )}
-                  </div>
-                  <Badge
-                    className={`text-xs ${
-                      promoEvaluation.status === 'applied'
-                        ? 'bg-emerald-600/20 text-emerald-300 ring-1 ring-emerald-500/30'
-                        : promoEvaluation.status === 'ineligible'
-                          ? 'bg-red-600/20 text-red-300 ring-1 ring-red-500/30'
-                          : 'bg-fuchsia-600/20 text-fuchsia-200 ring-1 ring-fuchsia-500/30'
-                    }`}
-                  >
-                    {promoEvaluation.status === 'applied'
-                      ? 'Applied'
-                      : promoEvaluation.status === 'ineligible'
-                        ? 'Not eligible'
-                        : 'Reserved'}
-                  </Badge>
-                </div>
-              </div>
             ) : null}
 
             {/* Price breakdown */}
@@ -1310,15 +1640,6 @@ export function SeatSelectionPage() {
                     <span className="text-fuchsia-200/80">Promotion discount</span>
                     <span className="font-medium text-fuchsia-200">
                       -{vnd(apiQuote?.discountTotal ?? 0)}
-                    </span>
-                  </div>
-                ) : promoEvaluation && promoEvaluation.estimatedDiscount > 0 ? (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-fuchsia-200/80">
-                      {promoEvaluation.status === 'applied' ? 'Discount' : 'Estimated savings'}
-                    </span>
-                    <span className="font-medium text-fuchsia-200">
-                      -{vnd(promoEvaluation.status === 'applied' ? promoEvaluation.discount : promoEvaluation.estimatedDiscount)}
                     </span>
                   </div>
                 ) : null}

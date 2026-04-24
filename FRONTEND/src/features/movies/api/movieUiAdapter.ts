@@ -203,26 +203,36 @@ export async function loadHomeUiData() {
 }
 
 export async function loadMovieDetailUiData(movieId: string, bookingDate: string) {
-  const [movie, showtimes] = await Promise.all([
-    fetchMovieDetail(movieId),
-    fetchMovieShowtimes(movieId, bookingDate),
-  ]);
+  const movie = await fetchMovieDetail(movieId);
 
-  return {
-    movie: toUiMovie(movie),
-    movieSchedule: {
+  try {
+    const showtimes = await fetchMovieShowtimes(movieId, bookingDate);
+
+    return {
       movie: toUiMovie(movie),
-      cinemaSchedules: showtimes.cinemas.map((cinema) => {
-        const cinemaCode = cinemaCodeFromName(cinema.cinemaName);
-        return {
-          cinemaId: cinemaCode,
-          cinemaName: cinema.cinemaName,
-          cinemaAddress: cinemaAddressFromCode(cinemaCode, cinema.cinemaAddress),
-          showtimes: cinema.showtimes.map(toUiShowtime),
-        };
-      }),
-    } satisfies MovieSchedule,
-  };
+      movieSchedule: {
+        movie: toUiMovie(movie),
+        cinemaSchedules: showtimes.cinemas.map((cinema) => {
+          const cinemaCode = cinemaCodeFromName(cinema.cinemaName);
+          return {
+            cinemaId: cinemaCode,
+            cinemaName: cinema.cinemaName,
+            cinemaAddress: cinemaAddressFromCode(cinemaCode, cinema.cinemaAddress),
+            showtimes: cinema.showtimes.map(toUiShowtime),
+          };
+        }),
+      } satisfies MovieSchedule,
+    };
+  } catch {
+    // Keep detail page usable even when the showtimes endpoint is temporarily unavailable.
+    return {
+      movie: toUiMovie(movie),
+      movieSchedule: {
+        movie: toUiMovie(movie),
+        cinemaSchedules: [],
+      } satisfies MovieSchedule,
+    };
+  }
 }
 
 export async function loadMovieDetailOnlyUiData(movieId: string) {

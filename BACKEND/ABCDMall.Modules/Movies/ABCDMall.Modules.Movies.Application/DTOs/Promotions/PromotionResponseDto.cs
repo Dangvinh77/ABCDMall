@@ -18,4 +18,6 @@ public sealed class PromotionResponseDto
     public string? DisplayCondition { get; set; }
     public bool IsFeatured { get; set; }
     public int DisplayPriority { get; set; }
+    public decimal? MinimumSpendAmount { get; set; }
+    public IReadOnlyCollection<PromotionRuleDto> Rules { get; set; } = Array.Empty<PromotionRuleDto>();
 }

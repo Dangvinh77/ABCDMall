@@ -1,4 +1,6 @@
 using ABCDMall.Modules.Movies.Application.Services.Showtimes;
+using ABCDMall.Modules.Movies.Application.Services.Promotions;
+using ABCDMall.Modules.Movies.Application.DTOs.Promotions;
 using ABCDMall.Modules.Movies.Infrastructure.Repositories.Screening;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -9,13 +11,19 @@ namespace ABCDMall.Modules.Movies.Tests;
 public sealed class SeatMapAndShowtimeContractTests
 {
     private static readonly ShowtimeBookingPolicy BookingPolicy = new();
+    private static readonly IPromotionQueryService PromotionQueryService = new FakePromotionQueryService();
 
     [Fact]
     public async Task SeatMap_ShouldContainRequiredFields_AndCoupleSeatsShouldHaveGroupCode()
     {
         await using var dbContext = await CatalogSeedTestDb.CreateSeededContextAsync();
         var repository = new ShowtimeRepository(dbContext);
-        var queryService = new SeatMapQueryService(repository, new FakeBookingHoldRepository(), BookingPolicy, NullLogger<SeatMapQueryService>.Instance);
+        var queryService = new SeatMapQueryService(
+            repository,
+            new FakeBookingHoldRepository(),
+            BookingPolicy,
+            PromotionQueryService,
+            NullLogger<SeatMapQueryService>.Instance);
         var showtimeId = dbContext.Showtimes.Select(x => x.Id).First();
 
         var result = await queryService.GetByShowtimeIdAsync(showtimeId);
@@ -48,7 +56,12 @@ public sealed class SeatMapAndShowtimeContractTests
     {
         await using var dbContext = await CatalogSeedTestDb.CreateSeededContextAsync();
         var repository = new ShowtimeRepository(dbContext);
-        var queryService = new SeatMapQueryService(repository, new FakeBookingHoldRepository(), BookingPolicy, NullLogger<SeatMapQueryService>.Instance);
+        var queryService = new SeatMapQueryService(
+            repository,
+            new FakeBookingHoldRepository(),
+            BookingPolicy,
+            PromotionQueryService,
+            NullLogger<SeatMapQueryService>.Instance);
         var showtimeId = dbContext.Showtimes.Select(x => x.Id).First();
 
         var result = await queryService.GetByShowtimeIdAsync(showtimeId);
@@ -110,5 +123,33 @@ public sealed class SeatMapAndShowtimeContractTests
             Assert.Equal(sample.HallType, item.HallType);
             Assert.Equal(sample.Language, item.Language);
         });
+    }
+}
+
+internal sealed class FakePromotionQueryService : IPromotionQueryService
+{
+    public Task<IReadOnlyList<PromotionResponseDto>> GetPromotionsAsync(
+        string? category,
+        bool activeOnly,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IReadOnlyList<PromotionResponseDto>>(Array.Empty<PromotionResponseDto>());
+    }
+
+    public Task<IReadOnlyList<PromotionResponseDto>> GetPromotionsForShowtimeAsync(
+        Guid showtimeId,
+        DateOnly businessDate,
+        DateTime showtimeStartAtUtc,
+        bool activeOnly,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<IReadOnlyList<PromotionResponseDto>>(Array.Empty<PromotionResponseDto>());
+    }
+
+    public Task<PromotionDetailResponseDto?> GetPromotionByIdAsync(
+        Guid promotionId,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult<PromotionDetailResponseDto?>(null);
     }
 }

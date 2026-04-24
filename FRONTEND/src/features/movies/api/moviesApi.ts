@@ -40,6 +40,17 @@ export interface PromotionModel {
   expiry: string;
   isFeatured: boolean;
   displayPriority: number;
+  minimumSpendAmount?: number;
+  rules: PromotionRuleModel[];
+}
+
+export interface PromotionRuleModel {
+  id: string;
+  ruleType: string;
+  ruleValue: string;
+  thresholdValue?: number;
+  sortOrder: number;
+  isRequired: boolean;
 }
 
 export interface SnackComboModel {
@@ -114,6 +125,7 @@ export interface SeatMapModel {
   hallType: string;
   isBookable: boolean;
   bookingUnavailableReason?: string;
+  promotions: PromotionModel[];
   seats: SeatMapSeatModel[];
 }
 
@@ -299,6 +311,7 @@ interface SeatMapResponseDto {
   hallType: string;
   isBookable: boolean;
   bookingUnavailableReason?: string | null;
+  promotions?: PromotionResponseDto[] | null;
   seats: Array<{
     seatInventoryId: string;
     seatCode: string;
@@ -328,6 +341,15 @@ interface PromotionResponseDto {
   displayCondition?: string | null;
   isFeatured?: boolean;
   displayPriority?: number;
+  minimumSpendAmount?: number | null;
+  rules?: Array<{
+    id: string;
+    ruleType: string;
+    ruleValue: string;
+    thresholdValue?: number | null;
+    sortOrder: number;
+    isRequired: boolean;
+  }>;
 }
 
 interface SnackComboResponseDto {
@@ -554,6 +576,7 @@ export interface CreateMovieFeedbackPayload {
 
 const DEFAULT_POSTER =
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
+const CINEMA_TIME_ZONE = "Asia/Ho_Chi_Minh";
 
 const PROMO_IMAGES: Record<string, string> = {
   weekend: "https://images.unsplash.com/photo-1691480213129-106b2c7d1ee8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
@@ -645,6 +668,7 @@ function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: CINEMA_TIME_ZONE,
   });
 }
 
@@ -701,6 +725,15 @@ function mapPromotion(dto: PromotionResponseDto): PromotionModel {
     expiry: formatExpiry(dto.validToUtc),
     isFeatured: dto.isFeatured ?? false,
     displayPriority: dto.displayPriority ?? 0,
+    minimumSpendAmount: dto.minimumSpendAmount ?? undefined,
+    rules: (dto.rules ?? []).map((rule) => ({
+      id: rule.id,
+      ruleType: rule.ruleType,
+      ruleValue: rule.ruleValue,
+      thresholdValue: rule.thresholdValue ?? undefined,
+      sortOrder: rule.sortOrder,
+      isRequired: rule.isRequired,
+    })),
   };
 }
 
@@ -1061,6 +1094,7 @@ export async function fetchSeatMap(showtimeId: string) {
     hallType: response.hallType,
     isBookable: response.isBookable,
     bookingUnavailableReason: response.bookingUnavailableReason ?? undefined,
+    promotions: (response.promotions ?? []).map(mapPromotion),
     seats: mappedSeats,
   } satisfies SeatMapModel;
 }

@@ -137,6 +137,7 @@ public sealed class BookingQuoteService : IBookingQuoteService
                 SeatSubtotal = seatSubtotal,
                 ComboSubtotal = comboSubtotal,
                 BusinessDate = showtime.BusinessDate,
+                ShowtimeStartAtUtc = showtime.StartAtUtc,
                 GuestCustomerId = request.GuestCustomerId,
                 SnackCombos = request.SnackCombos
                     .Select(x => new EvaluatePromotionComboDto

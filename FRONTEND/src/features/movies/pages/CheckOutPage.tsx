@@ -65,6 +65,25 @@ interface ComboSummaryItem {
   quantity: number;
   lineTotal: number;
 }
+const CINEMA_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+function formatCinemaTime(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: CINEMA_TIME_ZONE,
+  });
+}
+
 const PAYMENT_METHODS: {
   id: PaymentMethod;
   label: string;
@@ -309,6 +328,7 @@ export function CheckoutPage() {
   const displayMovieTitle = apiShowtime?.movieTitle ?? 'Unknown movie';
   const displayCinemaName = apiShowtime?.cinemaName ?? 'Unknown cinema';
   const displayHallName = apiShowtime?.hallName ?? HALL_NAMES[hallType] ?? hallType;
+  const displayShowtime = formatCinemaTime(apiShowtime?.startAtUtc) ?? showtime;
 
   useEffect(() => {
     if (!showtimeId) return;
@@ -619,25 +639,6 @@ export function CheckoutPage() {
                     />
                   </InputField>
 
-                  {promoId === 'p7' && (
-                    <InputField
-                      label="Birthday"
-                      error={errors.birthday?.message}
-                      icon={<Heart className="size-3.5 text-gray-500" />}
-                    >
-                      <input
-                        {...register('birthday', {
-                          required: 'Enter your birthday to verify the birthday offer',
-                        })}
-                        type="date"
-                        className={`w-full rounded-xl border bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition-all focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 ${
-                          errors.birthday
-                            ? 'border-red-500/60 bg-red-950/10'
-                            : 'border-white/[0.08] hover:border-white/[0.15]'
-                        }`}
-                      />
-                    </InputField>
-                  )}
                 </div>
               </form>
             </div>
@@ -823,7 +824,7 @@ export function CheckoutPage() {
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Clock className="size-3 shrink-0 text-pink-400" />
-                    {showtime} &nbsp;-&nbsp; {bookingDateLabel}
+                    {displayShowtime} &nbsp;-&nbsp; {bookingDateLabel}
                   </p>
                   <p className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Film className="size-3 shrink-0 text-cyan-400" />

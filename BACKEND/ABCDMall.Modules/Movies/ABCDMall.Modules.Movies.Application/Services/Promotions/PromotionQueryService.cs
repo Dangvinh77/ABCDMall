@@ -18,24 +18,19 @@ public sealed class PromotionQueryService : IPromotionQueryService
         bool activeOnly,
         CancellationToken cancellationToken = default)
     {
-        // Day 3 list API duoc dung de frontend bo mock promotion list.
-        // category filter duoc support du dung schema hien tai chua co cot Category rieng.
         var promotions = await _promotionRepository.GetPromotionsAsync(activeOnly, cancellationToken);
-        var normalizedCategory = NormalizeCategory(category);
+        return BuildPromotionList(promotions, category);
+    }
 
-        return promotions
-            .Select(promotion => new
-            {
-                Promotion = promotion,
-                Metadata = ReadDisplayMetadata(promotion)
-            })
-            .OrderByDescending(x => x.Metadata.IsFeatured)
-            .ThenBy(x => x.Metadata.DisplayPriority)
-            .ThenByDescending(x => x.Promotion.UpdatedAtUtc)
-            .Select(x => MapPromotionListItem(x.Promotion, x.Metadata))
-            .Where(item => normalizedCategory == "all"
-                || string.Equals(item.Category, normalizedCategory, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+    public async Task<IReadOnlyList<PromotionResponseDto>> GetPromotionsForShowtimeAsync(
+        Guid showtimeId,
+        DateOnly businessDate,
+        DateTime showtimeStartAtUtc,
+        bool activeOnly,
+        CancellationToken cancellationToken = default)
+    {
+        var promotions = await _promotionRepository.GetPromotionsAsync(activeOnly, cancellationToken);
+        return BuildPromotionList(promotions, null, showtimeId, businessDate, showtimeStartAtUtc);
     }
 
     public async Task<PromotionDetailResponseDto?> GetPromotionByIdAsync(
@@ -107,8 +102,84 @@ public sealed class PromotionQueryService : IPromotionQueryService
             AccentTo = metadata.AccentTo,
             DisplayCondition = metadata.DisplayCondition,
             IsFeatured = metadata.IsFeatured,
-            DisplayPriority = metadata.DisplayPriority
+            DisplayPriority = metadata.DisplayPriority,
+            MinimumSpendAmount = promotion.MinimumSpendAmount,
+            Rules = MapRules(promotion)
         };
+    }
+
+    private IReadOnlyList<PromotionResponseDto> BuildPromotionList(
+        IReadOnlyList<Promotion> promotions,
+        string? category,
+        Guid? showtimeId = null,
+        DateOnly? businessDate = null,
+        DateTime? showtimeStartAtUtc = null)
+    {
+        var normalizedCategory = NormalizeCategory(category);
+
+        return promotions
+            .Select(promotion => new
+            {
+                Promotion = promotion,
+                Metadata = ReadDisplayMetadata(promotion)
+            })
+            .Where(x => IsPromotionVisibleForShowtimeContext(
+                x.Promotion,
+                showtimeId,
+                businessDate,
+                showtimeStartAtUtc))
+            .OrderByDescending(x => x.Metadata.IsFeatured)
+            .ThenBy(x => x.Metadata.DisplayPriority)
+            .ThenByDescending(x => x.Promotion.UpdatedAtUtc)
+            .Select(x => MapPromotionListItem(x.Promotion, x.Metadata))
+            .Where(item => normalizedCategory == "all"
+                || string.Equals(item.Category, normalizedCategory, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private static bool IsPromotionVisibleForShowtimeContext(
+        Promotion promotion,
+        Guid? showtimeId,
+        DateOnly? businessDate,
+        DateTime? showtimeStartAtUtc)
+    {
+        if (!showtimeId.HasValue || !businessDate.HasValue || !showtimeStartAtUtc.HasValue)
+        {
+            return true;
+        }
+
+        foreach (var rule in promotion.Rules.Where(rule =>
+                     rule.RuleType is Domain.Enums.PromotionRuleType.Showtime or Domain.Enums.PromotionRuleType.BusinessDate))
+        {
+            var isMatch = PromotionShowtimeRuleMatcher.MatchesShowtimeContext(
+                rule,
+                showtimeId.Value,
+                businessDate.Value,
+                showtimeStartAtUtc.Value);
+
+            if (!isMatch && rule.IsRequired)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static IReadOnlyCollection<PromotionRuleDto> MapRules(Promotion promotion)
+    {
+        return promotion.Rules
+            .OrderBy(rule => rule.SortOrder)
+            .Select(rule => new PromotionRuleDto
+            {
+                Id = rule.Id,
+                RuleType = rule.RuleType.ToString(),
+                RuleValue = rule.RuleValue,
+                ThresholdValue = rule.ThresholdValue,
+                SortOrder = rule.SortOrder,
+                IsRequired = rule.IsRequired
+            })
+            .ToArray();
     }
 
     private static string NormalizeCategory(string? category)
