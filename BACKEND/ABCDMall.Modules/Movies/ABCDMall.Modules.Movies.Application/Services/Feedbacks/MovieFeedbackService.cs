@@ -220,8 +220,7 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         return request.Status == MovieFeedbackRequestStatus.Sent
             && request.SentAtUtc.HasValue
             && request.AvailableAtUtc <= utcNow
-            && request.ExpiresAtUtc.HasValue
-            && request.ExpiresAtUtc.Value > utcNow
+            && (!request.ExpiresAtUtc.HasValue || request.ExpiresAtUtc.Value > utcNow)
             && !ShouldExpireBecauseOpenedWithoutSubmission(request, utcNow)
             && request.Feedbacks.Count < MaxSubmissionsPerRequest
             && request.InvalidatedAtUtc is null;

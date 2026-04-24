@@ -64,10 +64,12 @@ public static class DependencyInjection
         services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
         services.AddScoped<ITicketPdfRenderer, QuestPdfTicketPdfRenderer>();
         services.AddScoped<ITicketEmailSender, SmtpTicketEmailSender>();
+        services.AddScoped<IMovieFeedbackEmailSender, SmtpMovieFeedbackEmailSender>();
         services.AddScoped<ITicketEmailDispatcher, TicketEmailDispatcher>();
         services.AddScoped<IStripePaymentGateway, StripePaymentGateway>();
         services.AddHostedService<BookingHoldCleanupBackgroundService>();
         services.AddHostedService<TicketEmailOutboxBackgroundService>();
+        services.AddHostedService<MovieFeedbackInvitationBackgroundService>();
 
         return services;
     }

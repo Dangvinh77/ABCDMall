@@ -325,7 +325,7 @@ public sealed class PaymentRepository : IPaymentRepository
             PurchaserEmail = booking.CustomerEmail,
             Status = MovieFeedbackRequestStatus.Pending,
             AvailableAtUtc = availableAtUtc,
-            ExpiresAtUtc = availableAtUtc.AddHours(72),
+            ExpiresAtUtc = null,
             CreatedAtUtc = utcNow,
             UpdatedAtUtc = utcNow
         });

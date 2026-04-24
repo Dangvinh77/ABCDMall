@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using ABCDMall.Modules.Movies.Infrastructure.Options;
@@ -80,14 +78,13 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         var ticketDocument = BuildTicketDocument(booking, showtime, succeededPayment);
         var pdfBytes = _pdfRenderer.Render(ticketDocument);
         var fileName = $"ABCD-Cinema-Ticket-{booking.BookingCode}.pdf";
-        var feedbackLink = await PrepareFeedbackLinkAsync(booking, cancellationToken);
 
         await _emailSender.SendAsync(new TicketEmailMessage
         {
             ToEmail = booking.CustomerEmail,
             ToName = string.IsNullOrWhiteSpace(booking.CustomerName) ? "ABCD Cinema guest" : booking.CustomerName,
             Subject = $"Payment successful - your ABCD Cinema ticket {booking.BookingCode}",
-            HtmlBody = BuildEmailBody(booking, ticketDocument, feedbackLink),
+            HtmlBody = BuildEmailBody(booking, ticketDocument),
             AttachmentFileName = fileName,
             AttachmentContentType = "application/pdf",
             AttachmentBytes = pdfBytes
@@ -104,38 +101,6 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
 
         await _bookingDbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Ticket email sent for booking {BookingCode}.", booking.BookingCode);
-    }
-
-    private async Task<string?> PrepareFeedbackLinkAsync(Bookingg booking, CancellationToken cancellationToken)
-    {
-        var feedbackRequest = await _bookingDbContext.MovieFeedbackRequests
-            .FirstOrDefaultAsync(
-                x => x.BookingId == booking.Id && x.ShowtimeId == booking.ShowtimeId,
-                cancellationToken);
-
-        if (feedbackRequest is null)
-        {
-            return null;
-        }
-
-        if (feedbackRequest.Status is MovieFeedbackRequestStatus.Submitted
-            or MovieFeedbackRequestStatus.Cancelled
-            or MovieFeedbackRequestStatus.Expired)
-        {
-            return null;
-        }
-
-        var token = GenerateFeedbackToken();
-        feedbackRequest.TokenHash = HashToken(token);
-        feedbackRequest.Status = MovieFeedbackRequestStatus.Sent;
-        feedbackRequest.SentAtUtc = DateTime.UtcNow;
-        feedbackRequest.UpdatedAtUtc = DateTime.UtcNow;
-
-        var baseUrl = string.IsNullOrWhiteSpace(_stripeSettings.FrontendBaseUrl)
-            ? "http://localhost:5173"
-            : _stripeSettings.FrontendBaseUrl.TrimEnd('/');
-
-        return $"{baseUrl}/movies/feedback/{Uri.EscapeDataString(token)}";
     }
 
     private static TicketDocumentModel BuildTicketDocument(
@@ -193,19 +158,8 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         };
     }
 
-    private static string BuildEmailBody(Bookingg booking, TicketDocumentModel document, string? feedbackLink)
+    private static string BuildEmailBody(Bookingg booking, TicketDocumentModel document)
     {
-        var feedbackParagraph = string.IsNullOrWhiteSpace(feedbackLink)
-            ? string.Empty
-            : $$"""
-            <p>
-                After the show ends, you can share feedback for
-                <strong>{{System.Net.WebUtility.HtmlEncode(document.MovieTitle)}}</strong> here:
-                <a href="{{System.Net.WebUtility.HtmlEncode(feedbackLink)}}">Open movie feedback</a>.
-                This link is available from the end of the showtime for 72 hours and allows up to 3 submissions.
-            </p>
-            """;
-
         return $$"""
             <p>Hello {{System.Net.WebUtility.HtmlEncode(document.CustomerName)}},</p>
             <p>Your payment for booking <strong>{{System.Net.WebUtility.HtmlEncode(booking.BookingCode)}}</strong> was successful.</p>
@@ -217,22 +171,8 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
                 <strong>Total:</strong> {{System.Net.WebUtility.HtmlEncode(document.TotalText)}}
             </p>
             <p>Please arrive 15 minutes before showtime.</p>
-            {{feedbackParagraph}}
+            <p>After the show ends, we will send a separate email so you can share feedback for this movie.</p>
             <p>ABCD Cinema</p>
             """;
-    }
-
-    private static string GenerateFeedbackToken()
-    {
-        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
-
-    private static string HashToken(string token)
-    {
-        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
-        return Convert.ToHexString(hashBytes);
     }
 }

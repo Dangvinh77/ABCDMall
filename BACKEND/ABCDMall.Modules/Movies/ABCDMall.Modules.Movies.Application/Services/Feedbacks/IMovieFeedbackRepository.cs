@@ -24,8 +24,25 @@ public interface IMovieFeedbackRepository
         string tokenHash,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<MovieFeedbackRequest>> GetPendingInvitationRequestsAsync(
+        DateTime utcNow,
+        int take,
+        CancellationToken cancellationToken = default);
+
     Task<MovieFeedbackRequest> MarkOpenedAsync(
         Guid requestId,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default);
+
+    Task<MovieFeedbackRequest> MarkInvitationSentAsync(
+        Guid requestId,
+        string tokenHash,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default);
+
+    Task<MovieFeedbackRequest> MarkInvitationFailedAsync(
+        Guid requestId,
+        string error,
         DateTime utcNow,
         CancellationToken cancellationToken = default);
 

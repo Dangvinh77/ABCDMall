@@ -39,6 +39,27 @@ public sealed class MovieFeedbackServiceTests
         Assert.Equal("OpenedNoSubmission7Days", result.ExpiredReason);
     }
 
+    [Fact]
+    public async Task SubmitByTokenAsync_should_close_the_link_after_the_third_submission()
+    {
+        var request = BuildSentRequest(DateTime.UtcNow.AddDays(-1), feedbackCount: 2);
+        var repository = new FakeMovieFeedbackRepository(request);
+        var service = CreateService(repository);
+
+        await service.SubmitByTokenAsync(PlainToken, new SubmitMovieFeedbackByTokenRequestDto
+        {
+            Rating = 5,
+            Comment = "Great movie"
+        }, CancellationToken.None);
+
+        var result = await service.GetPublicRequestAsync(PlainToken, CancellationToken.None);
+
+        Assert.False(result.CanSubmit);
+        Assert.Equal("Submitted", result.Status);
+        Assert.Equal(0, result.RemainingSubmissions);
+        Assert.Equal("SubmissionLimitReached", result.ExpiredReason);
+    }
+
     private static MovieFeedbackService CreateService(FakeMovieFeedbackRepository repository)
     {
         return new MovieFeedbackService(new FakeMovieRepository(), repository);
@@ -142,6 +163,9 @@ public sealed class MovieFeedbackServiceTests
         public Task<MovieFeedbackRequest?> GetRequestByTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
             => Task.FromResult<MovieFeedbackRequest?>(_request.TokenHash == tokenHash ? _request : null);
 
+        public Task<IReadOnlyList<MovieFeedbackRequest>> GetPendingInvitationRequestsAsync(DateTime utcNow, int take, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<MovieFeedbackRequest>>(Array.Empty<MovieFeedbackRequest>());
+
         public Task<MovieFeedbackRequest> MarkOpenedAsync(Guid requestId, DateTime utcNow, CancellationToken cancellationToken = default)
         {
             if (!_request.FirstOpenedAtUtc.HasValue)
@@ -154,6 +178,12 @@ public sealed class MovieFeedbackServiceTests
             return Task.FromResult(_request);
         }
 
+        public Task<MovieFeedbackRequest> MarkInvitationSentAsync(Guid requestId, string tokenHash, DateTime utcNow, CancellationToken cancellationToken = default)
+            => Task.FromResult(_request);
+
+        public Task<MovieFeedbackRequest> MarkInvitationFailedAsync(Guid requestId, string error, DateTime utcNow, CancellationToken cancellationToken = default)
+            => Task.FromResult(_request);
+
         public Task<MovieFeedbackRequest> MarkExpiredAsync(Guid requestId, MovieFeedbackRequestExpiredReason reason, DateTime utcNow, CancellationToken cancellationToken = default)
         {
             _request.Status = MovieFeedbackRequestStatus.Expired;
@@ -164,6 +194,19 @@ public sealed class MovieFeedbackServiceTests
         }
 
         public Task<MovieFeedback> SubmitByRequestAsync(MovieFeedbackRequest request, MovieFeedback feedback, DateTime utcNow, CancellationToken cancellationToken = default)
-            => Task.FromResult(feedback);
+        {
+            _request.Feedbacks.Add(feedback);
+            _request.UpdatedAtUtc = utcNow;
+
+            if (_request.Feedbacks.Count >= 3)
+            {
+                _request.Status = MovieFeedbackRequestStatus.Submitted;
+                _request.SubmittedAtUtc = utcNow;
+                _request.InvalidatedAtUtc = utcNow;
+                _request.ExpiredReason = MovieFeedbackRequestExpiredReason.SubmissionLimitReached;
+            }
+
+            return Task.FromResult(feedback);
+        }
     }
 }
