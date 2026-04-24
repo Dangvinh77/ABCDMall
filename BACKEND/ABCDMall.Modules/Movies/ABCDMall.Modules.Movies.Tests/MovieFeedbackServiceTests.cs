@@ -40,6 +40,29 @@ public sealed class MovieFeedbackServiceTests
     }
 
     [Fact]
+    public async Task GetPublicRequestAsync_should_expire_request_after_force_expire_opened_mutation()
+    {
+        var request = BuildSentRequest(DateTime.UtcNow.AddDays(-1), feedbackCount: 0);
+        request.LastOpenedAtUtc = request.FirstOpenedAtUtc;
+
+        var repository = new FakeMovieFeedbackRepository(request);
+        request.FirstOpenedAtUtc = DateTime.UtcNow.AddDays(-8);
+        request.LastOpenedAtUtc = DateTime.UtcNow.AddDays(-8);
+        request.Status = MovieFeedbackRequestStatus.Sent;
+        request.ExpiredReason = null;
+        request.InvalidatedAtUtc = null;
+
+        var service = CreateService(repository);
+
+        var result = await service.GetPublicRequestAsync(PlainToken, CancellationToken.None);
+
+        Assert.False(result.CanSubmit);
+        Assert.Equal("Expired", result.Status);
+        Assert.Equal("OpenedNoSubmission7Days", result.ExpiredReason);
+        Assert.Equal("Feedback link expired after 7 days without a submission.", result.Message);
+    }
+
+    [Fact]
     public async Task SubmitByTokenAsync_should_close_the_link_after_the_third_submission()
     {
         var request = BuildSentRequest(DateTime.UtcNow.AddDays(-1), feedbackCount: 2);

@@ -32,4 +32,18 @@ public sealed class MoviesAdminTestController : ControllerBase
         var result = await _moviesAdminService.ForceFinishShowtimeAsync(showtimeId, cancellationToken);
         return result is null ? NotFound() : Ok(result);
     }
+
+    [HttpPost("feedback-requests/{requestId:guid}/expire-opened")]
+    public async Task<ActionResult<MoviesAdminForceExpireOpenedFeedbackRequestResponseDto>> ForceExpireOpenedFeedbackRequest(
+        Guid requestId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_environment.IsDevelopment() && !_environment.IsEnvironment("Test"))
+        {
+            return NotFound();
+        }
+
+        var result = await _moviesAdminService.ForceExpireOpenedFeedbackRequestAsync(requestId, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
+    }
 }
