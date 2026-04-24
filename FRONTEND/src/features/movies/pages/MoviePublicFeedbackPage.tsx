@@ -11,7 +11,7 @@ import {
 } from '../api/moviesApi';
 
 const ratingOptions = [5, 4, 3, 2, 1];
-const feedbackClosedMessage = 'Bạn đã feedback cho phim này rồi.';
+const feedbackClosedMessage = 'Link feedback này đã đóng.';
 
 function formatDateTime(value?: string | null) {
   if (!value) {
@@ -32,19 +32,24 @@ function formatDateTime(value?: string | null) {
   });
 }
 
-function normalizeClosedMessage(message?: string | null) {
-  if (!message) {
-    return feedbackClosedMessage;
+function resolveFeedbackNotice(request?: PublicMovieFeedbackRequestModel | null) {
+  if (!request || request.canSubmit) {
+    return null;
   }
 
-  if (
-    message.toLowerCase().includes('already submitted') ||
-    message.toLowerCase().includes('expired')
-  ) {
-    return feedbackClosedMessage;
+  if (request.status === 'Submitted' || request.expiredReason === 'SubmissionLimitReached') {
+    return 'Link feedback đã đủ 3 lần gửi và đã tự động đóng.';
   }
 
-  return message;
+  if (request.expiredReason === 'OpenedNoSubmission7Days') {
+    return 'Link feedback đã hết hạn vì không gửi phản hồi trong 7 ngày kể từ lần mở đầu tiên.';
+  }
+
+  if (request.status === 'Pending') {
+    return 'Form feedback sẽ mở sau khi suất chiếu bộ phim kết thúc.';
+  }
+
+  return request.message ?? feedbackClosedMessage;
 }
 
 export function MoviePublicFeedbackPage() {
@@ -89,7 +94,7 @@ export function MoviePublicFeedbackPage() {
 
         setRequest(publicRequest);
         setFeedbacks(movieFeedbacks.items);
-        setNotice(publicRequest.canSubmit ? null : normalizeClosedMessage(publicRequest.message));
+        setNotice(resolveFeedbackNotice(publicRequest));
       } catch (loadError) {
         if (!active) return;
         setError(loadError instanceof Error ? loadError.message : 'Không thể mở link feedback.');
@@ -130,10 +135,10 @@ export function MoviePublicFeedbackPage() {
       setDisplayName('');
       setComment('');
       setRating(5);
-      setNotice(refreshedRequest.canSubmit ? 'Cảm ơn bạn, feedback đã được gửi.' : feedbackClosedMessage);
+      setNotice(refreshedRequest.canSubmit ? 'Cảm ơn bạn, feedback đã được gửi.' : resolveFeedbackNotice(refreshedRequest));
     } catch (submitError) {
-      setNotice(feedbackClosedMessage);
-      setError(submitError instanceof Error ? normalizeClosedMessage(submitError.message) : feedbackClosedMessage);
+      setNotice(resolveFeedbackNotice(request));
+      setError(submitError instanceof Error ? submitError.message : feedbackClosedMessage);
     } finally {
       setSubmitting(false);
     }
@@ -153,7 +158,7 @@ export function MoviePublicFeedbackPage() {
         <div>
           <AlertCircle className="mx-auto mb-4 size-12 text-red-400" />
           <h1 className="text-2xl font-bold text-white">Không thể mở feedback</h1>
-          <p className="mt-2 text-gray-400">{normalizeClosedMessage(error)}</p>
+          <p className="mt-2 text-gray-400">{error}</p>
           <Button asChild className="mt-6 bg-purple-600 hover:bg-purple-700">
             <Link to="/movies">
               <ArrowLeft className="mr-2 size-4" />
@@ -218,7 +223,7 @@ export function MoviePublicFeedbackPage() {
 
           {error && request && (
             <p className="mt-4 rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-100">
-              {normalizeClosedMessage(error)}
+              {error}
             </p>
           )}
 
@@ -257,7 +262,9 @@ export function MoviePublicFeedbackPage() {
             {request?.canSubmit && (
               <form onSubmit={handleSubmit} className="rounded-xl border border-gray-800 bg-gray-950/60 p-5">
                 <h2 className="text-lg font-bold">Gửi feedback</h2>
-                <p className="mt-1 text-sm text-gray-400">Mỗi link được gửi tối đa 3 feedback trong thời gian hợp lệ.</p>
+                <p className="mt-1 text-sm text-gray-400">
+                  Còn lại {request.remainingSubmissions} lần gửi feedback từ link này.
+                </p>
 
                 <label className="mt-5 block text-sm font-semibold text-gray-300" htmlFor="public-feedback-name">
                   Tên hiển thị

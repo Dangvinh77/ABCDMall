@@ -190,8 +190,11 @@ export interface PublicMovieFeedbackRequestModel {
   showtimeId: string;
   movieTitle: string;
   availableAtUtc: string;
+  firstOpenedAtUtc?: string | null;
   expiresAtUtc?: string | null;
   status: string;
+  expiredReason?: string | null;
+  remainingSubmissions: number;
   canSubmit: boolean;
   message?: string | null;
 }
@@ -445,8 +448,11 @@ interface PublicMovieFeedbackRequestResponseDto {
   showtimeId: string;
   movieTitle: string;
   availableAtUtc: string;
+  firstOpenedAtUtc?: string | null;
   expiresAtUtc?: string | null;
   status: string;
+  expiredReason?: string | null;
+  remainingSubmissions: number;
   canSubmit: boolean;
   message?: string | null;
 }
@@ -847,9 +853,24 @@ export async function createMovieFeedback(movieId: string, payload: CreateMovieF
 }
 
 export async function fetchPublicMovieFeedbackRequest(token: string) {
-  return api.get<PublicMovieFeedbackRequestResponseDto>(
+  const response = await api.get<PublicMovieFeedbackRequestResponseDto>(
     `/movie-feedback/public/${encodeURIComponent(token)}`,
   );
+
+  return {
+    feedbackRequestId: response.feedbackRequestId,
+    movieId: response.movieId,
+    showtimeId: response.showtimeId,
+    movieTitle: response.movieTitle,
+    availableAtUtc: response.availableAtUtc,
+    firstOpenedAtUtc: response.firstOpenedAtUtc ?? null,
+    expiresAtUtc: response.expiresAtUtc ?? null,
+    status: response.status,
+    expiredReason: response.expiredReason ?? null,
+    remainingSubmissions: response.remainingSubmissions,
+    canSubmit: response.canSubmit,
+    message: response.message ?? null,
+  } satisfies PublicMovieFeedbackRequestModel;
 }
 
 export async function submitMovieFeedbackByToken(token: string, payload: CreateMovieFeedbackPayload) {
