@@ -1,3 +1,3 @@
 movies.admin1@abcdmall.local / MoviesAdmin@123
 admin@abcdmall.local / Admin@123
-manager1@abcdmall.local / Manager@123
+manager1@abcdmall.local / Manager@123 / 079203000111
