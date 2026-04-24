@@ -528,6 +528,32 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         return true;
     }
 
+    public async Task<MoviesAdminForceFinishShowtimeResponseDto?> ForceFinishShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
+    {
+        var showtime = await _catalogDbContext.Showtimes.FirstOrDefaultAsync(x => x.Id == showtimeId, cancellationToken);
+        if (showtime is null)
+        {
+            return null;
+        }
+
+        var utcNow = DateTime.UtcNow;
+        var forcedEndAtUtc = utcNow.AddMinutes(-1);
+        var previousEndAtUtc = showtime.EndAtUtc;
+
+        showtime.EndAtUtc = forcedEndAtUtc;
+        showtime.UpdatedAtUtc = utcNow;
+
+        await _catalogDbContext.SaveChangesAsync(cancellationToken);
+
+        return new MoviesAdminForceFinishShowtimeResponseDto
+        {
+            ShowtimeId = showtime.Id,
+            PreviousEndAtUtc = previousEndAtUtc,
+            NewEndAtUtc = forcedEndAtUtc,
+            Message = "Showtime end time moved to the past for feedback-email testing."
+        };
+    }
+
     public async Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
         string? status,
         string? paymentStatus,

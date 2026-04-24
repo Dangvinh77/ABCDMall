@@ -58,3 +58,11 @@ public sealed class MoviesAdminRevenueBreakdownDto
     public decimal Revenue { get; set; }
     public int BookingCount { get; set; }
 }
+
+public sealed class MoviesAdminForceFinishShowtimeResponseDto
+{
+    public Guid ShowtimeId { get; set; }
+    public DateTime? PreviousEndAtUtc { get; set; }
+    public DateTime NewEndAtUtc { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

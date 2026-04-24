@@ -60,6 +60,9 @@ public sealed class MoviesAdminService : IMoviesAdminService
     public Task<bool> DeleteShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
         => _repository.DeleteShowtimeAsync(showtimeId, cancellationToken);
 
+    public Task<MoviesAdminForceFinishShowtimeResponseDto?> ForceFinishShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
+        => _repository.ForceFinishShowtimeAsync(showtimeId, cancellationToken);
+
     public Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
         string? status,
         string? paymentStatus,
