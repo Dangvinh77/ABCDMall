@@ -43,7 +43,13 @@
 
 
 type Props = {
-  food: any;
+  food: {
+    id?: string;
+    name: string;
+    slug?: string;
+    imageUrl: string;
+    description?: string;
+  };
   onClose: () => void;
 };
 

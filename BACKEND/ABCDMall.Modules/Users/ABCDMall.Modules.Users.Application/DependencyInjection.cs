@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Users.Application.Mappings;
+using ABCDMall.Modules.Users.Application.Services.Bidding;
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Application.Services.RentalAreas;
@@ -23,6 +24,10 @@ public static class DependencyInjection
         services.AddScoped<IShopInfoQueryService, ShopInfoQueryService>();
         services.AddScoped<IPublicShopCatalogService, PublicShopCatalogService>();
         services.AddScoped<IShopInfoPublicManagerService, ShopInfoPublicManagerService>();
+        services.AddScoped<IBiddingManagerService, BiddingManagerService>();
+        services.AddScoped<IBiddingAdminService, BiddingAdminService>();
+        services.AddScoped<IPublicCarouselQueryService, PublicCarouselQueryService>();
+        services.AddScoped<IBidPaymentService, BidPaymentService>();
 
         return services;
     }

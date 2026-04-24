@@ -19,7 +19,7 @@ export const eventsApi = {
   getHotEvents: async (): Promise<EventDto[]> => {
     try {
       return await api.get<EventDto[]>("/events/hot");
-    } catch (error) {
+    } catch {
       return [];
     }
   }

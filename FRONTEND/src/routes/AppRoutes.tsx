@@ -3,9 +3,14 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
 
 const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagement"));
+const AdminBiddingPage = lazy(() => import("../features/bidding/pages/AdminBiddingPage"));
+const BiddingCheckoutPage = lazy(() => import("../features/bidding/pages/BiddingCheckoutPage"));
+const BiddingPaymentCancelPage = lazy(() => import("../features/bidding/pages/BiddingPaymentCancelPage"));
+const BiddingPaymentSuccessPage = lazy(() => import("../features/bidding/pages/BiddingPaymentSuccessPage"));
 const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
 const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
 const Login = lazy(() => import("../features/auth/pages/Login"));
+const ManagerBiddingPage = lazy(() => import("../features/bidding/pages/ManagerBiddingPage"));
 const ManagerShops = lazy(() => import("../features/auth/pages/ManagerShops"));
 const Profile = lazy(() => import("../features/auth/pages/Profile"));
 const Register = lazy(() => import("../features/auth/pages/Register"));
@@ -47,12 +52,17 @@ export function AppRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/manager-bidding" element={<ManagerBiddingPage />} />
+        <Route path="/manager-bidding/checkout/:bidId" element={<BiddingCheckoutPage />} />
+        <Route path="/manager-bidding/payment/success" element={<BiddingPaymentSuccessPage />} />
+        <Route path="/manager-bidding/payment/cancel" element={<BiddingPaymentCancelPage />} />
         <Route path="/manager-shops" element={<ManagerShops />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register" element={<Register />} />
         <Route path="/shop-info" element={<ShopInfo />} />
         <Route path="/admin-management" element={<AdminManagement />} />
+        <Route path="/admin-management/bidding" element={<AdminBiddingPage />} />
         <Route path="/admin-management/users" element={<UserManagement />} />
         <Route path="/admin-management/revenue" element={<RevenueStatistics />} />
         <Route path="/rental-areas" element={<RentalAreasAdmin />} />

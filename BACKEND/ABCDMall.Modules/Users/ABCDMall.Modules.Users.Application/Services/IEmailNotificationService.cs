@@ -13,4 +13,10 @@ public interface IEmailNotificationService
     Task<bool> SendForgotPasswordOtpEmailAsync(string toEmail, string? fullName, string otp);
 
     Task<bool> SendLoginOtpEmailAsync(string toEmail, string? fullName, string otp);
+
+    Task<bool> SendCarouselBidWonEmailAsync(string toEmail, string? fullName, string shopName, decimal bidAmount, DateTime targetMondayDate);
+
+    Task<bool> SendCarouselBidLostEmailAsync(string toEmail, string? fullName, string shopName, decimal bidAmount, DateTime targetMondayDate);
+
+    Task<bool> SendCarouselBidPaymentSuccessEmailAsync(string toEmail, string? fullName, string shopName, decimal bidAmount, DateTime targetMondayDate);
 }

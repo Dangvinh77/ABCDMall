@@ -22,6 +22,8 @@ namespace ABCDMall.Modules.Users.Infrastructure
         public DbSet<PublicShop> PublicShops => Set<PublicShop>();
         public DbSet<PublicShopProduct> PublicShopProducts => Set<PublicShopProduct>();
         public DbSet<PublicShopVoucher> PublicShopVouchers => Set<PublicShopVoucher>();
+        public DbSet<CarouselBid> CarouselBids => Set<CarouselBid>();
+        public DbSet<MovieCarouselAd> MovieCarouselAds => Set<MovieCarouselAd>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +38,8 @@ namespace ABCDMall.Modules.Users.Infrastructure
             modelBuilder.ApplyConfiguration(new PublicShopConfiguration());
             modelBuilder.ApplyConfiguration(new PublicShopProductConfiguration());
             modelBuilder.ApplyConfiguration(new PublicShopVoucherConfiguration());
+            modelBuilder.ApplyConfiguration(new CarouselBidConfiguration());
+            modelBuilder.ApplyConfiguration(new MovieCarouselAdConfiguration());
             base.OnModelCreating(modelBuilder);
         }
     }

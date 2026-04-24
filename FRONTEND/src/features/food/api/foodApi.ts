@@ -1,22 +1,16 @@
 import { api, BASE_URL } from "../../../core/api/api";
 
-export const getFoods = <T = unknown>() => api.get<T>("/food");
+export interface CreateFoodRequest {
+  name: string;
+  description?: string;
+  imageUrl?: string;
+}
 
-//export const createFood = (data: any) => api.post("/food", data);
+export const getFoods = <T = unknown>() => api.get<T>("/food");
 
 export const getFoodBySlug = <T = unknown>(slug: string) => api.get<T>(`/food/slug/${slug}`);
 
-// export const uploadImage = async (file: File) => {
-//   const formData = new FormData();
-//   formData.append("file", file);
-
-//   const res = await fetch("http://localhost:5184/api/food/upload", {
-//     method: "POST",
-//     body: formData,
-//   });
-
-//   return res.json();
-export const createFood = async (data: any, file?: File) => {
+export const createFood = async (data: CreateFoodRequest, file?: File) => {
   const formData = new FormData();
 
   formData.append("name", data.name);

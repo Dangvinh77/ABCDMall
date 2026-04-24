@@ -13,4 +13,6 @@ public interface IFileStorageService
     Task<string> SaveShopCoverAsync(IFormFile file, CancellationToken cancellationToken = default);
 
     Task<string> SaveShopProductImageAsync(IFormFile file, CancellationToken cancellationToken = default);
+
+    Task<string> SaveBiddingImageAsync(IFormFile file, CancellationToken cancellationToken = default);
 }

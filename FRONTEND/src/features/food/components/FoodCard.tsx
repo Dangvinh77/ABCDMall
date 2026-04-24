@@ -27,7 +27,17 @@
 
 import { useNavigate } from "react-router-dom";
 
-export default function FoodCard({ food }: any) {
+export interface FoodCardProps {
+  food: {
+    id?: string;
+    name: string;
+    slug?: string;
+    imageUrl: string;
+    description?: string;
+  };
+}
+
+export default function FoodCard({ food }: FoodCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -39,7 +49,6 @@ export default function FoodCard({ food }: any) {
       <div className="h-44 bg-gray-100 flex items-center justify-center overflow-hidden">
         <img
           src={food.imageUrl}
-         // src={`http://localhost:5184${food.imageUrl}?t=${Date.now()}`}
           className="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300"
         />
       </div>

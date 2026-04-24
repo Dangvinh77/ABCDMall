@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import type { ShopDetail } from './types/shop.types';
 import { getImageUrl } from "@/core/utils/image";
+import { api } from "../../core/api/api";
 
 export const ShopDetailFeature = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -20,13 +21,8 @@ export const ShopDetailFeature = () => {
       setError(null);
       
       try {
-        const response = await fetch(`http://localhost:5184/api/shops/${slug.toLowerCase()}`);
-       
-        if (!response.ok) {
-          throw new Error('Store not found');
-        }
-        
-        const data = await response.json();
+        // Sử dụng api từ core thay vì hardcoded URL
+        const data = await api.get<ShopDetail>(`/shops/${slug.toLowerCase()}`);
         setShop(data);
         
       } catch (err: any) {

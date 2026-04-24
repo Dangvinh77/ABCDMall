@@ -20,6 +20,12 @@ const adminSections = [
     accent: "bg-emerald-300 text-slate-950 hover:bg-emerald-200",
   },
   {
+    title: "Bidding Control",
+    description: "Review weekly homepage bids, submit the fixed movie ad, and run the Saturday and Monday simulation flows.",
+    href: "/admin-management/bidding",
+    accent: "bg-violet-300 text-slate-950 hover:bg-violet-200",
+  },
+  {
     title: "Create Manager",
     description: "Register a manager account, create the initial shop profile, and send email notification.",
     href: "/register",

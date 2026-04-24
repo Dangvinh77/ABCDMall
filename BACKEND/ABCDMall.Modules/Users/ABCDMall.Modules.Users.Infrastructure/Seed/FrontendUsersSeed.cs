@@ -10,6 +10,7 @@ public static class FrontendUsersSeed
         var now = DateTime.UtcNow;
 
         await SeedUsersAndShopsAsync(db, now, ct);
+        await BiddingSeed.SeedAsync(db, ct);
         await SeedRentalAreasAsync(db, now, ct);
         await SeedMonthlyBillsAsync(db, now, ct);
         await SeedProfileUpdateHistoriesAsync(db, ct);
