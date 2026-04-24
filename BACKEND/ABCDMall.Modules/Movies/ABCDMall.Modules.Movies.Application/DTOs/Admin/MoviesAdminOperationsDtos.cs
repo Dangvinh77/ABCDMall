@@ -76,3 +76,13 @@ public sealed class MoviesAdminForceExpireOpenedFeedbackRequestResponseDto
     public DateTime NewLastOpenedAtUtc { get; set; }
     public string Message { get; set; } = string.Empty;
 }
+
+public sealed class MoviesAdminResolveFeedbackRequestByTokenRequestDto
+{
+    public string Token { get; set; } = string.Empty;
+}
+
+public sealed class MoviesAdminResolveFeedbackRequestByTokenResponseDto
+{
+    public Guid RequestId { get; set; }
+}

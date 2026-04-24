@@ -25,6 +25,7 @@ public interface IMoviesAdminRepository
     Task<bool> DeleteShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default);
     Task<MoviesAdminForceFinishShowtimeResponseDto?> ForceFinishShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default);
     Task<MoviesAdminForceExpireOpenedFeedbackRequestResponseDto?> ForceExpireOpenedFeedbackRequestAsync(Guid requestId, CancellationToken cancellationToken = default);
+    Task<MoviesAdminResolveFeedbackRequestByTokenResponseDto?> ResolveFeedbackRequestIdByTokenAsync(string token, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
         string? status,
         string? paymentStatus,

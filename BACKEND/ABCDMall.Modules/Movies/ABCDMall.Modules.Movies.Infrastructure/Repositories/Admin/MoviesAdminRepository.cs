@@ -6,6 +6,8 @@ using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -595,6 +597,28 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             NewLastOpenedAtUtc = forcedOpenedAtUtc,
             Message = "Feedback request opened timestamps moved to the past for expiry testing."
         };
+    }
+
+    public async Task<MoviesAdminResolveFeedbackRequestByTokenResponseDto?> ResolveFeedbackRequestIdByTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
+        var normalizedToken = token.Trim();
+        var tokenHash = HashToken(normalizedToken);
+        var requestId = await _bookingDbContext.MovieFeedbackRequests
+            .Where(x => x.TokenHash == tokenHash)
+            .Select(x => (Guid?)x.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return requestId.HasValue
+            ? new MoviesAdminResolveFeedbackRequestByTokenResponseDto
+            {
+                RequestId = requestId.Value
+            }
+            : null;
     }
 
     public async Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
@@ -1313,6 +1337,12 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             SeatType.Couple => Math.Round(basePrice * 1.5m, 2),
             _ => basePrice
         };
+    }
+
+    private static string HashToken(string token)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(hashBytes);
     }
 
     private static void ValidateMovieRequest(MoviesAdminMovieUpsertDto request)

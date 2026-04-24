@@ -11,6 +11,59 @@ namespace ABCDMall.Modules.Movies.Tests;
 public sealed class MoviesAdminTestControllerTests
 {
     [Fact]
+    public async Task ResolveFeedbackRequest_should_return_not_found_outside_dev_or_test()
+    {
+        var service = new FakeMoviesAdminService();
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment("Production"));
+
+        var result = await controller.ResolveFeedbackRequest(new MoviesAdminResolveFeedbackRequestByTokenRequestDto
+        {
+            Token = "feedback-token"
+        });
+
+        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.Equal(0, service.ResolveFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ResolveFeedbackRequest_should_return_bad_request_when_token_is_blank()
+    {
+        var service = new FakeMoviesAdminService();
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment(Environments.Development));
+
+        var result = await controller.ResolveFeedbackRequest(new MoviesAdminResolveFeedbackRequestByTokenRequestDto());
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        var problem = Assert.IsType<ProblemDetails>(badRequest.Value);
+        Assert.Equal("Token is required.", problem.Title);
+        Assert.Equal(0, service.ResolveFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ResolveFeedbackRequest_should_return_ok_when_token_matches()
+    {
+        var requestId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        var service = new FakeMoviesAdminService
+        {
+            ResolveFeedbackRequestResponse = new MoviesAdminResolveFeedbackRequestByTokenResponseDto
+            {
+                RequestId = requestId
+            }
+        };
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment(Environments.Development));
+
+        var result = await controller.ResolveFeedbackRequest(new MoviesAdminResolveFeedbackRequestByTokenRequestDto
+        {
+            Token = "feedback-token"
+        });
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var payload = Assert.IsType<MoviesAdminResolveFeedbackRequestByTokenResponseDto>(ok.Value);
+        Assert.Equal(requestId, payload.RequestId);
+        Assert.Equal(1, service.ResolveFeedbackRequestCallCount);
+    }
+
+    [Fact]
     public async Task ForceExpireOpenedFeedbackRequest_should_return_not_found_outside_dev_or_test()
     {
         var service = new FakeMoviesAdminService();
@@ -90,8 +143,10 @@ public sealed class MoviesAdminTestControllerTests
     {
         public int ForceFinishShowtimeCallCount { get; private set; }
         public int ForceExpireOpenedFeedbackRequestCallCount { get; private set; }
+        public int ResolveFeedbackRequestCallCount { get; private set; }
         public MoviesAdminForceFinishShowtimeResponseDto? Response { get; set; }
         public MoviesAdminForceExpireOpenedFeedbackRequestResponseDto? ForceExpireOpenedResponse { get; set; }
+        public MoviesAdminResolveFeedbackRequestByTokenResponseDto? ResolveFeedbackRequestResponse { get; set; }
 
         public Task<MoviesAdminForceFinishShowtimeResponseDto?> ForceFinishShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
         {
@@ -103,6 +158,12 @@ public sealed class MoviesAdminTestControllerTests
         {
             ForceExpireOpenedFeedbackRequestCallCount += 1;
             return Task.FromResult(ForceExpireOpenedResponse);
+        }
+
+        public Task<MoviesAdminResolveFeedbackRequestByTokenResponseDto?> ResolveFeedbackRequestIdByTokenAsync(string token, CancellationToken cancellationToken = default)
+        {
+            ResolveFeedbackRequestCallCount += 1;
+            return Task.FromResult(ResolveFeedbackRequestResponse);
         }
 
         public Task<MoviesAdminDashboardResponseDto> GetDashboardAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();

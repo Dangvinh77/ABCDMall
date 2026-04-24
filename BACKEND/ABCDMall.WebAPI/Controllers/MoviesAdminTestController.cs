@@ -46,4 +46,28 @@ public sealed class MoviesAdminTestController : ControllerBase
         var result = await _moviesAdminService.ForceExpireOpenedFeedbackRequestAsync(requestId, cancellationToken);
         return result is null ? NotFound() : Ok(result);
     }
+
+    [HttpPost("feedback-links/resolve-request")]
+    public async Task<ActionResult<MoviesAdminResolveFeedbackRequestByTokenResponseDto>> ResolveFeedbackRequest(
+        [FromBody] MoviesAdminResolveFeedbackRequestByTokenRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_environment.IsDevelopment() && !_environment.IsEnvironment("Test"))
+        {
+            return NotFound();
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Token))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Token is required.",
+                Detail = "Provide the feedback token in the request body.",
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
+
+        var result = await _moviesAdminService.ResolveFeedbackRequestIdByTokenAsync(request.Token, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
+    }
 }
