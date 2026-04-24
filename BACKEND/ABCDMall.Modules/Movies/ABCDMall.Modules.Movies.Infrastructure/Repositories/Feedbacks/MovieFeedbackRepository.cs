@@ -62,6 +62,46 @@ public sealed class MovieFeedbackRepository : IMovieFeedbackRepository
             .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
     }
 
+    public async Task<MovieFeedbackRequest> MarkOpenedAsync(
+        Guid requestId,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        var trackedRequest = await _dbContext.MovieFeedbackRequests
+            .Include(x => x.Feedbacks)
+            .FirstOrDefaultAsync(x => x.Id == requestId, cancellationToken)
+            ?? throw new InvalidOperationException("Feedback request not found.");
+
+        if (!trackedRequest.FirstOpenedAtUtc.HasValue)
+        {
+            trackedRequest.FirstOpenedAtUtc = utcNow;
+        }
+
+        trackedRequest.LastOpenedAtUtc = utcNow;
+        trackedRequest.UpdatedAtUtc = utcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return trackedRequest;
+    }
+
+    public async Task<MovieFeedbackRequest> MarkExpiredAsync(
+        Guid requestId,
+        MovieFeedbackRequestExpiredReason reason,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default)
+    {
+        var trackedRequest = await _dbContext.MovieFeedbackRequests
+            .Include(x => x.Feedbacks)
+            .FirstOrDefaultAsync(x => x.Id == requestId, cancellationToken)
+            ?? throw new InvalidOperationException("Feedback request not found.");
+
+        trackedRequest.Status = MovieFeedbackRequestStatus.Expired;
+        trackedRequest.ExpiredReason = reason;
+        trackedRequest.InvalidatedAtUtc = utcNow;
+        trackedRequest.UpdatedAtUtc = utcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return trackedRequest;
+    }
+
     public async Task<MovieFeedback> SubmitByRequestAsync(
         MovieFeedbackRequest request,
         MovieFeedback feedback,

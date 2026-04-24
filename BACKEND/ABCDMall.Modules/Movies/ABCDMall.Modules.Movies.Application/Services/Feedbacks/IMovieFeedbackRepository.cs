@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Domain.Entities;
+using ABCDMall.Modules.Movies.Domain.Enums;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Feedbacks;
 
@@ -21,6 +22,17 @@ public interface IMovieFeedbackRepository
 
     Task<MovieFeedbackRequest?> GetRequestByTokenHashAsync(
         string tokenHash,
+        CancellationToken cancellationToken = default);
+
+    Task<MovieFeedbackRequest> MarkOpenedAsync(
+        Guid requestId,
+        DateTime utcNow,
+        CancellationToken cancellationToken = default);
+
+    Task<MovieFeedbackRequest> MarkExpiredAsync(
+        Guid requestId,
+        MovieFeedbackRequestExpiredReason reason,
+        DateTime utcNow,
         CancellationToken cancellationToken = default);
 
     Task<MovieFeedback> SubmitByRequestAsync(

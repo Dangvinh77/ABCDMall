@@ -12,6 +12,7 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
 {
     private const int MaxPageSize = 50;
     private const int MaxSubmissionsPerRequest = 3;
+    private static readonly TimeSpan OpenWithoutSubmissionExpiry = TimeSpan.FromDays(7);
 
     private readonly IMovieRepository _movieRepository;
     private readonly IMovieFeedbackRepository _feedbackRepository;
@@ -103,22 +104,22 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         string token,
         CancellationToken cancellationToken = default)
     {
-        var request = await GetRequestFromTokenAsync(token, cancellationToken);
-        var movie = await _movieRepository.GetMovieByIdAsync(request.MovieId, cancellationToken);
         var now = DateTime.UtcNow;
-
-        return new PublicMovieFeedbackRequestResponseDto
+        var request = await GetRequestFromTokenAsync(token, cancellationToken);
+        if (ShouldExpireBecauseOpenedWithoutSubmission(request, now))
         {
-            FeedbackRequestId = request.Id,
-            MovieId = request.MovieId,
-            ShowtimeId = request.ShowtimeId,
-            MovieTitle = movie?.Title ?? string.Empty,
-            AvailableAtUtc = request.AvailableAtUtc,
-            ExpiresAtUtc = request.ExpiresAtUtc,
-            Status = request.Status.ToString(),
-            CanSubmit = CanSubmit(request, now),
-            Message = GetRequestMessage(request, now)
-        };
+            request = await _feedbackRepository.MarkExpiredAsync(
+                request.Id,
+                MovieFeedbackRequestExpiredReason.OpenedNoSubmission7Days,
+                now,
+                cancellationToken);
+        }
+        else if (request.Status == MovieFeedbackRequestStatus.Sent)
+        {
+            request = await _feedbackRepository.MarkOpenedAsync(request.Id, now, cancellationToken);
+        }
+
+        return await BuildPublicResponseAsync(request, now, cancellationToken);
     }
 
     public async Task<MovieFeedbackResponseDto> SubmitByTokenAsync(
@@ -126,8 +127,18 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         SubmitMovieFeedbackByTokenRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var feedbackRequest = await GetRequestFromTokenAsync(token, cancellationToken);
         var now = DateTime.UtcNow;
+        var feedbackRequest = await GetRequestFromTokenAsync(token, cancellationToken);
+
+        if (ShouldExpireBecauseOpenedWithoutSubmission(feedbackRequest, now))
+        {
+            feedbackRequest = await _feedbackRepository.MarkExpiredAsync(
+                feedbackRequest.Id,
+                MovieFeedbackRequestExpiredReason.OpenedNoSubmission7Days,
+                now,
+                cancellationToken);
+        }
+
         if (!CanSubmit(feedbackRequest, now))
         {
             throw new InvalidOperationException(GetRequestMessage(feedbackRequest, now) ?? "Feedback link is not available.");
@@ -171,6 +182,39 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         return request ?? throw new InvalidOperationException("Feedback link is invalid.");
     }
 
+    private async Task<PublicMovieFeedbackRequestResponseDto> BuildPublicResponseAsync(
+        MovieFeedbackRequest request,
+        DateTime utcNow,
+        CancellationToken cancellationToken)
+    {
+        var movie = await _movieRepository.GetMovieByIdAsync(request.MovieId, cancellationToken);
+
+        return new PublicMovieFeedbackRequestResponseDto
+        {
+            FeedbackRequestId = request.Id,
+            MovieId = request.MovieId,
+            ShowtimeId = request.ShowtimeId,
+            MovieTitle = movie?.Title ?? string.Empty,
+            AvailableAtUtc = request.AvailableAtUtc,
+            ExpiresAtUtc = request.ExpiresAtUtc,
+            FirstOpenedAtUtc = request.FirstOpenedAtUtc,
+            RemainingSubmissions = Math.Max(0, MaxSubmissionsPerRequest - request.Feedbacks.Count),
+            Status = request.Status.ToString(),
+            ExpiredReason = request.ExpiredReason?.ToString(),
+            CanSubmit = CanSubmit(request, utcNow),
+            Message = GetRequestMessage(request, utcNow)
+        };
+    }
+
+    private static bool ShouldExpireBecauseOpenedWithoutSubmission(MovieFeedbackRequest request, DateTime utcNow)
+    {
+        return request.Status == MovieFeedbackRequestStatus.Sent
+            && request.FirstOpenedAtUtc.HasValue
+            && request.Feedbacks.Count == 0
+            && request.InvalidatedAtUtc is null
+            && request.FirstOpenedAtUtc.Value.Add(OpenWithoutSubmissionExpiry) <= utcNow;
+    }
+
     private static bool CanSubmit(MovieFeedbackRequest request, DateTime utcNow)
     {
         return request.Status == MovieFeedbackRequestStatus.Sent
@@ -178,6 +222,7 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
             && request.AvailableAtUtc <= utcNow
             && request.ExpiresAtUtc.HasValue
             && request.ExpiresAtUtc.Value > utcNow
+            && !ShouldExpireBecauseOpenedWithoutSubmission(request, utcNow)
             && request.Feedbacks.Count < MaxSubmissionsPerRequest
             && request.InvalidatedAtUtc is null;
     }
@@ -194,6 +239,12 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         if (request.ExpiresAtUtc.HasValue && request.ExpiresAtUtc.Value <= utcNow)
         {
             return "You have already submitted feedback for this movie.";
+        }
+
+        if (request.ExpiredReason == MovieFeedbackRequestExpiredReason.OpenedNoSubmission7Days
+            || ShouldExpireBecauseOpenedWithoutSubmission(request, utcNow))
+        {
+            return "Feedback link expired after 7 days without a submission.";
         }
 
         if (request.AvailableAtUtc > utcNow)
