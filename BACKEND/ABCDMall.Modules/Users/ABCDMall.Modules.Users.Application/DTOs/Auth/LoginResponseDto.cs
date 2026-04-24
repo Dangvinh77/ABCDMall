@@ -8,5 +8,9 @@ public sealed class LoginResponseDto
 
     public bool RequiresOtp { get; set; }
 
+    public bool RequiresPasswordChange { get; set; }
+
+    public string? PasswordSetupToken { get; set; }
+
     public string? Message { get; set; }
 }

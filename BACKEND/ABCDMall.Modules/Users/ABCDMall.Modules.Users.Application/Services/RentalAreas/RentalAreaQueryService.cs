@@ -19,6 +19,9 @@ public sealed class RentalAreaQueryService : IRentalAreaQueryService
         return _mapper.Map<IReadOnlyList<RentalAreaResponseDto>>(rentalAreas);
     }
 
+    public Task<RentalAreaDetailResponseDto?> GetRentalAreaDetailAsync(string rentalAreaId, CancellationToken cancellationToken = default)
+        => _rentalAreaReadRepository.GetRentalAreaDetailByIdAsync(rentalAreaId, cancellationToken);
+
     public async Task<ManagerLookupResponseDto?> CheckManagerByCccdAsync(string cccd, CancellationToken cancellationToken = default)
     {
         var normalizedCccd = cccd.Trim();

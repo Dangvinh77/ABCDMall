@@ -8,10 +8,10 @@ namespace ABCDMall.Modules.Users.Application.DTOs
 
         public string? Address { get; set; }
 
-        public string? Image { get; set; }
-
         public string? CCCD { get; set; }
 
-        public IFormFile? Avatar { get; set; }
+        public IFormFile? CccdFrontImage { get; set; }
+
+        public IFormFile? CccdBackImage { get; set; }
     }
 }

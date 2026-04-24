@@ -24,7 +24,7 @@ export default function Login() {
             }
 
             const res = await api.post("/Auth/login", payload);
-            const { accessToken, refreshToken } = res.data;
+            const { accessToken, refreshToken, requiresPasswordChange, passwordSetupToken } = res.data;
 
             localStorage.setItem("token", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
@@ -36,6 +36,11 @@ export default function Login() {
 
             setOtpRequired(false);
             setOtp("");
+            if (requiresPasswordChange) {
+                navigate(`/change-initial-password?token=${encodeURIComponent(passwordSetupToken || "")}`);
+                return;
+            }
+
             navigate("/");
         } catch (err) {
             const responseData = err.response?.data;

@@ -27,11 +27,26 @@ const emptyEditForm = {
 };
 
 const accountsPerPage = 10;
+const API_ORIGIN = "http://localhost:5184";
+
+const resolveFileUrl = (imagePath) => {
+  if (!imagePath) {
+    return "";
+  }
+
+  const normalizedPath = imagePath.replace(/\\/g, "/").trim();
+  if (normalizedPath.startsWith("http://") || normalizedPath.startsWith("https://")) {
+    return normalizedPath;
+  }
+
+  return `${API_ORIGIN}${normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`}`;
+};
 
 export default function UserManagement() {
   const role = localStorage.getItem("role") || "Guest";
   const isAdmin = role === "Admin";
   const [users, setUsers] = useState([]);
+  const [profileRequests, setProfileRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(isAdmin);
   const [saving, setSaving] = useState(false);
@@ -43,21 +58,31 @@ export default function UserManagement() {
   const [editForm, setEditForm] = useState(emptyEditForm);
   const [avatarFile, setAvatarFile] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("accounts");
 
   const loadUsers = async () => {
     try {
       setLoading(true);
       setError("");
       const res = await api.get("/Auth/users");
-      const activeUsers = (res.data || []).filter((user) => user.isActive !== false);
-      setUsers(activeUsers);
+      const allUsers = res.data || [];
+      setUsers(allUsers);
       setSelectedViewUser((current) => (
-        current ? activeUsers.find((user) => user.id === current.id) || null : null
+        current ? allUsers.find((user) => user.id === current.id) || null : null
       ));
     } catch (err) {
       setError(err.response?.data || "Unable to load registered users.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadProfileRequests = async () => {
+    try {
+      const res = await api.get("/Auth/profile-update-requests?status=Pending");
+      setProfileRequests(res.data || []);
+    } catch (err) {
+      setError(err.response?.data || "Unable to load profile update requests.");
     }
   };
 
@@ -67,16 +92,29 @@ export default function UserManagement() {
     }
 
     loadUsers();
+    loadProfileRequests();
   }, [isAdmin]);
+
+  const visibleUsers = useMemo(() => {
+    if (activeTab === "inactive") {
+      return users.filter((user) => user.isActive === false);
+    }
+
+    if (activeTab === "accounts") {
+      return users.filter((user) => user.isActive !== false);
+    }
+
+    return [];
+  }, [activeTab, users]);
 
   const filteredUsers = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
 
     if (!keyword) {
-      return users;
+      return visibleUsers;
     }
 
-    return users.filter((user) =>
+    return visibleUsers.filter((user) =>
       [
         user.email,
         user.role,
@@ -86,7 +124,7 @@ export default function UserManagement() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword))
     );
-  }, [searchTerm, users]);
+  }, [searchTerm, visibleUsers]);
 
   const stats = useMemo(
     () =>
@@ -95,8 +133,9 @@ export default function UserManagement() {
           total: result.total + 1,
           admin: result.admin + (user.role === "Admin" ? 1 : 0),
           manager: result.manager + (user.role === "Manager" ? 1 : 0),
+          inactive: result.inactive + (user.isActive === false ? 1 : 0),
         }),
-        { total: 0, admin: 0, manager: 0 }
+        { total: 0, admin: 0, manager: 0, inactive: 0 }
       ),
     [users]
   );
@@ -217,6 +256,60 @@ export default function UserManagement() {
     }
   };
 
+  const handleResendInitialPassword = async (user) => {
+    try {
+      setSaving(true);
+      setError("");
+      setSuccess("");
+
+      await api.post(`/Auth/users/${user.id}/resend-initial-password`, {});
+
+      setSuccess("One-time password and change-password link resent successfully.");
+      await loadUsers();
+    } catch (err) {
+      setError(err.response?.data || "Unable to resend password setup link.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleActivateUser = async (user) => {
+    try {
+      setSaving(true);
+      setError("");
+      setSuccess("");
+
+      await api.post(`/Auth/users/${user.id}/activate`, {});
+
+      setSelectedViewUser(null);
+      setSuccess("User account activated successfully.");
+      await loadUsers();
+    } catch (err) {
+      setError(err.response?.data || "Unable to activate user account.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleProfileRequestDecision = async (requestId, action) => {
+    try {
+      setSaving(true);
+      setError("");
+      setSuccess("");
+
+      await api.post(`/Auth/profile-update-requests/${requestId}/${action}`, {});
+
+      setSuccess(action === "approve"
+        ? "Profile update request approved successfully."
+        : "Profile update request rejected successfully.");
+      await Promise.all([loadUsers(), loadProfileRequests()]);
+    } catch (err) {
+      setError(err.response?.data || "Unable to review profile update request.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 pb-6 pt-24 text-slate-900 sm:px-6 sm:pt-28 lg:px-8">
@@ -291,6 +384,10 @@ export default function UserManagement() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Admins</p>
                 <p className="mt-2 text-3xl font-black">{stats.admin}</p>
               </div>
+              <div className="rounded-[24px] bg-rose-100 px-5 py-5 text-slate-950">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose-700">Inactive</p>
+                <p className="mt-2 text-3xl font-black">{stats.inactive}</p>
+              </div>
             </div>
           </aside>
 
@@ -300,24 +397,172 @@ export default function UserManagement() {
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
                   Directory
                 </p>
-                <h2 className="mt-2 text-2xl font-black text-slate-950">Account List</h2>
+                <h2 className="mt-2 text-2xl font-black text-slate-950">
+                  {activeTab === "accounts"
+                    ? "Account List"
+                    : activeTab === "inactive"
+                      ? "Inactive Accounts"
+                      : "Profile Approval"}
+                </h2>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("accounts")}
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                      activeTab === "accounts"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Account List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("inactive")}
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                      activeTab === "inactive"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Inactive Accounts
+                    <span className="ml-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-slate-700">
+                      {stats.inactive}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("approvals")}
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                      activeTab === "approvals"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Profile Approval
+                    <span className="ml-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-slate-700">
+                      {profileRequests.length}
+                    </span>
+                  </button>
+                </div>
                 {success && <p className="mt-2 text-sm font-medium text-emerald-600">{success}</p>}
                 {error && !selectedViewUser && !editingUser && !deletingUser && <p className="mt-2 text-sm font-medium text-rose-600">{error}</p>}
               </div>
-              <input
-                value={searchTerm}
-                placeholder="Search by email, role, name, shop..."
-                className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 sm:max-w-md"
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              {(activeTab === "accounts" || activeTab === "inactive") && (
+                <input
+                  value={searchTerm}
+                  placeholder="Search by email, role, name, shop..."
+                  className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 sm:max-w-md"
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              )}
             </div>
 
-            {loading ? (
+            {activeTab === "approvals" ? (
+              <div className="bg-amber-50/40 px-5 py-4 sm:px-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">
+                      Profile Approval
+                    </p>
+                    <h3 className="mt-1 text-lg font-black text-slate-950">
+                      Pending Profile Update Requests
+                    </h3>
+                  </div>
+                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700">
+                    {profileRequests.length} pending
+                  </span>
+                </div>
+
+                {profileRequests.length === 0 ? (
+                  <p className="mt-3 text-sm text-slate-500">
+                    No manager profile updates are waiting for approval.
+                  </p>
+                ) : (
+                  <div className="mt-4 grid gap-3">
+                    {profileRequests.map((request) => (
+                      <div
+                        key={request.id}
+                        className="rounded-[22px] border border-amber-100 bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)]"
+                      >
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="break-all text-sm font-bold text-slate-950">{request.email}</p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Requested: {formatDate(request.requestedAt)}
+                            </p>
+                            <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Full Name</p>
+                                <p className="mt-1 line-through decoration-rose-300">{request.currentFullName || "-"}</p>
+                                <p className="mt-1 font-semibold text-slate-950">{request.requestedFullName || "-"}</p>
+                              </div>
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Address</p>
+                                <p className="mt-1 line-through decoration-rose-300">{request.currentAddress || "-"}</p>
+                                <p className="mt-1 font-semibold text-slate-950">{request.requestedAddress || "-"}</p>
+                              </div>
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD</p>
+                                <p className="mt-1 line-through decoration-rose-300">{request.currentCCCD || "-"}</p>
+                                <p className="mt-1 font-semibold text-slate-950">{request.requestedCCCD || "-"}</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD Front Image</p>
+                                {request.requestedCccdFrontImage ? (
+                                  <a href={resolveFileUrl(request.requestedCccdFrontImage)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-[12px] border border-slate-200">
+                                    <img src={resolveFileUrl(request.requestedCccdFrontImage)} alt="Requested CCCD front" className="h-28 w-full object-cover" />
+                                  </a>
+                                ) : (
+                                  <p className="mt-2 text-xs text-slate-500">Not uploaded</p>
+                                )}
+                              </div>
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD Back Image</p>
+                                {request.requestedCccdBackImage ? (
+                                  <a href={resolveFileUrl(request.requestedCccdBackImage)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-[12px] border border-slate-200">
+                                    <img src={resolveFileUrl(request.requestedCccdBackImage)} alt="Requested CCCD back" className="h-28 w-full object-cover" />
+                                  </a>
+                                ) : (
+                                  <p className="mt-2 text-xs text-slate-500">Not uploaded</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={() => handleProfileRequestDecision(request.id, "approve")}
+                              className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={() => handleProfileRequestDecision(request.id, "reject")}
+                              className="rounded-full bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : loading ? (
               <div className="px-6 py-8 text-sm text-slate-500">Loading registered users...</div>
             ) : error ? (
               <div className="px-6 py-8 text-sm font-medium text-rose-600">{error}</div>
             ) : filteredUsers.length === 0 ? (
-              <div className="px-6 py-8 text-sm text-slate-500">No users found.</div>
+              <div className="px-6 py-8 text-sm text-slate-500">
+                {activeTab === "inactive" ? "No inactive users found." : "No users found."}
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full table-fixed border-collapse text-left">
@@ -342,12 +587,19 @@ export default function UserManagement() {
                       <tr key={user.id} className="align-top transition hover:bg-amber-50/60">
                         <td className="px-4 py-4 font-semibold text-slate-950">{user.email}</td>
                         <td className="px-4 py-4">
-                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.role === "Admin" ? "bg-slate-950 text-white" : "bg-amber-100 text-amber-800"}`}>
+                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.role === "Admin" ? "bg-slate-950 text-white" : user.isActive === false ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-800"}`}>
                             {user.role}
                           </span>
                         </td>
                         <td className="px-4 py-4">{user.fullName || "-"}</td>
-                        <td className="px-4 py-4">{user.shopName || "-"}</td>
+                        <td className="px-4 py-4">
+                          <div>{user.shopName || "-"}</div>
+                          {user.mustChangePassword && (
+                            <span className="mt-2 inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">
+                              Password setup pending
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-4">
                           <button
                             type="button"
@@ -423,9 +675,14 @@ export default function UserManagement() {
                     <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${selectedViewUser.role === "Admin" ? "bg-slate-950 text-white" : "bg-amber-100 text-amber-800"}`}>
                       {selectedViewUser.role}
                     </span>
-                    <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                      Active
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${selectedViewUser.isActive === false ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}>
+                      {selectedViewUser.isActive === false ? "Inactive" : "Active"}
                     </span>
+                    {selectedViewUser.mustChangePassword && (
+                      <span className="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">
+                        Password setup pending
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -450,6 +707,12 @@ export default function UserManagement() {
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Updated</p>
                     <p className="mt-1 font-bold text-slate-950">{formatDate(selectedViewUser.updatedAt)}</p>
                   </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Password Setup</p>
+                    <p className="mt-1 font-bold text-slate-950">
+                      {selectedViewUser.mustChangePassword ? "Pending" : "Completed"}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-3 rounded-[18px] bg-white px-4 py-3">
@@ -461,6 +724,24 @@ export default function UserManagement() {
               {selectedViewUser.role === "Admin" ? (
                 <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                   <p className="text-sm font-semibold text-slate-600">Admin accounts can only be viewed here.</p>
+                </section>
+              ) : selectedViewUser.isActive === false ? (
+                <section className="rounded-[24px] border border-emerald-100 bg-emerald-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Account Actions</p>
+                  <h4 className="mt-2 text-xl font-black text-slate-950">Activate this manager account</h4>
+                  <p className="mt-1 text-sm text-emerald-800">
+                    This will set the account back to active and return it to the Account List tab.
+                  </p>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      disabled={saving}
+                      className="rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => handleActivateUser(selectedViewUser)}
+                    >
+                      Active Account
+                    </button>
+                  </div>
                 </section>
               ) : (
                 <section className="rounded-[24px] border border-amber-100 bg-amber-50 p-4">
@@ -480,6 +761,16 @@ export default function UserManagement() {
                     >
                       Update Account
                     </button>
+                    {selectedViewUser.mustChangePassword && (
+                      <button
+                        type="button"
+                        disabled={saving}
+                        className="rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => handleResendInitialPassword(selectedViewUser)}
+                      >
+                        Resend Password Link
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-600"

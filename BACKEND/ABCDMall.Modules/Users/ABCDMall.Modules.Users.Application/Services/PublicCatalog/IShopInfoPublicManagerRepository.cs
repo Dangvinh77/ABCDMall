@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Users.Domain.Entities;
+using ABCDMall.Modules.Users.Application.DTOs.PublicCatalog;
 
 namespace ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 
@@ -12,6 +13,7 @@ public interface IShopInfoPublicManagerRepository
     Task<bool> ExistsVisibleSlugAsync(string slug, string? excludedShopId = null, CancellationToken cancellationToken = default);
     Task<int> CountManagedPublicShopsAsync(string shopId, CancellationToken cancellationToken = default);
     Task<int> CountRentedAreasAsync(string shopId, string tenantName, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AvailableRentalLocationDto>> GetAvailableRentalLocationsAsync(string shopId, string tenantName, CancellationToken cancellationToken = default);
     Task AddShopInfoAsync(ShopInfo shopInfo, CancellationToken cancellationToken = default);
     Task UpsertCatalogShopAsync(PublicShop shop, CancellationToken cancellationToken = default);
     Task ReplaceProductsAsync(IEnumerable<string> shopIdsToClear, string targetShopId, IReadOnlyList<PublicShopProduct> products, CancellationToken cancellationToken = default);

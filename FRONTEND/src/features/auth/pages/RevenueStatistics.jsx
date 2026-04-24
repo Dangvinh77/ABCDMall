@@ -47,6 +47,7 @@ const monthOptions = [
 ];
 
 const locationOptions = ["1F", "2F", "3F", "4F"];
+const BILL_PAGE_SIZE = 10;
 
 const getBillingMonthKey = (item) => {
   if (item.billingMonthKey) {
@@ -59,6 +60,16 @@ const getBillingMonthKey = (item) => {
     : `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, "0")}`;
 };
 
+const parseUsageValue = (value) => {
+  if (!value) {
+    return 0;
+  }
+
+  const normalizedValue = String(value).replace(/,/g, "");
+  const match = normalizedValue.match(/-?\d+(\.\d+)?/);
+  return match ? Number(match[0]) || 0 : 0;
+};
+
 export default function RevenueStatistics() {
   const role = localStorage.getItem("role") || "Guest";
   const isAdmin = role === "Admin";
@@ -68,9 +79,13 @@ export default function RevenueStatistics() {
     month: "all",
     location: "all",
   });
+  const [billStatus, setBillStatus] = useState("Paid");
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(isAdmin);
   const [error, setError] = useState("");
   const [selectedContract, setSelectedContract] = useState(null);
+  const [selectedShopBills, setSelectedShopBills] = useState(null);
+  const [selectedRevenueDetail, setSelectedRevenueDetail] = useState(null);
 
   const yearOptions = useMemo(() => {
     const years = rentalDetails
@@ -87,22 +102,72 @@ export default function RevenueStatistics() {
         const itemYear = billingMonthKey.slice(0, 4);
         const itemMonth = billingMonthKey.slice(5, 7);
         const itemLocation = String(item.rentalLocation || "").toUpperCase();
+        const itemStatus = String(item.paymentStatus || "Unpaid").toLowerCase();
 
         const matchesYear = filters.year === "all" || itemYear === filters.year;
         const matchesMonth = filters.month === "all" || itemMonth === filters.month;
         const matchesLocation = filters.location === "all" || itemLocation.startsWith(filters.location);
+        const matchesStatus = itemStatus === billStatus.toLowerCase();
 
-        return matchesYear && matchesMonth && matchesLocation;
+        return matchesYear && matchesMonth && matchesLocation && matchesStatus;
       }),
-    [filters, rentalDetails]
+    [billStatus, filters, rentalDetails]
   );
+
+  const groupedShopSummaries = useMemo(() => {
+    const groups = new Map();
+
+    filteredDetails.forEach((item) => {
+      const key = `${item.shopName || ""}__${item.rentalLocation || ""}`;
+      const current = groups.get(key);
+      const totalDue = Number(item.totalDue) || 0;
+      const billingMonthKey = getBillingMonthKey(item);
+
+      if (!current) {
+        groups.set(key, {
+          key,
+          shopName: item.shopName,
+          rentalLocation: item.rentalLocation,
+          latestMonth: item.month,
+          latestBillingMonthKey: billingMonthKey,
+          latestTotalDue: totalDue,
+          paidCount: String(item.paymentStatus || "").toLowerCase() === "paid" ? 1 : 0,
+          unpaidCount: String(item.paymentStatus || "").toLowerCase() === "paid" ? 0 : 1,
+          bills: [item],
+        });
+        return;
+      }
+
+      current.bills.push(item);
+      if (String(item.paymentStatus || "").toLowerCase() === "paid") {
+        current.paidCount += 1;
+      } else {
+        current.unpaidCount += 1;
+      }
+
+      if (billingMonthKey > current.latestBillingMonthKey) {
+        current.latestBillingMonthKey = billingMonthKey;
+        current.latestMonth = item.month;
+        current.latestTotalDue = totalDue;
+      }
+    });
+
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        bills: [...group.bills].sort((left, right) => getBillingMonthKey(right).localeCompare(getBillingMonthKey(left))),
+      }))
+      .sort((left, right) => left.shopName.localeCompare(right.shopName, undefined, { sensitivity: "base" }));
+  }, [filteredDetails]);
 
   const totals = useMemo(
     () =>
       filteredDetails.reduce(
         (result, item) => ({
-          electricityFee: result.electricityFee + (Number(item.electricityFee) || 0),
-          waterFee: result.waterFee + (Number(item.waterFee) || 0),
+          electricityFee:
+            result.electricityFee + parseUsageValue(item.electricityUsage) * (Number(item.electricityFee) || 0),
+          waterFee:
+            result.waterFee + parseUsageValue(item.waterUsage) * (Number(item.waterFee) || 0),
           fee: result.fee + (Number(item.serviceFee) || 0),
           totalDue: result.totalDue + (Number(item.totalDue) || 0),
         }),
@@ -111,11 +176,24 @@ export default function RevenueStatistics() {
     [filteredDetails]
   );
 
+  const totalPages = Math.max(1, Math.ceil(groupedShopSummaries.length / BILL_PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * BILL_PAGE_SIZE;
+  const paginatedSummaries = groupedShopSummaries.slice(startIndex, startIndex + BILL_PAGE_SIZE);
+  const showingStart = groupedShopSummaries.length === 0 ? 0 : startIndex + 1;
+  const showingEnd = Math.min(startIndex + BILL_PAGE_SIZE, groupedShopSummaries.length);
+
+  const handleBillStatusChange = (status) => {
+    setBillStatus(status);
+    setCurrentPage(1);
+  };
+
   const handleFilterChange = (name, value) => {
     setFilters((current) => ({
       ...current,
       [name]: value,
     }));
+    setCurrentPage(1);
   };
 
   const resetFilters = () => {
@@ -124,6 +202,7 @@ export default function RevenueStatistics() {
       month: "all",
       location: "all",
     });
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -202,14 +281,37 @@ export default function RevenueStatistics() {
             </p>
             <button
               type="button"
-              className="mt-4 w-full rounded-[24px] bg-slate-950 px-5 py-5 text-left text-white shadow-[0_18px_50px_rgba(15,23,42,0.18)]"
+              onClick={() => handleBillStatusChange("Paid")}
+              className={`mt-4 w-full rounded-[24px] px-5 py-5 text-left shadow-[0_18px_50px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 ${
+                billStatus === "Paid"
+                  ? "bg-slate-950 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
             >
-              <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-amber-200">
-                Active
+              <span className={`block text-xs font-semibold uppercase tracking-[0.24em] ${billStatus === "Paid" ? "text-amber-200" : "text-emerald-700"}`}>
+                Paid
               </span>
-              <span className="mt-2 block text-xl font-black">Revenue from Rental Areas</span>
-              <span className="mt-2 block text-sm leading-6 text-slate-300">
-                Location rental revenue with utility, fee, total, and contract details.
+              <span className="mt-2 block text-xl font-black">Paid Rental Bills</span>
+              <span className={`mt-2 block text-sm leading-6 ${billStatus === "Paid" ? "text-slate-300" : "text-slate-500"}`}>
+                Only paid bills are included in the revenue total.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleBillStatusChange("Unpaid")}
+              className={`mt-3 w-full rounded-[24px] px-5 py-5 text-left shadow-[0_18px_50px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 ${
+                billStatus === "Unpaid"
+                  ? "bg-slate-950 text-white"
+                  : "bg-amber-50 text-slate-700"
+              }`}
+            >
+              <span className={`block text-xs font-semibold uppercase tracking-[0.24em] ${billStatus === "Unpaid" ? "text-amber-200" : "text-amber-700"}`}>
+                Unpaid
+              </span>
+              <span className="mt-2 block text-xl font-black">Unpaid Rental Bills</span>
+              <span className={`mt-2 block text-sm leading-6 ${billStatus === "Unpaid" ? "text-slate-300" : "text-slate-500"}`}>
+                Track outstanding bills waiting for manager payment.
               </span>
             </button>
 
@@ -224,7 +326,7 @@ export default function RevenueStatistics() {
                   </p>
                   <h2 className="mt-2 text-2xl font-black text-slate-950">Location Details</h2>
                   <p className="mt-1 text-sm text-slate-500">
-                    Showing {filteredDetails.length} of {rentalDetails.length} records
+                    Showing {showingStart} - {showingEnd} of {groupedShopSummaries.length} shops with {billStatus.toLowerCase()} bills
                   </p>
                 </div>
                 <div className="grid gap-2 text-sm sm:grid-cols-4">
@@ -241,7 +343,9 @@ export default function RevenueStatistics() {
                     <p className="mt-1 font-black text-slate-950">{formatCurrency(totals.fee)}</p>
                   </div>
                   <div className="rounded-2xl bg-slate-950 px-4 py-3 text-white">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">Total Due</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
+                      {billStatus === "Paid" ? "Revenue" : "Outstanding"}
+                    </p>
                     <p className="mt-1 font-black">{formatCurrency(totals.totalDue)}</p>
                   </div>
                 </div>
@@ -318,84 +422,102 @@ export default function RevenueStatistics() {
               <div className="px-6 py-8 text-sm text-slate-500">Loading revenue statistics...</div>
             ) : error ? (
               <div className="px-6 py-8 text-sm font-medium text-rose-600">{error}</div>
-            ) : filteredDetails.length === 0 ? (
-              <div className="px-6 py-8 text-sm text-slate-500">No revenue records match the selected filters.</div>
+            ) : groupedShopSummaries.length === 0 ? (
+              <div className="px-6 py-8 text-sm text-slate-500">No {billStatus.toLowerCase()} bills match the selected filters.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1560px] table-fixed border-collapse text-left">
-                  <colgroup>
-                    <col className="w-[8%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[9%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[9%]" />
-                    <col className="w-[7%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[8%]" />
-                    <col className="w-[9%]" />
-                    <col className="w-[6%]" />
-                  </colgroup>
-                  <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                    <tr>
-                      <th className="px-4 py-3">Shop Name</th>
-                      <th className="px-4 py-3">Location</th>
-                      <th className="px-4 py-3">Billing Month</th>
-                      <th className="px-4 py-3">Usage Month</th>
-                      <th className="px-4 py-3">Start Date</th>
-                      <th className="px-4 py-3">Electricity</th>
-                      <th className="px-4 py-3">Electricity Fee</th>
-                      <th className="px-4 py-3">Water</th>
-                      <th className="px-4 py-3">Water Fee</th>
-                      <th className="px-4 py-3">Fee</th>
-                      <th className="px-4 py-3">Lease Term</th>
-                      <th className="px-4 py-3">Total Due</th>
-                      <th className="px-4 py-3">Contract</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                    {filteredDetails.map((item) => {
-                      const contractUrl = resolveContractUrl(item.contractImages || item.contractImage);
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-0 table-fixed border-collapse text-left">
+                    <colgroup>
+                      <col className="w-[26%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[16%]" />
+                      <col className="w-[18%]" />
+                      <col className="w-[10%]" />
+                      <col className="w-[12%]" />
+                    </colgroup>
+                    <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3">Shop Name</th>
+                        <th className="px-4 py-3">Location</th>
+                        <th className="px-4 py-3">Latest Bill</th>
+                        <th className="px-4 py-3">Latest Total Due</th>
+                        <th className="px-4 py-3">Bills</th>
+                        <th className="px-4 py-3">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+                      {paginatedSummaries.map((item) => {
+                        return (
+                          <tr key={item.key} className="align-top transition hover:bg-amber-50/60">
+                            <td className="px-4 py-4 font-semibold text-slate-950">
+                              <span className="block truncate" title={item.shopName}>
+                                {item.shopName}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4">{item.rentalLocation}</td>
+                            <td className="px-4 py-4">{item.latestMonth || "-"}</td>
+                            <td className="px-4 py-4 font-bold text-slate-950">{formatCurrency(item.latestTotalDue)}</td>
+                            <td className="px-4 py-4">
+                              <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                                {item.bills.length} bill{item.bills.length > 1 ? "s" : ""}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedShopBills(item)}
+                                className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5"
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-                      return (
-                        <tr key={item.id} className="align-top transition hover:bg-amber-50/60">
-                          <td className="px-4 py-4 font-semibold text-slate-950">{item.shopName}</td>
-                          <td className="px-4 py-4">{item.rentalLocation}</td>
-                          <td className="px-4 py-4">{item.month}</td>
-                          <td className="px-4 py-4">{item.usageMonth}</td>
-                          <td className="px-4 py-4">{item.leaseStartDate}</td>
-                          <td className="px-4 py-4">{item.electricityUsage}</td>
-                          <td className="px-4 py-4">{formatCurrency(item.electricityFee)}</td>
-                          <td className="px-4 py-4">{item.waterUsage}</td>
-                          <td className="px-4 py-4">{formatCurrency(item.waterFee)}</td>
-                          <td className="px-4 py-4">{formatCurrency(item.serviceFee)}</td>
-                          <td className="px-4 py-4">{item.leaseTermDays} days</td>
-                          <td className="px-4 py-4 font-bold text-slate-950">{formatCurrency(item.totalDue)}</td>
-                          <td className="px-4 py-4">
-                            <button
-                              type="button"
-                              disabled={!contractUrl}
-                              onClick={() => setSelectedContract(contractUrl)}
-                              className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:translate-y-0"
-                            >
-                              View
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <p>
+                    Showing <span className="font-bold text-slate-950">{showingStart}</span>
+                    {" - "}
+                    <span className="font-bold text-slate-950">{showingEnd}</span>
+                    {" of "}
+                    <span className="font-bold text-slate-950">{groupedShopSummaries.length}</span> shops
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage === 1}
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:-translate-y-0.5 hover:border-amber-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                    >
+                      Previous
+                    </button>
+                    <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700">
+                      Page {safeCurrentPage} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={safeCurrentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 transition hover:-translate-y-0.5 hover:border-amber-300 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </section>
         </main>
       </div>
 
       {selectedContract && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
               <h3 className="text-lg font-black text-slate-950">Contract Image</h3>
@@ -417,6 +539,176 @@ export default function RevenueStatistics() {
           </div>
         </div>
       )}
+
+      {selectedShopBills && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
+          <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+              <div>
+                <h3 className="text-xl font-black text-slate-950">Monthly Bills</h3>
+                <p className="text-sm text-slate-500">
+                  {selectedShopBills.shopName} | {selectedShopBills.rentalLocation}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedShopBills(null)}
+                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="p-5">
+              <div className="mb-5 grid gap-3 sm:grid-cols-3">
+                <SummaryPill label="Shop Name" value={selectedShopBills.shopName} />
+                <SummaryPill label="Location" value={selectedShopBills.rentalLocation} />
+                <SummaryPill label="Total Bills" value={String(selectedShopBills.bills.length)} />
+              </div>
+
+              <div className="overflow-x-auto rounded-[24px] border border-slate-200">
+                <table className="w-full min-w-0 table-fixed border-collapse text-left">
+                  <colgroup>
+                    <col className="w-[24%]" />
+                    <col className="w-[22%]" />
+                    <col className="w-[22%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[16%]" />
+                  </colgroup>
+                  <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Billing Month</th>
+                      <th className="px-4 py-3">Usage Month</th>
+                      <th className="px-4 py-3">Total Due</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+                    {selectedShopBills.bills.map((bill) => {
+                      const isPaid = String(bill.paymentStatus || "").toLowerCase() === "paid";
+
+                      return (
+                        <tr key={bill.id} className="align-top transition hover:bg-amber-50/60">
+                          <td className="px-4 py-4 font-semibold text-slate-950">{bill.month || "-"}</td>
+                          <td className="px-4 py-4">{bill.usageMonth || "-"}</td>
+                          <td className="px-4 py-4 font-bold text-slate-950">{formatCurrency(bill.totalDue)}</td>
+                          <td className="px-4 py-4">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                              {isPaid ? "Paid" : "Unpaid"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRevenueDetail(bill)}
+                              className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedRevenueDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
+          <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+              <div>
+                <h3 className="text-xl font-black text-slate-950">Rental Bill Details</h3>
+                <p className="text-sm text-slate-500">
+                  {selectedRevenueDetail.shopName} | {selectedRevenueDetail.month}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRevenueDetail(null)}
+                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-5 p-5">
+              <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Shop Rental</p>
+                <h4 className="mt-2 text-2xl font-black text-slate-950">{selectedRevenueDetail.shopName}</h4>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <Detail label="Location" value={selectedRevenueDetail.rentalLocation} />
+                  <Detail label="Billing Month" value={selectedRevenueDetail.month} />
+                  <Detail label="Usage Month" value={selectedRevenueDetail.usageMonth} />
+                  <Detail label="Start Date" value={selectedRevenueDetail.leaseStartDate} />
+                  <Detail label="Manager" value={selectedRevenueDetail.managerName} />
+                  <Detail label="CCCD" value={selectedRevenueDetail.cccd} />
+                  <Detail label="Lease Term" value={selectedRevenueDetail.leaseTermDays ? `${selectedRevenueDetail.leaseTermDays} days` : "-"} />
+                  <Detail label="Status" value={selectedRevenueDetail.paymentStatus || "Unpaid"} />
+                </div>
+              </section>
+
+              <section className="rounded-[24px] border border-amber-100 bg-amber-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">Usage and Fees</p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <Detail label="Electricity" value={selectedRevenueDetail.electricityUsage || "-"} />
+                  <Detail label="Electricity Fee" value={formatCurrency(selectedRevenueDetail.electricityFee)} />
+                  <Detail label="Water" value={selectedRevenueDetail.waterUsage || "-"} />
+                  <Detail label="Water Fee" value={formatCurrency(selectedRevenueDetail.waterFee)} />
+                  <Detail label="Service Fee" value={formatCurrency(selectedRevenueDetail.serviceFee)} />
+                  <Detail label="Total Due" value={formatCurrency(selectedRevenueDetail.totalDue)} strong />
+                  <Detail
+                    label="Paid At"
+                    value={selectedRevenueDetail.paidAtUtc ? new Date(selectedRevenueDetail.paidAtUtc).toLocaleString() : "-"}
+                  />
+                </div>
+              </section>
+
+              <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Actions</p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    disabled={!resolveContractUrl(selectedRevenueDetail.contractImage || selectedRevenueDetail.contractImages)}
+                    onClick={() => {
+                      setSelectedContract(resolveContractUrl(selectedRevenueDetail.contractImage || selectedRevenueDetail.contractImages));
+                    }}
+                    className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:translate-y-0"
+                  >
+                    View Contract
+                  </button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Detail({ label, value, strong = false }) {
+  return (
+    <div className="rounded-[18px] bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className={`mt-1 break-words ${strong ? "text-lg font-black text-slate-950" : "font-bold text-slate-950"}`}>
+        {value || "-"}
+      </p>
+    </div>
+  );
+}
+
+function SummaryPill({ label, value }) {
+  return (
+    <div className="rounded-[18px] bg-slate-50 px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 break-words font-bold text-slate-950">{value || "-"}</p>
     </div>
   );
 }

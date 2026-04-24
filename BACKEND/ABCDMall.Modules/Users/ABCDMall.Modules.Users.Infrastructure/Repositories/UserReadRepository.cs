@@ -27,10 +27,38 @@ public sealed class UserReadRepository : IUserReadRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ProfileUpdateRequest>> GetProfileUpdateRequestsAsync(string? status, CancellationToken cancellationToken = default)
+    {
+        var query = _context.ProfileUpdateRequests.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(x => x.Status == status);
+        }
+
+        return await query
+            .OrderByDescending(x => x.RequestedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ProfileUpdateRequest>> GetProfileUpdateRequestsByUserAsync(string userId, string? status, int take, CancellationToken cancellationToken = default)
+    {
+        var query = _context.ProfileUpdateRequests.Where(x => x.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(x => x.Status == status);
+        }
+
+        return await query
+            .OrderByDescending(x => x.RequestedAt)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Users
-            .Where(x => x.IsActive)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
     }

@@ -169,6 +169,10 @@ public static class FrontendUsersSeed
             bill.ServiceFee = seed.ServiceFee;
             bill.LeaseTermDays = seed.LeaseTermDays;
             bill.TotalDue = seed.TotalDue;
+            bill.PaymentStatus = seed.PaymentStatus;
+            bill.PaidAtUtc = seed.PaidAtUtc;
+            bill.StripeSessionId = null;
+            bill.StripePaymentIntentId = null;
             bill.ContractImage = seed.ContractImage;
             bill.ContractImages = seed.ContractImage;
             bill.CreatedAt = seed.CreatedAt;
@@ -211,29 +215,29 @@ public static class FrontendUsersSeed
     {
         private static readonly CatalogShopOwnerSeed[] CatalogShopOwners =
         [
-            new("shop-001", "uniqlo", "Uniqlo", "Nguyen Van Minh", "manager1@abcdmall.local", "079203000111", "1-01", "1", "Fashion Corner", "42m2", 25000000m),
-            new("shop-002", "miniso", "Miniso", "Tran Thi Lan", "manager2@abcdmall.local", "079203000222", "3-03A", "2", "Lifestyle Store", "36m2", 21000000m),
-            new("shop-003", "nike", "Nike", "Pham Gia Huy", "manager3@abcdmall.local", "079203000333", "1-07", "1", "Sneaker Zone", "46m2", 28000000m),
-            new("shop-004", "charles-keith", "Charles & Keith", "Le Bao Chau", "manager4@abcdmall.local", "079203000444", "1-06", "1", "Accessory Gallery", "34m2", 22000000m),
-            new("shop-005", "lego", "LEGO", "Vo Quynh Anh", "manager5@abcdmall.local", "079203000555", "6-02", "4", "Toy Gallery", "40m2", 27000000m),
-            new("shop-006", "adidas", "Adidas", "Dang Mai Phuong", "manager6@abcdmall.local", "079203000666", "1-11", "1", "Sportswear Lane", "44m2", 26000000m),
-            new("shop-007", "levis", "Levi's", "Do Minh Khang", "manager7@abcdmall.local", "079203000777", "1-02", "1", "Denim Studio", "38m2", 23000000m),
-            new("shop-008", "beauty-box", "Beauty Box", "Hoang Bao Tran", "manager8@abcdmall.local", "079203000888", "SB-01", "1", "Beauty Box", "30m2", 20000000m),
-            new("shop-009", "pnj", "PNJ", "Bui Quoc Bao", "manager9@abcdmall.local", "079203000999", "1-27", "1", "Jewelry Boutique", "32m2", 24000000m),
-            new("shop-010", "pedro", "Pedro", "Nguyen Hoai Nam", "manager10@abcdmall.local", "079203001010", "1-09", "1", "Leather Studio", "31m2", 21000000m),
-            new("shop-011", "casio", "Casio", "Tran Minh Thu", "manager11@abcdmall.local", "079203001011", "K1-11", "1", "Watch Counter", "24m2", 16000000m),
-            new("shop-012", "phuong-nam", "Phuong Nam Book City", "Pham Ngoc Anh", "manager12@abcdmall.local", "079203001012", "3-01", "2", "Book City", "55m2", 30000000m),
-            new("shop-013", "pop-mart", "Pop Mart", "Le Thanh Tung", "manager13@abcdmall.local", "079203001013", "3-15", "2", "Collectible Hub", "28m2", 19000000m),
-            new("shop-014", "ninomaxx", "Ninomaxx", "Vo Minh Quan", "manager14@abcdmall.local", "079203001014", "3-31", "2", "Casualwear Point", "35m2", 20500000m),
-            new("shop-015", "levents", "Levents", "Dang Thao Nhi", "manager15@abcdmall.local", "079203001015", "3-07", "2", "Streetwear Corner", "34m2", 21000000m),
-            new("shop-016", "rabity", "Rabity", "Nguyen Duc Anh", "manager16@abcdmall.local", "079203001016", "3-03", "2", "Kids Fashion", "33m2", 19500000m),
-            new("shop-017", "boo", "Boo", "Tran Quoc Viet", "manager17@abcdmall.local", "079203001017", "3-08", "2", "Youth Streetwear", "32m2", 20000000m),
-            new("shop-018", "john-henry", "John Henry", "Ho Thi My Linh", "manager18@abcdmall.local", "079203001018", "3-09", "2", "Menswear Studio", "35m2", 22000000m),
-            new("shop-019", "lugvn", "Lug.vn", "Phan Hoang Long", "manager19@abcdmall.local", "079203001019", "3-12", "2", "Travel Goods", "30m2", 19000000m),
-            new("shop-020", "powerbowl", "Powerbowl 388", "Nguyen Gia Bao", "manager20@abcdmall.local", "079203001020", "5-01", "3", "Entertainment Zone", "80m2", 42000000m),
-            new("shop-021", "vans", "Vans", "Le Minh Tri", "manager21@abcdmall.local", "079203001021", "5-04", "3", "Skate Street", "34m2", 21000000m),
-            new("shop-022", "converse", "Converse", "Tran Anh Khoa", "manager22@abcdmall.local", "079203001022", "5-05", "3", "Sneaker Street", "34m2", 21000000m),
-            new("shop-023", "sony-center", "Sony Center", "Do Bao Ngoc", "manager23@abcdmall.local", "079203001023", "6-06", "4", "Technology Center", "52m2", 36000000m),
+            new("shop-uniqlo", "uniqlo", "Uniqlo", "Nguyen Van Minh", "manager1@abcdmall.local", "079203000111", "1-01", "1", "Fashion Corner", "42m2", 25000000m),
+            new("shop-miniso", "miniso", "Miniso", "Tran Thi Lan", "manager2@abcdmall.local", "079203000222", "3-03A", "2", "Lifestyle Store", "36m2", 21000000m),
+            new("shop-nike", "nike", "Nike", "Pham Gia Huy", "manager3@abcdmall.local", "079203000333", "1-07", "1", "Sneaker Zone", "46m2", 28000000m),
+            new("shop-charles-keith", "charles-keith", "Charles & Keith", "Le Bao Chau", "manager4@abcdmall.local", "079203000444", "1-06", "1", "Accessory Gallery", "34m2", 22000000m),
+            new("shop-lego", "lego", "LEGO", "Vo Quynh Anh", "manager5@abcdmall.local", "079203000555", "6-02", "4", "Toy Gallery", "40m2", 27000000m),
+            new("shop-adidas", "adidas", "Adidas", "Dang Mai Phuong", "manager6@abcdmall.local", "079203000666", "1-11", "1", "Sportswear Lane", "44m2", 26000000m),
+            new("shop-levis", "levis", "Levi's", "Do Minh Khang", "manager7@abcdmall.local", "079203000777", "1-02", "1", "Denim Studio", "38m2", 23000000m),
+            new("shop-beauty-box", "beauty-box", "Beauty Box", "Hoang Bao Tran", "manager8@abcdmall.local", "079203000888", "SB-01", "1", "Beauty Box", "30m2", 20000000m),
+            new("shop-pnj", "pnj", "PNJ", "Bui Quoc Bao", "manager9@abcdmall.local", "079203000999", "1-27", "1", "Jewelry Boutique", "32m2", 24000000m),
+            new("shop-pedro", "pedro", "Pedro", "Nguyen Hoai Nam", "manager10@abcdmall.local", "079203001010", "1-09", "1", "Leather Studio", "31m2", 21000000m),
+            new("shop-casio", "casio", "Casio", "Tran Minh Thu", "manager11@abcdmall.local", "079203001011", "K1-11", "1", "Watch Counter", "24m2", 16000000m),
+            new("shop-phuong-nam", "phuong-nam", "Phuong Nam Book City", "Pham Ngoc Anh", "manager12@abcdmall.local", "079203001012", "3-01", "2", "Book City", "55m2", 30000000m),
+            new("shop-pop-mart", "pop-mart", "Pop Mart", "Le Thanh Tung", "manager13@abcdmall.local", "079203001013", "3-15", "2", "Collectible Hub", "28m2", 19000000m),
+            new("shop-ninomaxx", "ninomaxx", "Ninomaxx", "Vo Minh Quan", "manager14@abcdmall.local", "079203001014", "3-31", "2", "Casualwear Point", "35m2", 20500000m),
+            new("shop-levents", "levents", "Levents", "Dang Thao Nhi", "manager15@abcdmall.local", "079203001015", "3-07", "2", "Streetwear Corner", "34m2", 21000000m),
+            new("shop-rabity", "rabity", "Rabity", "Nguyen Duc Anh", "manager16@abcdmall.local", "079203001016", "3-03", "2", "Kids Fashion", "33m2", 19500000m),
+            new("shop-boo", "boo", "Boo", "Tran Quoc Viet", "manager17@abcdmall.local", "079203001017", "3-08", "2", "Youth Streetwear", "32m2", 20000000m),
+            new("shop-john-henry", "john-henry", "John Henry", "Ho Thi My Linh", "manager18@abcdmall.local", "079203001018", "3-09", "2", "Menswear Studio", "35m2", 22000000m),
+            new("shop-lugvn", "lugvn", "Lug.vn", "Phan Hoang Long", "manager19@abcdmall.local", "079203001019", "3-12", "2", "Travel Goods", "30m2", 19000000m),
+            new("shop-powerbowl", "powerbowl", "Powerbowl 388", "Nguyen Gia Bao", "manager20@abcdmall.local", "079203001020", "5-01", "3", "Entertainment Zone", "80m2", 42000000m),
+            new("shop-vans", "vans", "Vans", "Le Minh Tri", "manager21@abcdmall.local", "079203001021", "5-04", "3", "Skate Street", "34m2", 21000000m),
+            new("shop-converse", "converse", "Converse", "Tran Anh Khoa", "manager22@abcdmall.local", "079203001022", "5-05", "3", "Sneaker Street", "34m2", 21000000m),
+            new("shop-sony-center", "sony-center", "Sony Center", "Do Bao Ngoc", "manager23@abcdmall.local", "079203001023", "6-06", "4", "Technology Center", "52m2", 36000000m),
             new("shop-chuk", "chuk", "Chuk", "Nguyen Hoang Phuc", "manager24@abcdmall.local", "079203001024", "1-03", "1", "Food & Beverage", "28m2", 18000000m),
             new("shop-loc-phuc", "loc-phuc", "Loc Phuc", "Tran Bao Long", "manager25@abcdmall.local", "079203001025", "1-26", "1", "Jewelry Boutique", "30m2", 24000000m),
             new("shop-dong-hai", "dong-hai", "Dong Hai", "Le Minh Duc", "manager26@abcdmall.local", "079203001026", "1-23", "1", "Footwear Studio", "32m2", 22000000m),
@@ -256,7 +260,45 @@ public static class FrontendUsersSeed
             new("shop-vitimex", "vitimex", "Vitimex", "Nguyen Gia Linh", "manager43@abcdmall.local", "079203001043", "3-10A", "2", "Casualwear Point", "31m2", 19000000m),
             new("shop-belluni", "belluni", "Belluni", "Tran Duc Minh", "manager44@abcdmall.local", "079203001044", "3-10", "2", "Menswear Studio", "32m2", 20000000m),
             new("shop-v-sixty-four", "v-sixty-four", "V-Sixty Four", "Le Bao Ngoc", "manager45@abcdmall.local", "079203001045", "3-02", "2", "Fashion Corner", "30m2", 19000000m),
-            new("shop-insidemen", "insidemen", "Insidemen", "Pham Hoang Nam", "manager46@abcdmall.local", "079203001046", "3-02", "2", "Menswear Studio", "30m2", 19000000m)
+            new("shop-insidemen", "insidemen", "Insidemen", "Pham Hoang Nam", "manager46@abcdmall.local", "079203001046", "3-02", "2", "Menswear Studio", "30m2", 19000000m),
+            new("shop-kichi-kichi", "kichi-kichi", "Kichi Kichi", "Manager 47", "manager47@abcdmall.local", "079203001047", "5-02", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-gogi-house", "gogi-house", "Gogi House", "Manager 48", "manager48@abcdmall.local", "079203001048", "5-02", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-wow-yakiniku", "wow-yakiniku", "Wow Yakiniku", "Manager 49", "manager49@abcdmall.local", "079203001049", "5-02", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-cloud-pot", "cloud-pot", "Cloud Pot", "Manager 50", "manager50@abcdmall.local", "079203001050", "5-02", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-sushix", "sushix", "Sushi X", "Manager 51", "manager51@abcdmall.local", "079203001051", "5-02", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-dao-niu-guo", "dao-niu-guo", "Dao Niu Guo", "Manager 52", "manager52@abcdmall.local", "079203001052", "5-02", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-texas-chicken", "texas-chicken", "Texas Chicken", "Manager 53", "manager53@abcdmall.local", "079203001053", "5-16", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-kohaku-sushi", "kohaku-sushi", "Kohaku Sushi", "Manager 54", "manager54@abcdmall.local", "079203001054", "5-15", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-buffet-hoang-yen", "buffet-hoang-yen", "Buffet Hoang Yen", "Manager 55", "manager55@abcdmall.local", "079203001055", "5-13", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-thai-express", "thai-express", "Thai Express", "Manager 56", "manager56@abcdmall.local", "079203001056", "5-12", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-tanxin", "tanxin", "Tanxin", "Manager 57", "manager57@abcdmall.local", "079203001057", "5-11", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-tapan", "tapan", "Taipan", "Manager 58", "manager58@abcdmall.local", "079203001058", "5-10", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-khao-lao", "khao-lao", "Khao Lao", "Manager 59", "manager59@abcdmall.local", "079203001059", "5-09", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-chang", "chang", "Chang Modern Thai", "Manager 60", "manager60@abcdmall.local", "079203001060", "5-08", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-bonchon", "bonchon", "Bonchon", "Manager 61", "manager61@abcdmall.local", "079203001061", "5-07", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-crystal-jade", "crystal-jade", "Crystal Jade", "Manager 62", "manager62@abcdmall.local", "079203001062", "5-06", "3", "Food & Beverage", "42m2", 28000000m),
+            new("shop-sushi-kei", "sushi-kei", "Sushi Kei", "Manager 63", "manager63@abcdmall.local", "079203001063", "5-03A", "3", "Food & Beverage", "30m2", 28000000m),
+            new("shop-movies", "movies", "ABCD Cinemas", "Manager 64", "manager64@abcdmall.local", "079203001064", "6-01", "4", "Cinema Complex", "120m2", 55000000m),
+            new("shop-shabu-ya", "shabu-ya", "Shabu Ya", "Manager 65", "manager65@abcdmall.local", "079203001065", "6-19", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-mikado-sushi", "mikado-sushi", "Mikado Sushi", "Manager 66", "manager66@abcdmall.local", "079203001066", "6-20", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-h-bbq-buffet", "h-bbq-buffet", "H BBQ Buffet", "Manager 67", "manager67@abcdmall.local", "079203001067", "6-03", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-dookki-vietnam", "dookki-vietnam", "Dookki", "Manager 68", "manager68@abcdmall.local", "079203001068", "6-03A", "4", "Food & Beverage", "30m2", 32000000m),
+            new("shop-the-pizza-company", "the-pizza-company", "The Pizza Company", "Manager 69", "manager69@abcdmall.local", "079203001069", "6-04", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-dairy-queen", "dairy-queen", "Dairy Queen", "Manager 70", "manager70@abcdmall.local", "079203001070", "6-05", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-lok-lok-hotpot", "lok-lok-hotpot", "Lok Lok Hotpot", "Manager 71", "manager71@abcdmall.local", "079203001071", "6-17", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-yamazaki-bakery", "yamazaki-bakery", "Yamazaki Bakery", "Manager 72", "manager72@abcdmall.local", "079203001072", "6-18", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-bobapop", "bobapop", "Bobapop", "Manager 73", "manager73@abcdmall.local", "079203001073", "6-18A1", "4", "Food & Beverage", "30m2", 32000000m),
+            new("shop-marukame-udon", "marukame-udon", "Marukame Udon", "Manager 74", "manager74@abcdmall.local", "079203001074", "6-07A", "4", "Food & Beverage", "30m2", 32000000m),
+            new("shop-king-bbq", "king-bbq", "King BBQ", "Manager 75", "manager75@abcdmall.local", "079203001075", "6-16B", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-mei-wei", "mei-wei", "Mei Wei", "Manager 76", "manager76@abcdmall.local", "079203001076", "6-16A", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-chang-kang-kung", "chang-kang-kung", "Chang Kang Kung", "Manager 77", "manager77@abcdmall.local", "079203001077", "6-15", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-joopii", "joopii", "Joopii", "Manager 78", "manager78@abcdmall.local", "079203001078", "6-13A", "4", "Food & Beverage", "30m2", 32000000m),
+            new("shop-hot-pot-story", "hot-pot-story", "Hot Pot Story", "Manager 79", "manager79@abcdmall.local", "079203001079", "6-13", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-tasaki-bbq", "tasaki-bbq", "Tasaki BBQ", "Manager 80", "manager80@abcdmall.local", "079203001080", "6-12", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-al-frescos", "al-frescos", "Al Fresco's", "Manager 81", "manager81@abcdmall.local", "079203001081", "6-11", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-lu-nuong-88", "lu-nuong-88", "Lau Nuong 88", "Manager 82", "manager82@abcdmall.local", "079203001082", "6-10", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-chilli-thai", "chilli-thai", "Chilli Thai", "Manager 83", "manager83@abcdmall.local", "079203001083", "6-09", "4", "Food & Beverage", "42m2", 32000000m),
+            new("shop-vocuppa-caffe", "vocuppa-caffe", "Vocuppa Caffe", "Manager 84", "manager84@abcdmall.local", "079203001084", "6-07C", "4", "Food & Beverage", "42m2", 32000000m)
         ];
 
         public static readonly UserSeed[] Users = BuildUsers();
@@ -346,29 +388,52 @@ public static class FrontendUsersSeed
             .ToArray();
 
         private static MonthlyBillSeed[] BuildMonthlyBills()
-            => CatalogShopOwners.Select((shop, index) => new MonthlyBillSeed(
-                Id: $"monthly-bill-{index + 1:000}",
-                ShopInfoId: shop.ShopId,
-                BillKey: $"{shop.ShopId}:2026-04:2026-03:seed",
-                ShopName: shop.ShopName,
-                ManagerName: shop.ManagerName,
-                Cccd: shop.Cccd,
-                RentalLocation: shop.RentalLocation,
-                Month: "April 2026",
-                UsageMonth: "March 2026",
-                BillingMonthKey: "2026-04",
-                UsageMonthKey: "2026-03",
-                LeaseStartDate: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index),
-                ElectricityUsage: "0 kWh",
-                ElectricityFee: 3500m,
-                WaterUsage: "0 m3",
-                WaterFee: 15000m,
-                ServiceFee: 800000m,
-                LeaseTermDays: 180,
-                TotalDue: 800000m,
-                ContractImage: $"/images/contracts/{shop.Slug}-contract.png",
-                CreatedAt: new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(index)))
-            .ToArray();
+        {
+            (int BillingMonthNumber, string BillingMonthName, string BillingMonthKey, string UsageMonthName, string UsageMonthKey, int ElectricityUsageValue, int WaterUsageValue, string PaymentStatus, DateTime? PaidAtUtc)[] billConfigs =
+            {
+                (1, "January 2026", "2026-01", "December 2025", "2025-12", 210, 16, "Paid", new DateTime(2026, 1, 10, 9, 0, 0, DateTimeKind.Utc)),
+                (2, "February 2026", "2026-02", "January 2026", "2026-01", 225, 18, "Paid", new DateTime(2026, 2, 10, 9, 0, 0, DateTimeKind.Utc)),
+                (3, "March 2026", "2026-03", "February 2026", "2026-02", 240, 19, "Paid", new DateTime(2026, 3, 10, 9, 0, 0, DateTimeKind.Utc)),
+                (4, "April 2026", "2026-04", "March 2026", "2026-03", 255, 21, "Unpaid", null),
+            };
+
+            return CatalogShopOwners
+                .SelectMany((shop, shopIndex) => billConfigs.Select((config, monthIndex) =>
+                {
+                    var electricityUsageValue = config.ElectricityUsageValue + (shopIndex % 11) * 4 + monthIndex * 3;
+                    var waterUsageValue = config.WaterUsageValue + (shopIndex % 7);
+                    var electricityFee = 3500m;
+                    var waterFee = 15000m;
+                    var serviceFee = 800000m;
+                    var totalDue = electricityUsageValue * electricityFee + waterUsageValue * waterFee + serviceFee;
+
+                    return new MonthlyBillSeed(
+                        Id: $"monthly-bill-{shopIndex + 1:000}-{config.BillingMonthNumber:00}",
+                        ShopInfoId: shop.ShopId,
+                        BillKey: $"{shop.ShopId}:{config.BillingMonthKey}:{config.UsageMonthKey}:seed",
+                        ShopName: shop.ShopName,
+                        ManagerName: shop.ManagerName,
+                        Cccd: shop.Cccd,
+                        RentalLocation: shop.RentalLocation,
+                        Month: config.BillingMonthName,
+                        UsageMonth: config.UsageMonthName,
+                        BillingMonthKey: config.BillingMonthKey,
+                        UsageMonthKey: config.UsageMonthKey,
+                        LeaseStartDate: new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(shopIndex),
+                        ElectricityUsage: $"{electricityUsageValue} kWh",
+                        ElectricityFee: electricityFee,
+                        WaterUsage: $"{waterUsageValue} m3",
+                        WaterFee: waterFee,
+                        ServiceFee: serviceFee,
+                        LeaseTermDays: 180,
+                        TotalDue: totalDue,
+                        PaymentStatus: config.PaymentStatus,
+                        PaidAtUtc: config.PaidAtUtc?.AddMinutes(shopIndex),
+                        ContractImage: $"/images/contracts/{shop.Slug}-contract.png",
+                        CreatedAt: new DateTime(2026, config.BillingMonthNumber, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(shopIndex));
+                }))
+                .ToArray();
+        }
 
         private static string GetLogoUrl(string slug)
             => slug switch
@@ -419,7 +484,7 @@ public static class FrontendUsersSeed
                 "belluni" => "/img/Belluni/logo.png",
                 "v-sixty-four" => "/img/V-Sixty Four/logo.png",
                 "insidemen" => "/img/Insidemen/logo.png",
-                _ => string.Empty
+                _ => "/img/ABCDMall/logo.png"
             };
 
         private static string GetCoverImageUrl(string slug)
@@ -471,7 +536,7 @@ public static class FrontendUsersSeed
                 "belluni" => "/img/Belluni/logo.png",
                 "v-sixty-four" => "/img/V-Sixty Four/logo.png",
                 "insidemen" => "/img/Insidemen/logo.png",
-                _ => string.Empty
+                _ => "/img/ABCDMall/logo.png"
             };
 
         public static readonly ProfileUpdateHistorySeed[] ProfileUpdateHistories =
@@ -581,6 +646,8 @@ public static class FrontendUsersSeed
         decimal ServiceFee,
         int LeaseTermDays,
         decimal TotalDue,
+        string PaymentStatus,
+        DateTime? PaidAtUtc,
         string? ContractImage,
         DateTime CreatedAt);
 

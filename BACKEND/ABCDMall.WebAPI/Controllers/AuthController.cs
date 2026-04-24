@@ -43,7 +43,10 @@ public class AuthController : ControllerBase
             ApplicationResultStatus.Ok => Ok(new
             {
                 accessToken = result.Value!.AccessToken,
-                refreshToken = result.Value.RefreshToken
+                refreshToken = result.Value.RefreshToken,
+                requiresPasswordChange = result.Value.RequiresPasswordChange,
+                passwordSetupToken = result.Value.PasswordSetupToken,
+                message = result.Value.Message
             }),
             ApplicationResultStatus.BadRequest when result.Value?.RequiresOtp == true => BadRequest(new
             {
@@ -64,8 +67,9 @@ public class AuthController : ControllerBase
 
     // --- CẬP NHẬT PHƯƠNG THỨC REGISTER ---
     [Authorize(Roles = "Admin")]
+    [RequestSizeLimit(10_000_000)]
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+    public async Task<IActionResult> Register([FromForm] RegisterDto dto)
     {
         // Thực hiện đăng ký tài khoản User/Manager trước
         var result = await _userCommandService.RegisterAsync(dto);
@@ -96,7 +100,7 @@ public class AuthController : ControllerBase
         try
         {
             // Tạo một URL (slug) hợp lệ từ tên shop (Ví dụ: "Kichi Kichi" -> "kichi-kichi")
-            var tempSlug = dto.ShopName.Trim().ToLower().Replace(" ", "-").Replace("đ", "d");
+            var tempSlug = System.Text.RegularExpressions.Regex.Replace(dto.ShopName.Trim().ToLowerInvariant().Replace(" ", "-"), @"[^a-z0-9-]", string.Empty);
 
             // Khởi tạo các thông tin cơ bản để Shop "nổi" lên trên Mall
             var shopRequest = new UpsertManagedShopRequestDto
@@ -104,10 +108,10 @@ public class AuthController : ControllerBase
                 Name = dto.ShopName,
                 Slug = tempSlug,
                 Category = "Coming Soon", // Gán tạm để nổi bật trên Mall
-                Floor = "Đang cập nhật",
-                LocationSlot = "Đang cập nhật",
-                Summary = "Cửa hàng đang trong quá trình setup.",
-                Description = "Thông tin chi tiết sẽ được cập nhật sớm...",
+                Floor = string.IsNullOrWhiteSpace(dto.Floor) ? "Updating" : dto.Floor,
+                LocationSlot = string.IsNullOrWhiteSpace(dto.LocationSlot) ? "Updating" : dto.LocationSlot,
+                Summary = "This shop is being prepared and will open soon.",
+                Description = "Detailed public shop information will be updated soon.",
                 OpenHours = "09:00 - 22:00"
             };
 
@@ -118,7 +122,7 @@ public class AuthController : ControllerBase
         catch (Exception ex)
         {
             // Log ra console nếu lỗi, nhưng không làm sập quá trình trả về kết quả đăng ký
-            Console.WriteLine($"[CẢNH BÁO] Không thể tạo tự động shop vật lý: {ex.Message}");
+            Console.WriteLine($"[WARNING] Could not auto-create physical shop: {ex.Message}");
         }
         // ==========================================
 
@@ -197,6 +201,63 @@ public class AuthController : ControllerBase
 
         var history = await _userQueryService.GetProfileUpdateHistoryAsync(userId);
         return Ok(history);
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("profile-update-requests")]
+    public async Task<ActionResult<IReadOnlyList<ProfileUpdateRequestResponseDto>>> GetProfileUpdateRequests([FromQuery] string? status = "Pending")
+        => Ok(await _userQueryService.GetProfileUpdateRequestsAsync(status));
+
+    [Authorize]
+    [HttpGet("profile-update-requests/me")]
+    public async Task<ActionResult<IReadOnlyList<ProfileUpdateRequestResponseDto>>> GetMyProfileUpdateRequests([FromQuery] string? status = "Pending")
+    {
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return Ok(await _userQueryService.GetMyProfileUpdateRequestsAsync(userId, status));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("profile-update-requests/{id}/approve")]
+    public async Task<IActionResult> ApproveProfileUpdateRequest(string id, ProfileUpdateRequestDecisionDto dto)
+    {
+        var adminUserId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(adminUserId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return FromResult(await _userCommandService.ApproveProfileUpdateRequestAsync(id, adminUserId, dto));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("profile-update-requests/{id}/reject")]
+    public async Task<IActionResult> RejectProfileUpdateRequest(string id, ProfileUpdateRequestDecisionDto dto)
+    {
+        var adminUserId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(adminUserId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return FromResult(await _userCommandService.RejectProfileUpdateRequestAsync(id, adminUserId, dto));
+    }
+
+    [Authorize]
+    [HttpPost("resetpassword")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+    {
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return FromResult(await _userCommandService.ResetPasswordAsync(userId, dto));
     }
 
     [Authorize]
@@ -336,6 +397,48 @@ public class AuthController : ControllerBase
         };
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpPost("users/{id}/activate")]
+    public async Task<IActionResult> ActivateUserAccount(string id)
+    {
+        var result = await _userCommandService.ActivateUserAccountAsync(id);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("users/{id}/resend-initial-password")]
+    public async Task<IActionResult> ResendInitialPasswordLink(string id)
+    {
+        var result = await _userCommandService.ResendInitialPasswordLinkAsync(id);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
+    [HttpPost("initial-password/change")]
+    public async Task<IActionResult> CompleteInitialPasswordChange(CompleteInitialPasswordChangeDto dto)
+        => FromResult(await _userCommandService.CompleteInitialPasswordChangeAsync(dto));
+
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
     {
@@ -374,3 +477,4 @@ public class AuthController : ControllerBase
             ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
     }
 }
+

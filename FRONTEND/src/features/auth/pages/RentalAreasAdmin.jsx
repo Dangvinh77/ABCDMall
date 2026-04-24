@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../core/api/api";
+import { BASE_URL } from "../../../core/api/api";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("vi-VN", {
@@ -16,14 +17,6 @@ const getTomorrowDateInput = () => {
 
   const timezoneOffset = tomorrow.getTimezoneOffset() * 60000;
   return new Date(tomorrow.getTime() - timezoneOffset).toISOString().slice(0, 10);
-};
-
-const initialAreaForm = {
-  areaCode: "",
-  floor: "",
-  areaName: "",
-  size: "",
-  monthlyRent: "",
 };
 
 const initialRentalForm = {
@@ -61,9 +54,10 @@ export default function RentalAreasAdmin() {
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
-  const [areaForm, setAreaForm] = useState(initialAreaForm);
   const [saving, setSaving] = useState(false);
   const [selectedViewArea, setSelectedViewArea] = useState(null);
+  const [loadingViewDetail, setLoadingViewDetail] = useState(false);
+  const [selectedContract, setSelectedContract] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
   const [rentalForm, setRentalForm] = useState(initialRentalForm);
   const [contractFile, setContractFile] = useState(null);
@@ -71,6 +65,8 @@ export default function RentalAreasAdmin() {
   const [monthlyBillForm, setMonthlyBillForm] = useState(initialMonthlyBillForm);
   const [floorFilter, setFloorFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusTab, setStatusTab] = useState("available");
+  const [leaseLeftSort, setLeaseLeftSort] = useState(null);
 
   const loadRentalAreas = async () => {
     try {
@@ -79,9 +75,10 @@ export default function RentalAreasAdmin() {
       const res = await api.get("/RentalArea");
       const areas = res.data || [];
       setRentalAreas(areas);
-      setSelectedViewArea((current) => (
-        current ? areas.find((area) => area.id === current.id) || null : null
-      ));
+      const currentId = selectedViewArea?.id;
+      if (currentId) {
+        await loadRentalAreaDetail(currentId);
+      }
       return areas;
     } catch (err) {
       setLoadError(err.response?.data || "Unable to load rental areas.");
@@ -96,12 +93,22 @@ export default function RentalAreasAdmin() {
     }
   }, [isAdmin]);
 
-  const handleAreaFormChange = (field, value) => {
-    setAreaForm((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleRentalFormChange = (field, value) => {
     setRentalForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const loadRentalAreaDetail = async (areaId) => {
+    try {
+      setLoadingViewDetail(true);
+      const res = await api.get(`/RentalArea/${areaId}`);
+      setSelectedViewArea(res.data);
+      return res.data;
+    } catch (err) {
+      setActionError(err.response?.data || "Unable to load rental area details.");
+      return null;
+    } finally {
+      setLoadingViewDetail(false);
+    }
   };
 
   const handleMonthlyBillFormChange = (field, value) => {
@@ -113,25 +120,14 @@ export default function RentalAreasAdmin() {
     setCurrentPage(1);
   };
 
-  const handleAddArea = async () => {
-    try {
-      setSaving(true);
-      setActionError("");
-      setSuccess("");
+  const handleStatusTabChange = (value) => {
+    setStatusTab(value);
+    setCurrentPage(1);
+  };
 
-      await api.post("/RentalArea", {
-        ...areaForm,
-        monthlyRent: Number(areaForm.monthlyRent),
-      });
-
-      setAreaForm(initialAreaForm);
-      setSuccess("Rental area created successfully.");
-      await loadRentalAreas();
-    } catch (err) {
-      setActionError(err.response?.data || "Unable to create rental area.");
-    } finally {
-      setSaving(false);
-    }
+  const handleLeaseLeftSortChange = (direction) => {
+    setLeaseLeftSort((current) => (current === direction ? null : direction));
+    setCurrentPage(1);
   };
 
   const openRegisterModal = (area) => {
@@ -152,17 +148,31 @@ export default function RentalAreasAdmin() {
     setActionError("");
   };
 
-  const openViewModal = (area) => {
-    setSelectedViewArea(area);
+  const openViewModal = async (area) => {
     setMonthlyBillForm(initialMonthlyBillForm);
     setActionError("");
     setSuccess("");
+    await loadRentalAreaDetail(area.id);
   };
 
   const closeViewModal = () => {
     setSelectedViewArea(null);
+    setSelectedContract(null);
     setMonthlyBillForm(initialMonthlyBillForm);
     setActionError("");
+  };
+
+  const resolveContractUrl = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    const assetPath = value.startsWith("/") ? value : `/${value}`;
+    return `${BASE_URL.replace(/\/api\/?$/, "")}${assetPath}`;
   };
 
   const handleCheckCccd = async () => {
@@ -328,9 +338,22 @@ export default function RentalAreasAdmin() {
   const floorOptions = Array.from(
     new Set(rentalAreas.map((area) => String(area.floor || "").trim()).filter(Boolean)),
   ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
-  const filteredRentalAreas = floorFilter === "all"
-    ? rentalAreas
-    : rentalAreas.filter((area) => String(area.floor || "").trim() === floorFilter);
+  const statusFilteredRentalAreas = rentalAreas.filter((area) =>
+    statusTab === "available" ? area.status === "Available" : area.status === "Rented"
+  );
+  const floorFilteredRentalAreas = floorFilter === "all"
+    ? statusFilteredRentalAreas
+    : statusFilteredRentalAreas.filter((area) => String(area.floor || "").trim() === floorFilter);
+  const filteredRentalAreas = [...floorFilteredRentalAreas].sort((left, right) => {
+    if (!leaseLeftSort) {
+      return 0;
+    }
+
+    const leftValue = Number.isFinite(left.remainingLeaseDays) ? left.remainingLeaseDays : -1;
+    const rightValue = Number.isFinite(right.remainingLeaseDays) ? right.remainingLeaseDays : -1;
+
+    return leaseLeftSort === "asc" ? leftValue - rightValue : rightValue - leftValue;
+  });
   const totalPages = Math.max(1, Math.ceil(filteredRentalAreas.length / RENTAL_AREA_PAGE_SIZE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const startIndex = (safeCurrentPage - 1) * RENTAL_AREA_PAGE_SIZE;
@@ -376,40 +399,42 @@ export default function RentalAreasAdmin() {
             </div>
           </section>
 
-          <section className="rounded-[30px] border border-slate-200 bg-white/90 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Admin Action</p>
-            <h2 className="mt-2 text-2xl font-black text-slate-950">Add Rental Area</h2>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-              <input value={areaForm.areaCode} placeholder="Area code" className="rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleAreaFormChange("areaCode", e.target.value)} />
-              <input value={areaForm.floor} placeholder="Floor" className="rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleAreaFormChange("floor", e.target.value)} />
-              <input value={areaForm.areaName} placeholder="Area name" className="rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleAreaFormChange("areaName", e.target.value)} />
-              <input value={areaForm.size} placeholder="Size" className="rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleAreaFormChange("size", e.target.value)} />
-              <input type="number" min="0" value={areaForm.monthlyRent} placeholder="Monthly rent" className="rounded-[16px] border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleAreaFormChange("monthlyRent", e.target.value)} />
-            </div>
-
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                {actionError && <p className="text-sm font-medium text-rose-600">{actionError}</p>}
-                {success && <p className="text-sm font-medium text-emerald-600">{success}</p>}
-              </div>
-              <button
-                type="button"
-                disabled={saving}
-                onClick={handleAddArea}
-                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {saving ? "Saving..." : "Add Area"}
-              </button>
-            </div>
-          </section>
-
           <section className="overflow-hidden rounded-[30px] border border-slate-200 bg-white/90 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur-xl">
             <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Admin View</p>
                   <h2 className="mt-2 text-2xl font-black text-slate-950">Rental Area List</h2>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleStatusTabChange("rented")}
+                      className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                        statusTab === "rented"
+                          ? "bg-slate-950 text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      Rented Areas
+                      <span className="ml-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-slate-700">
+                        {rentedCount}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusTabChange("available")}
+                      className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                        statusTab === "available"
+                          ? "bg-slate-950 text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      Available Areas
+                      <span className="ml-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-slate-700">
+                        {availableCount}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="w-full lg:w-56">
@@ -439,34 +464,64 @@ export default function RentalAreasAdmin() {
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[1080px] table-fixed border-collapse text-left">
+                  <table className="w-full min-w-0 table-fixed border-collapse text-left">
                     <colgroup>
-                      <col className="w-[12%]" />
-                      <col className="w-[8%]" />
-                      <col className="w-[20%]" />
-                      <col className="w-[10%]" />
                       <col className="w-[14%]" />
                       <col className="w-[12%]" />
+                      <col className="w-[20%]" />
                       <col className="w-[16%]" />
-                      <col className="w-[8%]" />
+                      <col className="w-[16%]" />
+                      <col className="w-[12%]" />
+                      <col className="w-[10%]" />
                     </colgroup>
                     <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                       <tr>
                         <th className="px-4 py-3">Area Code</th>
                         <th className="px-4 py-3">Floor</th>
                         <th className="px-4 py-3">Area Name</th>
-                        <th className="px-4 py-3">Size</th>
-                        <th className="px-4 py-3">Monthly Rent</th>
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3">Tenant</th>
+                        <th className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span>Lease Left</span>
+                            <div className="flex flex-col items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleLeaseLeftSortChange("asc")}
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition ${
+                                  leaseLeftSort === "asc"
+                                    ? "bg-slate-950 text-white"
+                                    : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                                }`}
+                                title="Sort ascending"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleLeaseLeftSortChange("desc")}
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition ${
+                                  leaseLeftSort === "desc"
+                                    ? "bg-slate-950 text-white"
+                                    : "bg-slate-200 text-slate-600 hover:bg-slate-300"
+                                }`}
+                                title="Sort descending"
+                              >
+                                ▼
+                              </button>
+                            </div>
+                          </div>
+                        </th>
                         <th className="px-4 py-3">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
                       {paginatedRentalAreas.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
-                            No rental areas found for this floor.
+                          <td colSpan={7} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
+                            {statusTab === "available"
+                              ? "No available rental areas found for this floor."
+                              : "No rented rental areas found for this floor."}
                           </td>
                         </tr>
                       ) : (
@@ -477,15 +532,28 @@ export default function RentalAreasAdmin() {
                             <tr key={area.id} className="align-top transition hover:bg-amber-50/60">
                               <td className="px-4 py-4 font-semibold text-slate-950">{area.areaCode}</td>
                               <td className="px-4 py-4">{area.floor}</td>
-                              <td className="px-4 py-4">{area.areaName}</td>
-                              <td className="px-4 py-4">{area.size}</td>
-                              <td className="px-4 py-4">{formatCurrency(area.monthlyRent)}</td>
+                              <td className="px-4 py-4">
+                                <span className="block truncate" title={area.areaName}>
+                                  {area.areaName}
+                                </span>
+                              </td>
                               <td className="px-4 py-4">
                                 <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isRented ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
                                   {area.status}
                                 </span>
                               </td>
                               <td className="px-4 py-4">{area.tenantName || "-"}</td>
+                              <td className="px-4 py-4">
+                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                                  !area.remainingLeaseLabel
+                                    ? "bg-slate-100 text-slate-500"
+                                    : area.remainingLeaseDays === 0
+                                      ? "bg-rose-100 text-rose-700"
+                                      : "bg-sky-100 text-sky-700"
+                                }`}>
+                                  {area.remainingLeaseLabel || "-"}
+                                </span>
+                              </td>
                               <td className="px-4 py-4">
                                 <button type="button" onClick={() => openViewModal(area)} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5">
                                   View
@@ -665,10 +733,50 @@ export default function RentalAreasAdmin() {
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-[18px] bg-white px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Tenant</p>
-                  <p className="mt-1 font-bold text-slate-950">{selectedViewArea.tenantName || "No tenant registered"}</p>
-                </div>
+                {loadingViewDetail ? (
+                  <div className="mt-4 rounded-[18px] bg-white px-4 py-6 text-sm font-medium text-slate-500">
+                    Loading rental details...
+                  </div>
+                ) : (
+                  <>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      <DetailCard label="Tenant" value={selectedViewArea.tenantName || "No tenant registered"} />
+                      <DetailCard label="CCCD" value={selectedViewArea.cccd} />
+                      <DetailCard label="Manager Name" value={selectedViewArea.managerName} />
+                      <DetailCard label="Shop Name" value={selectedViewArea.shopName} />
+                      <DetailCard label="Location" value={selectedViewArea.rentalLocation} />
+                      <DetailCard label="Start Date" value={selectedViewArea.leaseStartDate} />
+                      <DetailCard label="Electricity Fee" value={formatCurrency(selectedViewArea.electricityFee)} />
+                      <DetailCard label="Water Fee" value={formatCurrency(selectedViewArea.waterFee)} />
+                      <DetailCard label="Fee" value={formatCurrency(selectedViewArea.serviceFee)} />
+                      <DetailCard
+                        label="Rental Duration"
+                        value={selectedViewArea.leaseTermDays ? `${selectedViewArea.leaseTermDays} days` : "-"}
+                      />
+                    </div>
+
+                    <div className="mt-3 rounded-[18px] bg-white px-4 py-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Contract Image</p>
+                          <p className="mt-1 font-bold text-slate-950">
+                            {resolveContractUrl(selectedViewArea.contractImage || selectedViewArea.contractImages)
+                              ? "Contract available"
+                              : "No contract uploaded"}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={!resolveContractUrl(selectedViewArea.contractImage || selectedViewArea.contractImages)}
+                          onClick={() => setSelectedContract(resolveContractUrl(selectedViewArea.contractImage || selectedViewArea.contractImages))}
+                          className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:translate-y-0"
+                        >
+                          View Contract
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </section>
 
               {selectedViewArea.status === "Rented" ? (
@@ -744,6 +852,39 @@ export default function RentalAreasAdmin() {
           </div>
         </div>
       )}
+
+      {selectedContract && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 px-4 py-6 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.35)]">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <h3 className="text-lg font-black text-slate-950">Contract Image</h3>
+              <button
+                type="button"
+                onClick={() => setSelectedContract(null)}
+                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Close
+              </button>
+            </div>
+            <div className="max-h-[78vh] overflow-auto bg-slate-100 p-4">
+              <img
+                src={selectedContract}
+                alt="Contract"
+                className="mx-auto max-h-[72vh] w-auto rounded-2xl object-contain shadow-lg"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailCard({ label, value }) {
+  return (
+    <div className="rounded-[18px] bg-white px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</p>
+      <p className="mt-1 break-words font-bold text-slate-950">{value || "-"}</p>
     </div>
   );
 }

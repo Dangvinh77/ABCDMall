@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Domain.Entities;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABCDMall.Modules.Users.Infrastructure;
@@ -7,10 +8,12 @@ namespace ABCDMall.Modules.Users.Infrastructure;
 public sealed class UserCommandRepository : IUserCommandRepository
 {
     private readonly MallDbContext _context;
+    private readonly UtilityMapDbContext _utilityMapContext;
 
-    public UserCommandRepository(MallDbContext context)
+    public UserCommandRepository(MallDbContext context, UtilityMapDbContext utilityMapContext)
     {
         _context = context;
+        _utilityMapContext = utilityMapContext;
     }
 
     public Task<User?> GetUserByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
@@ -18,6 +21,9 @@ public sealed class UserCommandRepository : IUserCommandRepository
 
     public Task<User?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
         => _context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
+
+    public Task<User?> GetUserByPasswordSetupTokenAsync(string token, CancellationToken cancellationToken = default)
+        => _context.Users.FirstOrDefaultAsync(x => x.PasswordSetupToken == token, cancellationToken);
 
     public Task<bool> ExistsUserByEmailAsync(string normalizedEmail, string? excludedUserId = null, CancellationToken cancellationToken = default)
         => _context.Users.AnyAsync(
@@ -36,6 +42,13 @@ public sealed class UserCommandRepository : IUserCommandRepository
 
     public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
         => _context.ShopInfos.FirstOrDefaultAsync(x => x.Id == shopId, cancellationToken);
+
+    public Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default)
+        => string.IsNullOrWhiteSpace(shopId)
+            ? Task.FromResult(false)
+            : _utilityMapContext.MapLocations.AnyAsync(
+                x => x.ShopInfoId == shopId && x.Status != "Available",
+                cancellationToken);
 
     public async Task RemoveUnusedForgotPasswordOtpsAsync(string normalizedEmail, CancellationToken cancellationToken = default)
     {
@@ -73,6 +86,17 @@ public sealed class UserCommandRepository : IUserCommandRepository
 
     public Task AddProfileUpdateHistoryAsync(ProfileUpdateHistory history, CancellationToken cancellationToken = default)
         => _context.ProfileUpdateHistories.AddAsync(history, cancellationToken).AsTask();
+
+    public Task<bool> HasPendingProfileUpdateRequestAsync(string userId, CancellationToken cancellationToken = default)
+        => _context.ProfileUpdateRequests.AnyAsync(
+            x => x.UserId == userId && x.Status == "Pending",
+            cancellationToken);
+
+    public Task AddProfileUpdateRequestAsync(ProfileUpdateRequest request, CancellationToken cancellationToken = default)
+        => _context.ProfileUpdateRequests.AddAsync(request, cancellationToken).AsTask();
+
+    public Task<ProfileUpdateRequest?> GetProfileUpdateRequestByIdAsync(string requestId, CancellationToken cancellationToken = default)
+        => _context.ProfileUpdateRequests.FirstOrDefaultAsync(x => x.Id == requestId, cancellationToken);
 
     public Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
         => _context.RefreshTokens.AddAsync(refreshToken, cancellationToken).AsTask();

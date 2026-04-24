@@ -1,9 +1,12 @@
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 using ABCDMall.Modules.Users.Application.Services.RentalAreas;
+using ABCDMall.Modules.Users.Application.Services.RentalPayments;
 using ABCDMall.Modules.Users.Application.Services.ShopInfos;
 using ABCDMall.Modules.Users.Application.Services;
 using ABCDMall.Modules.Users.Infrastructure.Services;
+using ABCDMall.Modules.Users.Infrastructure.Services.RentalPayments;
+using ABCDMall.Modules.Users.Infrastructure.Options;
 using ABCDMall.Modules.Users.Services;
 using ABCDMall.Modules.Users.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -42,6 +45,8 @@ public static class DependencyInjection
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IRentalPaymentService, RentalPaymentService>();
+        services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
 
         var jwtKey = configuration["Jwt:Key"]
             ?? throw new InvalidOperationException("Configuration value 'Jwt:Key' was not found.");

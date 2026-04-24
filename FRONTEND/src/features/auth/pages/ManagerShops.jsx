@@ -183,6 +183,11 @@ export default function ManagerShops() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const availableRentalLocations = creationStatus?.availableRentalLocations || [];
+  const selectedAvailableLocation = availableRentalLocations.find(
+    (location) => location.locationSlot === form.locationSlot,
+  );
+
   const loadShops = async () => {
     try {
       setLoading(true);
@@ -203,6 +208,36 @@ export default function ManagerShops() {
   useEffect(() => {
     loadShops();
   }, []);
+
+  useEffect(() => {
+    if (editingShopId) {
+      return;
+    }
+
+    if (availableRentalLocations.length === 1) {
+      const [location] = availableRentalLocations;
+      setForm((prev) => ({
+        ...prev,
+        locationSlot: location.locationSlot || "",
+        floor: location.floor || "",
+      }));
+      return;
+    }
+
+    setForm((prev) => {
+      if (!prev.locationSlot) {
+        return prev;
+      }
+
+      const matchedLocation = availableRentalLocations.find(
+        (location) => location.locationSlot === prev.locationSlot,
+      );
+
+      return matchedLocation
+        ? { ...prev, floor: matchedLocation.floor || "" }
+        : { ...prev, locationSlot: "", floor: "" };
+    });
+  }, [availableRentalLocations, editingShopId]);
 
   const handleChange = (field, value) => {
     setForm((prev) => ({
@@ -463,8 +498,52 @@ export default function ManagerShops() {
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <TextInput field="category" label="Category" placeholder="Lifestyle" form={form} onChange={handleChange} />
-                  <TextInput field="floor" label="Floor" placeholder="Floor 1" form={form} onChange={handleChange} />
-                  <TextInput field="locationSlot" label="Location" placeholder="1-03" form={form} onChange={handleChange} />
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-700">Floor</span>
+                    <input
+                      value={editingShopId ? form.floor : selectedAvailableLocation?.floor || form.floor}
+                      readOnly
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700 outline-none"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-700">Location</span>
+                    {editingShopId ? (
+                      <input
+                        value={form.locationSlot}
+                        readOnly
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700 outline-none"
+                      />
+                    ) : availableRentalLocations.length > 1 ? (
+                      <select
+                        value={form.locationSlot}
+                        onChange={(event) => {
+                          const location = availableRentalLocations.find(
+                            (item) => item.locationSlot === event.target.value,
+                          );
+                          setForm((prev) => ({
+                            ...prev,
+                            locationSlot: event.target.value,
+                            floor: location?.floor || "",
+                          }));
+                        }}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100"
+                      >
+                        <option value="">Select a rented location</option>
+                        {availableRentalLocations.map((location) => (
+                          <option key={location.locationSlot} value={location.locationSlot}>
+                            {location.locationSlot}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        value={form.locationSlot}
+                        readOnly
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700 outline-none"
+                      />
+                    )}
+                  </label>
                   <TextInput field="openHours" label="Open hours" placeholder="09:30 - 22:00" form={form} onChange={handleChange} />
                 </div>
               </FormSection>

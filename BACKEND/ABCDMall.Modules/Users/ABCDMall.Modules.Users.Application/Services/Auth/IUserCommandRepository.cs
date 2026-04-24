@@ -8,6 +8,8 @@ public interface IUserCommandRepository
 
     Task<User?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default);
 
+    Task<User?> GetUserByPasswordSetupTokenAsync(string token, CancellationToken cancellationToken = default);
+
     Task<bool> ExistsUserByEmailAsync(string normalizedEmail, string? excludedUserId = null, CancellationToken cancellationToken = default);
 
     Task<bool> ExistsUserByCccdAsync(string normalizedCccd, string? excludedUserId = null, CancellationToken cancellationToken = default);
@@ -15,6 +17,8 @@ public interface IUserCommandRepository
     Task<bool> ExistsShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default);
 
     Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default);
+
+    Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default);
 
     Task RemoveUnusedForgotPasswordOtpsAsync(string normalizedEmail, CancellationToken cancellationToken = default);
 
@@ -29,6 +33,12 @@ public interface IUserCommandRepository
     Task<PasswordResetOtp?> GetPasswordResetOtpAsync(string userId, string otp, CancellationToken cancellationToken = default);
 
     Task AddProfileUpdateHistoryAsync(ProfileUpdateHistory history, CancellationToken cancellationToken = default);
+
+    Task<bool> HasPendingProfileUpdateRequestAsync(string userId, CancellationToken cancellationToken = default);
+
+    Task AddProfileUpdateRequestAsync(ProfileUpdateRequest request, CancellationToken cancellationToken = default);
+
+    Task<ProfileUpdateRequest?> GetProfileUpdateRequestByIdAsync(string requestId, CancellationToken cancellationToken = default);
 
     Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default);
 

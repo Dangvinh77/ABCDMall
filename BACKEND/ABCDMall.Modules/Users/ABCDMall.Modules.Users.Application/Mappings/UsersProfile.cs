@@ -12,8 +12,13 @@ public sealed class UsersProfile : AutoMapper.Profile
         CreateMap<User, UserProfileResponseDto>();
         CreateMap<User, UserSummaryResponseDto>();
         CreateMap<ProfileUpdateHistory, ProfileUpdateHistoryResponseDto>();
+        CreateMap<ProfileUpdateRequest, ProfileUpdateRequestResponseDto>();
         CreateMap<RentalArea, RentalAreaResponseDto>();
-        CreateMap<ShopMonthlyBill, ShopMonthlyBillResponseDto>()
+        CreateMap<ShopInfo, ShopRentalInfoResponseDto>()
+            .ForMember(dest => dest.ShopInfoId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.LeaseStartDate, opt => opt.MapFrom(src => src.LeaseStartDate.ToString("yyyy-MM-dd")));
+        CreateMap<ShopMonthlyBill, ShopMonthlyBillResponseDto>()
+            .ForMember(dest => dest.LeaseStartDate, opt => opt.MapFrom(src => src.LeaseStartDate.ToString("yyyy-MM-dd")))
+            .ForMember(dest => dest.PaidAtUtc, opt => opt.MapFrom(src => src.PaidAtUtc.HasValue ? src.PaidAtUtc.Value.ToString("O") : null));
     }
 }

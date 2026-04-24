@@ -8,6 +8,9 @@ public sealed class LocalFileStorageService : IFileStorageService
     public Task<string> SaveProfileAvatarAsync(IFormFile file, CancellationToken cancellationToken = default)
         => SaveFileAsync(file, Path.Combine("wwwroot", "images", "profiles"), "/images/profiles", cancellationToken);
 
+    public Task<string> SaveCccdImageAsync(IFormFile file, CancellationToken cancellationToken = default)
+        => SaveFileAsync(file, Path.Combine("wwwroot", "images", "cccd"), "/images/cccd", cancellationToken);
+
     public Task<string> SaveContractImageAsync(IFormFile file, CancellationToken cancellationToken = default)
         => SaveFileAsync(file, Path.Combine("wwwroot", "images", "contracts"), "/images/contracts", cancellationToken);
 

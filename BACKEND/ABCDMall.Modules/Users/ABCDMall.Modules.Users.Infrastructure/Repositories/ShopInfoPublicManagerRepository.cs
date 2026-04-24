@@ -1,5 +1,7 @@
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
+using ABCDMall.Modules.Users.Application.DTOs.PublicCatalog;
 using ABCDMall.Modules.Users.Domain.Entities;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABCDMall.Modules.Users.Infrastructure.Repositories;
@@ -7,10 +9,12 @@ namespace ABCDMall.Modules.Users.Infrastructure.Repositories;
 public sealed class ShopInfoPublicManagerRepository : IShopInfoPublicManagerRepository
 {
     private readonly MallDbContext _context;
+    private readonly UtilityMapDbContext _utilityMapContext;
 
-    public ShopInfoPublicManagerRepository(MallDbContext context)
+    public ShopInfoPublicManagerRepository(MallDbContext context, UtilityMapDbContext utilityMapContext)
     {
         _context = context;
+        _utilityMapContext = utilityMapContext;
     }
 
     public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
@@ -58,9 +62,53 @@ public sealed class ShopInfoPublicManagerRepository : IShopInfoPublicManagerRepo
             cancellationToken);
 
     public Task<int> CountRentedAreasAsync(string shopId, string tenantName, CancellationToken cancellationToken = default)
-        => _context.RentalAreas.CountAsync(
-            x => x.Status == "Rented" && (x.ShopInfoId == shopId || (x.ShopInfoId == null && x.TenantName == tenantName)),
+        => _utilityMapContext.MapLocations.CountAsync(
+            x => x.Status != "Available" && (x.ShopInfoId == shopId || (x.ShopInfoId == null && x.ShopName == tenantName)),
             cancellationToken);
+
+    public async Task<IReadOnlyList<AvailableRentalLocationDto>> GetAvailableRentalLocationsAsync(string shopId, string tenantName, CancellationToken cancellationToken = default)
+    {
+        var assignedLocations = await _utilityMapContext.MapLocations
+            .AsNoTracking()
+            .Include(x => x.FloorPlan)
+            .Where(x => x.Status != "Available" && (x.ShopInfoId == shopId || (x.ShopInfoId == null && x.ShopName == tenantName)))
+            .ToListAsync(cancellationToken);
+
+        var usedLocationSlots = await _context.ShopInfos
+            .AsNoTracking()
+            .Where(x => x.IsPublicVisible && (x.Id == shopId || x.OwnerShopInfoId == shopId))
+            .Select(x => x.LocationSlot)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToListAsync(cancellationToken);
+
+        return assignedLocations
+            .Select(x => new AvailableRentalLocationDto
+            {
+                LocationSlot = x.LocationSlot,
+                Floor = string.IsNullOrWhiteSpace(x.FloorPlan?.FloorLevel)
+                    ? ResolveFloorFromLocationSlot(x.LocationSlot)
+                    : $"Floor {x.FloorPlan.FloorLevel.Trim()}",
+                AreaName = x.ShopName
+            })
+            .Where(x => !usedLocationSlots.Contains(x.LocationSlot, StringComparer.OrdinalIgnoreCase))
+            .GroupBy(x => $"{x.Floor}|{x.LocationSlot}", StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .OrderBy(x => x.Floor)
+            .ThenBy(x => x.LocationSlot)
+            .ToList();
+    }
+
+    private static string ResolveFloorFromLocationSlot(string? locationSlot)
+    {
+        var value = locationSlot?.Trim();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var digits = new string(value.TakeWhile(char.IsDigit).ToArray());
+        return string.IsNullOrWhiteSpace(digits) ? value : $"Floor {digits}";
+    }
 
     public Task AddShopInfoAsync(ShopInfo shopInfo, CancellationToken cancellationToken = default)
         => _context.ShopInfos.AddAsync(shopInfo, cancellationToken).AsTask();

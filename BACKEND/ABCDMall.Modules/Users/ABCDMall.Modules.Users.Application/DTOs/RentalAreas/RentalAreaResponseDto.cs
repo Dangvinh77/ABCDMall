@@ -10,4 +10,6 @@ public sealed class RentalAreaResponseDto
     public decimal MonthlyRent { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? TenantName { get; set; }
+    public int? RemainingLeaseDays { get; set; }
+    public string? RemainingLeaseLabel { get; set; }
 }

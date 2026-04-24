@@ -28,6 +28,13 @@ public class RentalAreaController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<RentalAreaResponseDto>>> GetRentalAreas()
         => Ok(await _rentalAreaQueryService.GetRentalAreasAsync());
 
+    [HttpGet("{id}")]
+    public async Task<ActionResult<RentalAreaDetailResponseDto>> GetRentalAreaDetail(string id)
+    {
+        var rentalArea = await _rentalAreaQueryService.GetRentalAreaDetailAsync(id);
+        return rentalArea is null ? NotFound("Rental area does not exist") : Ok(rentalArea);
+    }
+
     [HttpGet("check-manager/{cccd}")]
     public async Task<ActionResult<ManagerLookupResponseDto>> CheckManagerByCccd(string cccd)
     {

@@ -16,6 +16,7 @@ namespace ABCDMall.Modules.Users.Infrastructure
         public DbSet<PasswordResetOtp> PasswordResetOtps => Set<PasswordResetOtp>();
         public DbSet<ForgotPasswordOtp> ForgotPasswordOtps => Set<ForgotPasswordOtp>();
         public DbSet<ProfileUpdateHistory> ProfileUpdateHistories => Set<ProfileUpdateHistory>();
+        public DbSet<ProfileUpdateRequest> ProfileUpdateRequests => Set<ProfileUpdateRequest>();
         public DbSet<ShopInfo> ShopInfos => Set<ShopInfo>();
         public DbSet<RentalArea> RentalAreas => Set<RentalArea>();
         public DbSet<ShopMonthlyBill> ShopMonthlyBills => Set<ShopMonthlyBill>();
@@ -30,6 +31,7 @@ namespace ABCDMall.Modules.Users.Infrastructure
             modelBuilder.ApplyConfiguration(new PasswordResetOtpConfiguration());
             modelBuilder.ApplyConfiguration(new ForgotPasswordOtpConfiguration());
             modelBuilder.ApplyConfiguration(new ProfileUpdateHistoryConfiguration());
+            modelBuilder.ApplyConfiguration(new ProfileUpdateRequestConfiguration());
             modelBuilder.ApplyConfiguration(new RentalAreaConfiguration());
             modelBuilder.ApplyConfiguration(new ShopInfoConfiguration());
             modelBuilder.ApplyConfiguration(new ShopMonthlyBillConfiguration());

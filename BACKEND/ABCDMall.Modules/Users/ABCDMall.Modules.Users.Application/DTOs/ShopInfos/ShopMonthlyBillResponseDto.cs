@@ -19,6 +19,8 @@ public sealed class ShopMonthlyBillResponseDto
     public decimal ServiceFee { get; set; }
     public int LeaseTermDays { get; set; }
     public decimal TotalDue { get; set; }
+    public string PaymentStatus { get; set; } = "Unpaid";
+    public string? PaidAtUtc { get; set; }
     public string? ContractImage { get; set; }
     public string? ContractImages { get; set; }
 }
