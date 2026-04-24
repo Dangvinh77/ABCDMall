@@ -5,6 +5,7 @@ using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Infrastructure.Options;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Emails;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,22 +17,16 @@ public sealed class MovieFeedbackInvitationBackgroundService : BackgroundService
     private const int BatchSize = 10;
     private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(1);
 
-    private readonly IMovieFeedbackRepository _feedbackRepository;
-    private readonly IShowtimeRepository _showtimeRepository;
-    private readonly IMovieFeedbackEmailSender _emailSender;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly StripeSettings _stripeSettings;
     private readonly ILogger<MovieFeedbackInvitationBackgroundService> _logger;
 
     public MovieFeedbackInvitationBackgroundService(
-        IMovieFeedbackRepository feedbackRepository,
-        IShowtimeRepository showtimeRepository,
-        IMovieFeedbackEmailSender emailSender,
+        IServiceScopeFactory scopeFactory,
         IOptions<StripeSettings> stripeSettings,
         ILogger<MovieFeedbackInvitationBackgroundService> logger)
     {
-        _feedbackRepository = feedbackRepository;
-        _showtimeRepository = showtimeRepository;
-        _emailSender = emailSender;
+        _scopeFactory = scopeFactory;
         _stripeSettings = stripeSettings.Value;
         _logger = logger;
     }
@@ -49,14 +44,19 @@ public sealed class MovieFeedbackInvitationBackgroundService : BackgroundService
 
     public async Task ProcessPendingRequestsOnceAsync(CancellationToken cancellationToken)
     {
+        using var scope = _scopeFactory.CreateScope();
+        var feedbackRepository = scope.ServiceProvider.GetRequiredService<IMovieFeedbackRepository>();
+        var showtimeRepository = scope.ServiceProvider.GetRequiredService<IShowtimeRepository>();
+        var emailSender = scope.ServiceProvider.GetRequiredService<IMovieFeedbackEmailSender>();
+
         var now = DateTime.UtcNow;
-        var requests = await _feedbackRepository.GetPendingInvitationRequestsAsync(now, BatchSize, cancellationToken);
+        var requests = await feedbackRepository.GetPendingInvitationRequestsAsync(now, BatchSize, cancellationToken);
 
         foreach (var request in requests)
         {
             try
             {
-                var showtime = await _showtimeRepository.GetShowtimeByIdAsync(request.ShowtimeId, cancellationToken);
+                var showtime = await showtimeRepository.GetShowtimeByIdAsync(request.ShowtimeId, cancellationToken);
                 if (showtime is null)
                 {
                     continue;
@@ -73,7 +73,7 @@ public sealed class MovieFeedbackInvitationBackgroundService : BackgroundService
                 var feedbackLink = BuildFeedbackLink(token);
                 var movieTitle = showtime.Movie?.Title ?? "your movie";
 
-                await _emailSender.SendAsync(new MovieFeedbackEmailMessage
+                await emailSender.SendAsync(new MovieFeedbackEmailMessage
                 {
                     ToEmail = request.PurchaserEmail,
                     ToName = "ABCD Cinema guest",
@@ -81,7 +81,7 @@ public sealed class MovieFeedbackInvitationBackgroundService : BackgroundService
                     HtmlBody = BuildEmailBody(movieTitle, showtimeEndUtc, feedbackLink)
                 }, cancellationToken);
 
-                await _feedbackRepository.MarkInvitationSentAsync(request.Id, tokenHash, now, cancellationToken);
+                await feedbackRepository.MarkInvitationSentAsync(request.Id, tokenHash, now, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -89,7 +89,7 @@ public sealed class MovieFeedbackInvitationBackgroundService : BackgroundService
             }
             catch (Exception ex)
             {
-                await _feedbackRepository.MarkInvitationFailedAsync(request.Id, ex.Message, now, cancellationToken);
+                await feedbackRepository.MarkInvitationFailedAsync(request.Id, ex.Message, now, cancellationToken);
                 _logger.LogWarning(ex, "Failed to send movie feedback invitation for request {FeedbackRequestId}.", request.Id);
             }
         }
