@@ -13,7 +13,6 @@ import {
   Ticket,
   Play,
   MessageSquare,
-  Send,
 } from 'lucide-react';
 import { getDefaultBookingDate } from '../data/promotions';
 import { formatScheduleDateParam, getScheduleDates, type MovieSchedule } from '../data/schedules';
@@ -21,7 +20,7 @@ import { Button } from '../component/ui/button';
 import { Badge } from '../component/ui/badge';
 import { moviePaths } from '../routes/moviePaths';
 import { loadMovieDetailUiData } from '../api/movieUiAdapter';
-import { createMovieFeedback, fetchMovieFeedbacks } from '../api/moviesApi';
+import { fetchMovieFeedbacks } from '../api/moviesApi';
 import type { Movie } from '../data/movie';
 
 interface MovieFeedback {
@@ -33,10 +32,6 @@ interface MovieFeedback {
 }
 
 const ratingOptions = [5, 4, 3, 2, 1];
-
-function getFeedbackStorageKey(movieId: string) {
-  return `abcd-cinema-feedback:${movieId}`;
-}
 
 function buildDefaultMovieFeedback(movie: Movie): MovieFeedback[] {
   const leadGenre = movie.genre.split(', ')[0] ?? 'Movie';
@@ -87,13 +82,9 @@ export function MovieDetailPage() {
   const [apiMovieSchedule, setApiMovieSchedule] = useState<MovieSchedule | undefined>();
   const [isLoading, setIsLoading] = useState(Boolean(movieId));
   const [submittedFeedback, setSubmittedFeedback] = useState<MovieFeedback[]>([]);
-  const [reviewerName, setReviewerName] = useState('');
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
   const [feedbackRatingFilter, setFeedbackRatingFilter] = useState<number | null>(null);
   const [apiAverageRating, setApiAverageRating] = useState<number | null>(null);
   const [apiRatingBreakdown, setApiRatingBreakdown] = useState<Record<number, number> | null>(null);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const movie = apiMovie;
   const movieSchedule = apiMovieSchedule;
   const scheduleMovieId =
@@ -101,7 +92,6 @@ export function MovieDetailPage() {
     movie?.id.replace(/-(now|soon)-\d+$/, '') ??
     movieId?.replace(/-(now|soon)-\d+$/, '');
   const feedbackMovieId = movie?.apiId ?? movieId;
-  const feedbackStorageKey = movie ? getFeedbackStorageKey(movie.id) : undefined;
   const defaultFeedback = useMemo(() => (movie ? buildDefaultMovieFeedback(movie) : []), [movie]);
   const feedbacks = useMemo(
     () => {
@@ -168,13 +158,12 @@ export function MovieDetailPage() {
   }, [bookingDate, movieId]);
 
   useEffect(() => {
-    if (!feedbackStorageKey || !feedbackMovieId) {
+    if (!feedbackMovieId) {
       setSubmittedFeedback([]);
       return;
     }
 
     let active = true;
-    const storageKey = feedbackStorageKey;
 
     async function loadFeedbacks() {
       try {
@@ -193,80 +182,18 @@ export function MovieDetailPage() {
       } catch (error) {
         if (!active) return;
 
-        try {
-          const raw = localStorage.getItem(storageKey);
-          setSubmittedFeedback(raw ? (JSON.parse(raw) as MovieFeedback[]) : []);
-        } catch {
-          setSubmittedFeedback([]);
-        }
+        setSubmittedFeedback(defaultFeedback);
         setApiAverageRating(null);
         setApiRatingBreakdown(null);
-        console.warn('Movie feedback API failed; using bundled/local fallback feedback.', error);
+        console.warn('Movie feedback API failed; using bundled read-only fallback feedback.', error);
       }
     }
 
     void loadFeedbacks();
-    setFeedbackSubmitted(false);
-    setReviewerName('');
-    setReviewRating(5);
-    setReviewComment('');
     return () => {
       active = false;
     };
-  }, [feedbackMovieId, feedbackRatingFilter, feedbackStorageKey]);
-
-  const handleFeedbackSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!feedbackStorageKey || !reviewComment.trim()) {
-      return;
-    }
-
-    try {
-      if (!feedbackMovieId) {
-        throw new Error('Movie id is missing.');
-      }
-
-      const created = await createMovieFeedback(feedbackMovieId, {
-        rating: reviewRating,
-        comment: reviewComment.trim(),
-        displayName: reviewerName.trim() || undefined,
-      });
-
-      const newFeedback: MovieFeedback = {
-        id: created.id,
-        author: created.displayName,
-        rating: created.rating,
-        comment: created.comment,
-        createdAt: formatFeedbackDate(created.createdAtUtc),
-      };
-
-      setSubmittedFeedback((currentFeedback) => [newFeedback, ...currentFeedback]);
-      setApiAverageRating(null);
-    } catch (error) {
-      console.warn('Create feedback API failed; saving feedback locally for this browser.', error);
-      const newFeedback: MovieFeedback = {
-        id:
-          typeof crypto !== 'undefined' && 'randomUUID' in crypto
-            ? crypto.randomUUID()
-            : `${Date.now()}`,
-        author: reviewerName.trim() || 'Khach hang ABCD',
-        rating: reviewRating,
-        comment: reviewComment.trim(),
-        createdAt: 'Vua xong',
-      };
-
-      setSubmittedFeedback((currentFeedback) => {
-        const nextFeedback = [newFeedback, ...currentFeedback];
-        localStorage.setItem(feedbackStorageKey, JSON.stringify(nextFeedback));
-        return nextFeedback;
-      });
-    }
-
-    setReviewerName('');
-    setReviewRating(5);
-    setReviewComment('');
-    setFeedbackSubmitted(true);
-  };
+  }, [defaultFeedback, feedbackMovieId, feedbackRatingFilter]);
 
   if (isLoading) {
     return (
@@ -518,7 +445,7 @@ export function MovieDetailPage() {
               </div>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+            <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -576,73 +503,12 @@ export function MovieDetailPage() {
                 ))}
               </div>
 
-              <form
-                onSubmit={handleFeedbackSubmit}
-                className="rounded-2xl bg-gray-800/50 p-5 ring-1 ring-gray-700/50"
-              >
-                <h3 className="text-lg font-bold text-white">Share your feedback</h3>
-                <p className="mt-1 text-sm text-gray-400">Your review will be saved for this movie.</p>
-
-                <label className="mt-5 block text-sm font-semibold text-gray-300" htmlFor="reviewer-name">
-                  Name
-                </label>
-                <input
-                  id="reviewer-name"
-                  value={reviewerName}
-                  onChange={(event) => setReviewerName(event.target.value)}
-                  placeholder="Your name"
-                  className="mt-2 w-full rounded-xl border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                />
-
-                <fieldset className="mt-5">
-                  <legend className="text-sm font-semibold text-gray-300">Rating</legend>
-                  <div className="mt-2 flex gap-2">
-                    {ratingOptions.toReversed().map((rating) => (
-                      <button
-                        key={rating}
-                        type="button"
-                        onClick={() => setReviewRating(rating)}
-                        className="rounded-lg p-1 transition hover:bg-yellow-400/10 focus:outline-none focus:ring-2 focus:ring-yellow-400/40"
-                        aria-label={`${rating} star`}
-                      >
-                        <Star
-                          className={[
-                            'size-7',
-                            rating <= reviewRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600',
-                          ].join(' ')}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-
-                <label className="mt-5 block text-sm font-semibold text-gray-300" htmlFor="review-comment">
-                  Feedback
-                </label>
-                <textarea
-                  id="review-comment"
-                  value={reviewComment}
-                  onChange={(event) => setReviewComment(event.target.value)}
-                  required
-                  rows={5}
-                  placeholder="Tell us what you think about this movie..."
-                  className="mt-2 w-full resize-none rounded-xl border border-gray-700 bg-gray-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                />
-
-                {feedbackSubmitted && (
-                  <p className="mt-3 rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-300">
-                    Thanks, your feedback has been added for this movie.
-                  </p>
-                )}
-
-                <Button
-                  type="submit"
-                  className="mt-5 w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                >
-                  <Send className="mr-2 size-4" />
-                  Submit feedback
-                </Button>
-              </form>
+              <aside className="rounded-2xl bg-gray-800/50 p-5 ring-1 ring-gray-700/50">
+                <h3 className="text-lg font-bold text-white">Feedback access</h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-300">
+                  To join feedbacks, book now and watch for the feedback link in your email after the showtime ends.
+                </p>
+              </aside>
             </div>
           </div>
         </div>
