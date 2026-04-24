@@ -22,11 +22,19 @@ using ABCDMall.Modules.UtilityMap.Application;
 using ABCDMall.Modules.UtilityMap.Infrastructure;
 using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using ABCDMall.Modules.UtilityMap.Infrastructure.Seed;
+using ABCDMall.WebAPI.Services.Chatbot;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var envFilePath = Path.Combine(builder.Environment.ContentRootPath, ".env");
+if (File.Exists(envFilePath))
+{
+    Env.Load(envFilePath);
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -94,6 +102,14 @@ builder.Services.AddUsersApplication(autoMapperLicenseKey);
 builder.Services.AddUsersInfrastructure(builder.Configuration);
 builder.Services.AddUtilityMapApplication(autoMapperLicenseKey);
 builder.Services.AddUtilityMapInfrastructure(builder.Configuration);
+
+builder.Services.AddHttpClient("Gemini", client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
+builder.Services.AddSingleton<IGeminiMallAssistantClient, GeminiMallAssistantClient>();
+builder.Services.AddScoped<IMallRagContextProvider, MallRagContextProvider>();
+builder.Services.AddScoped<IChatbotAskService, ChatbotAskService>();
 
 var app = builder.Build();
 

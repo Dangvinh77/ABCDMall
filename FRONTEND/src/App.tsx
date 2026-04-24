@@ -1,6 +1,7 @@
 import { Header } from "./core/layouts/Header";
 import { Footer } from "./core/layouts/Footer";
 import { AppRoutes } from "./routes/AppRoutes";
+import { ChatbotWidget } from "./features/chatbot/ChatbotWidget";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       </div>
 
       <Footer />
+      <ChatbotWidget />
     </div>
   );
 }

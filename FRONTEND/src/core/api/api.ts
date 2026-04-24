@@ -71,10 +71,17 @@ function mapApiError(error: unknown): never {
     // API FETCH NOTE:
     // ASP.NET Core often returns ProblemDetails with "detail" or "title".
     // We convert that backend response into a normal Error for pages to display.
+    const raw: unknown = axiosError.response?.data;
+    const asString = typeof raw === "string" ? raw.trim() : "";
+    const problem =
+      raw && typeof raw === "object"
+        ? (raw as { detail?: string; title?: string })
+        : undefined;
     const message =
-      axiosError.response?.data?.detail ??
-      axiosError.response?.data?.title ??
-      axiosError.message ??
+      asString ||
+      problem?.detail ||
+      problem?.title ||
+      axiosError.message ||
       "Request failed.";
 
     throw new Error(message);
