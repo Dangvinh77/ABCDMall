@@ -41,7 +41,9 @@ describe("MoviePublicFeedbackPage", () => {
 
     renderPage();
 
-    expect(await screen.findByText(/7 ngày/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Link feedback đã hết hạn sau 7 ngày kể từ lần mở đầu tiên\./i),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /gửi feedback/i })).not.toBeInTheDocument();
   });
 

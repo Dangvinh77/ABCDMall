@@ -40,6 +40,35 @@ public sealed class MovieFeedbackServiceTests
     }
 
     [Fact]
+    public async Task GetPublicRequestAsync_should_expire_opened_request_after_seven_days_even_when_two_feedbacks_exist()
+    {
+        var request = BuildSentRequest(DateTime.UtcNow.AddDays(-8), feedbackCount: 2);
+        var repository = new FakeMovieFeedbackRepository(request);
+        var service = CreateService(repository);
+
+        var result = await service.GetPublicRequestAsync(PlainToken, CancellationToken.None);
+
+        Assert.False(result.CanSubmit);
+        Assert.Equal("Expired", result.Status);
+        Assert.Equal("OpenedNoSubmission7Days", result.ExpiredReason);
+        Assert.Equal("Feedback link expired 7 days after the first open.", result.Message);
+    }
+
+    [Fact]
+    public async Task GetPublicRequestAsync_should_keep_request_open_within_seven_days_even_when_two_feedbacks_exist()
+    {
+        var request = BuildSentRequest(DateTime.UtcNow.AddDays(-6), feedbackCount: 2);
+        var repository = new FakeMovieFeedbackRepository(request);
+        var service = CreateService(repository);
+
+        var result = await service.GetPublicRequestAsync(PlainToken, CancellationToken.None);
+
+        Assert.True(result.CanSubmit);
+        Assert.Equal("Sent", result.Status);
+        Assert.Equal(1, result.RemainingSubmissions);
+    }
+
+    [Fact]
     public async Task GetPublicRequestAsync_should_expire_request_after_force_expire_opened_mutation()
     {
         var request = BuildSentRequest(DateTime.UtcNow.AddDays(-1), feedbackCount: 0);
@@ -59,7 +88,7 @@ public sealed class MovieFeedbackServiceTests
         Assert.False(result.CanSubmit);
         Assert.Equal("Expired", result.Status);
         Assert.Equal("OpenedNoSubmission7Days", result.ExpiredReason);
-        Assert.Equal("Feedback link expired after 7 days without a submission.", result.Message);
+        Assert.Equal("Feedback link expired 7 days after the first open.", result.Message);
     }
 
     [Fact]

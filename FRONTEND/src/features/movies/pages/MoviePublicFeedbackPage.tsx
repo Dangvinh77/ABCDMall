@@ -42,7 +42,7 @@ function resolveFeedbackNotice(request?: PublicMovieFeedbackRequestModel | null)
   }
 
   if (request.expiredReason === 'OpenedNoSubmission7Days') {
-    return 'Link feedback đã hết hạn vì không gửi phản hồi trong 7 ngày kể từ lần mở đầu tiên.';
+    return 'Link feedback đã hết hạn sau 7 ngày kể từ lần mở đầu tiên.';
   }
 
   if (request.status === 'Pending') {

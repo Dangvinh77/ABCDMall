@@ -106,7 +106,7 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
     {
         var now = DateTime.UtcNow;
         var request = await GetRequestFromTokenAsync(token, cancellationToken);
-        if (ShouldExpireBecauseOpenedWithoutSubmission(request, now))
+        if (ShouldExpireBecauseFirstOpenWindowElapsed(request, now))
         {
             request = await _feedbackRepository.MarkExpiredAsync(
                 request.Id,
@@ -130,7 +130,7 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         var now = DateTime.UtcNow;
         var feedbackRequest = await GetRequestFromTokenAsync(token, cancellationToken);
 
-        if (ShouldExpireBecauseOpenedWithoutSubmission(feedbackRequest, now))
+        if (ShouldExpireBecauseFirstOpenWindowElapsed(feedbackRequest, now))
         {
             feedbackRequest = await _feedbackRepository.MarkExpiredAsync(
                 feedbackRequest.Id,
@@ -206,11 +206,10 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         };
     }
 
-    private static bool ShouldExpireBecauseOpenedWithoutSubmission(MovieFeedbackRequest request, DateTime utcNow)
+    private static bool ShouldExpireBecauseFirstOpenWindowElapsed(MovieFeedbackRequest request, DateTime utcNow)
     {
         return request.Status == MovieFeedbackRequestStatus.Sent
             && request.FirstOpenedAtUtc.HasValue
-            && request.Feedbacks.Count == 0
             && request.InvalidatedAtUtc is null
             && request.FirstOpenedAtUtc.Value.Add(OpenWithoutSubmissionExpiry) <= utcNow;
     }
@@ -221,7 +220,7 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
             && request.SentAtUtc.HasValue
             && request.AvailableAtUtc <= utcNow
             && (!request.ExpiresAtUtc.HasValue || request.ExpiresAtUtc.Value > utcNow)
-            && !ShouldExpireBecauseOpenedWithoutSubmission(request, utcNow)
+            && !ShouldExpireBecauseFirstOpenWindowElapsed(request, utcNow)
             && request.Feedbacks.Count < MaxSubmissionsPerRequest
             && request.InvalidatedAtUtc is null;
     }
@@ -241,9 +240,9 @@ public sealed class MovieFeedbackService : IMovieFeedbackService
         }
 
         if (request.ExpiredReason == MovieFeedbackRequestExpiredReason.OpenedNoSubmission7Days
-            || ShouldExpireBecauseOpenedWithoutSubmission(request, utcNow))
+            || ShouldExpireBecauseFirstOpenWindowElapsed(request, utcNow))
         {
-            return "Feedback link expired after 7 days without a submission.";
+            return "Feedback link expired 7 days after the first open.";
         }
 
         if (request.AvailableAtUtc > utcNow)
