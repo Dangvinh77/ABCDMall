@@ -66,3 +66,13 @@ public sealed class MoviesAdminForceFinishShowtimeResponseDto
     public DateTime NewEndAtUtc { get; set; }
     public string Message { get; set; } = string.Empty;
 }
+
+public sealed class MoviesAdminForceExpireOpenedFeedbackRequestResponseDto
+{
+    public Guid RequestId { get; set; }
+    public DateTime? PreviousFirstOpenedAtUtc { get; set; }
+    public DateTime? PreviousLastOpenedAtUtc { get; set; }
+    public DateTime NewFirstOpenedAtUtc { get; set; }
+    public DateTime NewLastOpenedAtUtc { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

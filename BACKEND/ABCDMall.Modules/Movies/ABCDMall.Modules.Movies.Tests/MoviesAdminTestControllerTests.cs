@@ -51,12 +51,16 @@ public sealed class MoviesAdminTestControllerTests
     {
         public int CallCount { get; private set; }
         public MoviesAdminForceFinishShowtimeResponseDto? Response { get; set; }
+        public MoviesAdminForceExpireOpenedFeedbackRequestResponseDto? ForceExpireOpenedResponse { get; set; }
 
         public Task<MoviesAdminForceFinishShowtimeResponseDto?> ForceFinishShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
         {
             CallCount += 1;
             return Task.FromResult(Response);
         }
+
+        public Task<MoviesAdminForceExpireOpenedFeedbackRequestResponseDto?> ForceExpireOpenedFeedbackRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
+            => Task.FromResult(ForceExpireOpenedResponse);
 
         public Task<MoviesAdminDashboardResponseDto> GetDashboardAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<IReadOnlyList<MoviesAdminMovieListItemDto>> GetMoviesAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();

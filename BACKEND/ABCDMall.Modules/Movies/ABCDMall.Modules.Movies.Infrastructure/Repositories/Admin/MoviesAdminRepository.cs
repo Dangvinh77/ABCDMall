@@ -554,6 +554,39 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         };
     }
 
+    public async Task<MoviesAdminForceExpireOpenedFeedbackRequestResponseDto?> ForceExpireOpenedFeedbackRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
+    {
+        var request = await _bookingDbContext.MovieFeedbackRequests.FirstOrDefaultAsync(x => x.Id == requestId, cancellationToken);
+        if (request is null)
+        {
+            return null;
+        }
+
+        var utcNow = DateTime.UtcNow;
+        var forcedOpenedAtUtc = utcNow.AddDays(-8);
+        var previousFirstOpenedAtUtc = request.FirstOpenedAtUtc;
+        var previousLastOpenedAtUtc = request.LastOpenedAtUtc;
+
+        request.Status = MovieFeedbackRequestStatus.Sent;
+        request.FirstOpenedAtUtc = forcedOpenedAtUtc;
+        request.LastOpenedAtUtc = forcedOpenedAtUtc;
+        request.ExpiredReason = null;
+        request.InvalidatedAtUtc = null;
+        request.UpdatedAtUtc = utcNow;
+
+        await _bookingDbContext.SaveChangesAsync(cancellationToken);
+
+        return new MoviesAdminForceExpireOpenedFeedbackRequestResponseDto
+        {
+            RequestId = request.Id,
+            PreviousFirstOpenedAtUtc = previousFirstOpenedAtUtc,
+            PreviousLastOpenedAtUtc = previousLastOpenedAtUtc,
+            NewFirstOpenedAtUtc = forcedOpenedAtUtc,
+            NewLastOpenedAtUtc = forcedOpenedAtUtc,
+            Message = "Feedback request opened timestamps moved to the past for expiry testing."
+        };
+    }
+
     public async Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(
         string? status,
         string? paymentStatus,
