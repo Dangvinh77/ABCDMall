@@ -5,6 +5,7 @@ using ABCDMall.Modules.Movies.Domain.Enums;
 using ABCDMall.Modules.Movies.Infrastructure.BackgroundServices;
 using ABCDMall.Modules.Movies.Infrastructure.Options;
 using ABCDMall.Modules.Movies.Infrastructure.Services.Emails;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -14,16 +15,45 @@ namespace ABCDMall.Modules.Movies.Tests;
 public sealed class MovieFeedbackInvitationBackgroundServiceTests
 {
     [Fact]
+    public void Constructor_should_allow_service_provider_validation_when_dependencies_are_scoped()
+    {
+        var request = BuildPendingRequest();
+        var repository = new FakeInvitationRepository(request);
+        var showtimes = new FakeShowtimeRepository(showtimeEnded: true);
+        var sender = new FakeMovieFeedbackEmailSender();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddScoped<IMovieFeedbackRepository>(_ => repository);
+        services.AddScoped<IShowtimeRepository>(_ => showtimes);
+        services.AddScoped<IMovieFeedbackEmailSender>(_ => sender);
+        services.AddSingleton<IOptions<StripeSettings>>(Options.Create(new StripeSettings
+        {
+            FrontendBaseUrl = "https://frontend.test"
+        }));
+        services.AddSingleton<MovieFeedbackInvitationBackgroundService>();
+
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        });
+
+        var service = provider.GetRequiredService<MovieFeedbackInvitationBackgroundService>();
+
+        Assert.NotNull(service);
+    }
+
+    [Fact]
     public async Task ProcessPendingRequestsOnceAsync_should_send_feedback_email_only_after_showtime_end()
     {
         var request = BuildPendingRequest();
         var repository = new FakeInvitationRepository(request);
         var showtimes = new FakeShowtimeRepository(showtimeEnded: true);
         var sender = new FakeMovieFeedbackEmailSender();
+        using var provider = BuildServiceProvider(repository, showtimes, sender);
         var service = new MovieFeedbackInvitationBackgroundService(
-            repository,
-            showtimes,
-            sender,
+            provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new StripeSettings { FrontendBaseUrl = "https://frontend.test" }),
             NullLogger<MovieFeedbackInvitationBackgroundService>.Instance);
 
@@ -42,10 +72,9 @@ public sealed class MovieFeedbackInvitationBackgroundServiceTests
         var repository = new FakeInvitationRepository(request);
         var showtimes = new FakeShowtimeRepository(showtimeEnded: false);
         var sender = new FakeMovieFeedbackEmailSender();
+        using var provider = BuildServiceProvider(repository, showtimes, sender);
         var service = new MovieFeedbackInvitationBackgroundService(
-            repository,
-            showtimes,
-            sender,
+            provider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new StripeSettings { FrontendBaseUrl = "https://frontend.test" }),
             NullLogger<MovieFeedbackInvitationBackgroundService>.Instance);
 
@@ -54,6 +83,48 @@ public sealed class MovieFeedbackInvitationBackgroundServiceTests
         Assert.Empty(sender.Messages);
         Assert.Equal(MovieFeedbackRequestStatus.Pending, request.Status);
         Assert.Null(request.SentAtUtc);
+    }
+
+    [Fact]
+    public async Task ProcessPendingRequestsOnceAsync_should_send_after_force_finish_unlocks_request_availability()
+    {
+        var request = BuildPendingRequest();
+        request.AvailableAtUtc = DateTime.UtcNow.AddHours(2);
+
+        var repository = new FakeInvitationRepository(request);
+        var showtimes = new FakeShowtimeRepository(showtimeEnded: true);
+        var sender = new FakeMovieFeedbackEmailSender();
+        using var provider = BuildServiceProvider(repository, showtimes, sender);
+
+        request.AvailableAtUtc = DateTime.UtcNow.AddMinutes(-1);
+
+        var service = new MovieFeedbackInvitationBackgroundService(
+            provider.GetRequiredService<IServiceScopeFactory>(),
+            Options.Create(new StripeSettings { FrontendBaseUrl = "https://frontend.test" }),
+            NullLogger<MovieFeedbackInvitationBackgroundService>.Instance);
+
+        await service.ProcessPendingRequestsOnceAsync(CancellationToken.None);
+
+        Assert.Single(sender.Messages);
+        Assert.Equal(MovieFeedbackRequestStatus.Sent, request.Status);
+    }
+
+    private static ServiceProvider BuildServiceProvider(
+        FakeInvitationRepository repository,
+        FakeShowtimeRepository showtimes,
+        FakeMovieFeedbackEmailSender sender)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddScoped<IMovieFeedbackRepository>(_ => repository);
+        services.AddScoped<IShowtimeRepository>(_ => showtimes);
+        services.AddScoped<IMovieFeedbackEmailSender>(_ => sender);
+
+        return services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        });
     }
 
     private static MovieFeedbackRequest BuildPendingRequest()

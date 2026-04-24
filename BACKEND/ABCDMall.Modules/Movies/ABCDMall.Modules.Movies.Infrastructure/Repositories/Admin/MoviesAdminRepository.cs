@@ -539,11 +539,21 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         var utcNow = DateTime.UtcNow;
         var forcedEndAtUtc = utcNow.AddMinutes(-1);
         var previousEndAtUtc = showtime.EndAtUtc;
+        var pendingRequests = await _bookingDbContext.MovieFeedbackRequests
+            .Where(x => x.ShowtimeId == showtimeId && x.Status == MovieFeedbackRequestStatus.Pending)
+            .ToListAsync(cancellationToken);
 
         showtime.EndAtUtc = forcedEndAtUtc;
         showtime.UpdatedAtUtc = utcNow;
 
+        foreach (var pendingRequest in pendingRequests)
+        {
+            pendingRequest.AvailableAtUtc = forcedEndAtUtc;
+            pendingRequest.UpdatedAtUtc = utcNow;
+        }
+
         await _catalogDbContext.SaveChangesAsync(cancellationToken);
+        await _bookingDbContext.SaveChangesAsync(cancellationToken);
 
         return new MoviesAdminForceFinishShowtimeResponseDto
         {
