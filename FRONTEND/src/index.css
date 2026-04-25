@@ -21,3 +21,43 @@
 }
 
 /* Bạn có thể thêm các custom CSS khác của dự án ở dưới này nếu có */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-color: var(--color-mall-light);
+  }
+
+  img,
+  picture,
+  video,
+  svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .mall-page {
+    width: 100%;
+  }
+
+  .mall-page img,
+  .mall-page picture,
+  .mall-page video {
+    max-width: 100%;
+  }
+}

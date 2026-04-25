@@ -19,6 +19,20 @@ export const BrandsFeature = () => {
     { name: 'Entertainment', slug: 'giai-tri' },
   ];
 
+  const diningCategories = new Set(['am-thuc', 'foods']);
+  const foodCourtBrandSlugs = new Set([
+    'gogi-house',
+    'kichi-kichi',
+    'texas-chicken',
+    'sushix',
+    'starbucks',
+    'dookki',
+    'pizza-company',
+  ]);
+  const foodSlugMap: Record<string, string> = {
+    'pizza-company': 'the-pizza-company',
+    'dookki': 'dookki-vietnam',
+  };
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const floors = [
     { value: "Tầng 1", label: "Floor 1" },
@@ -32,7 +46,10 @@ export const BrandsFeature = () => {
 
   const filteredBrands = useMemo(() => {
     return mockBrandsData.filter(brand => {
-      const matchCategory = currentCategory === 'all' || brand.category === currentCategory;
+      const matchCategory =
+        currentCategory === 'all' ||
+        brand.category === currentCategory ||
+        (currentCategory === 'am-thuc' && diningCategories.has(brand.category));
       const matchSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchLetter = !activeLetter || brand.name.toUpperCase().startsWith(activeLetter);
       const matchFloor = !activeFloor || brand.floor === activeFloor;
@@ -76,10 +93,9 @@ export const BrandsFeature = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* SIDEBAR: ĐÃ ĐƯỢC REDESIGN LẠI RẤT MALL */}
+          {/* SIDEBAR */}
           <div className="lg:w-64 shrink-0 flex flex-col gap-6">
-            
-            {/* Box 1: Bảng Chữ Cái */}
+            {/* Alphabet Box */}
             <div className="bg-white rounded-[2rem] p-5 shadow-lg border border-gray-100">
               <div className="flex items-center gap-2 mb-4 px-2">
                 <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-orange-400 rounded-full"></div>
@@ -104,7 +120,7 @@ export const BrandsFeature = () => {
               </div>
             </div>
 
-            {/* Box 2: Tầng (Floor) */}
+            {/* Floor Box */}
             <div className="bg-white rounded-[2rem] p-5 shadow-lg border border-gray-100">
                <div className="flex items-center gap-2 mb-4 px-2">
                 <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-orange-400 rounded-full"></div>
@@ -131,31 +147,38 @@ export const BrandsFeature = () => {
             </div>
           </div>
 
-          {/* MAIN CONTENT: LƯỚI LOGO THƯƠNG HIỆU */}
+          {/* MAIN CONTENT */}
           <div className="flex-1">
             {filteredBrands.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredBrands.map(brand => (
-                  <Link 
-                    to={`/shops/${brand.slug}`} 
-                    key={brand.id}
-                    className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center p-6 text-center relative overflow-hidden"
-                  >
-                    {/* Dải màu hover mỏng ở trên cùng của card */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    
-                    <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
-                      <img 
-                        //src={brand.logoUrl} 
-                         src={getImageUrl(brand.logoUrl)}
-                        alt={brand.name} 
-                        className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
-                      />
-                    </div>
-                    <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.floor)}</p>
-                  </Link>
-                ))}
+                {filteredBrands.map(brand => {
+                  const foodRouteSlug = foodCourtBrandSlugs.has(brand.slug)
+                    ? foodSlugMap[brand.slug] ?? brand.slug
+                    : null;
+                  const destination = foodRouteSlug
+                    ? `/food-court/${foodRouteSlug}`
+                    : `/shops/${brand.slug}`;
+
+                  return (
+                    <Link 
+                      to={destination}
+                      key={brand.id}
+                      className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group flex flex-col items-center p-6 text-center relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      
+                      <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
+                        <img 
+                          src={getImageUrl(brand.logoUrl)}
+                          alt={brand.name} 
+                          className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
+                        />
+                      </div>
+                      <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
+                      <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.floor)}</p>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-white rounded-[2rem] border-2 border-dashed border-gray-200 p-20 text-center flex flex-col items-center">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { getImageUrl } from "../utils/image";
 
 type UserProfile = {
@@ -30,6 +30,8 @@ const getStoredProfile = (): UserProfile | null => {
 
 export const Header = () => {
   const [profile, setProfile] = useState<UserProfile | null>(() => getStoredProfile());
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const syncProfile = () => setProfile(getStoredProfile());
@@ -43,8 +45,12 @@ export const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const navClass = ({ isActive }: { isActive: boolean }) =>
-    `font-bold text-[15px] uppercase tracking-wide transition-colors duration-300 ${
+    `font-bold text-[15px] uppercase tracking-wide transition-colors duration-300 whitespace-nowrap ${
       isActive ? "text-red-600" : "text-gray-600 hover:text-red-500"
     }`;
 
@@ -61,20 +67,23 @@ export const Header = () => {
   const avatarUrl = profile?.image ? getImageUrl(profile.image) : "";
 
   return (
-    <header
-      className="relative z-50 w-full border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md"
-    >
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-        <Link to="/" className="group flex shrink-0 items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-orange-500 text-xl font-black text-white shadow-md transition-transform group-hover:scale-105">
-            A
-          </div>
-          <span className="text-2xl font-black tracking-tighter text-gray-800">
-            ABCD<span className="text-red-600">MALL</span>
-          </span>
-        </Link>
+    <header className="relative z-50 w-full border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md">
+      <div className="mx-auto flex h-20 max-w-7xl items-center px-6">
+        
+        {/* LEFT: Logo area */}
+        <div className="flex flex-1 items-center justify-start">
+          <Link to="/" className="group flex shrink-0 items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-orange-500 text-xl font-black text-white shadow-md transition-transform group-hover:scale-105">
+              A
+            </div>
+            <span className="text-2xl font-black tracking-tighter text-gray-800">
+              ABCD<span className="text-red-600">MALL</span>
+            </span>
+          </Link>
+        </div>
 
-        <nav className="hidden h-full flex-1 items-center justify-end gap-10 md:flex">
+        {/* CENTER: Navigation Links */}
+        <nav className="hidden h-full flex-[2] items-center justify-center gap-8 lg:gap-10 md:flex">
           <NavLink to="/" className={navClass}>Home</NavLink>
           <NavLink to="/map" className={navClass}>Mall Map</NavLink>
 
@@ -103,13 +112,16 @@ export const Header = () => {
           <NavLink to="/events" className={navClass}>Events</NavLink>
           <NavLink to="/movies" className={navClass}>Cinema</NavLink>
           <NavLink to="/amenities" className={navClass}>Amenities</NavLink>
+        </nav>
 
+        {/* RIGHT: Profile / Actions */}
+        <div className="flex flex-1 items-center justify-end">
           {profile ? (
             <Link
               to="/dashboard"
-              className="group flex max-w-[260px] items-center gap-3 rounded-full border border-red-100 bg-red-50/80 py-1.5 pl-1.5 pr-4 shadow-sm transition-all duration-300 hover:border-red-200 hover:bg-white"
+              className="group hidden md:flex max-w-[220px] items-center gap-3 rounded-full border border-red-100 bg-red-50/80 py-1.5 pl-1.5 pr-4 shadow-sm transition-all duration-300 hover:border-red-200 hover:bg-white"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-sm font-black text-white shadow-md">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-red-600 to-orange-500 text-sm font-black text-white shadow-md">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt={displayEmail} className="h-full w-full object-cover" />
                 ) : (
@@ -121,25 +133,47 @@ export const Header = () => {
               </span>
             </Link>
           ) : (
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `rounded-full px-5 py-2.5 text-sm font-black uppercase tracking-wide shadow-md transition-all duration-300 ${
-                  isActive
-                    ? "bg-red-700 text-white shadow-red-200"
-                    : "bg-gradient-to-r from-red-600 to-orange-500 text-white shadow-red-200 hover:shadow-lg hover:shadow-red-200"
-                }`
-              }
-            >
-              Login
-            </NavLink>
+            <Link to="/contact" className="hidden md:block rounded-full bg-gray-900 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-md transition-colors hover:bg-red-600">
+              Contact
+            </Link>
           )}
-        </nav>
 
-        <div className="hidden items-center md:ml-6 md:flex">
-          <Link to="/contact" className="rounded-full bg-gray-900 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-white shadow-md transition-colors hover:bg-red-600">
-            Contact
-          </Link>
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            aria-label="Toggle mobile menu"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:bg-gray-50 md:hidden ml-3"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      <div
+        className={`absolute inset-x-0 top-full z-40 overflow-hidden bg-white/95 transition-all duration-300 md:hidden ${
+          mobileMenuOpen ? "max-h-[450px] opacity-100 border-b border-gray-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="px-6 pb-6 pt-4">
+          <nav className="flex flex-col gap-4">
+            <NavLink to="/" className={navClass}>Home</NavLink>
+            <NavLink to="/map" className={navClass}>Mall Map</NavLink>
+            <NavLink to="/brands" className={navClass}>Brands</NavLink>
+            <NavLink to="/events" className={navClass}>Events</NavLink>
+            <NavLink to="/movies" className={navClass}>Cinema</NavLink>
+            <NavLink to="/amenities" className={navClass}>Amenities</NavLink>
+            <hr className="border-gray-100" />
+            <NavLink to="/contact" className={navClass}>Contact</NavLink>
+            {profile && (
+              <NavLink to="/dashboard" className="font-bold text-[15px] uppercase text-red-600">
+                Dashboard ({displayEmail})
+              </NavLink>
+            )}
+          </nav>
         </div>
       </div>
     </header>
