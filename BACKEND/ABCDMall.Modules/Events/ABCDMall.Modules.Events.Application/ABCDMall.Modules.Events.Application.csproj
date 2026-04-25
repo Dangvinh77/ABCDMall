@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules.Events.Domain\ABCDMall.Modules.Events.Domain.csproj" />
+    <ProjectReference Include="..\..\Users\ABCDMall.Modules.Users.Application\ABCDMall.Modules.Users.Application.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,26 +1,23 @@
-export type EventTypeId = 1 | 2; 
-export type EventStatusId = 1 | 2 | 3; 
-
-
 export interface EventDto {
   id: string;
   title: string;
   description: string;
-  coverImageUrl: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  
-  eventType: string;    
-  eventTypeId: number;  
-  
-  shopId?: string;     
-  shopName?: string;
-  
-  isHot: boolean;
-  
-  status: string;       
-  statusId: number;      
-  
+  imageUrl: string;
+  startDateTime: string;
+  endDateTime: string;
+  locationType: string;
+  shopId?: string | null;
+  createdByName: string;
+  approvalStatus: string;
+  hasGiftRegistration: boolean;
+  giftDescription?: string | null;
+  isOngoing: boolean;
+  isUpcoming: boolean;
   createdAt: string;
+}
+
+export interface RegisterEventRequest {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
 }

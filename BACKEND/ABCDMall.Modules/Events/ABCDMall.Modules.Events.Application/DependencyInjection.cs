@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<EventListQueryDto>, EventListQueryDtoValidator>();
         services.AddScoped<IValidator<CreateEventRequestDto>, CreateEventRequestDtoValidator>();
         services.AddScoped<IValidator<UpdateEventRequestDto>, UpdateEventRequestDtoValidator>();
+        services.AddScoped<IValidator<RegisterEventRequestDto>, RegisterEventRequestDtoValidator>();
 
         services.AddScoped<IEventQueryService, EventQueryService>();
         services.AddScoped<IEventCommandService, EventCommandService>();

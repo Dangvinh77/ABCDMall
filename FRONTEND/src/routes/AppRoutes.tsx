@@ -29,6 +29,7 @@ const BrandsPage = lazy(() => import("../pages/brands/BrandsPage").then((module)
 const ContactPage = lazy(() => import("../pages/contact/ContactPage").then((module) => ({ default: module.ContactPage })));
 const MapPage = lazy(() => import("../pages/directory/MapPage").then((module) => ({ default: module.MapPage })));
 const EventsPage = lazy(() => import("../pages/events/EventsPage").then((module) => ({ default: module.EventsPage })));
+const EventDetailPage = lazy(() => import("../pages/events/EventDetailPage").then((module) => ({ default: module.EventDetailPage })));
 const FeedbackPage = lazy(() => import("../pages/feedbacks/FeedbackPage").then((module) => ({ default: module.FeedbackPage })));
 const FaqPage = lazy(() => import("../pages/support/FaqPage").then((module) => ({ default: module.FaqPage })));
 
@@ -78,6 +79,7 @@ export function AppRoutes() {
 
         <Route path="/shops/*" element={<ShopsRoutes />} />
         <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
         <Route
           path="/gallery"
           element={

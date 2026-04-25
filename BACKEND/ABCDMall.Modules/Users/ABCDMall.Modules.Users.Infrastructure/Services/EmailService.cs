@@ -361,6 +361,9 @@ ABCDMall";
                 </div>
                 """);
 
+        public Task<bool> SendEventRegistrationSuccessEmailAsync(string toEmail, string? fullName, string subject, string htmlBody)
+            => SendHtmlEmailAsync(toEmail, subject, htmlBody);
+
         private async Task<bool> SendHtmlEmailAsync(string toEmail, string subject, string htmlBody)
         {
             var settings = _configuration.GetSection("EmailSettings").Get<EmailSettings>();

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getImageUrl } from "../../../core/utils/image";
 import { getShopBySlug, type ShopDetail } from "../api/shopApi";
+import { eventsApi } from "../../events/api/eventsApi";
+import type { EventDto } from "../../events/types/event.types";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -16,6 +18,7 @@ export default function ShopDetailPage() {
   const [shop, setShop] = useState<ShopDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shopEvents, setShopEvents] = useState<EventDto[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -30,6 +33,9 @@ export default function ShopDetailPage() {
         if (active) {
           setShop(data);
           setError(null);
+          if (data?.id) {
+            eventsApi.getShopEvents(data.id).then(setShopEvents).catch(() => setShopEvents([]));
+          }
         }
       })
       .catch((requestError: unknown) => {
@@ -217,6 +223,20 @@ export default function ShopDetailPage() {
             ) : (
               <p className="mt-6 text-slate-500">No vouchers are available for this shop right now.</p>
             )}
+          </div>
+
+          <div className="rounded-[2rem] bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-mall-primary">Shop's Events</p>
+            <h2 className="mt-3 text-2xl font-black text-slate-900">Ongoing and upcoming events</h2>
+            <div className="mt-6 space-y-4">
+              {shopEvents.map((event) => (
+                <Link key={event.id} to={`/events/${event.id}`} className="block rounded-2xl border border-slate-200 p-4 transition hover:border-mall-primary">
+                  <p className="font-bold text-slate-900">{event.title}</p>
+                  <p className="text-sm text-slate-500">{event.isOngoing ? "Ongoing" : "Upcoming"} • {new Date(event.startDateTime).toLocaleDateString()}</p>
+                </Link>
+              ))}
+              {shopEvents.length === 0 ? <p className="text-slate-500">No upcoming event available.</p> : null}
+            </div>
           </div>
         </aside>
       </section>

@@ -38,4 +38,7 @@ public sealed class EmailNotificationService : IEmailNotificationService
 
     public Task<bool> SendCarouselBidPaymentSuccessEmailAsync(string toEmail, string? fullName, string shopName, decimal bidAmount, DateTime targetMondayDate)
         => _emailService.SendCarouselBidPaymentSuccessEmailAsync(toEmail, fullName, shopName, bidAmount, targetMondayDate);
+
+    public Task<bool> SendEventRegistrationSuccessEmailAsync(string toEmail, string? fullName, string subject, string htmlBody)
+        => _emailService.SendEventRegistrationSuccessEmailAsync(toEmail, fullName, subject, htmlBody);
 }

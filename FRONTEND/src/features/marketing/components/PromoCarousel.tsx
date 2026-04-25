@@ -69,12 +69,13 @@ function mapPublicItemToSlide(item: PublicCarouselItem): CarouselSlide {
 
     if (item.slotType === "EventAd") {
         const eventDate = item.eventStartDate ? new Date(item.eventStartDate).toLocaleDateString() : "Upcoming event";
+        const eventLink = item.linkUrl && item.linkUrl.startsWith("/events/") ? item.linkUrl : `/events/${item.id}`;
         return {
             id: item.id,
             title: item.shopName ? `${item.shopName} Event` : "Featured Event",
             desc: [eventDate, item.startTime].filter(Boolean).join(" • "),
             image: item.imageUrl,
-            link: item.linkUrl || "/events",
+            link: eventLink,
             cta: "View Event",
         };
     }

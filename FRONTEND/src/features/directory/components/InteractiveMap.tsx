@@ -1,31 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MapLocation } from '../types/map.types';
 import { useMap } from '../hooks/useMap';
+import { eventsApi } from '../../events/api/eventsApi';
+import type { EventDto } from '../../events/types/event.types';
+import { Link } from 'react-router-dom';
 
 export const InteractiveMap = () => {
   const { floors, activeFloor, switchFloor, loading, error } = useMap();
   const [selectedPin, setSelectedPin] = useState<MapLocation | null>(null);
+  const [activeEvents, setActiveEvents] = useState<EventDto[]>([]);
   const [imgLoaded, setImgLoaded] = useState(false);
-
-  // State lưu toạ độ vừa click (Dành cho Dev Mode)
-  const [devCoords, setDevCoords] = useState<{ x: number; y: number } | null>(null);
 
   const API_BASE = 'http://localhost:5184';
   const getFloorLabel = (label: string) => label.replace("Tầng", "Floor");
-  const displayDescription = activeFloor ? activeFloor.description.replace("Tầng", "Floor") : "";
 
-  // Hàm tính toán toạ độ khi click
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    const roundedX = Math.round(x * 100) / 100;
-    const roundedY = Math.round(y * 100) / 100;
-
-    setDevCoords({ x: roundedX, y: roundedY });
-    console.log(`Toạ độ mới: X = ${roundedX}, Y = ${roundedY}`);
-  };
+  useEffect(() => {
+    eventsApi.getActiveEvents().then(setActiveEvents).catch(() => setActiveEvents([]));
+  }, []);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -44,20 +35,22 @@ export const InteractiveMap = () => {
 
   if (!activeFloor) return null;
 
+  const displayDescription = activeFloor.description.replace("Tầng", "Floor");
+  const floorHallKey = activeFloor.floorLevel.includes("1") ? "HallFloor1" : activeFloor.floorLevel.includes("2") ? "HallFloor2" : activeFloor.floorLevel.includes("3") ? "HallFloor3" : "HallFloor4";
+  const activeHallEvent = activeEvents.find((x) => x.locationType === floorHallKey);
+
   const handleFloorSwitch = (floor: typeof activeFloor) => {
     if (floor.id === activeFloor.id) return;
     setSelectedPin(null);
     setImgLoaded(false);
-    setDevCoords(null);
     switchFloor(floor);
   };
 
   return (
-    // SỬA TẠI ĐÂY: Xóa max-w-7xl, đổi thành w-full và cho lề px rộng ra để bung full màn hình
     <div className="w-full px-4 lg:px-8 xl:px-12 py-12 mx-auto">
       {/* THANH CHỌN TẦNG */}
       <div className="flex justify-center flex-wrap gap-3 mb-10">
-            {floors.map((floor) => (
+        {floors.map((floor) => (
           <button
             key={floor.id}
             onClick={() => handleFloorSwitch(floor)}
@@ -74,27 +67,19 @@ export const InteractiveMap = () => {
       {/* NỘI DUNG CHÍNH */}
       <div className="flex flex-col lg:flex-row gap-8">
 
-        {/* CỘT TRÁI: BẢN ĐỒ - TĂNG LÊN CHIẾM 3/4 (75%) */}
+        {/* CỘT TRÁI: BẢN ĐỒ */}
         <div className="w-full lg:w-3/4 bg-white rounded-[2rem] p-4 shadow-2xl border border-gray-100">
           <div className="mb-3 px-2 flex justify-between items-center">
             <div>
               <h2 className="text-lg font-extrabold text-mall-dark">{displayDescription}</h2>
               <p className="text-sm text-gray-400">{activeFloor.locations.length} stores</p>
             </div>
-
-            {/* Box hiển thị tọa độ góc phải */}
-            {devCoords && (
-              <div className="bg-gray-800 text-green-400 px-4 py-2 rounded-xl font-mono text-sm shadow-inner">
-                LAST CLICK: X: {devCoords.x}, Y: {devCoords.y}
-              </div>
-            )}
           </div>
 
           {/* Khung map — Tỷ lệ 3:4 */}
           <div
-            className="relative w-full rounded-[1.5rem] overflow-hidden border border-gray-100 cursor-crosshair bg-slate-50"
+            className="relative w-full rounded-[1.5rem] overflow-hidden border border-gray-100 bg-slate-50"
             style={{ aspectRatio: '3 / 4' }}
-            onClick={handleMapClick}
           >
             <img
               key={activeFloor.id}
@@ -108,6 +93,9 @@ export const InteractiveMap = () => {
             {activeFloor.locations.map((loc) => {
               const isActive = selectedPin?.id === loc.id;
               const isCinema = loc.shopUrl === '/movies';
+              const matchedShopEvent = activeEvents.find((event) => event.shopId && loc.shopUrl.toLowerCase().includes(event.shopId.toLowerCase().replace("shop-", "")));
+              const isEventHallPin = loc.shopName.startsWith("Event Hall");
+              const hasAnimatedEvent = isEventHallPin ? Boolean(activeHallEvent) : Boolean(matchedShopEvent);
 
               return (
                 <button
@@ -117,7 +105,7 @@ export const InteractiveMap = () => {
                     setSelectedPin(loc);
                   }}
                   style={{ top: `${loc.y}%`, left: `${loc.x}%` }}
-                  className="absolute z-30 -translate-x-1/2 -translate-y-1/2 group"
+                  className={`absolute z-30 -translate-x-1/2 -translate-y-1/2 group ${hasAnimatedEvent ? (isEventHallPin ? "animate-bounce" : "animate-pulse") : ""}`}
                 >
                   <div className={`rounded-full border-2 shadow-lg flex items-center justify-center transition-all duration-300
                     ${isCinema ? 'w-10 h-10 text-base bg-gray-800 text-white' : 'w-6 h-6'}
@@ -125,16 +113,16 @@ export const InteractiveMap = () => {
                       ? 'bg-yellow-400 border-white scale-150'
                       : isCinema
                         ? 'border-white hover:scale-110'
-                        : 'bg-red-500 border-white hover:scale-125'
+                        : hasAnimatedEvent ? 'bg-orange-500 border-white hover:scale-125' : 'bg-red-500 border-white hover:scale-125'
                     }`}
                   >
-                    {isCinema && '🎬'}
+                    {isCinema ? '🎬' : hasAnimatedEvent ? '🎉' : ''}
                   </div>
 
-                  {/* Tooltip khi hover (Tùy chọn) */}
+                  {/* Tooltip khi hover */}
                   {!isActive && (
                     <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs font-bold rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
-                      {loc.shopName}
+                      {hasAnimatedEvent ? `${(matchedShopEvent ?? activeHallEvent)?.title ?? loc.shopName}` : loc.shopName}
                     </span>
                   )}
                 </button>
@@ -143,20 +131,14 @@ export const InteractiveMap = () => {
           </div>
         </div>
 
-        {/* CỘT PHẢI: THÔNG TIN - THU LẠI 1/4 (25%) & THÊM STICKY */}
+        {/* CỘT PHẢI: THÔNG TIN */}
         <div className="w-full lg:w-1/4 sticky top-8 self-start transition-all duration-300">
           {selectedPin ? (
             <div className="bg-white rounded-[2rem] p-6 shadow-2xl border border-gray-100 animate-fade-in-up">
 
-              {/* Ảnh cover của Shop (nếu có) */}
+              {/* Ảnh cover của Shop */}
               {selectedPin.storefrontImageUrl ? (
                 <div className="rounded-[1.5rem] overflow-hidden aspect-[4/3] mb-5 shadow-md">
-                  {/* <img
-                      src={selectedPin.storefrontImageUrl}
-                      alt={selectedPin.shopName}
-                      className="w-full h-full object-cover"
-                    /> */}
-
                   <img
                     src={`${API_BASE}${selectedPin.storefrontImageUrl}`}
                     alt={selectedPin.shopName}
@@ -175,24 +157,28 @@ export const InteractiveMap = () => {
                 </span>
 
                 <h3 className="text-2xl font-black text-gray-800 mb-2">{selectedPin.shopName}</h3>
-                <p className="text-gray-400 text-sm mb-5">
+                <p className="text-gray-400 text-sm mb-6">
                   {getFloorLabel(activeFloor.floorLevel)}
                 </p>
 
-                {/* Hiện toạ độ Dev (Bạn có thể xóa phần này khi deploy thật) */}
-                <div className="mb-6 p-3 bg-gray-50 rounded-xl font-mono text-xs text-gray-500 border border-gray-100 text-left">
-                  <strong>Pin Coordinates:</strong><br />
-                  X: {selectedPin.x}<br />
-                  Y: {selectedPin.y}
-                </div>
+                {(() => {
+                  const detailEvent = activeEvents.find((event) => event.shopId && selectedPin.shopUrl.toLowerCase().includes(event.shopId.toLowerCase().replace("shop-", "")))
+                    ?? (selectedPin.shopName.startsWith("Event Hall") ? activeHallEvent : undefined);
 
-                {/* Nút Xem Gian Hàng */}
-                <a
-                  href={selectedPin.shopUrl}
-                  className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center"
-                >
-                  View Store &rarr;
-                </a>
+                  if (detailEvent) {
+                    return (
+                      <Link to={`/events/${detailEvent.id}`} className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center">
+                        View Detail &rarr;
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <a href={selectedPin.shopUrl} className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center">
+                      View Store &rarr;
+                    </a>
+                  );
+                })()}
               </div>
             </div>
           ) : (

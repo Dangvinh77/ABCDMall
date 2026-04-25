@@ -1,4 +1,5 @@
 using System.Text;
+using System.Linq;
 using ABCDMall.Modules.Events.Application.DTOs;
 using ABCDMall.Modules.Events.Application.DTOs.Events;
 using ABCDMall.Modules.Events.Application.Services.Events;
@@ -109,14 +110,25 @@ public sealed class MallRagContextProvider : IMallRagContextProvider
             }
         }
 
+        // 1. Lấy trực tiếp danh sách vì Service trả về IReadOnlyList
+        var eventList = await _eventQueryService.GetListAsync(new EventListQueryDto(), cancellationToken);
+
         sb.AppendLine();
         sb.AppendLine("=== EVENTS ===");
-        foreach (var e in events.OrderByDescending(x => x.StartDate))
+
+        // 2. Sử dụng eventList trực tiếp (nhớ thêm using System.Linq ở trên đầu file để không lỗi OrderByDescending)
+        foreach (var e in (eventList ?? new List<EventDto>()).OrderByDescending(x => x.StartDateTime))
         {
             sb.AppendLine(
-                $"- Id: {e.Id} | Title: {e.Title} | Type: {e.EventType} | Status: {e.Status} | Start: {e.StartDate:u} | End: {e.EndDate:u} | Location: {e.Location} | Hot: {e.IsHot}");
-            var ed = Truncate(e.Description, 500);
+                $"- Id: {e.Id} | Title: {e.Title} | Status: {e.ApprovalStatus} | Start: {e.StartDateTime:u} | End: {e.EndDateTime:u} | Location: {e.LocationType}");
+
+            var ed = Truncate(e.Description ?? "", 500);
             sb.AppendLine($"  Description: {ed}");
+
+            if (e.HasGiftRegistration)
+            {
+                sb.AppendLine($"  GIFT: {e.GiftDescription}");
+            }
         }
 
         // FoodCourt - Nhà hàng, quán ăn trong mall

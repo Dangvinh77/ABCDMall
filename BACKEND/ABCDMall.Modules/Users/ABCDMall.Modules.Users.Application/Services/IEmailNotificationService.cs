@@ -19,4 +19,5 @@ public interface IEmailNotificationService
     Task<bool> SendCarouselBidLostEmailAsync(string toEmail, string? fullName, string shopName, decimal bidAmount, DateTime targetMondayDate);
 
     Task<bool> SendCarouselBidPaymentSuccessEmailAsync(string toEmail, string? fullName, string shopName, decimal bidAmount, DateTime targetMondayDate);
+    Task<bool> SendEventRegistrationSuccessEmailAsync(string toEmail, string? fullName, string subject, string htmlBody);
 }
