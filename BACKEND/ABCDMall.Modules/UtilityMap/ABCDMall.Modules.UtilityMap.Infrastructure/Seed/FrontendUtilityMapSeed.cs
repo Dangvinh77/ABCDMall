@@ -26,6 +26,7 @@ public static class FrontendUtilityMapSeed
                 BlueprintImageUrl = "/images/maps/floor-tang1.png",
                 Locations = new List<MapLocation>
                 {
+
                     new() { ShopName = "Event Hall - Floor 1", LocationSlot = "EH-01", X=49.85, Y= 36.9, ShopUrl = "/events", StorefrontImageUrl = "/images/maps/event-hall.png" },
                     new() { ShopName = "Uniqlo",             LocationSlot = "1-01",  X= 49.62, Y= 18.39, ShopUrl = "/shops/uniqlo",              StorefrontImageUrl = "/img/uniqlo/logo.png" },
                     new() { ShopName = "Adidas",             LocationSlot = "1-11",  X= 22.46, Y= 27.85, ShopUrl = "/shops/adidas",              StorefrontImageUrl = "/img/adidas/logo.png" },
@@ -88,6 +89,7 @@ public static class FrontendUtilityMapSeed
                 Locations = new List<MapLocation>
                 {
                     new() { ShopName = "Event Hall - Floor 3", LocationSlot = "EH-03", X = 51.37, Y = 40.07, ShopUrl = "/events", StorefrontImageUrl = "/images/maps/event-hall.png" },
+
                     new() { ShopName = "Powerbowl 388",       LocationSlot = "5-01",  X = 45.00, Y = 24.00, ShopUrl = "/shops/powerbowl",         StorefrontImageUrl = "/img/powerbowl/logo.png" },
                     new() { ShopName = "Kichi Kichi",         LocationSlot = "5-02",  X = 79.00, Y = 28.50, ShopUrl = "/food/kichi-kichi",         StorefrontImageUrl = "/img/kichi/logo1.png" },
                     new() { ShopName = "Gogi House",          LocationSlot = "5-02",  X = 78.00, Y = 34.50, ShopUrl = "/food/gogi-house",          StorefrontImageUrl = "/img/gogi/logo.png" },
@@ -115,6 +117,7 @@ public static class FrontendUtilityMapSeed
                 BlueprintImageUrl = "/images/maps/floor-tang4.png",
                 Locations = new List<MapLocation>
                 {
+
                     new() { ShopName = "Event Hall - Floor 4", LocationSlot = "EH-04", X = 50.83, Y = 41.04, ShopUrl = "/events", StorefrontImageUrl = "/images/maps/event-hall.png" },
                     new() { ShopName = "ABCD Cinemas",        LocationSlot = "6-01",  X= 70.06, Y= 20.18, ShopUrl = "/movies",                    StorefrontImageUrl = "/img/ABCDMall/logo.png" },
                     new() { ShopName = "Shabu Ya",            LocationSlot = "6-19",  X= 17.4, Y= 33.98, ShopUrl = "/food/shabu-ya",             StorefrontImageUrl = "/img/Shabu Ya/logo.png" },

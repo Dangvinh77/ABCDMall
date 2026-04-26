@@ -165,18 +165,35 @@ export const InteractiveMap = () => {
                   const detailEvent = activeEvents.find((event) => event.shopId && selectedPin.shopUrl.toLowerCase().includes(event.shopId.toLowerCase().replace("shop-", "")))
                     ?? (selectedPin.shopName.startsWith("Event Hall") ? activeHallEvent : undefined);
 
-                  if (detailEvent) {
-                    return (
-                      <Link to={`/events/${detailEvent.id}`} className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center">
-                        View Detail &rarr;
-                      </Link>
-                    );
-                  }
-
                   return (
-                    <a href={selectedPin.shopUrl} className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center">
-                      View Store &rarr;
-                    </a>
+                    <>
+                      {/* Nút xem shop - luôn hiển thị */}
+                      <a href={selectedPin.shopUrl} className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center">
+                        View Store &rarr;
+                      </a>
+
+                      {/* Phần hiển thị event (nếu có) */}
+                      {detailEvent && (
+                        <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl border border-orange-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xl">🎉</span>
+                            <span className="text-xs font-extrabold text-orange-600 uppercase">An event is currently taking place.</span>
+                          </div>
+                          <h4 className="text-sm font-bold text-gray-800 mb-2 line-clamp-2">{detailEvent.title}</h4>
+                          <Link to={`/events/${detailEvent.id}`} className="text-xs text-orange-600 font-semibold hover:underline">
+                            View event details &rarr;
+                          </Link>
+                        </div>
+                      )}
+
+                      {/* Thông báo không có event */}
+                      {!detailEvent && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-200 text-center">
+                          <span className="text-lg">📭</span>
+                          <p className="text-xs text-gray-500 mt-1">Shop currently has no events.</p>
+                        </div>
+                      )}
+                    </>
                   );
                 })()}
               </div>

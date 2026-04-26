@@ -5,11 +5,15 @@
 │   │   ├── Events
 │   │   │   ├── ABCDMall.Modules.Events.Application
 │   │   │   │   ├── ABCDMall.Modules.Events.Application.csproj
+│   │   │   │   ├── Common
+│   │   │   │   │   └── ApplicationResult.cs
 │   │   │   │   ├── DTOs
 │   │   │   │   │   ├── EventDto.cs
 │   │   │   │   │   └── Events
 │   │   │   │   │       ├── CreateEventRequestDto.cs
 │   │   │   │   │       ├── EventListQueryDto.cs
+│   │   │   │   │       ├── EventRegistrationResultDto.cs
+│   │   │   │   │       ├── RegisterEventRequestDto.cs
 │   │   │   │   │       └── UpdateEventRequestDto.cs
 │   │   │   │   ├── DependencyInjection.cs
 │   │   │   │   ├── Mappings
@@ -24,6 +28,7 @@
 │   │   │   │   │       └── Validators
 │   │   │   │   │           ├── CreateEventRequestDtoValidator.cs
 │   │   │   │   │           ├── EventListQueryDtoValidator.cs
+│   │   │   │   │           ├── RegisterEventRequestDtoValidator.cs
 │   │   │   │   │           └── UpdateEventRequestDtoValidator.cs
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
@@ -32,7 +37,11 @@
 │   │   │   │   │           ├── ABCDMall.Modules.Events.Application.dll
 │   │   │   │   │           ├── ABCDMall.Modules.Events.Application.pdb
 │   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.dll
-│   │   │   │   │           └── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Users.Domain.pdb
 │   │   │   │   └── obj
 │   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.dgspec.json
 │   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.g.props
@@ -60,8 +69,11 @@
 │   │   │   ├── ABCDMall.Modules.Events.Domain
 │   │   │   │   ├── ABCDMall.Modules.Events.Domain.csproj
 │   │   │   │   ├── Entities
-│   │   │   │   │   └── Event.cs
+│   │   │   │   │   ├── Event.cs
+│   │   │   │   │   └── EventRegistration.cs
 │   │   │   │   ├── Enums
+│   │   │   │   │   ├── EventApprovalStatus.cs
+│   │   │   │   │   ├── EventLocationType.cs
 │   │   │   │   │   ├── EventStatus.cs
 │   │   │   │   │   └── EventType.cs
 │   │   │   │   ├── bin
@@ -98,12 +110,15 @@
 │   │   │       ├── Persistence
 │   │   │       │   └── Events
 │   │   │       │       ├── Configurations
-│   │   │       │       │   └── EventConfiguration.cs
+│   │   │       │       │   ├── EventConfiguration.cs
+│   │   │       │       │   └── EventRegistrationConfiguration.cs
 │   │   │       │       ├── EventsDbContext.cs
 │   │   │       │       ├── EventsDbContextFactory.cs
 │   │   │       │       └── Migrations
 │   │   │       │           ├── 20260419164000_InitEvents.Designer.cs
 │   │   │       │           ├── 20260419164000_InitEvents.cs
+│   │   │       │           ├── 20260425060250_UpdateEventApprovalStatusDefault.Designer.cs
+│   │   │       │           ├── 20260425060250_UpdateEventApprovalStatusDefault.cs
 │   │   │       │           └── EventsDbContextModelSnapshot.cs
 │   │   │       ├── Repositories
 │   │   │       │   └── EventRepository.cs
@@ -119,7 +134,11 @@
 │   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.deps.json
 │   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.dll
 │   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.pdb
-│   │   │       │           └── ABCDMall.Modules.Events.Infrastructure.runtimeconfig.json
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.runtimeconfig.json
+│   │   │       │           ├── ABCDMall.Modules.Users.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │       │           └── ABCDMall.Modules.Users.Domain.pdb
 │   │   │       └── obj
 │   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.dgspec.json
 │   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.g.props
@@ -1328,6 +1347,16 @@
 │   │   │   │   │   │   ├── UserAccountMutationResponseDto.cs
 │   │   │   │   │   │   ├── UserProfileResponseDto.cs
 │   │   │   │   │   │   └── UserSummaryResponseDto.cs
+│   │   │   │   │   ├── Bidding
+│   │   │   │   │   │   ├── AdminCarouselBidListItemDto.cs
+│   │   │   │   │   │   ├── BidPaymentCheckoutSessionDto.cs
+│   │   │   │   │   │   ├── BidPublishSummaryDto.cs
+│   │   │   │   │   │   ├── BidResolutionSummaryDto.cs
+│   │   │   │   │   │   ├── CreateOrUpdateMovieCarouselAdRequestDto.cs
+│   │   │   │   │   │   ├── ManagerCarouselBidDto.cs
+│   │   │   │   │   │   ├── MovieCarouselAdDto.cs
+│   │   │   │   │   │   ├── PublicCarouselItemDto.cs
+│   │   │   │   │   │   └── SubmitCarouselBidRequestDto.cs
 │   │   │   │   │   ├── Common
 │   │   │   │   │   │   └── MessageResponseDto.cs
 │   │   │   │   │   ├── ConfirmForgotPasswordOtpDto.cs
@@ -1364,6 +1393,23 @@
 │   │   │   │   │   │   ├── IUserReadRepository.cs
 │   │   │   │   │   │   ├── UserCommandService.cs
 │   │   │   │   │   │   └── UserQueryService.cs
+│   │   │   │   │   ├── Bidding
+│   │   │   │   │   │   ├── BidPaymentService.cs
+│   │   │   │   │   │   ├── BidStripeCheckoutSessionRequest.cs
+│   │   │   │   │   │   ├── BidStripeCheckoutSessionResult.cs
+│   │   │   │   │   │   ├── BidStripeWebhookEvent.cs
+│   │   │   │   │   │   ├── BiddingAdminService.cs
+│   │   │   │   │   │   ├── BiddingBusinessClock.cs
+│   │   │   │   │   │   ├── BiddingManagerService.cs
+│   │   │   │   │   │   ├── BiddingTemplateModels.cs
+│   │   │   │   │   │   ├── BiddingTemplateSerializer.cs
+│   │   │   │   │   │   ├── IBidPaymentService.cs
+│   │   │   │   │   │   ├── IBidStripePaymentGateway.cs
+│   │   │   │   │   │   ├── IBiddingAdminService.cs
+│   │   │   │   │   │   ├── IBiddingManagerService.cs
+│   │   │   │   │   │   ├── IBiddingRepository.cs
+│   │   │   │   │   │   ├── IPublicCarouselQueryService.cs
+│   │   │   │   │   │   └── PublicCarouselQueryService.cs
 │   │   │   │   │   ├── IEmailNotificationService.cs
 │   │   │   │   │   ├── IFileStorageService.cs
 │   │   │   │   │   ├── ITokenService.cs
@@ -1429,8 +1475,10 @@
 │   │   │   ├── ABCDMall.Modules.Users.Domain
 │   │   │   │   ├── ABCDMall.Modules.Users.Domain.csproj
 │   │   │   │   ├── Entities
+│   │   │   │   │   ├── CarouselBid.cs
 │   │   │   │   │   ├── EmailSettings.cs
 │   │   │   │   │   ├── ForgotPasswordOtp.cs
+│   │   │   │   │   ├── MovieCarouselAd.cs
 │   │   │   │   │   ├── PasswordResetOtp.cs
 │   │   │   │   │   ├── ProfileUpdateHistory.cs
 │   │   │   │   │   ├── PublicShop.cs
@@ -1441,6 +1489,9 @@
 │   │   │   │   │   ├── ShopInfo.cs
 │   │   │   │   │   ├── ShopMonthlyBill.cs
 │   │   │   │   │   └── User.cs
+│   │   │   │   ├── Enums
+│   │   │   │   │   ├── CarouselBidStatus.cs
+│   │   │   │   │   └── CarouselBidTemplateType.cs
 │   │   │   │   ├── bin
 │   │   │   │   │   └── Debug
 │   │   │   │   │       ├── net8.0
@@ -1481,10 +1532,14 @@
 │   │   │   └── ABCDMall.Modules.Users.Infrastructure
 │   │   │       ├── ABCDMall.Modules.Users.Infrastructure.csproj
 │   │   │       ├── DependencyInjection.cs
+│   │   │       ├── Options
+│   │   │       │   └── StripeSettings.cs
 │   │   │       ├── Persistence
 │   │   │       │   ├── Configurations
+│   │   │       │   │   ├── CarouselBidConfiguration.cs
 │   │   │       │   │   ├── ForgotPasswordOtpConfiguration.cs
 │   │   │       │   │   ├── ModelConfigurationDefaults.cs
+│   │   │       │   │   ├── MovieCarouselAdConfiguration.cs
 │   │   │       │   │   ├── PasswordResetOtpConfiguration.cs
 │   │   │       │   │   ├── ProfileUpdateHistoryConfiguration.cs
 │   │   │       │   │   ├── PublicShopConfiguration.cs
@@ -1505,8 +1560,15 @@
 │   │   │       │       ├── 20260421113224_AddShopInfoIdToRentalAreas.cs
 │   │   │       │       ├── 20260422091513_AddOpeningDateToShopInfos.Designer.cs
 │   │   │       │       ├── 20260422091513_AddOpeningDateToShopInfos.cs
+│   │   │       │       ├── 20260424043611_AddAdvertisementBiddingSystem.Designer.cs
+│   │   │       │       ├── 20260424043611_AddAdvertisementBiddingSystem.cs
+│   │   │       │       ├── 20260424072434_InitialBiddingSystem.Designer.cs
+│   │   │       │       ├── 20260424072434_InitialBiddingSystem.cs
+│   │   │       │       ├── 20260425055624_InitialMasterSetup.Designer.cs
+│   │   │       │       ├── 20260425055624_InitialMasterSetup.cs
 │   │   │       │       └── MallDbContextModelSnapshot.cs
 │   │   │       ├── Repositories
+│   │   │       │   ├── BiddingRepository.cs
 │   │   │       │   ├── PublicShopCatalogReadRepository.cs
 │   │   │       │   ├── RentalAreaCommandRepository.cs
 │   │   │       │   ├── RentalAreaReadRepository.cs
@@ -1515,8 +1577,10 @@
 │   │   │       │   ├── UserCommandRepository.cs
 │   │   │       │   └── UserReadRepository.cs
 │   │   │       ├── Seed
+│   │   │       │   ├── BiddingSeed.cs
 │   │   │       │   └── FrontendUsersSeed.cs
 │   │   │       ├── Services
+│   │   │       │   ├── BidStripePaymentGateway.cs
 │   │   │       │   ├── EmailNotificationService.cs
 │   │   │       │   ├── EmailService.cs
 │   │   │       │   ├── JwtService.cs
@@ -1776,12 +1840,21 @@
 │   ├── ABCDMall.WebAPI
 │   │   ├── ABCDMall.WebAPI.csproj
 │   │   ├── ABCDMall.WebAPI.http
+│   │   ├── Contracts
+│   │   │   └── Chatbot
+│   │   │       ├── ChatbotAskRequestDto.cs
+│   │   │       └── ChatbotAskResponseDto.cs
 │   │   ├── Controllers
+│   │   │   ├── AdminBidsController.cs
+│   │   │   ├── AdminEventsController.cs
 │   │   │   ├── AuthController.cs
+│   │   │   ├── BidPaymentsController.cs
 │   │   │   ├── BookingsController.cs
+│   │   │   ├── ChatbotController.cs
 │   │   │   ├── DbController.cs
-│   │   │   ├── EventsController.cs
 │   │   │   ├── FoodController.cs
+│   │   │   ├── ManagerBidsController.cs
+│   │   │   ├── ManagerEventsController.cs
 │   │   │   ├── MapsController.cs
 │   │   │   ├── MovieFeedbackController.cs
 │   │   │   ├── MoviesAdminBookingsController.cs
@@ -1793,6 +1866,8 @@
 │   │   │   ├── MoviesController.cs
 │   │   │   ├── MoviesPromotionsController.cs
 │   │   │   ├── PaymentsController.cs
+│   │   │   ├── PublicCarouselController.cs
+│   │   │   ├── PublicEventsController.cs
 │   │   │   ├── RentalAreaController.cs
 │   │   │   ├── ShopInfoController.cs
 │   │   │   ├── ShopsController.cs
@@ -1801,6 +1876,14 @@
 │   │   ├── Program.cs
 │   │   ├── Properties
 │   │   │   └── launchSettings.json
+│   │   ├── Services
+│   │   │   └── Chatbot
+│   │   │       ├── ChatbotAskService.cs
+│   │   │       ├── GeminiMallAssistantClient.cs
+│   │   │       ├── IChatbotAskService.cs
+│   │   │       ├── IGeminiMallAssistantClient.cs
+│   │   │       ├── IMallRagContextProvider.cs
+│   │   │       └── MallRagContextProvider.cs
 │   │   ├── appsettings.Development.json
 │   │   ├── appsettings.json
 │   │   ├── bin
@@ -1858,6 +1941,7 @@
 │   │   │           ├── BCrypt.Net-Next.dll
 │   │   │           ├── BouncyCastle.Crypto.dll
 │   │   │           ├── Dapper.dll
+│   │   │           ├── DotNetEnv.dll
 │   │   │           ├── FluentValidation.DependencyInjectionExtensions.dll
 │   │   │           ├── FluentValidation.dll
 │   │   │           ├── Humanizer.dll
@@ -1923,6 +2007,7 @@
 │   │   │           ├── Pipelines.Sockets.Unofficial.dll
 │   │   │           ├── QRCoder.dll
 │   │   │           ├── QuestPDF.dll
+│   │   │           ├── Sprache.dll
 │   │   │           ├── StackExchange.Redis.dll
 │   │   │           ├── Stripe.net.dll
 │   │   │           ├── Swashbuckle.AspNetCore.Swagger.dll
@@ -2127,6 +2212,8 @@
 │   │   │   └── project.nuget.cache
 │   │   └── wwwroot
 │   │       ├── images
+│   │       │   ├── bidding
+│   │       │   │   └── 981ad117b175498ab3091f4719f14711.png
 │   │       │   ├── contracts
 │   │       │   │   ├── 860a0f6832fe4025bb34082d474130b9.jpg
 │   │       │   │   ├── chau-accessories-contract.png
@@ -3533,10 +3620,22 @@
 │   │   │   │   │   └── UserManagement.jsx
 │   │   │   │   └── services
 │   │   │   │       └── auth.jsx
+│   │   │   ├── bidding
+│   │   │   │   ├── api
+│   │   │   │   │   └── biddingApi.ts
+│   │   │   │   └── pages
+│   │   │   │       ├── AdminBiddingPage.tsx
+│   │   │   │       ├── BiddingCheckoutPage.tsx
+│   │   │   │       ├── BiddingPaymentCancelPage.tsx
+│   │   │   │       ├── BiddingPaymentSuccessPage.tsx
+│   │   │   │       └── ManagerBiddingPage.tsx
 │   │   │   ├── brands
 │   │   │   │   ├── BrandsFeature.tsx
 │   │   │   │   └── api
 │   │   │   │       └── brandsMockData.ts
+│   │   │   ├── chatbot
+│   │   │   │   ├── ChatbotAnswer.tsx
+│   │   │   │   └── ChatbotWidget.tsx
 │   │   │   ├── contact
 │   │   │   │   └── ContactFeature.tsx
 │   │   │   ├── directory
@@ -3550,6 +3649,7 @@
 │   │   │   │   └── types
 │   │   │   │       └── map.types.ts
 │   │   │   ├── events
+│   │   │   │   ├── EventDetailFeature.tsx
 │   │   │   │   ├── EventsFeature.tsx
 │   │   │   │   ├── api
 │   │   │   │   │   └── eventsApi.ts
@@ -3665,6 +3765,7 @@
 │   │   │   ├── directory
 │   │   │   │   └── MapPage.tsx
 │   │   │   ├── events
+│   │   │   │   ├── EventDetailPage.tsx
 │   │   │   │   └── EventsPage.tsx
 │   │   │   ├── feedbacks
 │   │   │   │   └── FeedbackPage.tsx
@@ -3702,4 +3803,4 @@
 ├── run.md
 └── skills-lock.json
 
-822 directories, 2881 files
+836 directories, 2968 files
