@@ -26,6 +26,12 @@ const adminSections = [
     accent: "bg-violet-300 text-slate-950 hover:bg-violet-200",
   },
   {
+    title: "Event Management",
+    description: "Create mall event campaigns and approve pending shop event submissions.",
+    href: "/admin-management/events",
+    accent: "bg-rose-300 text-slate-950 hover:bg-rose-200",
+  },
+  {
     title: "Create Manager",
     description: "Register a manager account, create the initial shop profile, and send email notification.",
     href: "/register",

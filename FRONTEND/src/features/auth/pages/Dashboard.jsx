@@ -94,6 +94,12 @@ export default function DashboardMall() {
                       >
                         Manage My Shop
                       </a>
+                      <a
+                        href="/manager-events"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Create Shop Event
+                      </a>
                     </>
                   )}
                   {isAdmin && (
@@ -103,6 +109,12 @@ export default function DashboardMall() {
                         className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
                       >
                         Admin Management
+                      </a>
+                      <a
+                        href="/admin-management/events"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Event Management
                       </a>
                       <a
                         href="/admin-management/bidding"

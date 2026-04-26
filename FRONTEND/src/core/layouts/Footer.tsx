@@ -1,6 +1,21 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export const Footer = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
+
+  useEffect(() => {
+    const updateAuth = () => setIsAuthenticated(Boolean(localStorage.getItem('token')));
+
+    window.addEventListener('storage', updateAuth);
+    window.addEventListener('auth:changed', updateAuth);
+
+    return () => {
+      window.removeEventListener('storage', updateAuth);
+      window.removeEventListener('auth:changed', updateAuth);
+    };
+  }, []);
+
   return (
     <footer className="bg-mall-dark text-gray-300 pt-16 pb-8 border-t-4 border-mall-primary">
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -44,7 +59,16 @@ export const Footer = () => {
             <li>📞 +91 1800-ABCD-MALL</li>
             <li>✉️ support@abcdmall.com</li>
           </ul>
-          {/* Nút Social Media mộc mạc không cần cài thư viện icon */}
+          {!isAuthenticated && (
+            <div className="mb-6">
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-red-800/20 transition hover:bg-red-500"
+              >
+                Admin / Manager Login
+              </Link>
+            </div>
+          )}
           <div className="flex space-x-4 text-xl">
             <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">📘</a>
             <a href="#" className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-pink-600 transition-colors">📸</a>

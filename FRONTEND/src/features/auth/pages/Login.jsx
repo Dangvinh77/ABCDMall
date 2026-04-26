@@ -31,6 +31,8 @@ export default function Login() {
 
             const profileRes = await api.get("/Auth/getprofile");
             localStorage.setItem("role", profileRes.data.role);
+            localStorage.setItem("profile", JSON.stringify(profileRes.data));
+            window.dispatchEvent(new Event("auth:changed"));
 
             setOtpRequired(false);
             setOtp("");
