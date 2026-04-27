@@ -1,5 +1,4 @@
 using System.Text;
-using System.Linq;
 using ABCDMall.Modules.Events.Application.DTOs;
 using ABCDMall.Modules.Events.Application.DTOs.Events;
 using ABCDMall.Modules.Events.Application.Services.Events;
@@ -68,14 +67,8 @@ public sealed class MallRagContextProvider : IMallRagContextProvider
             .ToDictionary(g => g.Key, g => g.ToList(), StringComparer.OrdinalIgnoreCase);
 
         var events = await _eventQueryService.GetListAsync(new EventListQueryDto(), cancellationToken);
-
-        // Lấy dữ liệu FoodCourt
         var foods = await _foodQueryService.GetListAsync(null, cancellationToken);
-
-        // Lấy dữ liệu Movies
         var movies = await _movieQueryService.GetListAsync(null, cancellationToken);
-
-        // Lấy dữ liệu UtilityMap (bản đồ tiện ích)
         var floors = await _mapQueryService.GetAllFloorsAsync(cancellationToken);
 
         var sb = new StringBuilder();
@@ -110,14 +103,10 @@ public sealed class MallRagContextProvider : IMallRagContextProvider
             }
         }
 
-        // 1. Lấy trực tiếp danh sách vì Service trả về IReadOnlyList
-        var eventList = await _eventQueryService.GetListAsync(new EventListQueryDto(), cancellationToken);
-
         sb.AppendLine();
         sb.AppendLine("=== EVENTS ===");
 
-        // 2. Sử dụng eventList trực tiếp (nhớ thêm using System.Linq ở trên đầu file để không lỗi OrderByDescending)
-        foreach (var e in (eventList ?? new List<EventDto>()).OrderByDescending(x => x.StartDateTime))
+        foreach (var e in (events ?? []).OrderByDescending(x => x.StartDateTime))
         {
             sb.AppendLine(
                 $"- Id: {e.Id} | Title: {e.Title} | Status: {e.ApprovalStatus} | Start: {e.StartDateTime:u} | End: {e.EndDateTime:u} | Location: {e.LocationType}");
