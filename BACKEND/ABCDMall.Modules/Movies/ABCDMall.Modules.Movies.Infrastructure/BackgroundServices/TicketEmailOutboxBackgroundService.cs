@@ -46,52 +46,60 @@ public sealed class TicketEmailOutboxBackgroundService : BackgroundService
 
     private async Task ProcessPendingEventsAsync(CancellationToken cancellationToken)
     {
-        using var scope = _scopeFactory.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
-        var dispatcher = scope.ServiceProvider.GetRequiredService<ITicketEmailDispatcher>();
-
-        var events = await dbContext.OutboxEvents
-            .Where(x => x.EventType == TicketEmailOutboxEvent.EventType
-                && (x.Status == "Pending" || (x.Status == "Failed" && x.RetryCount < MaxRetryCount)))
-            .OrderBy(x => x.OccurredAtUtc)
-            .Take(10)
-            .ToListAsync(cancellationToken);
-
-        foreach (var outboxEvent in events)
+        try
         {
-            Guid? bookingId = null;
-            try
-            {
-                bookingId = ReadBookingId(outboxEvent.PayloadJson);
-                await dispatcher.SendTicketEmailAsync(bookingId.Value, cancellationToken);
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MoviesBookingDbContext>();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<ITicketEmailDispatcher>();
 
-                outboxEvent.Status = "Processed";
-                outboxEvent.ProcessedAtUtc = DateTime.UtcNow;
-                outboxEvent.LastError = null;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                outboxEvent.Status = "Failed";
-                outboxEvent.RetryCount++;
-                outboxEvent.LastError = ex.Message;
-                outboxEvent.ProcessedAtUtc = null;
+            var events = await dbContext.OutboxEvents
+                .Where(x => x.EventType == TicketEmailOutboxEvent.EventType
+                    && (x.Status == "Pending" || (x.Status == "Failed" && x.RetryCount < MaxRetryCount)))
+                .OrderBy(x => x.OccurredAtUtc)
+                .Take(10)
+                .ToListAsync(cancellationToken);
 
-                if (bookingId.HasValue)
+            foreach (var outboxEvent in events)
+            {
+                Guid? bookingId = null;
+                try
                 {
-                    await MarkTicketDeliveryFailedAsync(dbContext, bookingId.Value, ex.Message, cancellationToken);
-                }
+                    bookingId = ReadBookingId(outboxEvent.PayloadJson);
+                    await dispatcher.SendTicketEmailAsync(bookingId.Value, cancellationToken);
 
-                _logger.LogWarning(ex, "Failed to send ticket email for outbox event {OutboxEventId}.", outboxEvent.Id);
+                    outboxEvent.Status = "Processed";
+                    outboxEvent.ProcessedAtUtc = DateTime.UtcNow;
+                    outboxEvent.LastError = null;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    outboxEvent.Status = "Failed";
+                    outboxEvent.RetryCount++;
+                    outboxEvent.LastError = ex.Message;
+                    outboxEvent.ProcessedAtUtc = null;
+
+                    if (bookingId.HasValue)
+                    {
+                        await MarkTicketDeliveryFailedAsync(dbContext, bookingId.Value, ex.Message, cancellationToken);
+                    }
+
+                    _logger.LogWarning(ex, "Failed to send ticket email for outbox event {OutboxEventId}.", outboxEvent.Id);
+                }
+            }
+
+            if (events.Count > 0)
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
         }
-
-        if (events.Count > 0)
+        catch (Exception ex)
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            // Log the error but don't crash - database may not be ready yet
+            _logger.LogWarning(ex, "Failed to process ticket email outbox events.");
         }
     }
 

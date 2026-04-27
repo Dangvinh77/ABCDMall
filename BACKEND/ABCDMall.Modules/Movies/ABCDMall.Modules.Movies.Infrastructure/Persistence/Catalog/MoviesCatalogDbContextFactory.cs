@@ -52,7 +52,7 @@ public class MoviesCatalogDbContextFactory : IDesignTimeDbContextFactory<MoviesC
                 sql.MigrationsAssembly(typeof(MoviesCatalogDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
                     "__EFMigrationsHistory_MoviesCatalog",
-                    MoviesCatalogDbContext.DefaultSchema);
+                    null);
             });
 
         return new MoviesCatalogDbContext(optionsBuilder.Options);

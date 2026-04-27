@@ -64,7 +64,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.BackgroundServices
             }
             catch (Exception ex)
             {
-                // Keep the background service alive; the next timer tick can retry cleanup.
+                // Log the error but don't crash - database may not be ready yet
                 _logger.LogWarning(ex, "Failed to cleanup expired booking holds.");
             }
         }

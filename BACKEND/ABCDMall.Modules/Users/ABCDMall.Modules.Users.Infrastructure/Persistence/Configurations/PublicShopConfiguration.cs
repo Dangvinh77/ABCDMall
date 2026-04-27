@@ -8,7 +8,7 @@ internal sealed class PublicShopConfiguration : IEntityTypeConfiguration<PublicS
 {
     public void Configure(EntityTypeBuilder<PublicShop> entity)
     {
-        entity.ToTable("Shops", "shops", table => table.ExcludeFromMigrations());
+        entity.ToTable("Shops", "shops");
         entity.HasKey(x => x.Id);
 
         entity.Property(x => x.Id).HasMaxLength(64);

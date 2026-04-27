@@ -25,7 +25,7 @@ public static class DependencyInjection
                 sql.MigrationsAssembly(typeof(FoodCourtDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
                     "__EFMigrationsHistory_FoodCourt",
-                    FoodCourtDbContext.DefaultSchema);
+                    null);
             });
         });
 

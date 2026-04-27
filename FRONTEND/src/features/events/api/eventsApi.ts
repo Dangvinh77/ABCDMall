@@ -8,8 +8,11 @@ export const eventsApi = {
   getActiveEvents: () => api.get<EventDto[]>("/public/events/active"),
   getShopEvents: (shopId: string) => api.get<EventDto[]>(`/public/events/shop/${shopId}`),
   getAdminReviewEvents: () => api.get<EventDto[]>("/admin/events"),
+  getEventsByStatus: (status: "pending" | "approved" | "rejected") => 
+    api.get<EventDto[]>(`/admin/events/by-status/${status}`),
   approveEvent: (id: string) => api.post<void>(`/admin/events/${id}/approve`),
-  rejectEvent: (id: string) => api.post<void>(`/admin/events/${id}/reject`),
+  rejectEvent: (id: string, reason: string) => 
+    api.post<void>(`/admin/events/${id}/reject`, { reason }),
   getManagerEvents: () => api.get<EventDto[]>("/manager/events"),
   createMallEvent: (payload: CreateEventRequest) => api.post<EventDto, CreateEventRequest>("/admin/events", payload),
   createShopEvent: (payload: CreateEventRequest) => api.post<EventDto, CreateEventRequest>("/manager/events", payload),

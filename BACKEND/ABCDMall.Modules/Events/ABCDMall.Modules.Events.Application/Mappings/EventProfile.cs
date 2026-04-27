@@ -12,6 +12,8 @@ public sealed class EventProfile : AutoMapper.Profile
             .ForMember(dest => dest.ApprovalStatus, opt => opt.MapFrom(src => src.ApprovalStatus.ToString()))
             .ForMember(dest => dest.CreatedByName, opt => opt.MapFrom(src => string.IsNullOrWhiteSpace(src.ShopId) ? "Mall" : src.ShopId!))
             .ForMember(dest => dest.IsOngoing, opt => opt.MapFrom(src => src.StartDateTime <= DateTime.UtcNow && src.EndDateTime >= DateTime.UtcNow))
-            .ForMember(dest => dest.IsUpcoming, opt => opt.MapFrom(src => src.StartDateTime > DateTime.UtcNow));
+            .ForMember(dest => dest.IsUpcoming, opt => opt.MapFrom(src => src.StartDateTime > DateTime.UtcNow))
+            .ForMember(dest => dest.ApprovedAt, opt => opt.MapFrom(src => src.ApprovedAt))
+            .ForMember(dest => dest.RejectionReason, opt => opt.MapFrom(src => src.RejectionReason));
     }
 }

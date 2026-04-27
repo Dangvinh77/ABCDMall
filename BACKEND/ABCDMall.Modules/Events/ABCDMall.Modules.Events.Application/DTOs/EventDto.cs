@@ -12,9 +12,11 @@ public class EventDto
     public string? ShopId { get; set; }
     public string CreatedByName { get; set; } = string.Empty;
     public string ApprovalStatus { get; set; } = string.Empty;
+    public string? RejectionReason { get; set; }
     public bool HasGiftRegistration { get; set; }
     public string? GiftDescription { get; set; }
     public bool IsOngoing { get; set; }
     public bool IsUpcoming { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? ApprovedAt { get; set; }
 }

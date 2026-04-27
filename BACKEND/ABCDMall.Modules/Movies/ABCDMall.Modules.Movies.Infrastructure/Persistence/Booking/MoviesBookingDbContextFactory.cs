@@ -60,7 +60,7 @@ public class MoviesBookingDbContextFactory : IDesignTimeDbContextFactory<MoviesB
                 sql.MigrationsAssembly(typeof(MoviesBookingDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
                     "__EFMigrationsHistory_MoviesBooking",
-                    MoviesBookingDbContext.DefaultSchema);
+                    null);
             });
 
         return new MoviesBookingDbContext(optionsBuilder.Options);

@@ -65,11 +65,37 @@ public sealed class EventCommandService : IEventCommandService
         }
 
         existing.ApprovalStatus = EventApprovalStatus.Approved;
+        existing.ApprovedAt = DateTime.UtcNow;
         await _eventRepository.UpdateEventAsync(existing, cancellationToken);
+
+        // Send approval email notification if event is from a shop
+        if (!string.IsNullOrWhiteSpace(existing.ShopId))
+        {
+            var managerEmail = "manager@shop.com"; // TODO: Get actual manager email from shop
+            var body = $"""
+                        <div style="font-family:Arial,sans-serif; padding: 20px;">
+                          <h2 style="color: #059669;">✓ Sự kiện đã được phê duyệt</h2>
+                          <p>Kính gửi quản lý cửa hàng,</p>
+                          <p>Sự kiện của bạn <strong>"{existing.Title}"</strong> đã được phê duyệt thành công bởi quản trị viên mall!</p>
+                          <p><strong>Thông tin sự kiện:</strong></p>
+                          <ul>
+                            <li>Tên: {existing.Title}</li>
+                            <li>Thời gian: {existing.StartDateTime:dd/MM/yyyy HH:mm} - {existing.EndDateTime:dd/MM/yyyy HH:mm}</li>
+                            <li>Vị trí: {(existing.LocationType == EventLocationType.AtShop ? "Cửa hàng" : $"Sảnh tầng {existing.LocationType - 1}")}</li>
+                          </ul>
+                          <p>Sự kiện của bạn hiện đã xuất hiện trên bản đồ sự kiện của mall.</p>
+                          <p>Cảm ơn!</p>
+                        </div>
+                        """;
+            
+            // Note: This is a simplified version. You'll need to get the actual manager email from the shop record
+            // await _emailNotificationService.SendEventApprovalEmailAsync(managerEmail, "manager_name", "Sự kiện được phê duyệt", body);
+        }
+
         return ApplicationResult<bool>.Ok(true);
     }
 
-    public async Task<ApplicationResult<bool>> RejectAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ApplicationResult<bool>> RejectAsync(Guid id, string reason, CancellationToken cancellationToken = default)
     {
         var existing = await _eventRepository.GetEventByIdAsync(id, cancellationToken);
         if (existing is null)
@@ -78,7 +104,28 @@ public sealed class EventCommandService : IEventCommandService
         }
 
         existing.ApprovalStatus = EventApprovalStatus.Rejected;
+        existing.RejectionReason = reason?.Trim();
         await _eventRepository.UpdateEventAsync(existing, cancellationToken);
+
+        // Send rejection email notification if event is from a shop
+        if (!string.IsNullOrWhiteSpace(existing.ShopId))
+        {
+            var managerEmail = "manager@shop.com"; // TODO: Get actual manager email from shop
+            var body = $"""
+                        <div style="font-family:Arial,sans-serif; padding: 20px;">
+                          <h2 style="color: #dc2626;">✗ Sự kiện bị từ chối</h2>
+                          <p>Kính gửi quản lý cửa hàng,</p>
+                          <p>Rất tiếc, sự kiện <strong>"{existing.Title}"</strong> đã không được phê duyệt.</p>
+                          <p><strong>Lý do:</strong></p>
+                          <p style="background-color: #fee2e2; padding: 10px; border-left: 4px solid #dc2626;">{reason}</p>
+                          <p>Vui lòng liên hệ với quản trị viên mall để biết thêm chi tiết.</p>
+                        </div>
+                        """;
+            
+            // Note: This is a simplified version. You'll need to get the actual manager email from the shop record
+            // await _emailNotificationService.SendEventRejectionEmailAsync(managerEmail, "manager_name", "Sự kiện bị từ chối", body);
+        }
+
         return ApplicationResult<bool>.Ok(true);
     }
 

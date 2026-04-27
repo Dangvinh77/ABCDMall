@@ -39,7 +39,7 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString, sql =>
             {
                 sql.MigrationsAssembly(typeof(MoviesCatalogDbContext).Assembly.FullName);
-                sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesCatalog", MoviesCatalogDbContext.DefaultSchema);
+                sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesCatalog", null);
             });
         });
 
@@ -48,7 +48,7 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString, sql =>
             {
                 sql.MigrationsAssembly(typeof(MoviesBookingDbContext).Assembly.FullName);
-                sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesBooking", MoviesBookingDbContext.DefaultSchema);
+                sql.MigrationsHistoryTable("__EFMigrationsHistory_MoviesBooking", null);
             });
         });
 

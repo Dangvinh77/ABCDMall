@@ -9,6 +9,7 @@ public interface IEventQueryService
     Task<IReadOnlyList<EventDto>> GetManagerEventsAsync(string shopId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<EventDto>> GetManagerScheduleAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<EventDto>> GetAdminReviewListAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<EventDto>> GetEventsByStatusAsync(string status, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<EventDto>> GetPublicEventsAsync(string? filter, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<EventDto>> GetPublicShopEventsAsync(string shopId, CancellationToken cancellationToken = default);
     Task<EventDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

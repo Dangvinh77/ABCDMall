@@ -9,11 +9,13 @@ export interface EventDto {
   shopId?: string | null;
   createdByName: string;
   approvalStatus: string;
+  rejectionReason?: string | null;
   hasGiftRegistration: boolean;
   giftDescription?: string | null;
   isOngoing: boolean;
   isUpcoming: boolean;
   createdAt: string;
+  approvedAt?: string | null;
 }
 
 export interface CreateEventRequest {

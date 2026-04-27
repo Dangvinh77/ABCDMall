@@ -11,12 +11,14 @@ public sealed class CreateEventRequestDtoValidator : AbstractValidator<CreateEve
         RuleFor(x => x.Description).MaximumLength(4000);
         RuleFor(x => x.ImageUrl).MaximumLength(1000);
         RuleFor(x => x.StartDateTime).NotEmpty();
-        RuleFor(x => x.EndDateTime).GreaterThan(x => x.StartDateTime);
+        RuleFor(x => x.EndDateTime)
+            .GreaterThan(x => x.StartDateTime)
+            .WithMessage("Ngày kết thúc phải sau ngày bắt đầu");
         RuleFor(x => x.LocationType).InclusiveBetween(1, 5);
         RuleFor(x => x.GiftDescription).MaximumLength(500);
         RuleFor(x => x.GiftDescription)
             .NotEmpty()
             .When(x => x.HasGiftRegistration)
-            .WithMessage("Gift description is required when gift registration is enabled.");
+            .WithMessage("Mô tả quà tặng là bắt buộc khi bật đăng ký quà tặng.");
     }
 }

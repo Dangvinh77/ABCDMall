@@ -185,7 +185,39 @@ static async Task MigrateAndSeedAsync(
     {
         logger.LogInformation("Starting {Name} database initialization.", task.Name);
 
-        await task.MigrateAsync(cancellationToken);
+        var database = task.Context.Database;
+        
+        // Check if we can connect to the database
+        if (!await database.CanConnectAsync(cancellationToken))
+        {
+            logger.LogWarning("Cannot connect to {Name} database, skipping initialization.", task.Name);
+            return;
+        }
+
+        // Get pending migrations - if any, use Migrate; otherwise use EnsureCreated
+        var pendingMigrations = await database.GetPendingMigrationsAsync(cancellationToken);
+        
+        if (pendingMigrations.Any())
+        {
+            logger.LogInformation("Applying {Count} migrations for {Name}.", pendingMigrations.Count(), task.Name);
+            await database.MigrateAsync(cancellationToken);
+        }
+        else
+        {
+            // For databases without migrations, use EnsureCreated
+            // This works for both code-first and existing databases
+            logger.LogInformation("No migrations found for {Name}, using EnsureCreated.", task.Name);
+            
+            try
+            {
+                await database.EnsureCreatedAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // If EnsureCreated fails (e.g., schema mismatch), log and continue
+                logger.LogWarning(ex, "EnsureCreated failed for {Name}, attempting to continue.", task.Name);
+            }
+        }
 
         if (task.ShouldSeed)
         {

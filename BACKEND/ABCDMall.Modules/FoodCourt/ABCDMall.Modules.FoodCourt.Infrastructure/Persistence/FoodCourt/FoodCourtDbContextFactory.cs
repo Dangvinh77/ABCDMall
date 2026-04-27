@@ -51,7 +51,7 @@ public class FoodCourtDbContextFactory : IDesignTimeDbContextFactory<FoodCourtDb
                 sql.MigrationsAssembly(typeof(FoodCourtDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
                     "__EFMigrationsHistory_FoodCourt",
-                    FoodCourtDbContext.DefaultSchema);
+                    null);
             });
 
         return new FoodCourtDbContext(optionsBuilder.Options);

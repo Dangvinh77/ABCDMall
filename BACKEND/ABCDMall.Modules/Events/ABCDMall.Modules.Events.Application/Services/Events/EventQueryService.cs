@@ -63,6 +63,24 @@ public sealed class EventQueryService : IEventQueryService
     public Task<IReadOnlyList<EventDto>> GetAdminReviewListAsync(CancellationToken cancellationToken = default)
         => GetListAsync(new EventListQueryDto { IncludeAllStatuses = true }, cancellationToken);
 
+    public async Task<IReadOnlyList<EventDto>> GetEventsByStatusAsync(string status, CancellationToken cancellationToken = default)
+    {
+        var events = await _eventRepository.GetEventsAsync(includeRejected: true, cancellationToken);
+        
+        if (string.IsNullOrWhiteSpace(status))
+            return _mapper.Map<IReadOnlyList<EventDto>>(events);
+
+        var filteredEvents = status.Trim().ToLowerInvariant() switch
+        {
+            "pending" => events.Where(x => (int)x.ApprovalStatus == 1).ToList(),
+            "approved" => events.Where(x => (int)x.ApprovalStatus == 2).ToList(),
+            "rejected" => events.Where(x => (int)x.ApprovalStatus == 3).ToList(),
+            _ => events
+        };
+
+        return _mapper.Map<IReadOnlyList<EventDto>>(filteredEvents);
+    }
+
     public Task<IReadOnlyList<EventDto>> GetPublicEventsAsync(string? filter, CancellationToken cancellationToken = default)
         => GetListAsync(new EventListQueryDto { IncludeAllStatuses = false, TimeFilter = filter }, cancellationToken);
 

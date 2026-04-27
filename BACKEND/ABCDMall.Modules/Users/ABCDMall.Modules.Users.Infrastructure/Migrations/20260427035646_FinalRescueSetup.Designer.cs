@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
+namespace ABCDMall.Modules.Users.Infrastructure.Migrations
 {
     [DbContext(typeof(MallDbContext))]
-    [Migration("20260421113224_AddShopInfoIdToRentalAreas")]
-    partial class AddShopInfoIdToRentalAreas
+    [Migration("20260427035646_FinalRescueSetup")]
+    partial class FinalRescueSetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,54 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.CarouselBid", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
+
+                    b.Property<decimal>("BidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ShopId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("TargetMondayDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TemplateData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TemplateType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShopId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TargetMondayDate");
+
+                    b.ToTable("CarouselBids");
+                });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.ForgotPasswordOtp", b =>
                 {
@@ -67,6 +115,40 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ForgotPasswordOtps");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.MovieCarouselAd", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("TargetMondayDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("TargetMondayDate")
+                        .IsUnique();
+
+                    b.ToTable("MovieCarouselAds");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PasswordResetOtp", b =>
@@ -220,9 +302,17 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime?>("OpeningDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("OwnerShopId")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ShopStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -236,10 +326,7 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shops", "shops", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("Shops", "shops");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PublicShopProduct", b =>
@@ -284,10 +371,7 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ShopId");
 
-                    b.ToTable("ShopProducts", "shops", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("ShopProducts", "shops");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PublicShopVoucher", b =>
@@ -303,8 +387,8 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -321,15 +405,12 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ValidUntil")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ShopVouchers", "shops", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("ShopVouchers", "shops");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.RefreshToken", b =>
@@ -522,6 +603,9 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime?>("OpeningDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerShopInfoId")
                         .HasMaxLength(64)

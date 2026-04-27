@@ -15,6 +15,14 @@ const defaultForm: CreateEventRequest = {
   giftDescription: "",
 };
 
+const locationOptions = [
+  { value: 1, label: "At Shop" },
+  { value: 2, label: "Floor 1 Event Hall" },
+  { value: 3, label: "Floor 2 Event Hall" },
+  { value: 4, label: "Floor 3 Event Hall" },
+  { value: 5, label: "Floor 4 Event Hall" },
+];
+
 export function ManagerEventsPage() {
   const role = localStorage.getItem("role") || "Guest";
   const isManager = role === "Manager";
@@ -25,6 +33,7 @@ export function ManagerEventsPage() {
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const loadEvents = async () => {
     try {
@@ -45,8 +54,45 @@ export function ManagerEventsPage() {
     }
   }, [isManager]);
 
-  const onChange = (field: keyof CreateEventRequest, value: string | boolean) => {
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!form.title.trim()) {
+      errors.title = "Title is required";
+    }
+    
+    if (!form.startDateTime) {
+      errors.startDateTime = "Start date/time is required";
+    }
+    
+    if (!form.endDateTime) {
+      errors.endDateTime = "End date/time is required";
+    }
+
+    const startTime = new Date(form.startDateTime).getTime();
+    const endTime = new Date(form.endDateTime).getTime();
+    
+    if (startTime >= endTime) {
+      errors.endDateTime = "End date/time must be after start date/time";
+    }
+
+    if (form.hasGiftRegistration && !form.giftDescription?.trim()) {
+      errors.giftDescription = "Gift description is required when gift registration is enabled";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const onChange = (field: keyof CreateEventRequest, value: string | boolean | number) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (formErrors[field as string]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field as string];
+        return newErrors;
+      });
+    }
   };
 
   const handleImageChange = async (file?: File) => {
@@ -70,6 +116,10 @@ export function ManagerEventsPage() {
     setError("");
     setStatusMessage("");
 
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       setLoading(true);
       await eventsApi.createShopEvent({
@@ -78,7 +128,7 @@ export function ManagerEventsPage() {
         imageUrl: form.imageUrl,
         startDateTime: form.startDateTime,
         endDateTime: form.endDateTime,
-        locationType: 1,
+        locationType: form.locationType,
         hasGiftRegistration: form.hasGiftRegistration,
         giftDescription: form.giftDescription,
       });
@@ -133,8 +183,14 @@ export function ManagerEventsPage() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-700">Title</span>
-                  <input value={form.title} onChange={(e) => onChange("title", e.target.value)} placeholder="Spring Store Meetup" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white" />
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">Title {formErrors.title && <span className="text-red-600">*</span>}</span>
+                  <input 
+                    value={form.title} 
+                    onChange={(e) => onChange("title", e.target.value)} 
+                    placeholder="Spring Store Meetup" 
+                    className={`w-full rounded-2xl border ${formErrors.title ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white`}
+                  />
+                  {formErrors.title && <p className="mt-1 text-xs text-red-600">{formErrors.title}</p>}
                 </label>
                 <label className="block">
                   <span className="mb-2 block text-sm font-semibold text-slate-700">Upload event image</span>
@@ -159,14 +215,36 @@ export function ManagerEventsPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-700">Start date & time</span>
-                  <input type="datetime-local" value={form.startDateTime} onChange={(e) => onChange("startDateTime", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white" />
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">Start date & time {formErrors.startDateTime && <span className="text-red-600">*</span>}</span>
+                  <input 
+                    type="datetime-local" 
+                    value={form.startDateTime} 
+                    onChange={(e) => onChange("startDateTime", e.target.value)} 
+                    className={`w-full rounded-2xl border ${formErrors.startDateTime ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white`}
+                  />
+                  {formErrors.startDateTime && <p className="mt-1 text-xs text-red-600">{formErrors.startDateTime}</p>}
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-700">End date & time</span>
-                  <input type="datetime-local" value={form.endDateTime} onChange={(e) => onChange("endDateTime", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white" />
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">End date & time {formErrors.endDateTime && <span className="text-red-600">*</span>}</span>
+                  <input 
+                    type="datetime-local" 
+                    value={form.endDateTime} 
+                    onChange={(e) => onChange("endDateTime", e.target.value)} 
+                    className={`w-full rounded-2xl border ${formErrors.endDateTime ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white`}
+                  />
+                  {formErrors.endDateTime && <p className="mt-1 text-xs text-red-600">{formErrors.endDateTime}</p>}
                 </label>
               </div>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Event location</span>
+                <select value={form.locationType} onChange={(e) => onChange("locationType", Number(e.target.value))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white">
+                  {locationOptions.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-slate-500">Select where you want to organize your event: at your shop counter or at one of the mall's event halls.</p>
+              </label>
 
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-700">Gift registration</span>
@@ -178,8 +256,14 @@ export function ManagerEventsPage() {
 
               {form.hasGiftRegistration && (
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-700">Gift description</span>
-                  <input value={form.giftDescription} onChange={(e) => onChange("giftDescription", e.target.value)} placeholder="Free keychain for the first 50 guests" className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white" />
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">Gift description {formErrors.giftDescription && <span className="text-red-600">*</span>}</span>
+                  <input 
+                    value={form.giftDescription} 
+                    onChange={(e) => onChange("giftDescription", e.target.value)} 
+                    placeholder="Free keychain for the first 50 guests" 
+                    className={`w-full rounded-2xl border ${formErrors.giftDescription ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-amber-300 focus:bg-white`}
+                  />
+                  {formErrors.giftDescription && <p className="mt-1 text-xs text-red-600">{formErrors.giftDescription}</p>}
                 </label>
               )}
 
@@ -206,11 +290,25 @@ export function ManagerEventsPage() {
                 {events.map((event) => (
                   <article key={event.id} className="rounded-[24px] border border-slate-200 p-5 shadow-sm">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h3 className="text-lg font-black text-slate-950">{event.title}</h3>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-black text-slate-950">{event.title}</h3>
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] ${
+                            event.approvalStatus === "Approved" ? "bg-emerald-100 text-emerald-700" :
+                            event.approvalStatus === "Rejected" ? "bg-red-100 text-red-700" :
+                            "bg-amber-100 text-amber-700"
+                          }`}>
+                            {event.approvalStatus}
+                          </span>
+                        </div>
                         <p className="mt-2 text-sm text-slate-600">{event.description}</p>
+                        {event.rejectionReason && (
+                          <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3">
+                            <p className="text-xs font-semibold text-red-700 mb-1">Reason for rejection:</p>
+                            <p className="text-sm text-red-600">{event.rejectionReason}</p>
+                          </div>
+                        )}
                       </div>
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">{event.approvalStatus}</span>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 text-sm text-slate-600">
                       <span>{new Date(event.startDateTime).toLocaleString()}</span>

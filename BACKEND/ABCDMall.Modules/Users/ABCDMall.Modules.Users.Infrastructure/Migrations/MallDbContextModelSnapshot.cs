@@ -4,19 +4,16 @@ using ABCDMall.Modules.Users.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
+namespace ABCDMall.Modules.Users.Infrastructure.Migrations
 {
     [DbContext(typeof(MallDbContext))]
-    [Migration("20260425100348_TestMigrationM4")]
-    partial class TestMigrationM4
+    partial class MallDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -326,10 +323,7 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shops", "shops", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("Shops", "shops");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PublicShopProduct", b =>
@@ -374,10 +368,7 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ShopId");
 
-                    b.ToTable("ShopProducts", "shops", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("ShopProducts", "shops");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PublicShopVoucher", b =>
@@ -393,8 +384,8 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -411,15 +402,12 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ValidUntil")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("ShopVouchers", "shops", t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("ShopVouchers", "shops");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.RefreshToken", b =>

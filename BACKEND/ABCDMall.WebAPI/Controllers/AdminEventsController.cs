@@ -40,13 +40,17 @@ public sealed class AdminEventsController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<EventDto>>> GetAdminReviewEvents(CancellationToken cancellationToken = default)
         => Ok(await _queryService.GetAdminReviewListAsync(cancellationToken));
 
+    [HttpGet("by-status/{status}")]
+    public async Task<ActionResult<IReadOnlyList<EventDto>>> GetEventsByStatus(string status, CancellationToken cancellationToken = default)
+        => Ok(await _queryService.GetEventsByStatusAsync(status, cancellationToken));
+
     [HttpPost("{id:guid}/approve")]
     public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken = default)
         => FromResult(await _commandService.ApproveAsync(id, cancellationToken));
 
     [HttpPost("{id:guid}/reject")]
-    public async Task<IActionResult> Reject(Guid id, CancellationToken cancellationToken = default)
-        => FromResult(await _commandService.RejectAsync(id, cancellationToken));
+    public async Task<IActionResult> Reject(Guid id, [FromBody] RejectEventRequestDto request, CancellationToken cancellationToken = default)
+        => FromResult(await _commandService.RejectAsync(id, request.Reason, cancellationToken));
 
     private IActionResult FromResult<T>(ApplicationResult<T> result) => result.Status switch
     {
