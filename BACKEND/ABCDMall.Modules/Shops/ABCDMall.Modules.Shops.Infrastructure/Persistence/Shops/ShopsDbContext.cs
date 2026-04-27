@@ -6,8 +6,6 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops;
 
 public sealed class ShopsDbContext : DbContext
 {
-    public const string DefaultSchema = "shops";
-
     public ShopsDbContext(DbContextOptions<ShopsDbContext> options)
         : base(options)
     {
@@ -20,7 +18,6 @@ public sealed class ShopsDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema(DefaultSchema);
         modelBuilder.ApplyConfiguration(new ShopConfiguration());
         modelBuilder.ApplyConfiguration(new ShopProductConfiguration());
         modelBuilder.ApplyConfiguration(new ShopVoucherConfiguration());

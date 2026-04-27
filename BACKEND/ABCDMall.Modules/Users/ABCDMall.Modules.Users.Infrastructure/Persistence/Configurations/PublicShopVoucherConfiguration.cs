@@ -8,7 +8,7 @@ internal sealed class PublicShopVoucherConfiguration : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<PublicShopVoucher> entity)
     {
-        entity.ToTable("ShopVouchers", "shops");
+        entity.ToTable("PublicShopVouchers");
         entity.HasKey(x => x.Id);
 
         entity.Property(x => x.Id).HasMaxLength(64);

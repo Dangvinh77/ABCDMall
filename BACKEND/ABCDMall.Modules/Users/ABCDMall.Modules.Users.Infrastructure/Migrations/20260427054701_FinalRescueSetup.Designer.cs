@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.Users.Infrastructure.Migrations
 {
     [DbContext(typeof(MallDbContext))]
-    [Migration("20260427035646_FinalRescueSetup")]
+    [Migration("20260427054701_FinalRescueSetup")]
     partial class FinalRescueSetup
     {
         /// <inheritdoc />
