@@ -106,6 +106,49 @@ public class RentalPaymentServiceTests
         Assert.Null(context.ShopMonthlyBills.Single().StripeSessionId);
     }
 
+    [Fact]
+    public async Task CreateCheckoutSessionAsync_rejects_vnd_bill_below_stripe_minimum_without_calling_checkout_client()
+    {
+        await using var context = CreateContext();
+        context.ShopMonthlyBills.Add(new ShopMonthlyBill
+        {
+            Id = "bill-3",
+            ShopInfoId = "shop-3",
+            BillKey = "bill-key-3",
+            ShopName = "Mini Kiosk",
+            RentalLocation = "C1-03",
+            Month = "04/2026",
+            UsageMonth = "03/2026",
+            BillingMonthKey = "2026-04",
+            UsageMonthKey = "2026-03",
+            LeaseStartDate = new DateTime(2026, 4, 1),
+            ElectricityUsage = "5",
+            WaterUsage = "2",
+            ElectricityFee = 7000m,
+            WaterFee = 2000m,
+            ServiceFee = 3000m,
+            TotalDue = 12000m,
+            PaymentStatus = "Unpaid"
+        });
+        await context.SaveChangesAsync();
+
+        var checkoutClient = new FakeStripeCheckoutClient("cs_test_789", "https://checkout.stripe.test/minimum");
+        var service = new RentalPaymentService(
+            context,
+            Options.Create(new StripeSettings
+            {
+                SecretKey = "sk_test_123",
+                FrontendBaseUrl = "http://localhost:5173"
+            }),
+            checkoutClient);
+
+        var result = await service.CreateCheckoutSessionAsync("bill-3", "manager-3", "shop-3");
+
+        Assert.Equal(ApplicationResultStatus.BadRequest, result.Status);
+        Assert.Equal("Rental bill total is below Stripe's minimum checkout amount for the current settlement currency.", result.Error);
+        Assert.False(checkoutClient.CreateSessionCalled);
+    }
+
     private static MallDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<MallDbContext>()

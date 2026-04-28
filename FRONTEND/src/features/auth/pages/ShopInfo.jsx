@@ -42,6 +42,9 @@ export default function ShopInfo() {
   const [payingBillId, setPayingBillId] = useState("");
   const [selectedContract, setSelectedContract] = useState(null);
   const [selectedRental, setSelectedRental] = useState(null);
+  const activeRental = selectedRental
+    ? shopRentals.find((item) => item.id === selectedRental.id) || selectedRental
+    : null;
 
   useEffect(() => {
     if (!isManager) {
@@ -76,12 +79,25 @@ export default function ShopInfo() {
     loadShopInfos();
   }, [isManager]);
 
+  useEffect(() => {
+    if (!selectedRental) {
+      return;
+    }
+
+    const refreshedRental = shopRentals.find((item) => item.id === selectedRental.id);
+    if (refreshedRental && refreshedRental !== selectedRental) {
+      setSelectedRental(refreshedRental);
+    }
+  }, [selectedRental, shopRentals]);
+
   const handlePayBill = async (billId) => {
     try {
       setPayingBillId(billId);
       setError("");
       setSuccess("");
-      const result = await api.post(`/RentalPayments/${billId}/checkout-session`);
+      const result = await api.post("/payments/checkout-session/stripe/rental-bills", {
+        billId,
+      });
 
       if (result?.checkoutUrl) {
         window.location.href = result.checkoutUrl;
@@ -301,14 +317,14 @@ export default function ShopInfo() {
         </div>
       )}
 
-      {selectedRental && (
+      {activeRental && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
               <div>
                 <h3 className="text-xl font-black text-slate-950">Rental Bill Details</h3>
                 <p className="text-sm text-slate-500">
-                  {selectedRental.shopName} | {selectedRental.month}
+                  {activeRental.shopName} | {activeRental.month}
                 </p>
               </div>
               <button
@@ -323,30 +339,30 @@ export default function ShopInfo() {
             <div className="space-y-5 p-5">
               <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Shop Rental</p>
-                <h4 className="mt-2 text-2xl font-black text-slate-950">{selectedRental.shopName}</h4>
+                <h4 className="mt-2 text-2xl font-black text-slate-950">{activeRental.shopName}</h4>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Detail label="Location" value={selectedRental.rentalLocation} />
-                  <Detail label="Billing Month" value={selectedRental.month} />
-                  <Detail label="Usage Month" value={selectedRental.usageMonth} />
-                  <Detail label="Start Date" value={selectedRental.leaseStartDate} />
-                  <Detail label="Manager" value={selectedRental.managerName} />
-                  <Detail label="CCCD" value={selectedRental.cccd} />
-                  <Detail label="Lease Term" value={selectedRental.leaseTermDays ? `${selectedRental.leaseTermDays} days` : "-"} />
-                  <Detail label="Status" value={selectedRental.paymentStatus || "Unpaid"} />
+                  <Detail label="Location" value={activeRental.rentalLocation} />
+                  <Detail label="Billing Month" value={activeRental.month} />
+                  <Detail label="Usage Month" value={activeRental.usageMonth} />
+                  <Detail label="Start Date" value={activeRental.leaseStartDate} />
+                  <Detail label="Manager" value={activeRental.managerName} />
+                  <Detail label="CCCD" value={activeRental.cccd} />
+                  <Detail label="Lease Term" value={activeRental.leaseTermDays ? `${activeRental.leaseTermDays} days` : "-"} />
+                  <Detail label="Status" value={activeRental.paymentStatus || "Unpaid"} />
                 </div>
               </section>
 
               <section className="rounded-[24px] border border-amber-100 bg-amber-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">Usage and Fees</p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Detail label="Electricity" value={selectedRental.electricityUsage || "-"} />
-                  <Detail label="Electricity Fee" value={formatCurrency(selectedRental.electricityFee)} />
-                  <Detail label="Water" value={selectedRental.waterUsage || "-"} />
-                  <Detail label="Water Fee" value={formatCurrency(selectedRental.waterFee)} />
-                  <Detail label="Service Fee" value={formatCurrency(selectedRental.serviceFee)} />
-                  <Detail label="Total Due" value={formatCurrency(selectedRental.totalDue)} strong />
-                  <Detail label="Paid At" value={selectedRental.paidAtUtc ? new Date(selectedRental.paidAtUtc).toLocaleString() : "-"} />
+                  <Detail label="Electricity" value={activeRental.electricityUsage || "-"} />
+                  <Detail label="Electricity Fee" value={formatCurrency(activeRental.electricityFee)} />
+                  <Detail label="Water" value={activeRental.waterUsage || "-"} />
+                  <Detail label="Water Fee" value={formatCurrency(activeRental.waterFee)} />
+                  <Detail label="Service Fee" value={formatCurrency(activeRental.serviceFee)} />
+                  <Detail label="Total Due" value={formatCurrency(activeRental.totalDue)} strong />
+                  <Detail label="Paid At" value={activeRental.paidAtUtc ? new Date(activeRental.paidAtUtc).toLocaleString() : "-"} />
                 </div>
               </section>
 
@@ -355,25 +371,25 @@ export default function ShopInfo() {
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
-                    disabled={!resolveContractUrl(selectedRental.contractImage || selectedRental.contractImages)}
-                    onClick={() => setSelectedContract(resolveContractUrl(selectedRental.contractImage || selectedRental.contractImages))}
+                    disabled={!resolveContractUrl(activeRental.contractImage || activeRental.contractImages)}
+                    onClick={() => setSelectedContract(resolveContractUrl(activeRental.contractImage || activeRental.contractImages))}
                     className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:translate-y-0"
                   >
                     View Contract
                   </button>
 
-                  {String(selectedRental.paymentStatus || "").toLowerCase() === "paid" ? (
+                  {String(activeRental.paymentStatus || "").toLowerCase() === "paid" ? (
                     <span className="inline-flex items-center rounded-full bg-emerald-100 px-5 py-3 text-sm font-bold text-emerald-700">
                       Payment Completed
                     </span>
                   ) : (
                     <button
                       type="button"
-                      disabled={payingBillId === selectedRental.id}
-                      onClick={() => handlePayBill(selectedRental.id)}
+                      disabled={payingBillId === activeRental.id}
+                      onClick={() => handlePayBill(activeRental.id)}
                       className="rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {payingBillId === selectedRental.id ? "Opening..." : "Pay Now"}
+                      {payingBillId === activeRental.id ? "Opening..." : "Pay Now"}
                     </button>
                   )}
                 </div>

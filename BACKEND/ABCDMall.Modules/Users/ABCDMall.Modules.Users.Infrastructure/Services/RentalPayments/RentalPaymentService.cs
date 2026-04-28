@@ -14,6 +14,8 @@ public sealed class RentalPaymentService : IRentalPaymentService
     private const string RentalModuleMetadataValue = "rental";
     private const string PaidStatus = "Paid";
     private const string UnpaidStatus = "Unpaid";
+    private const decimal MinimumStripeCheckoutAmountVnd = 13000m;
+    private const string MinimumStripeCheckoutAmountMessage = "Rental bill total is below Stripe's minimum checkout amount for the current settlement currency.";
 
     private readonly MallDbContext _context;
     private readonly StripeSettings _settings;
@@ -54,6 +56,11 @@ public sealed class RentalPaymentService : IRentalPaymentService
         if (bill.TotalDue <= 0)
         {
             return ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest("Rental bill total due must be greater than 0.");
+        }
+
+        if (bill.TotalDue < MinimumStripeCheckoutAmountVnd)
+        {
+            return ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest(MinimumStripeCheckoutAmountMessage);
         }
 
         if (string.IsNullOrWhiteSpace(_settings.SecretKey))
