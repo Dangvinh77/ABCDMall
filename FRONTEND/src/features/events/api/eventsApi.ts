@@ -14,8 +14,8 @@ export const eventsApi = {
   rejectEvent: (id: string, reason: string) => 
     api.post<void>(`/admin/events/${id}/reject`, { reason }),
   getManagerEvents: () => api.get<EventDto[]>("/manager/events"),
-  createMallEvent: (payload: CreateEventRequest) => api.post<EventDto, CreateEventRequest>("/admin/events", payload),
-  createShopEvent: (payload: CreateEventRequest) => api.post<EventDto, CreateEventRequest>("/manager/events", payload),
+  createMallEvent: (payload: CreateEventRequest) => api.post<string, CreateEventRequest>("/admin/events", payload),
+  createShopEvent: (payload: CreateEventRequest) => api.post<string, CreateEventRequest>("/manager/events", payload),
   uploadEventImage: async (file: File): Promise<{ imageUrl: string }> => {
     try {
       const formData = new FormData();

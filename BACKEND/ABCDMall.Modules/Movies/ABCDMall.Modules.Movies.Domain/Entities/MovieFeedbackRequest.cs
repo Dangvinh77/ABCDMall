@@ -21,6 +21,6 @@ public class MovieFeedbackRequest
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 
-    public Bookingg? Booking { get; set; }
+    public Booking? Booking { get; set; }
     public ICollection<MovieFeedback> Feedbacks { get; set; } = new List<MovieFeedback>();
 }

@@ -1,4 +1,4 @@
-import { api, BASE_URL } from "../../../core/api/api";
+import { api, http } from "../../../core/api/api";
 
 export interface CreateFoodRequest {
   name: string;
@@ -22,26 +22,16 @@ export const createFood = async (data: CreateFoodRequest, file?: File) => {
     formData.append("imageUrl", data.imageUrl);
   }
 
-  const res = await fetch(`${BASE_URL}/food`, {
-    method: "POST",
-    body: formData, // 🔥 KHÔNG set header
-  });
-
-  return res.json();
-
-  
+  const res = await http.post("/food", formData);
+  return res.data;
 };
 
 export const uploadFoodImage = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/food/upload`, {
-    method: "POST",
-    body: formData,
-  });
-
-  return res.json();
+  const res = await http.post<{ imageUrl: string }>("/food/upload", formData);
+  return res.data;
 };
  
   

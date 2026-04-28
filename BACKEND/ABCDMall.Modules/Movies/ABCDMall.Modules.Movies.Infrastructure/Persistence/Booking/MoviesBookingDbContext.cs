@@ -6,8 +6,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 
 public class MoviesBookingDbContext : DbContext
 {
-    public const string DefaultSchema = "movies";
-
     public MoviesBookingDbContext(DbContextOptions<MoviesBookingDbContext> options) : base(options)
     {
     }
@@ -15,7 +13,7 @@ public class MoviesBookingDbContext : DbContext
     public DbSet<GuestCustomer> GuestCustomers => Set<GuestCustomer>();
     public DbSet<BookingHold> BookingHolds => Set<BookingHold>();
     public DbSet<BookingHoldSeat> BookingHoldSeats => Set<BookingHoldSeat>();
-    public DbSet<Bookingg> Bookings => Set<Bookingg>();
+    public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<BookingItem> BookingItems => Set<BookingItem>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
@@ -30,11 +28,10 @@ public class MoviesBookingDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema(DefaultSchema);
         modelBuilder.ApplyConfiguration(new GuestCustomerConfiguration());
         modelBuilder.ApplyConfiguration(new BookingHoldConfiguration());
         modelBuilder.ApplyConfiguration(new BookingHoldSeatConfiguration());
-        modelBuilder.ApplyConfiguration(new BookinggConfiguration());
+        modelBuilder.ApplyConfiguration(new BookingConfiguration());
         modelBuilder.ApplyConfiguration(new BookingItemConfiguration());
         modelBuilder.ApplyConfiguration(new TicketConfiguration());
         modelBuilder.ApplyConfiguration(new PromotionConfiguration());

@@ -15,6 +15,6 @@ namespace ABCDMall.Modules.Movies.Domain.Entities
         public DateTime CreatedAtUtc { get; set; }
         public DateTime UpdatedAtUtc { get; set; }
 
-        public ICollection<Bookingg> Bookings { get; set; } = new List<Bookingg>();
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }

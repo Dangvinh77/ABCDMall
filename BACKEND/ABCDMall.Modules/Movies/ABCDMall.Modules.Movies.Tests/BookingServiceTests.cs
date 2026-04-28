@@ -59,7 +59,7 @@ public sealed class BookingServiceTests
     private sealed class FakeBookingRepository : IBookingRepository
     {
         private readonly List<BookingHold> _holds = [];
-        private readonly List<Bookingg> _bookings = [];
+        private readonly List<Booking> _bookings = [];
 
         public IReadOnlyCollection<Guid> SeedActiveHoldsForSameShowtime()
         {
@@ -77,7 +77,7 @@ public sealed class BookingServiceTests
             return [active.Id, expired.Id];
         }
 
-        public Task<Bookingg?> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
+        public Task<Booking?> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
             => Task.FromResult(_bookings.FirstOrDefault(x => x.Id == bookingId));
 
         public Task<BookingHold?> GetHoldForBookingAsync(Guid holdId, CancellationToken cancellationToken = default)
@@ -86,25 +86,25 @@ public sealed class BookingServiceTests
         public Task<IReadOnlyList<BookingHold>> GetHoldsForBookingAsync(IReadOnlyCollection<Guid> holdIds, CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<BookingHold>>(_holds.Where(x => holdIds.Contains(x.Id)).ToList());
 
-        public Task<Bookingg?> GetByHoldIdAsync(Guid holdId, CancellationToken cancellationToken = default)
+        public Task<Booking?> GetByHoldIdAsync(Guid holdId, CancellationToken cancellationToken = default)
             => Task.FromResult(_bookings.FirstOrDefault(x => x.BookingHoldId == holdId));
 
-        public Task<Bookingg?> GetByCombinedHoldIdsAsync(IReadOnlyCollection<Guid> holdIds, CancellationToken cancellationToken = default)
+        public Task<Booking?> GetByCombinedHoldIdsAsync(IReadOnlyCollection<Guid> holdIds, CancellationToken cancellationToken = default)
         {
             var primaryHoldId = holdIds.OrderBy(x => x).FirstOrDefault();
             return Task.FromResult(_bookings.FirstOrDefault(x => x.BookingHoldId == primaryHoldId));
         }
 
-        public Task<Bookingg?> GetByCodeAsync(string bookingCode, CancellationToken cancellationToken = default)
+        public Task<Booking?> GetByCodeAsync(string bookingCode, CancellationToken cancellationToken = default)
             => Task.FromResult(_bookings.FirstOrDefault(x => x.BookingCode == bookingCode));
 
         public Task<GuestCustomer?> FindGuestCustomerAsync(string email, string phoneNumber, CancellationToken cancellationToken = default)
             => Task.FromResult<GuestCustomer?>(null);
 
-        public Task<Bookingg> AddPendingBookingAsync(Bookingg booking, GuestCustomer? newGuestCustomer, DateTime utcNow, CancellationToken cancellationToken = default)
+        public Task<Booking> AddPendingBookingAsync(Booking booking, GuestCustomer? newGuestCustomer, DateTime utcNow, CancellationToken cancellationToken = default)
             => throw new NotSupportedException("Single-hold path should not be used by multi-hold tests.");
 
-        public Task<Bookingg> AddPendingBookingAsync(Bookingg booking, GuestCustomer? newGuestCustomer, IReadOnlyCollection<Guid> holdIds, DateTime utcNow, CancellationToken cancellationToken = default)
+        public Task<Booking> AddPendingBookingAsync(Booking booking, GuestCustomer? newGuestCustomer, IReadOnlyCollection<Guid> holdIds, DateTime utcNow, CancellationToken cancellationToken = default)
         {
             _bookings.Add(booking);
             foreach (var hold in _holds.Where(x => holdIds.Contains(x.Id)))

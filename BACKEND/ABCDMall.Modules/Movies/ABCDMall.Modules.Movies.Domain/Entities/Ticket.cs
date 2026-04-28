@@ -18,6 +18,6 @@ namespace ABCDMall.Modules.Movies.Domain.Entities
         public DateTime? UpdatedAtUtc { get; set; }
 
         // Navigation properties
-        public Bookingg? Booking { get; set; } // Tham chiếu đến Booking
+        public Booking? Booking { get; set; } // Tham chiếu đến Booking
     }
 }

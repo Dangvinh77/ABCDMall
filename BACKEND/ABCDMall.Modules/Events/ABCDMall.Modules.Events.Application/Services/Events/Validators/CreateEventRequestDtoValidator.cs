@@ -7,7 +7,7 @@ public sealed class CreateEventRequestDtoValidator : AbstractValidator<CreateEve
 {
     public CreateEventRequestDtoValidator()
     {
-        RuleFor(x => x.Title).NotEmpty().MaximumLength(250);
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(300);
         RuleFor(x => x.Description).MaximumLength(4000);
         RuleFor(x => x.ImageUrl).MaximumLength(1000);
         RuleFor(x => x.StartDateTime).NotEmpty();

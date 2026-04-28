@@ -161,7 +161,7 @@ public sealed class PaymentRepository : IPaymentRepository
     }
 
     private async Task CompleteBookingAsync(
-        Bookingg booking,
+        Booking booking,
         DateTime utcNow,
         CancellationToken cancellationToken)
     {
@@ -220,7 +220,7 @@ public sealed class PaymentRepository : IPaymentRepository
     }
 
     private async Task IssueTicketsAndQueueEmailIfMissingAsync(
-        Bookingg booking,
+        Booking booking,
         DateTime utcNow,
         CancellationToken cancellationToken)
     {
@@ -283,7 +283,7 @@ public sealed class PaymentRepository : IPaymentRepository
     }
 
     private async Task CreateFeedbackRequestIfMissingAsync(
-        Bookingg booking,
+        Booking booking,
         Showtime showtime,
         DateTime utcNow,
         CancellationToken cancellationToken)
@@ -367,7 +367,7 @@ public sealed class PaymentRepository : IPaymentRepository
         command.Transaction = transaction.GetDbTransaction();
         command.CommandText = """
             SELECT [Id], [MovieId], [CinemaId], [HallId], [BusinessDate], [StartAtUtc], [EndAtUtc], [Language], [BasePrice], [Status]
-            FROM [movies].[Showtimes]
+            FROM [dbo].[Showtimes]
             WHERE [Id] = @showtimeId
             """;
         AddParameter(command, "@showtimeId", showtimeId);
@@ -405,7 +405,7 @@ public sealed class PaymentRepository : IPaymentRepository
             seatInventoryIds,
             """
             SELECT [Id], [SeatCode], [Status]
-            FROM [movies].[ShowtimeSeatInventory]
+            FROM [dbo].[ShowtimeSeatInventory]
             WHERE [ShowtimeId] = @showtimeId
               AND [Id] IN ({0})
             """);
@@ -435,7 +435,7 @@ public sealed class PaymentRepository : IPaymentRepository
             showtimeId,
             seatInventoryIds,
             """
-            UPDATE [movies].[ShowtimeSeatInventory]
+            UPDATE [dbo].[ShowtimeSeatInventory]
             SET [Status] = @bookedStatus,
                 [UpdatedAtUtc] = @updatedAtUtc
             WHERE [ShowtimeId] = @showtimeId

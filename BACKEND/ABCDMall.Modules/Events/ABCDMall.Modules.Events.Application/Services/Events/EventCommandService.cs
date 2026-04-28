@@ -71,7 +71,6 @@ public sealed class EventCommandService : IEventCommandService
         // Send approval email notification if event is from a shop
         if (!string.IsNullOrWhiteSpace(existing.ShopId))
         {
-            var managerEmail = "manager@shop.com"; // TODO: Get actual manager email from shop
             var body = $"""
                         <div style="font-family:Arial,sans-serif; padding: 20px;">
                           <h2 style="color: #059669;">✓ Sự kiện đã được phê duyệt</h2>
@@ -81,15 +80,16 @@ public sealed class EventCommandService : IEventCommandService
                           <ul>
                             <li>Tên: {existing.Title}</li>
                             <li>Thời gian: {existing.StartDateTime:dd/MM/yyyy HH:mm} - {existing.EndDateTime:dd/MM/yyyy HH:mm}</li>
-                            <li>Vị trí: {(existing.LocationType == EventLocationType.AtShop ? "Cửa hàng" : $"Sảnh tầng {existing.LocationType - 1}")}</li>
+                            <li>Vị trí: {(existing.LocationType == EventLocationType.AtShop ? "Cửa hàng" : $"Sảnh tầng {(int)existing.LocationType - 1}")}</li>
                           </ul>
                           <p>Sự kiện của bạn hiện đã xuất hiện trên bản đồ sự kiện của mall.</p>
                           <p>Cảm ơn!</p>
                         </div>
                         """;
-            
-            // Note: This is a simplified version. You'll need to get the actual manager email from the shop record
-            // await _emailNotificationService.SendEventApprovalEmailAsync(managerEmail, "manager_name", "Sự kiện được phê duyệt", body);
+            _logger.LogInformation("Event {EventId} approved — shop manager email lookup not yet wired; skipping notification.", id);
+            // TODO: Inject IShopRepository to resolve manager email by existing.ShopId, then call:
+            // await _emailNotificationService.SendEventRegistrationSuccessEmailAsync(managerEmail, null, "Sự kiện được phê duyệt", body);
+            _ = body;
         }
 
         return ApplicationResult<bool>.Ok(true);
@@ -110,7 +110,6 @@ public sealed class EventCommandService : IEventCommandService
         // Send rejection email notification if event is from a shop
         if (!string.IsNullOrWhiteSpace(existing.ShopId))
         {
-            var managerEmail = "manager@shop.com"; // TODO: Get actual manager email from shop
             var body = $"""
                         <div style="font-family:Arial,sans-serif; padding: 20px;">
                           <h2 style="color: #dc2626;">✗ Sự kiện bị từ chối</h2>
@@ -121,9 +120,10 @@ public sealed class EventCommandService : IEventCommandService
                           <p>Vui lòng liên hệ với quản trị viên mall để biết thêm chi tiết.</p>
                         </div>
                         """;
-            
-            // Note: This is a simplified version. You'll need to get the actual manager email from the shop record
-            // await _emailNotificationService.SendEventRejectionEmailAsync(managerEmail, "manager_name", "Sự kiện bị từ chối", body);
+            _logger.LogInformation("Event {EventId} rejected — shop manager email lookup not yet wired; skipping notification.", id);
+            // TODO: Inject IShopRepository to resolve manager email by existing.ShopId, then call:
+            // await _emailNotificationService.SendEventRegistrationSuccessEmailAsync(managerEmail, null, "Sự kiện bị từ chối", body);
+            _ = body;
         }
 
         return ApplicationResult<bool>.Ok(true);
@@ -226,6 +226,14 @@ public sealed class EventCommandService : IEventCommandService
         }
 
         var bookedBy = string.IsNullOrWhiteSpace(conflict.ShopId) ? "Mall" : conflict.ShopId;
-        return $"Floor {locationType} at this time is already booked by {bookedBy}.";
+        var floorDisplay = locationType switch
+        {
+            EventLocationType.HallFloor1 => "Hall Floor 1",
+            EventLocationType.HallFloor2 => "Hall Floor 2",
+            EventLocationType.HallFloor3 => "Hall Floor 3",
+            EventLocationType.HallFloor4 => "Hall Floor 4",
+            _ => locationType.ToString()
+        };
+        return $"{floorDisplay} at this time is already booked by {bookedBy}.";
     }
 }

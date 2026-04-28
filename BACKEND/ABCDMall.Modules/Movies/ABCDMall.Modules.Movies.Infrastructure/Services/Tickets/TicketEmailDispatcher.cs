@@ -106,7 +106,7 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         _logger.LogInformation("Ticket email sent for booking {BookingCode}.", booking.BookingCode);
     }
 
-    private async Task<string?> PrepareFeedbackLinkAsync(Bookingg booking, CancellationToken cancellationToken)
+    private async Task<string?> PrepareFeedbackLinkAsync(Booking booking, CancellationToken cancellationToken)
     {
         var feedbackRequest = await _bookingDbContext.MovieFeedbackRequests
             .FirstOrDefaultAsync(
@@ -139,7 +139,7 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
     }
 
     private static TicketDocumentModel BuildTicketDocument(
-        Bookingg booking,
+        Booking booking,
         Showtime showtime,
         Payment? payment)
     {
@@ -193,7 +193,7 @@ public sealed class TicketEmailDispatcher : ITicketEmailDispatcher
         };
     }
 
-    private static string BuildEmailBody(Bookingg booking, TicketDocumentModel document, string? feedbackLink)
+    private static string BuildEmailBody(Booking booking, TicketDocumentModel document, string? feedbackLink)
     {
         var feedbackParagraph = string.IsNullOrWhiteSpace(feedbackLink)
             ? string.Empty

@@ -95,7 +95,7 @@ public sealed class BookingService : IBookingService
             }
             : null;
 
-        var booking = new Bookingg
+        var booking = new Booking
         {
             Id = Guid.NewGuid(),
             BookingCode = GenerateBookingCode(now),
@@ -210,7 +210,7 @@ public sealed class BookingService : IBookingService
             ?? Array.Empty<BookingHoldComboSnapshotDto>();
     }
 
-    private static CreateBookingResponseDto MapCreateResponse(Bookingg booking, IReadOnlyCollection<Guid> holdIds)
+    private static CreateBookingResponseDto MapCreateResponse(Booking booking, IReadOnlyCollection<Guid> holdIds)
     {
         return new CreateBookingResponseDto
         {
@@ -225,7 +225,7 @@ public sealed class BookingService : IBookingService
         };
     }
 
-    private static BookingDetailResponseDto MapDetail(Bookingg booking)
+    private static BookingDetailResponseDto MapDetail(Booking booking)
     {
         return new BookingDetailResponseDto
         {

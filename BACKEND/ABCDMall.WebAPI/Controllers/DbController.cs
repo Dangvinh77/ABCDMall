@@ -2,6 +2,7 @@
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 namespace ABCDMall.WebAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -48,12 +49,12 @@ namespace ABCDMall.WebAPI.Controllers
                     catalog = new
                     {
                         database = catalogDatabaseName,
-                        schema = MoviesCatalogDbContext.DefaultSchema
+                        schema = "dbo" // Đã sửa: Fix cứng dbo vì bạn đã xóa DefaultSchema
                     },
                     booking = new
                     {
                         database = bookingDatabaseName,
-                        schema = MoviesBookingDbContext.DefaultSchema
+                        schema = "dbo" // Đã sửa: Fix cứng dbo vì bạn đã xóa DefaultSchema
                     },
                     timestamp = DateTime.Now
                 });

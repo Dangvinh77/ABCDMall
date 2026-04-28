@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Configurations;
 
-public class BookinggConfiguration : IEntityTypeConfiguration<Bookingg>
+public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 {
-    public void Configure(EntityTypeBuilder<Bookingg> builder)
+    public void Configure(EntityTypeBuilder<Booking> builder)
     {
         builder.ToTable("Bookings");
 
@@ -54,7 +54,7 @@ public class BookinggConfiguration : IEntityTypeConfiguration<Bookingg>
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.Items)
-            .WithOne(x => x.Booking) // Quan hệ một-nhiều với BookingItem, mỗi BookingItem có một Bookingg
+            .WithOne(x => x.Booking) // Quan hệ một-nhiều với BookingItem, mỗi BookingItem có một Booking
             .HasForeignKey(x => x.BookingId)
             .OnDelete(DeleteBehavior.Cascade);
 

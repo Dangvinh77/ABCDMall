@@ -1,14 +1,10 @@
 ﻿using ABCDMall.Modules.Movies.Domain.Enums;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ABCDMall.Modules.Movies.Domain.Entities
 {
-    public class Bookingg
+    public class Booking
     {
         // Thông tin cơ bản về booking
         public Guid Id { get; set; }

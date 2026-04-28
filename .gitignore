@@ -53,10 +53,57 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.staging
+.env.test
 **/.env
 secrets.json
-# Chỉ ignore nếu mỗi người dùng một cấu hình DB khác nhau hoàn toàn
-appsettings.Development.json 
+usersecrets.json
+
+# appsettings có thể chứa password DB, API key, SMTP password thật
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+
+# ==========================================
+# Certificates & Private Keys
+# ==========================================
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+*.crt
+*.csr
+
+# ==========================================
+# Temp build folders (không cần commit)
+# ==========================================
+_tmp_build_*/
+BACKEND/_tmp_build_*/
+
+# ==========================================
+# Test results & Code coverage
+# ==========================================
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+*.opencover.xml
+
+# ==========================================
+# Claude AI assistant files
+# ==========================================
+.claude/
+
+# ==========================================
+# Backup files
+# ==========================================
+*.bak
+*.backup
+*.orig
 
 # ==========================================
 # Logs & Misc

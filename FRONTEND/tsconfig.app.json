@@ -14,7 +14,7 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "allowJs": true,
-    "ignoreDeprecations": "5.0",
+    "ignoreDeprecations": "6.0",
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": ".",

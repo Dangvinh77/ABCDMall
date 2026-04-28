@@ -4,7 +4,7 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings;
 
 public interface IBookingRepository
 {
-    Task<Bookingg?> GetByIdAsync(
+    Task<Booking?> GetByIdAsync(
         Guid bookingId,
         CancellationToken cancellationToken = default);
 
@@ -16,15 +16,15 @@ public interface IBookingRepository
         IReadOnlyCollection<Guid> holdIds,
         CancellationToken cancellationToken = default);
 
-    Task<Bookingg?> GetByHoldIdAsync(
+    Task<Booking?> GetByHoldIdAsync(
         Guid holdId,
         CancellationToken cancellationToken = default);
 
-    Task<Bookingg?> GetByCombinedHoldIdsAsync(
+    Task<Booking?> GetByCombinedHoldIdsAsync(
         IReadOnlyCollection<Guid> holdIds,
         CancellationToken cancellationToken = default);
 
-    Task<Bookingg?> GetByCodeAsync(
+    Task<Booking?> GetByCodeAsync(
         string bookingCode,
         CancellationToken cancellationToken = default);
 
@@ -33,14 +33,14 @@ public interface IBookingRepository
         string phoneNumber,
         CancellationToken cancellationToken = default);
 
-    Task<Bookingg> AddPendingBookingAsync(
-        Bookingg booking,
+    Task<Booking> AddPendingBookingAsync(
+        Booking booking,
         GuestCustomer? newGuestCustomer,
         DateTime utcNow,
         CancellationToken cancellationToken = default);
 
-    Task<Bookingg> AddPendingBookingAsync(
-        Bookingg booking,
+    Task<Booking> AddPendingBookingAsync(
+        Booking booking,
         GuestCustomer? newGuestCustomer,
         IReadOnlyCollection<Guid> holdIds,
         DateTime utcNow,

@@ -6,8 +6,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 
 public class MoviesCatalogDbContext : DbContext
 {
-    public const string DefaultSchema = "movies";
-
     public MoviesCatalogDbContext(DbContextOptions<MoviesCatalogDbContext> options) : base(options)
     {
     }
@@ -25,7 +23,6 @@ public class MoviesCatalogDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema(DefaultSchema);
         modelBuilder.ApplyConfiguration(new MovieConfiguration());
         modelBuilder.ApplyConfiguration(new GenreConfiguration());
         modelBuilder.ApplyConfiguration(new MovieGenreConfiguration());

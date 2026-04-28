@@ -67,7 +67,7 @@ public sealed class PaymentService : IPaymentService
         };
     }
 
-    private static PaymentResponseDto MapPaymentResponse(Payment payment, Bookingg booking)
+    private static PaymentResponseDto MapPaymentResponse(Payment payment, Booking booking)
     {
         return new PaymentResponseDto
         {

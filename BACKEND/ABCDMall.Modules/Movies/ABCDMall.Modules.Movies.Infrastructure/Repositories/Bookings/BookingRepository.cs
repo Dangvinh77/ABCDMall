@@ -42,7 +42,7 @@ public sealed class BookingRepository : IBookingRepository
             .ToListAsync(cancellationToken);
     }
 
-    public Task<Bookingg?> GetByHoldIdAsync(
+    public Task<Booking?> GetByHoldIdAsync(
         Guid holdId,
         CancellationToken cancellationToken = default)
     {
@@ -52,20 +52,20 @@ public sealed class BookingRepository : IBookingRepository
             .FirstOrDefaultAsync(x => x.BookingHoldId == holdId, cancellationToken);
     }
 
-    public Task<Bookingg?> GetByCombinedHoldIdsAsync(
+    public Task<Booking?> GetByCombinedHoldIdsAsync(
         IReadOnlyCollection<Guid> holdIds,
         CancellationToken cancellationToken = default)
     {
         if (holdIds.Count == 0)
         {
-            return Task.FromResult<Bookingg?>(null);
+            return Task.FromResult<Booking?>(null);
         }
 
         var primaryHoldId = holdIds.OrderBy(x => x).First();
         return GetByHoldIdAsync(primaryHoldId, cancellationToken);
     }
 
-    public Task<Bookingg?> GetByIdAsync(
+    public Task<Booking?> GetByIdAsync(
         Guid bookingId,
         CancellationToken cancellationToken = default)
     {
@@ -75,7 +75,7 @@ public sealed class BookingRepository : IBookingRepository
             .FirstOrDefaultAsync(x => x.Id == bookingId, cancellationToken);
     }
 
-    public Task<Bookingg?> GetByCodeAsync(
+    public Task<Booking?> GetByCodeAsync(
         string bookingCode,
         CancellationToken cancellationToken = default)
     {
@@ -99,8 +99,8 @@ public sealed class BookingRepository : IBookingRepository
                 cancellationToken);
     }
 
-    public async Task<Bookingg> AddPendingBookingAsync(
-        Bookingg booking,
+    public async Task<Booking> AddPendingBookingAsync(
+        Booking booking,
         GuestCustomer? newGuestCustomer,
         DateTime utcNow,
         CancellationToken cancellationToken = default)
@@ -148,8 +148,8 @@ public sealed class BookingRepository : IBookingRepository
         return booking;
     }
 
-    public async Task<Bookingg> AddPendingBookingAsync(
-        Bookingg booking,
+    public async Task<Booking> AddPendingBookingAsync(
+        Booking booking,
         GuestCustomer? newGuestCustomer,
         IReadOnlyCollection<Guid> holdIds,
         DateTime utcNow,

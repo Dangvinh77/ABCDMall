@@ -21,6 +21,6 @@ public class MovieFeedback
     public string? ModeratedBy { get; set; }
     public string? ModerationReason { get; set; }
 
-    public Bookingg? Booking { get; set; }
+    public Booking? Booking { get; set; }
     public MovieFeedbackRequest? FeedbackRequest { get; set; }
 }

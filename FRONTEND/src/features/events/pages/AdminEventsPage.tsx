@@ -29,7 +29,7 @@ export function AdminEventsPage() {
   const [reviewEvents, setReviewEvents] = useState<EventDto[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventDto[]>([]);
   const [form, setForm] = useState<CreateEventRequest>(defaultForm);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string>("");
@@ -236,7 +236,7 @@ export function AdminEventsPage() {
                 <label className="block">
                   <span className="mb-2 block text-sm font-semibold text-slate-700">Title {formErrors.title && <span className="text-red-600">*</span>}</span>
                   <input 
-                    value={form.title} 
+                    value={form.title ?? ""} // FIX: Chuyển null/undefined thành ""
                     onChange={(e) => onChange("title", e.target.value)} 
                     placeholder="Spring Gift Carnival" 
                     className={`w-full rounded-2xl border ${formErrors.title ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-rose-300 focus:bg-white`} 
@@ -261,7 +261,13 @@ export function AdminEventsPage() {
 
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-700">Description</span>
-                <textarea value={form.description} onChange={(e) => onChange("description", e.target.value)} rows={5} placeholder="A mall-wide festival with prizes and special check-in rewards." className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-rose-300 focus:bg-white" />
+                <textarea 
+                  value={form.description ?? ""} // FIX: Chuyển null/undefined thành ""
+                  onChange={(e) => onChange("description", e.target.value)} 
+                  rows={5} 
+                  placeholder="A mall-wide festival with prizes and special check-in rewards." 
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-rose-300 focus:bg-white" 
+                />
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -269,7 +275,7 @@ export function AdminEventsPage() {
                   <span className="mb-2 block text-sm font-semibold text-slate-700">Start date & time {formErrors.startDateTime && <span className="text-red-600">*</span>}</span>
                   <input 
                     type="datetime-local" 
-                    value={form.startDateTime} 
+                    value={form.startDateTime ?? ""} // FIX: Phòng hờ trường hợp null
                     onChange={(e) => onChange("startDateTime", e.target.value)} 
                     className={`w-full rounded-2xl border ${formErrors.startDateTime ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-rose-300 focus:bg-white`}
                   />
@@ -279,7 +285,7 @@ export function AdminEventsPage() {
                   <span className="mb-2 block text-sm font-semibold text-slate-700">End date & time {formErrors.endDateTime && <span className="text-red-600">*</span>}</span>
                   <input 
                     type="datetime-local" 
-                    value={form.endDateTime} 
+                    value={form.endDateTime ?? ""} // FIX: Phòng hờ trường hợp null
                     onChange={(e) => onChange("endDateTime", e.target.value)} 
                     className={`w-full rounded-2xl border ${formErrors.endDateTime ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-rose-300 focus:bg-white`}
                   />
@@ -309,7 +315,7 @@ export function AdminEventsPage() {
                 <label className="block">
                   <span className="mb-2 block text-sm font-semibold text-slate-700">Reward description {formErrors.giftDescription && <span className="text-red-600">*</span>}</span>
                   <input 
-                    value={form.giftDescription} 
+                    value={form.giftDescription ?? ""} // FIX THE MAIN ERROR HERE
                     onChange={(e) => onChange("giftDescription", e.target.value)} 
                     placeholder="10% Discount Voucher" 
                     className={`w-full rounded-2xl border ${formErrors.giftDescription ? 'border-red-300' : 'border-slate-200'} bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:border-rose-300 focus:bg-white`}
@@ -420,7 +426,7 @@ export function AdminEventsPage() {
             <p className="mt-2 text-sm text-slate-600">Please provide a reason for rejecting this event request.</p>
             
             <textarea
-              value={rejectionReason}
+              value={rejectionReason ?? ""} // FIX: Phòng hờ null
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="e.g., Schedule conflict, insufficient details, policy violation..."
               rows={5}
