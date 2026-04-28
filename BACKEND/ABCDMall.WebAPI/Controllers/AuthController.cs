@@ -17,16 +17,22 @@ public class AuthController : ControllerBase
 {
     private readonly IUserCommandService _userCommandService;
     private readonly IUserQueryService _userQueryService;
+    private readonly IDevOtpDebugService _devOtpDebugService;
     private readonly IMapCommandService _mapCommandService;
+    private readonly IWebHostEnvironment _environment;
 
     public AuthController(
         IUserCommandService userCommandService,
         IUserQueryService userQueryService,
-        IMapCommandService mapCommandService)
+        IDevOtpDebugService devOtpDebugService,
+        IMapCommandService mapCommandService,
+        IWebHostEnvironment environment)
     {
         _userCommandService = userCommandService;
         _userQueryService = userQueryService;
+        _devOtpDebugService = devOtpDebugService;
         _mapCommandService = mapCommandService;
+        _environment = environment;
     }
 
     [HttpPost("login")]
@@ -38,7 +44,10 @@ public class AuthController : ControllerBase
             ApplicationResultStatus.Ok => Ok(new
             {
                 accessToken = result.Value!.AccessToken,
-                refreshToken = result.Value.RefreshToken
+                refreshToken = result.Value.RefreshToken,
+                requiresPasswordChange = result.Value.RequiresPasswordChange,
+                passwordSetupToken = result.Value.PasswordSetupToken,
+                message = result.Value.Message
             }),
             ApplicationResultStatus.BadRequest when result.Value?.RequiresOtp == true => BadRequest(new
             {
@@ -64,6 +73,26 @@ public class AuthController : ControllerBase
     [HttpPost("forgotpassword/confirm-otp")]
     public async Task<IActionResult> ConfirmForgotPasswordOtp(ConfirmForgotPasswordOtpDto dto)
         => FromResult(await _userCommandService.ConfirmForgotPasswordOtpAsync(dto));
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("debug/otp")]
+    public async Task<IActionResult> GetDebugOtp(DebugOtpLookupRequestDto dto)
+    {
+        if (!_environment.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var result = await _devOtpDebugService.GetOtpAsync(dto);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(result.Value),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
 
     [Authorize]
     [HttpGet("getprofile")]
@@ -118,6 +147,54 @@ public class AuthController : ControllerBase
         var history = await _userQueryService.GetProfileUpdateHistoryAsync(userId);
         return Ok(history);
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("profile-update-requests")]
+    public async Task<ActionResult<IReadOnlyList<ProfileUpdateRequestResponseDto>>> GetProfileUpdateRequests([FromQuery] string? status = "Pending")
+        => Ok(await _userQueryService.GetProfileUpdateRequestsAsync(status));
+
+    [Authorize]
+    [HttpGet("profile-update-requests/me")]
+    public async Task<ActionResult<IReadOnlyList<ProfileUpdateRequestResponseDto>>> GetMyProfileUpdateRequests([FromQuery] string? status = "Pending")
+    {
+        var userId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return Ok(await _userQueryService.GetMyProfileUpdateRequestsAsync(userId, status));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("profile-update-requests/{id}/approve")]
+    public async Task<IActionResult> ApproveProfileUpdateRequest(string id, ProfileUpdateRequestDecisionDto dto)
+    {
+        var adminUserId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(adminUserId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return FromResult(await _userCommandService.ApproveProfileUpdateRequestAsync(id, adminUserId, dto));
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("profile-update-requests/{id}/reject")]
+    public async Task<IActionResult> RejectProfileUpdateRequest(string id, ProfileUpdateRequestDecisionDto dto)
+    {
+        var adminUserId = GetCurrentUserId();
+        if (string.IsNullOrEmpty(adminUserId))
+        {
+            return Unauthorized("Invalid token");
+        }
+
+        return FromResult(await _userCommandService.RejectProfileUpdateRequestAsync(id, adminUserId, dto));
+    }
+
+    [HttpPost("initial-password/change")]
+    public async Task<IActionResult> CompleteInitialPasswordChange(CompleteInitialPasswordChangeDto dto)
+        => FromResult(await _userCommandService.CompleteInitialPasswordChangeAsync(dto));
 
     [Authorize]
     [HttpPost("resetpassword/request-otp")]
@@ -255,6 +332,44 @@ public class AuthController : ControllerBase
         };
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpPost("users/{id}/activate")]
+    public async Task<IActionResult> ActivateUserAccount(string id)
+    {
+        var result = await _userCommandService.ActivateUserAccountAsync(id);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("users/{id}/resend-initial-password")]
+    public async Task<IActionResult> ResendInitialPasswordLink(string id)
+    {
+        var result = await _userCommandService.ResendInitialPasswordLinkAsync(id);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(new
+            {
+                message = result.Value!.Message,
+                emailSent = result.Value.EmailSent
+            }),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenDto dto)
     {
@@ -275,7 +390,8 @@ public class AuthController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterDto dto)
+    [RequestSizeLimit(10_000_000)]
+    public async Task<IActionResult> Register([FromForm] RegisterDto dto)
     {
         var result = await _userCommandService.RegisterAsync(dto);
         if (result.Status == ApplicationResultStatus.Ok

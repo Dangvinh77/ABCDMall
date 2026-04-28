@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
 
 const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagement"));
+const ChangeInitialPassword = lazy(() => import("../features/auth/pages/ChangeInitialPassword"));
 const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
 const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
 const Login = lazy(() => import("../features/auth/pages/Login"));
@@ -46,6 +47,7 @@ export function AppRoutes() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/change-initial-password" element={<ChangeInitialPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/manager-shops" element={<ManagerShops />} />
         <Route path="/profile" element={<Profile />} />

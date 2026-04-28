@@ -163,6 +163,94 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.ToTable("ProfileUpdateHistories");
                 });
 
+            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.ProfileUpdateRequest", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
+
+                    b.Property<string>("CurrentAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CurrentCCCD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CurrentCccdBackImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CurrentCccdFrontImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CurrentFullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("RequestedAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestedCCCD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RequestedCccdBackImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RequestedCccdFrontImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RequestedFullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReviewedByAdminId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("ProfileUpdateRequests");
+                });
+
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PublicShop", b =>
                 {
                     b.Property<string>("Id")
@@ -649,6 +737,16 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("PaidAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Unpaid");
+
                     b.Property<string>("RentalLocation")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -665,6 +763,14 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ShopName")
                         .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("StripeSessionId")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -718,6 +824,12 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("CccdBackImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CccdFrontImage")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -749,9 +861,30 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("LoginOtpExpiresAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("OneTimePasswordExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OneTimePasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("OneTimePasswordUsedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordSetupCompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordSetupToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordSetupTokenExpiresAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Role")
                         .IsRequired()

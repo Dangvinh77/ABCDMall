@@ -187,12 +187,18 @@ export const InteractiveMap = () => {
                 </div>
 
                 {/* Nút Xem Gian Hàng */}
-                <a
-                  href={selectedPin.shopUrl}
-                  className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center"
-                >
-                  View Store &rarr;
-                </a>
+                {selectedPin.status === "Available" ? (
+                  <div className="block w-full py-3.5 bg-gray-100 text-gray-400 rounded-2xl font-bold text-sm cursor-not-allowed text-center">
+                    Available for Rent
+                  </div>
+                ) : (
+                  <a
+                    href={selectedPin.shopUrl}
+                    className="block w-full py-3.5 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-center"
+                  >
+                    View Store &rarr;
+                  </a>
+                )}
               </div>
             </div>
           ) : (

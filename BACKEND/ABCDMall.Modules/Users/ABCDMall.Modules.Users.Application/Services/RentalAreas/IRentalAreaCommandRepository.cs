@@ -14,6 +14,8 @@ public interface IRentalAreaCommandRepository
 
     Task<ShopInfo?> GetShopInfoByManagerAsync(User manager, string normalizedCccd, CancellationToken cancellationToken = default);
 
+    Task AddShopInfoAsync(ShopInfo shopInfo, CancellationToken cancellationToken = default);
+
     Task<ShopInfo?> GetShopInfoByRentalAreaAsync(string rentalLocation, string? tenantName, string? shopInfoId, CancellationToken cancellationToken = default);
 
     Task AddMonthlyBillAsync(ShopMonthlyBill monthlyBill, CancellationToken cancellationToken = default);

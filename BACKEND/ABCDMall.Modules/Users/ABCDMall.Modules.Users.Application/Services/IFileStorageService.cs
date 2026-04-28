@@ -6,6 +6,8 @@ public interface IFileStorageService
 {
     Task<string> SaveProfileAvatarAsync(IFormFile file, CancellationToken cancellationToken = default);
 
+    Task<string> SaveCccdImageAsync(IFormFile file, CancellationToken cancellationToken = default);
+
     Task<string> SaveContractImageAsync(IFormFile file, CancellationToken cancellationToken = default);
 
     Task<string> SaveShopLogoAsync(IFormFile file, CancellationToken cancellationToken = default);

@@ -25,6 +25,18 @@ public sealed class UserQueryService : IUserQueryService
         return _mapper.Map<IReadOnlyList<ProfileUpdateHistoryResponseDto>>(history);
     }
 
+    public async Task<IReadOnlyList<ProfileUpdateRequestResponseDto>> GetProfileUpdateRequestsAsync(string? status, CancellationToken cancellationToken = default)
+    {
+        var requests = await _userReadRepository.GetProfileUpdateRequestsAsync(status, cancellationToken);
+        return _mapper.Map<IReadOnlyList<ProfileUpdateRequestResponseDto>>(requests);
+    }
+
+    public async Task<IReadOnlyList<ProfileUpdateRequestResponseDto>> GetMyProfileUpdateRequestsAsync(string userId, string? status, CancellationToken cancellationToken = default)
+    {
+        var requests = await _userReadRepository.GetProfileUpdateRequestsByUserAsync(userId, status, 10, cancellationToken);
+        return _mapper.Map<IReadOnlyList<ProfileUpdateRequestResponseDto>>(requests);
+    }
+
     public async Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         var users = await _userReadRepository.GetUsersAsync(cancellationToken);

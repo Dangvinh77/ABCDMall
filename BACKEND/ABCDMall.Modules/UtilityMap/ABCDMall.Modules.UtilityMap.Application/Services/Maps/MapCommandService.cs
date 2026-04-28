@@ -133,4 +133,14 @@ public sealed class MapCommandService : IMapCommandService
 
         return result;
     }
+
+    public async Task<bool> UpdateLocationDetailsByShopInfoIdAsync(string shopInfoId, string shopName, string shopUrl, CancellationToken cancellationToken = default)
+    {
+        var result = await _repo.UpdateLocationDetailsByShopInfoIdAsync(shopInfoId, shopName, shopUrl, cancellationToken);
+        if (result)
+        {
+            _logger.LogInformation("Updated map details for shop info {ShopInfoId} (Name: {ShopName}, Url: {ShopUrl}).", shopInfoId, shopName, shopUrl);
+        }
+        return result;
+    }
 }

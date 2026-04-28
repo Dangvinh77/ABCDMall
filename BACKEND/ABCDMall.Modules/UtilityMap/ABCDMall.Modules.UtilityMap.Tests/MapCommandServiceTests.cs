@@ -107,5 +107,18 @@ public sealed class MapCommandServiceTests
             LastUpdatedLocation = _location;
             return Task.FromResult(true);
         }
+
+        public Task<bool> UpdateLocationDetailsByShopInfoIdAsync(string shopInfoId, string shopName, string shopUrl, CancellationToken cancellationToken = default)
+        {
+            if (_location is null || !string.Equals(_location.ShopInfoId, shopInfoId, StringComparison.Ordinal))
+            {
+                return Task.FromResult(false);
+            }
+
+            _location.ShopName = shopName;
+            _location.ShopUrl = shopUrl;
+            LastUpdatedLocation = _location;
+            return Task.FromResult(true);
+        }
     }
 }

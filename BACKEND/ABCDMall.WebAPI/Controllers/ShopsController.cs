@@ -95,6 +95,7 @@ public class ShopsController : ControllerBase
         {
             var shop = await _shopManagerService.CreateMyShopAsync(ownerShopId, request, cancellationToken);
             await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, shop.ShopStatus, cancellationToken);
+            await _mapCommandService.UpdateLocationDetailsByShopInfoIdAsync(ownerShopId, shop.Name, $"/shops/{shop.Slug}", cancellationToken);
             return CreatedAtAction(nameof(GetShopBySlug), new { slug = shop.Slug }, shop);
         }
         catch (InvalidOperationException ex)
@@ -122,6 +123,7 @@ public class ShopsController : ControllerBase
             if (shop is not null)
             {
                 await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, shop.ShopStatus, cancellationToken);
+                await _mapCommandService.UpdateLocationDetailsByShopInfoIdAsync(ownerShopId, shop.Name, $"/shops/{shop.Slug}", cancellationToken);
             }
 
             return shop is null ? NotFound() : Ok(shop);

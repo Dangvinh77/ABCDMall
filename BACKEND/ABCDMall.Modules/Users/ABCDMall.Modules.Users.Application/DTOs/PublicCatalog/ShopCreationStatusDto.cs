@@ -6,4 +6,5 @@ public sealed class ShopCreationStatusDto
     public int RentedAreaCount { get; set; }
     public bool CanCreate { get; set; }
     public string Message { get; set; } = string.Empty;
+    public IReadOnlyList<AvailableRentalLocationDto> AvailableRentalLocations { get; set; } = [];
 }

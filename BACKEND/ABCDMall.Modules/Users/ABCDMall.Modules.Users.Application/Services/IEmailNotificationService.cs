@@ -4,6 +4,12 @@ public interface IEmailNotificationService
 {
     Task<bool> SendManagerRegistrationSuccessEmailAsync(string toEmail, string? fullName);
 
+    Task<bool> SendManagerInitialPasswordEmailAsync(
+        string toEmail,
+        string? fullName,
+        string oneTimePassword,
+        string changePasswordUrl);
+
     Task<bool> SendManagerAccountUpdatedEmailAsync(string toEmail, string? fullName, string? shopName);
 
     Task<bool> SendManagerAccountDeletedEmailAsync(string toEmail, string? fullName, string? shopName);

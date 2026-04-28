@@ -15,4 +15,5 @@ public interface IMapRepository
     Task<MapLocation?> GetLocationByShopInfoIdAsync(string shopInfoId, CancellationToken cancellationToken = default);
     Task UpdateLocationSlotAsync(MapLocation location, CancellationToken cancellationToken = default);
     Task<bool> UpdateLocationStatusByShopInfoIdAsync(string shopInfoId, string status, CancellationToken cancellationToken = default);
+    Task<bool> UpdateLocationDetailsByShopInfoIdAsync(string shopInfoId, string shopName, string shopUrl, CancellationToken cancellationToken = default);
 }

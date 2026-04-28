@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../../core/api/api";
 
@@ -24,23 +24,28 @@ export default function Login() {
             }
 
             const res = await api.post("/Auth/login", payload);
-            const { accessToken, refreshToken } = res.data;
+            const { accessToken, refreshToken, requiresPasswordChange, passwordSetupToken } = res;
 
             localStorage.setItem("token", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
 
             const profileRes = await api.get("/Auth/getprofile");
-            localStorage.setItem("role", profileRes.data.role);
+            localStorage.setItem("role", profileRes.role);
+            localStorage.setItem("profile", JSON.stringify(profileRes));
+            window.dispatchEvent(new Event("auth:changed"));
 
             setOtpRequired(false);
             setOtp("");
-            navigate("/dashboard");
+            if (requiresPasswordChange) {
+                navigate(`/change-initial-password?token=${encodeURIComponent(passwordSetupToken || "")}`);
+                return;
+            }
+
+            navigate("/");
         } catch (err) {
-            const responseData = err.response?.data;
+            const responseData = err?.data;
             const nextRequiresOtp = Boolean(responseData?.requiresOtp);
-            const message = typeof responseData === "string"
-                ? responseData
-                : responseData?.message || "Sign in failed.";
+            const message = responseData?.message || err?.message || "Sign in failed.";
 
             setOtpRequired(nextRequiresOtp || otpRequired);
             setError(message);

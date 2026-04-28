@@ -1,11 +1,14 @@
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
+using ABCDMall.Modules.Users.Application.Services.RentalPayments;
 using ABCDMall.Modules.Users.Application.Services.RentalAreas;
 using ABCDMall.Modules.Users.Application.Services.ShopInfos;
 using ABCDMall.Modules.Users.Application.Services;
 using ABCDMall.Modules.Users.Infrastructure.Services;
+using ABCDMall.Modules.Users.Infrastructure.Options;
 using ABCDMall.Modules.Users.Services;
 using ABCDMall.Modules.Users.Infrastructure.Repositories;
+using ABCDMall.Modules.Users.Infrastructure.Services.RentalPayments;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,12 +39,15 @@ public static class DependencyInjection
         services.AddScoped<IUserCommandRepository, UserCommandRepository>();
         services.AddScoped<IRentalAreaReadRepository, RentalAreaReadRepository>();
         services.AddScoped<IRentalAreaCommandRepository, RentalAreaCommandRepository>();
+        services.AddScoped<IRentalPaymentService, RentalPaymentService>();
         services.AddScoped<IShopMonthlyBillReadRepository, ShopMonthlyBillReadRepository>();
         services.AddScoped<IPublicShopCatalogReadRepository, PublicShopCatalogReadRepository>();
         services.AddScoped<IShopInfoPublicManagerRepository, ShopInfoPublicManagerRepository>();
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IStripeCheckoutClient, StripeCheckoutClient>();
+        services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
 
         var jwtKey = configuration["Jwt:Key"]
             ?? throw new InvalidOperationException("Configuration value 'Jwt:Key' was not found.");

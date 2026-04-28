@@ -80,8 +80,13 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                     b.Property<DateTime?>("OpeningDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("OwnerShopId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("ShopStatus")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("Active");
@@ -97,6 +102,10 @@ namespace ABCDMall.Modules.Shops.Infrastructure.Persistence.Shops.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerShopId");
+
+                    b.HasIndex("ShopStatus");
 
                     b.HasIndex("Slug")
                         .IsUnique();

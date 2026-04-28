@@ -51,14 +51,34 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
         var rentedAreaCount = await _repository.CountRentedAreasAsync(shopId, shopInfo.ShopName, cancellationToken);
         var canCreate = shopCount < rentedAreaCount;
 
+        var availableLocations = await _repository.GetRentedAreaLocationsAsync(shopId, shopInfo.ShopName, cancellationToken);
+
+        string message;
+        if (rentedAreaCount == 0)
+        {
+            message = "You have not registered any rental area (tenant) yet. Please register a tenant first to be eligible for creating shop pages.";
+        }
+        else if (canCreate)
+        {
+            message = $"You can create {rentedAreaCount - shopCount} more shop page(s).";
+        }
+        else
+        {
+            message = "You cannot create a new shop because the number of shop pages is equal to the number of rented areas.";
+        }
+
         return new ShopCreationStatusDto
         {
             ShopCount = shopCount,
             RentedAreaCount = rentedAreaCount,
             CanCreate = canCreate,
-            Message = canCreate
-                ? $"You can create {rentedAreaCount - shopCount} more shop page(s)."
-                : "You cannot create a new shop because the number of shop pages is equal to the number of rented areas."
+            AvailableRentalLocations = availableLocations.Select(x => new AvailableRentalLocationDto
+            {
+                LocationSlot = x.LocationSlot,
+                Floor = x.Floor,
+                AreaName = x.ShopName
+            }).ToList(),
+            Message = message
         };
     }
 
