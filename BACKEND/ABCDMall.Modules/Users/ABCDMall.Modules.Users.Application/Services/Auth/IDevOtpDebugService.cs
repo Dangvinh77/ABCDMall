@@ -8,4 +8,8 @@ public interface IDevOtpDebugService
     Task<ApplicationResult<DebugOtpLookupResponseDto>> GetOtpAsync(
         DebugOtpLookupRequestDto dto,
         CancellationToken cancellationToken = default);
+
+    Task<ApplicationResult<SeedForgotPasswordOtpResponseDto>> GetSeedForgotPasswordOtpAsync(
+        SeedForgotPasswordOtpRequestDto dto,
+        CancellationToken cancellationToken = default);
 }

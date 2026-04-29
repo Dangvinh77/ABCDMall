@@ -77,4 +77,17 @@ public sealed class UserReadRepository : IUserReadRepository
             .Where(x => !string.IsNullOrWhiteSpace(x.Id))
             .ToDictionaryAsync(x => x.Id!, x => x.ShopName, cancellationToken);
     }
+
+    public async Task<IReadOnlyDictionary<string, string>> GetBusinessTypesByShopIdsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.RentalAreas
+            .Where(x => !string.IsNullOrWhiteSpace(x.ShopInfoId) && !string.IsNullOrWhiteSpace(x.BusinessType))
+            .GroupBy(x => x.ShopInfoId!)
+            .ToDictionaryAsync(
+                group => group.Key,
+                group => group
+                    .Select(item => item.BusinessType!)
+                    .First(),
+                cancellationToken);
+    }
 }

@@ -26,7 +26,7 @@ public static class DependencyInjection
                 sql.MigrationsAssembly(typeof(EventsDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
                     "__EFMigrationsHistory_Events",
-                    EventsDbContext.DefaultSchema);
+                    null);
             });
         });
 

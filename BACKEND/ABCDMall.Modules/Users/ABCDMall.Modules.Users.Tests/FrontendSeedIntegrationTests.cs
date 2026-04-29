@@ -9,6 +9,68 @@ namespace ABCDMall.Modules.Users.Tests;
 public class FrontendSeedIntegrationTests
 {
     [Fact]
+    public async Task FrontendSeeds_align_food_court_rentals_with_food_tenants()
+    {
+        await using var mallContext = CreateMallContext();
+
+        await FrontendUsersSeed.SeedAsync(mallContext);
+
+        var foodCourtRentals = await mallContext.RentalAreas
+            .Where(x => x.BusinessType == "FoodCourt")
+            .OrderBy(x => x.ShopInfoId)
+            .ToListAsync();
+        var foodCourtShopIds = foodCourtRentals
+            .Select(x => x.ShopInfoId!)
+            .ToList();
+        var foodCourtShops = await mallContext.ShopInfos
+            .Where(x => x.Id != null && foodCourtShopIds.Contains(x.Id))
+            .OrderBy(x => x.Id)
+            .ToListAsync();
+
+        Assert.Equal(8, foodCourtRentals.Count);
+        Assert.Equal(
+            new[]
+            {
+                "Babushka A La Carte",
+                "Boba Bella Milk Tea",
+                "Gogi House",
+                "Highlands Coffee",
+                "Ocean Blue Seafood Buffet",
+                "Saigon Grill Express",
+                "Starbucks Coffee",
+                "Tokyo Ramen Station"
+            },
+            foodCourtShops
+                .Select(x => x.ShopName)
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToArray());
+
+        Assert.All(foodCourtShops, shop =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(shop.ManagerName));
+            Assert.DoesNotContain("Seed Shop", shop.ShopName ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Accessories", shop.ShopName ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
+    [Fact]
+    public async Task FrontendSeeds_generate_unique_shop_slugs()
+    {
+        await using var mallContext = CreateMallContext();
+
+        await FrontendUsersSeed.SeedAsync(mallContext);
+
+        var duplicateSlugs = await mallContext.ShopInfos
+            .Where(x => !string.IsNullOrWhiteSpace(x.Slug))
+            .GroupBy(x => x.Slug!)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToListAsync();
+
+        Assert.Empty(duplicateSlugs);
+    }
+
+    [Fact]
     public async Task FrontendSeeds_create_thirty_rented_manager_shops_aligned_with_utility_map()
     {
         await using var mallContext = CreateMallContext();

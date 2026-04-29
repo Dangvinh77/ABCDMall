@@ -53,7 +53,7 @@ public class EventsDbContextFactory : IDesignTimeDbContextFactory<EventsDbContex
                 sql.MigrationsAssembly(typeof(EventsDbContext).Assembly.FullName);
                 sql.MigrationsHistoryTable(
                     "__EFMigrationsHistory_Events",
-                    EventsDbContext.DefaultSchema);
+                    null);
             });
 
         return new EventsDbContext(optionsBuilder.Options);

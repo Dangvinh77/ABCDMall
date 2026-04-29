@@ -54,6 +54,7 @@ public sealed class UserQueryService : IUserQueryService
         CancellationToken cancellationToken)
     {
         var shopNamesById = await _userReadRepository.GetShopNamesByIdsAsync(cancellationToken);
+        var businessTypesByShopId = await _userReadRepository.GetBusinessTypesByShopIdsAsync(cancellationToken);
 
         var responses = _mapper.Map<List<UserSummaryResponseDto>>(users);
         foreach (var response in responses)
@@ -61,6 +62,11 @@ public sealed class UserQueryService : IUserQueryService
             if (!string.IsNullOrWhiteSpace(response.ShopId) && shopNamesById.TryGetValue(response.ShopId, out var shopName))
             {
                 response.ShopName = shopName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(response.ShopId) && businessTypesByShopId.TryGetValue(response.ShopId, out var businessType))
+            {
+                response.BusinessType = businessType;
             }
         }
 

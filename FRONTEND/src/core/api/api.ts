@@ -72,13 +72,16 @@ http.interceptors.response.use(
 
 function mapApiError(error: unknown): never {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ detail?: string; title?: string }>;
+    const axiosError = error as AxiosError<string | { detail?: string; title?: string; message?: string }>;
+    const responseData = axiosError.response?.data;
     // API FETCH NOTE:
     // ASP.NET Core often returns ProblemDetails with "detail" or "title".
     // We convert that backend response into a normal Error for pages to display.
     const message =
-      axiosError.response?.data?.detail ??
-      axiosError.response?.data?.title ??
+      (typeof responseData === "string" ? responseData : undefined) ??
+      (typeof responseData === "object" ? responseData?.detail : undefined) ??
+      (typeof responseData === "object" ? responseData?.title : undefined) ??
+      (typeof responseData === "object" ? responseData?.message : undefined) ??
       axiosError.message ??
       "Request failed.";
 

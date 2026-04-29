@@ -104,6 +104,12 @@ export default function DashboardMall() {
                   {isManager && (
                     <>
                       <a
+                        href="/manager-bidding"
+                        className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
+                      >
+                        Manager Bidding
+                      </a>
+                      <a
                         href="/shop-info"
                         className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
                       >
@@ -115,15 +121,35 @@ export default function DashboardMall() {
                       >
                         My Business Management
                       </a>
+                      <a
+                        href="/manager-events"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Create Shop Event
+                      </a>
                     </>
                   )}
                   {isAdmin && (
-                    <a
-                      href="/admin-management"
-                      className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
-                    >
-                      Admin Management
-                    </a>
+                    <>
+                      <a
+                        href="/admin-management"
+                        className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
+                      >
+                        Admin Management
+                      </a>
+                      <a
+                        href="/admin-management/bidding"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Bidding Control
+                      </a>
+                      <a
+                        href="/admin-management/events"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Event Management
+                      </a>
+                    </>
                   )}
                 </div>
               </div>

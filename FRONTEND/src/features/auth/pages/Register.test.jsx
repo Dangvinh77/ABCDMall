@@ -37,6 +37,7 @@ describe("Register", () => {
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "manager@example.com" } });
     fireEvent.change(screen.getByLabelText("Shop Name"), { target: { value: "Shop Alpha" } });
     fireEvent.change(screen.getByLabelText("CCCD"), { target: { value: "123456789" } });
+    fireEvent.change(screen.getByLabelText("Business Type"), { target: { value: "FoodCourt" } });
     fireEvent.change(screen.getByLabelText("Floor"), { target: { value: "L2" } });
     fireEvent.change(screen.getByLabelText("Location Slot"), { target: { value: "A-12" } });
     fireEvent.change(screen.getByLabelText("Lease Start Date"), { target: { value: "2026-05-01" } });
@@ -55,6 +56,7 @@ describe("Register", () => {
     expect(url).toBe("/Auth/register");
     expect(formData).toBeInstanceOf(FormData);
     expect(formData.get("email")).toBe("manager@example.com");
+    expect(formData.get("businessType")).toBe("FoodCourt");
     expect(formData.get("locationSlot")).toBe("A-12");
     expect(formData.get("serviceFee")).toBe("25");
   });

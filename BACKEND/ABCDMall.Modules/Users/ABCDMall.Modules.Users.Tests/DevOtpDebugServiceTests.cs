@@ -145,6 +145,9 @@ public class DevOtpDebugServiceTests
         public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
             => Task.FromResult<ShopInfo?>(null);
 
+        public Task<ShopInfo?> GetShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default)
+            => Task.FromResult<ShopInfo?>(null);
+
         public Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default)
             => Task.FromResult(false);
 

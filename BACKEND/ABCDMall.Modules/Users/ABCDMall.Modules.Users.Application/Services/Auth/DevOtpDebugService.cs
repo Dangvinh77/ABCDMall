@@ -92,6 +92,46 @@ public sealed class DevOtpDebugService : IDevOtpDebugService
         });
     }
 
+    public async Task<ApplicationResult<SeedForgotPasswordOtpResponseDto>> GetSeedForgotPasswordOtpAsync(
+        SeedForgotPasswordOtpRequestDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email))
+        {
+            return ApplicationResult<SeedForgotPasswordOtpResponseDto>.BadRequest("Email is required.");
+        }
+
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        if (!IsSeededEmail(normalizedEmail))
+        {
+            return ApplicationResult<SeedForgotPasswordOtpResponseDto>.BadRequest("Only seeded emails can use the developer OTP lookup.");
+        }
+
+        var user = await _userCommandRepository.GetUserByNormalizedEmailAsync(normalizedEmail, cancellationToken);
+        if (user is null)
+        {
+            return ApplicationResult<SeedForgotPasswordOtpResponseDto>.NotFound("Email does not exist");
+        }
+
+        var forgotPasswordOtp = await _userCommandRepository.GetLatestForgotPasswordOtpByEmailAsync(normalizedEmail, cancellationToken);
+        if (forgotPasswordOtp is null)
+        {
+            return ApplicationResult<SeedForgotPasswordOtpResponseDto>.NotFound("No forgot-password OTP is available for this email.");
+        }
+
+        if (forgotPasswordOtp.ExpiresAt < DateTime.UtcNow)
+        {
+            return ApplicationResult<SeedForgotPasswordOtpResponseDto>.BadRequest("The OTP has expired");
+        }
+
+        return ApplicationResult<SeedForgotPasswordOtpResponseDto>.Ok(new SeedForgotPasswordOtpResponseDto
+        {
+            Email = user.Email,
+            Otp = forgotPasswordOtp.Otp,
+            ExpiresAt = forgotPasswordOtp.ExpiresAt
+        });
+    }
+
     private string CreatePasswordSetupUrl(string token)
     {
         var frontendBaseUrl = _configuration["EmailSettings:FrontendBaseUrl"];
@@ -108,4 +148,7 @@ public sealed class DevOtpDebugService : IDevOtpDebugService
 
     private static string CreateSecureToken()
         => Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
+
+    private static bool IsSeededEmail(string email)
+        => email.EndsWith("@abcdmall.local", StringComparison.OrdinalIgnoreCase);
 }

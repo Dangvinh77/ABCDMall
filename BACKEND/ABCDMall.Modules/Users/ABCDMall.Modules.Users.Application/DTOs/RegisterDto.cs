@@ -16,6 +16,8 @@ namespace ABCDMall.Modules.Users.Application.DTOs
 
         public string? CCCD { get; set; }
 
+        public string? BusinessType { get; set; }
+
         public int? MapLocationId { get; set; }
     }
 }

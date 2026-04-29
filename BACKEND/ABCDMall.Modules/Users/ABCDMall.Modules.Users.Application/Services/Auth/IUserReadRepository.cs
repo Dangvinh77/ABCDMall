@@ -11,4 +11,5 @@ public interface IUserReadRepository
     Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<User>> GetUsersByRoleAsync(string role, CancellationToken cancellationToken = default);
     Task<IReadOnlyDictionary<string, string>> GetShopNamesByIdsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<string, string>> GetBusinessTypesByShopIdsAsync(CancellationToken cancellationToken = default);
 }

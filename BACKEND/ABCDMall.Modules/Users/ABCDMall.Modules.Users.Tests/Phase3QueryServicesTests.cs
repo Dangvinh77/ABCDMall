@@ -1,6 +1,7 @@
 using ABCDMall.Modules.Users.Application.DTOs.RentalAreas;
 using ABCDMall.Modules.Users.Application.DTOs.ShopInfos;
 using ABCDMall.Modules.Users.Application.Mappings;
+using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Application.Services.RentalAreas;
 using ABCDMall.Modules.Users.Application.Services.ShopInfos;
 using ABCDMall.Modules.Users.Domain.Entities;
@@ -92,6 +93,84 @@ public class Phase3QueryServicesTests
         Assert.Equal("Prospect Manager 80's Shop", result.ShopName);
     }
 
+    [Fact]
+    public async Task GetUsersAsync_enriches_manager_business_type_from_rental_areas()
+    {
+        var repository = new FakeUserReadRepository
+        {
+            Users =
+            [
+                new User
+                {
+                    Id = "manager-1",
+                    Email = "food.manager@example.com",
+                    Role = "Manager",
+                    FullName = "Food Manager",
+                    ShopId = "shop-001"
+                },
+                new User
+                {
+                    Id = "manager-2",
+                    Email = "shop.manager@example.com",
+                    Role = "Manager",
+                    FullName = "Shop Manager",
+                    ShopId = "shop-002"
+                }
+            ],
+            ShopNamesById = new Dictionary<string, string>
+            {
+                ["shop-001"] = "Ocean Blue Seafood Buffet",
+                ["shop-002"] = "Minh Fashion"
+            },
+            BusinessTypesByShopId = new Dictionary<string, string>
+            {
+                ["shop-001"] = "FoodCourt",
+                ["shop-002"] = "Shop"
+            }
+        };
+
+        var service = new UserQueryService(CreateMapper(), repository);
+
+        var result = await service.GetUsersAsync();
+
+        Assert.Collection(
+            result,
+            first =>
+            {
+                Assert.Equal("Ocean Blue Seafood Buffet", first.ShopName);
+                Assert.Equal("FoodCourt", first.BusinessType);
+            },
+            second =>
+            {
+                Assert.Equal("Minh Fashion", second.ShopName);
+                Assert.Equal("Shop", second.BusinessType);
+            });
+    }
+
+    [Fact]
+    public async Task GetUsersAsync_defaults_movies_admin_business_type_to_movies()
+    {
+        var repository = new FakeUserReadRepository
+        {
+            Users =
+            [
+                new User
+                {
+                    Id = "movies-admin-1",
+                    Email = "movies.admin@example.com",
+                    Role = "MoviesAdmin",
+                    FullName = "Movies Admin"
+                }
+            ]
+        };
+        var service = new UserQueryService(CreateMapper(), repository);
+
+        var result = await service.GetUsersAsync();
+
+        var account = Assert.Single(result);
+        Assert.Equal("Movies", account.BusinessType);
+    }
+
     private static AutoMapper.IMapper CreateMapper()
     {
         using var loggerFactory = LoggerFactory.Create(_ => { });
@@ -125,5 +204,36 @@ public class Phase3QueryServicesTests
 
         public Task<ShopInfo?> GetRentalInfoAsync(string? shopId, CancellationToken cancellationToken = default)
             => Task.FromResult(RentalInfo);
+    }
+
+    private sealed class FakeUserReadRepository : IUserReadRepository
+    {
+        public IReadOnlyList<User> Users { get; set; } = [];
+        public IReadOnlyDictionary<string, string> ShopNamesById { get; set; } = new Dictionary<string, string>();
+        public IReadOnlyDictionary<string, string> BusinessTypesByShopId { get; set; } = new Dictionary<string, string>();
+
+        public Task<User?> GetByIdAsync(string userId, CancellationToken cancellationToken = default)
+            => Task.FromResult<User?>(Users.FirstOrDefault(user => user.Id == userId));
+
+        public Task<IReadOnlyList<ProfileUpdateHistory>> GetProfileUpdateHistoryAsync(string userId, int take, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<ProfileUpdateHistory>>([]);
+
+        public Task<IReadOnlyList<ProfileUpdateRequest>> GetProfileUpdateRequestsAsync(string? status, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<ProfileUpdateRequest>>([]);
+
+        public Task<IReadOnlyList<ProfileUpdateRequest>> GetProfileUpdateRequestsByUserAsync(string userId, string? status, int take, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<ProfileUpdateRequest>>([]);
+
+        public Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(Users);
+
+        public Task<IReadOnlyList<User>> GetUsersByRoleAsync(string role, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<User>>(Users.Where(user => user.Role == role).ToList());
+
+        public Task<IReadOnlyDictionary<string, string>> GetShopNamesByIdsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(ShopNamesById);
+
+        public Task<IReadOnlyDictionary<string, string>> GetBusinessTypesByShopIdsAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(BusinessTypesByShopId);
     }
 }

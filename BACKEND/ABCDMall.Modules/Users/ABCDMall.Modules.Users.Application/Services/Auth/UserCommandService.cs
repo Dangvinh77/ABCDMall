@@ -889,6 +889,13 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<RegisterUserResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
         }
 
+        if (resolvedRole == ManagerRole
+            && !string.IsNullOrWhiteSpace(dto.BusinessType)
+            && dto.BusinessType.Trim() is not ("Shop" or "FoodCourt"))
+        {
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Business type must be Shop or FoodCourt");
+        }
+
         if (!string.IsNullOrWhiteSpace(normalizedCccd)
             && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
                 || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken)))

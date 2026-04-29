@@ -14,27 +14,79 @@ public sealed class ManagerBusinessRouteRepository : IManagerBusinessRouteReposi
 
     public async Task<ManagerBusinessRouteSnapshot?> GetSnapshotAsync(string ownerShopId, CancellationToken cancellationToken = default)
     {
-        var rentalAreas = await _context.RentalAreas
+        var relatedShops = await _context.ShopInfos
             .AsNoTracking()
-            .Where(x => x.ShopInfoId == ownerShopId && x.Status == "Rented" && !string.IsNullOrWhiteSpace(x.BusinessType))
+            .Where(x => x.Id == ownerShopId || x.OwnerShopInfoId == ownerShopId)
+            .Select(x => new
+            {
+                x.Id,
+                x.ShopName,
+                x.RentalLocation
+            })
+            .ToListAsync(cancellationToken);
+
+        var relatedShopIds = relatedShops
+            .Select(x => x.Id)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (relatedShopIds.Count == 0)
+        {
+            relatedShopIds.Add(ownerShopId);
+        }
+
+        var match = await _context.RentalAreas
+            .AsNoTracking()
+            .Where(x => x.Status == "Rented"
+                && !string.IsNullOrWhiteSpace(x.BusinessType)
+                && x.ShopInfoId != null
+                && relatedShopIds.Contains(x.ShopInfoId))
             .OrderByDescending(x => x.BusinessType == "FoodCourt")
             .ThenBy(x => x.AreaCode)
             .Select(x => new
             {
-                x.ShopInfoId,
                 x.BusinessType
             })
-            .ToListAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
-        var match = rentalAreas.FirstOrDefault();
-        if (match is null || string.IsNullOrWhiteSpace(match.ShopInfoId) || string.IsNullOrWhiteSpace(match.BusinessType))
+        if (match is null)
+        {
+            var relatedShopNames = relatedShops
+                .Select(x => x.ShopName)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var relatedRentalLocations = relatedShops
+                .Select(x => x.RentalLocation)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            match = await _context.RentalAreas
+                .AsNoTracking()
+                .Where(x => x.Status == "Rented"
+                    && !string.IsNullOrWhiteSpace(x.BusinessType)
+                    && ((x.TenantName != null && relatedShopNames.Contains(x.TenantName))
+                        || relatedRentalLocations.Contains(x.AreaCode)))
+                .OrderByDescending(x => x.BusinessType == "FoodCourt")
+                .ThenBy(x => x.AreaCode)
+                .Select(x => new
+                {
+                    x.BusinessType
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        if (match is null || string.IsNullOrWhiteSpace(match.BusinessType))
         {
             return null;
         }
 
         return new ManagerBusinessRouteSnapshot
         {
-            OwnerShopId = match.ShopInfoId,
+            OwnerShopId = ownerShopId,
             BusinessType = match.BusinessType,
             HasEligibleRental = true
         };

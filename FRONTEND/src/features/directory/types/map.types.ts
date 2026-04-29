@@ -3,6 +3,7 @@ export interface MapLocation {
   shopName: string;
   locationSlot: string;
   shopUrl: string;
+  status?: string;
   x: number;
   y: number;
   storefrontImageUrl: string;

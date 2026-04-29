@@ -4,6 +4,7 @@ using ABCDMall.Modules.Users.Application.DTOs.Auth;
 using ABCDMall.Modules.Users.Application.Mappings;
 using ABCDMall.Modules.Users.Application.Services;
 using ABCDMall.Modules.Users.Application.Services.Auth;
+using ABCDMall.Modules.Users.Application.Services.BusinessTypes;
 using ABCDMall.Modules.Users.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -183,9 +184,62 @@ public class UserCommandServiceAccountLifecycleTests
         Assert.True(user.OneTimePasswordExpiresAt > DateTime.UtcNow);
     }
 
+    [Fact]
+    public async Task UpdateUserAccountAsync_for_manager_switches_business_type_and_cleans_up_previous_flow()
+    {
+        var user = new User
+        {
+            Id = "manager-business-1",
+            Email = "manager.business@example.com",
+            Password = BCrypt.Net.BCrypt.HashPassword("Password!1"),
+            Role = "Manager",
+            FullName = "Business Manager",
+            Address = "Current Address",
+            CCCD = "123456789",
+            ShopId = "shop-1",
+            IsActive = true
+        };
+        var shopInfo = new ShopInfo
+        {
+            Id = "shop-1",
+            ShopName = "Managed Shop",
+            ManagerName = "Business Manager",
+            CCCD = "123456789"
+        };
+        var repository = new FakeLifecycleRepository(user)
+        {
+            ShopInfo = shopInfo,
+            ExistsShopInfoByCccdResult = false,
+            ExistsUserByCccdResult = false
+        };
+        var businessTypeService = new FakeManagerBusinessTypeService
+        {
+            CurrentBusinessType = "Shop"
+        };
+        var service = CreateService(repository, businessTypeService: businessTypeService);
+
+        var result = await service.UpdateUserAccountAsync(user.Id!, new UpdateUserAccountDto
+        {
+            Email = "manager.business@example.com",
+            FullName = "Business Manager",
+            ShopName = "Managed Shop",
+            Address = "Updated Address",
+            CCCD = "123456789",
+            BusinessType = "FoodCourt"
+        });
+
+        Assert.Equal(ApplicationResultStatus.Ok, result.Status);
+        Assert.Equal("Updated Address", user.Address);
+        Assert.Equal("FoodCourt", businessTypeService.LastUpdatedBusinessType);
+        Assert.Equal("shop-1", businessTypeService.LastUpdatedShopInfoId);
+        Assert.Equal("Shop", businessTypeService.LastCleanupPreviousBusinessType);
+        Assert.Equal("FoodCourt", businessTypeService.LastCleanupTargetBusinessType);
+    }
+
     private static UserCommandService CreateService(
         FakeLifecycleRepository repository,
-        FakeLifecycleEmailNotificationService? emailService = null)
+        FakeLifecycleEmailNotificationService? emailService = null,
+        FakeManagerBusinessTypeService? businessTypeService = null)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -202,7 +256,8 @@ public class UserCommandServiceAccountLifecycleTests
             emailService ?? new FakeLifecycleEmailNotificationService(),
             new FakeLifecycleFileStorageService(),
             new FakeLifecycleTokenService(),
-            configuration);
+            configuration,
+            businessTypeService ?? new FakeManagerBusinessTypeService());
     }
 
     private static FormFile CreateFormFile(string fileName)
@@ -248,6 +303,9 @@ public class UserCommandServiceAccountLifecycleTests
             => Task.FromResult(ExistsShopInfoByCccdResult);
 
         public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
+            => Task.FromResult(ShopInfo);
+
+        public Task<ShopInfo?> GetShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default)
             => Task.FromResult(ShopInfo);
 
         public Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default)
@@ -321,6 +379,34 @@ public class UserCommandServiceAccountLifecycleTests
 
         public Task SaveChangesAsync(CancellationToken cancellationToken = default)
             => Task.CompletedTask;
+    }
+
+    private sealed class FakeManagerBusinessTypeService : IManagerBusinessTypeService
+    {
+        public string? CurrentBusinessType { get; set; }
+        public string? LastUpdatedShopInfoId { get; private set; }
+        public string? LastUpdatedBusinessType { get; private set; }
+        public string? LastCleanupPreviousBusinessType { get; private set; }
+        public string? LastCleanupTargetBusinessType { get; private set; }
+
+        public Task<string?> GetCurrentBusinessTypeAsync(string shopInfoId, CancellationToken cancellationToken = default)
+            => Task.FromResult(CurrentBusinessType);
+
+        public Task UpdateBusinessTypeAsync(string shopInfoId, string businessType, CancellationToken cancellationToken = default)
+        {
+            LastUpdatedShopInfoId = shopInfoId;
+            LastUpdatedBusinessType = businessType;
+            CurrentBusinessType = businessType;
+            return Task.CompletedTask;
+        }
+
+        public Task CleanupForBusinessTypeChangeAsync(string shopInfoId, string previousBusinessType, string targetBusinessType, CancellationToken cancellationToken = default)
+        {
+            LastUpdatedShopInfoId = shopInfoId;
+            LastCleanupPreviousBusinessType = previousBusinessType;
+            LastCleanupTargetBusinessType = targetBusinessType;
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeLifecycleEmailNotificationService : IEmailNotificationService

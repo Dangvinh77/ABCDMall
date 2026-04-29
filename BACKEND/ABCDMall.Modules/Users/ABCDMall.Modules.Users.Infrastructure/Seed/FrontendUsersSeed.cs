@@ -11,6 +11,7 @@ public static class FrontendUsersSeed
         var now = DateTime.UtcNow;
 
         await SeedUsersAndShopsAsync(db, now, ct);
+        await BiddingSeed.SeedAsync(db, ct);
         await SeedRentalAreasAsync(db, now, ct);
         await SeedMonthlyBillsAsync(db, now, ct);
         await SeedProfileUpdateHistoriesAsync(db, ct);
@@ -132,6 +133,7 @@ public static class FrontendUsersSeed
             rentalArea.Status = seed.Status;
             rentalArea.TenantName = seed.TenantName;
             rentalArea.ShopInfoId = seed.ShopInfoId;
+            rentalArea.BusinessType = seed.BusinessType;
             rentalArea.CreatedAt = seed.CreatedAt == default ? now : seed.CreatedAt;
         }
 
@@ -514,17 +516,21 @@ public static class FrontendUsersSeed
                     var index = zeroBasedIndex + 1;
                     var profile = GetManagerProfile(index);
                     var leaseStartDate = GetLeaseStartDate(index);
+                    var businessType = GetManagedRentalBusinessType(index);
 
                     return new RentalAreaSeed(
                         Id: assignment.MapLocationId.ToString(CultureInfo.InvariantCulture),
                         AreaCode: assignment.RentalLocation,
                         Floor: GetLegacyFloorLabel(assignment.RentalLocation),
-                        AreaName: $"Managed retail area {index:00}",
+                        AreaName: businessType == "FoodCourt"
+                            ? $"Food Court Pod {index:00}"
+                            : $"Managed retail area {index:00}",
                         Size: $"{24 + (index % 12)}m2",
                         MonthlyRent: 18000000m + (index * 350000m),
                         Status: "Rented",
                         TenantName: profile.ShopName,
                         ShopInfoId: $"shop-{index:000}",
+                        BusinessType: businessType,
                         CreatedAt: leaseStartDate);
                 })
                 .ToArray();
@@ -538,6 +544,7 @@ public static class FrontendUsersSeed
         {
             var profile = GetManagerProfile(index);
             var leaseStartDate = GetLeaseStartDate(index);
+            var businessType = GetManagedRentalBusinessType(index);
             var electricityRate = 3400m + ((index - 1) % 4 * 100m);
             var electricityUnits = 90 + (index * 3);
             var waterUnits = 10 + ((index - 1) % 8);
@@ -560,7 +567,9 @@ public static class FrontendUsersSeed
                 LeaseTermDays: 180 + (((index - 1) % 4) * 90),
                 TotalDue: totalDue,
                 ContractImage: $"/images/contracts/managed-shop-{index:000}.png",
-                CreatedAt: leaseStartDate);
+                CreatedAt: leaseStartDate,
+                Slug: GetManagedShopSlug(index, businessType, profile.ShopName),
+                Category: GetManagedShopCategory(index, businessType));
         }
 
         private static MonthlyBillSeed CreateMonthlyBillSeed(int index, ManagedRentalAssignment assignment)
@@ -601,14 +610,46 @@ public static class FrontendUsersSeed
                 ? "2"
                 : "1";
 
+        private static string GetManagedRentalBusinessType(int index)
+            => index is 2 or 4 or 9 or 11 or 16 or 22 or 27 or 30
+                ? "FoodCourt"
+                : "Shop";
+
+        private static string GetManagedShopCategory(int index, string businessType)
+            => businessType == "FoodCourt"
+                ? index switch
+                {
+                    2 => "Food Court - Drinks",
+                    4 => "Food Court - Seafood",
+                    9 => "Food Court - Coffee",
+                    11 => "Food Court - International",
+                    16 => "Food Court - Japanese",
+                    22 => "Food Court - Vietnamese",
+                    27 => "Food Court - Coffee",
+                    30 => "Food Court - Korean BBQ",
+                    _ => "Food Court"
+                }
+                : "Retail Store";
+
+        private static string? GetManagedShopSlug(int index, string businessType, string shopName)
+            => businessType == "FoodCourt"
+                ? $"{GenerateSlug(shopName)}-manager-{index:00}"
+                : null;
+
         private static ManagerProfile GetManagerProfile(int index)
             => index switch
             {
                 1 => new("Nguyen Van Minh", "Minh Fashion", "District 1, Ho Chi Minh City", "079203000111", "/images/profiles/manager-1.png"),
-                2 => new("Tran Thi Lan", "Lan Cosmetics", "Thu Duc, Ho Chi Minh City", "079203000222", "/images/profiles/manager-2.png"),
+                2 => new("Tran Thi Lan", "Boba Bella Milk Tea", "Thu Duc, Ho Chi Minh City", "079203000222", "/images/profiles/manager-2.png"),
                 3 => new("Pham Gia Huy", "Huy Sneakers", "Go Vap, Ho Chi Minh City", "079203000333", "/images/profiles/manager-3.png"),
-                4 => new("Le Bao Chau", "Chau Accessories", "Binh Thanh, Ho Chi Minh City", "079203000444", "/images/profiles/manager-4.png"),
+                4 => new("Le Bao Chau", "Ocean Blue Seafood Buffet", "Binh Thanh, Ho Chi Minh City", "079203000444", "/images/profiles/manager-4.png"),
                 5 => new("Vo Quynh Anh", "Quynh Gifts", "District 7, Ho Chi Minh City", "079203000555", "/images/profiles/manager-5.png"),
+                9 => new("Nguyen Thuy Linh", "Starbucks Coffee", "District 10, Ho Chi Minh City", "079203000999", "/images/profiles/manager-9.png"),
+                11 => new("Pham Quoc Bao", "Babushka A La Carte", "District 11, Ho Chi Minh City", "079203001111", "/images/profiles/manager-11.png"),
+                16 => new("Do Minh Khang", "Tokyo Ramen Station", "District 3, Ho Chi Minh City", "079203001616", "/images/profiles/manager-16.png"),
+                22 => new("Tran Gia Han", "Saigon Grill Express", "District 9, Ho Chi Minh City", "079203002222", "/images/profiles/manager-22.png"),
+                27 => new("Vo Thanh Nhan", "Highlands Coffee", "Tan Binh, Ho Chi Minh City", "079203002727", "/images/profiles/manager-27.png"),
+                30 => new("Dang Hoang Phuc", "Gogi House", "Thu Duc, Ho Chi Minh City", "079203003030", "/images/profiles/manager-30.png"),
                 _ => new(
                     $"Seed Manager {index:00}",
                     $"Seed Shop {index:00}",
@@ -677,6 +718,7 @@ public static class FrontendUsersSeed
         string Status,
         string? TenantName,
         string? ShopInfoId,
+        string? BusinessType,
         DateTime CreatedAt);
 
     private sealed record MonthlyBillSeed(

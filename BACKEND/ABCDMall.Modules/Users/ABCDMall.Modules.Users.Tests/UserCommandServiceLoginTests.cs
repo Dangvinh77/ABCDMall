@@ -131,6 +131,33 @@ public class UserCommandServiceLoginTests
         Assert.True(emailService.ManagerInitialPasswordEmailSent);
     }
 
+    [Fact]
+    public async Task RegisterAsync_returns_bad_request_for_unknown_manager_business_type()
+    {
+        var repository = new FakeUserCommandRepository(null);
+        var configuration = new ConfigurationBuilder().Build();
+        var service = new UserCommandService(
+            null!,
+            repository,
+            new FakeEmailNotificationService(),
+            new FakeFileStorageService(),
+            new FakeTokenService(),
+            configuration);
+
+        var result = await service.RegisterAsync(new RegisterDto
+        {
+            Email = "food-manager@example.com",
+            FullName = "Food Manager",
+            Role = "Manager",
+            ShopName = "Food Alpha",
+            CCCD = "987654321",
+            BusinessType = "Cinema"
+        });
+
+        Assert.Equal(ApplicationResultStatus.BadRequest, result.Status);
+        Assert.Equal("Business type must be Shop or FoodCourt", result.Error);
+    }
+
     private sealed class FakeUserCommandRepository : IUserCommandRepository
     {
         private readonly User? _user;
@@ -161,6 +188,9 @@ public class UserCommandServiceLoginTests
             => Task.FromResult(false);
 
         public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
+            => Task.FromResult<ShopInfo?>(null);
+
+        public Task<ShopInfo?> GetShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default)
             => Task.FromResult<ShopInfo?>(null);
 
         public Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default)

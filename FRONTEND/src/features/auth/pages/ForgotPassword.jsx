@@ -1,12 +1,15 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../../core/api/api";
+
+const isSeededEmail = (value) => value.trim().toLowerCase().endsWith("@abcdmall.local");
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [seedOtp, setSeedOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState("");
@@ -30,9 +33,26 @@ export default function ForgotPassword() {
         newPassword,
       });
 
+      setSeedOtp("");
       setOtpSent(true);
       setSuccess("The OTP has been sent to your email.");
     } catch (err) {
+      if (isSeededEmail(email) && err?.message === "Unable to send OTP by email") {
+        try {
+          const seedOtpResult = await api.post("/Auth/forgotpassword/dev-otp", {
+            email,
+          });
+
+          setSeedOtp(seedOtpResult?.otp || "");
+          setOtpSent(true);
+          setSuccess("Seeded account detected. Email delivery is skipped in development. Use the OTP below to continue.");
+          return;
+        } catch (fallbackErr) {
+          setError(fallbackErr?.message || err?.message || "Unable to send OTP.");
+          return;
+        }
+      }
+
       setError(err?.message || "Unable to send OTP.");
     } finally {
       setLoading(false);
@@ -50,6 +70,7 @@ export default function ForgotPassword() {
         otp,
       });
 
+      setSeedOtp("");
       setSuccess("Your password has been reset successfully. Redirecting to the login page...");
       setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
@@ -118,6 +139,13 @@ export default function ForgotPassword() {
                     </div>
                   )}
 
+                  {seedOtp && (
+                    <div className="rounded-[20px] border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+                      <p className="font-semibold uppercase tracking-[0.18em] text-amber-200">Dev OTP</p>
+                      <p className="mt-2 text-base font-bold text-white">{seedOtp}</p>
+                    </div>
+                  )}
+
                   <input
                     type="email"
                     value={email}
@@ -178,6 +206,7 @@ export default function ForgotPassword() {
                           onClick={() => {
                             setOtpSent(false);
                             setOtp("");
+                            setSeedOtp("");
                             setError("");
                             setSuccess("");
                           }}

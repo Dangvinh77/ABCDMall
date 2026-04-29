@@ -60,6 +60,7 @@ public class RentalAreaRegistrationIntegrationTests
         {
             CCCD = "089204000031",
             Location = "1-09",
+            BusinessType = "Shop",
             StartDate = DateTime.Today.AddDays(1),
             ElectricityFee = 3500m,
             WaterFee = 15000m,
@@ -69,6 +70,80 @@ public class RentalAreaRegistrationIntegrationTests
         });
 
         Assert.Equal(ApplicationResultStatus.Ok, result.Status);
+    }
+
+    [Fact]
+    public async Task RegisterTenantAsync_updates_existing_legacy_rental_area_matching_map_slot_without_duplicate_insert()
+    {
+        await using var mallContext = CreateMallContext();
+        await using var utilityMapContext = CreateUtilityMapContext();
+
+        mallContext.Users.Add(new User
+        {
+            Id = "users-manager-032",
+            Email = "manager32@abcdmall.local",
+            Role = "Manager",
+            FullName = "Prospect Manager 32",
+            CCCD = "089204000032",
+            IsActive = true
+        });
+        mallContext.RentalAreas.Add(new RentalArea
+        {
+            Id = "legacy-rental-1",
+            AreaCode = "1-09",
+            Floor = "Tang 1",
+            AreaName = "Legacy Slot 1-09",
+            Status = "Available"
+        });
+        utilityMapContext.FloorPlans.Add(new FloorPlan
+        {
+            Id = 1,
+            FloorLevel = "Tang 1",
+            Description = "Test floor",
+            BlueprintImageUrl = "/maps/test.png",
+        });
+        utilityMapContext.MapLocations.Add(new MapLocation
+        {
+            Id = 22,
+            FloorPlanId = 1,
+            ShopName = "Placeholder",
+            LocationSlot = "1-09",
+            ShopUrl = "/shops/pedro",
+            X = 1,
+            Y = 1,
+            StorefrontImageUrl = "/img/test.png",
+            Status = "Available"
+        });
+        await mallContext.SaveChangesAsync();
+        await utilityMapContext.SaveChangesAsync();
+
+        var service = new RentalAreaCommandService(
+            null!,
+            new RentalAreaCommandRepository(mallContext, utilityMapContext),
+            new FakeFileStorageService());
+
+        var result = await service.RegisterTenantAsync("22", new RegisterTenantDto
+        {
+            CCCD = "089204000032",
+            Location = "1-09",
+            BusinessType = "Shop",
+            StartDate = DateTime.Today.AddDays(1),
+            ElectricityFee = 3500m,
+            WaterFee = 15000m,
+            ServiceFee = 600000m,
+            LeaseTermDays = 180,
+            ContractImage = new FormFile(Stream.Null, 0, 0, "contract", "contract.png")
+        });
+
+        Assert.Equal(ApplicationResultStatus.Ok, result.Status);
+
+        var rentalAreas = await mallContext.RentalAreas
+            .Where(x => x.AreaCode == "1-09")
+            .ToListAsync();
+        Assert.Single(rentalAreas);
+        Assert.Equal("legacy-rental-1", rentalAreas[0].Id);
+        Assert.Equal("Rented", rentalAreas[0].Status);
+        Assert.Equal("Shop", rentalAreas[0].BusinessType);
     }
 
     private static MallDbContext CreateMallContext()

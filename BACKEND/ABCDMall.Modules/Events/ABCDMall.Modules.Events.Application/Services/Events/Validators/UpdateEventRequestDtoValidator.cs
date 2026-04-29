@@ -5,40 +5,29 @@ namespace ABCDMall.Modules.Events.Application.Services.Events.Validators;
 
 public sealed class UpdateEventRequestDtoValidator : AbstractValidator<UpdateEventRequestDto>
 {
+    // Number of days ahead that an event must be scheduled
+    private const int MinimumDaysAhead = 1;
+
     public UpdateEventRequestDtoValidator()
     {
-        RuleFor(x => x.Title)
+        RuleFor(x => x.Title).NotEmpty().MaximumLength(250);
+        RuleFor(x => x.Description).MaximumLength(4000);
+        RuleFor(x => x.ImageUrl).MaximumLength(1000);
+        
+        RuleFor(x => x.StartDateTime)
             .NotEmpty()
-            .MaximumLength(300);
-
-        RuleFor(x => x.Description)
-            .MaximumLength(4000);
-
-        RuleFor(x => x.CoverImageUrl)
-            .MaximumLength(1000);
-
-        RuleFor(x => x.Location)
+            .WithMessage("Start date/time is required")
+            .GreaterThan(DateTime.UtcNow.AddDays(MinimumDaysAhead))
+            .WithMessage($"Events must be scheduled at least {MinimumDaysAhead} day(s) in advance. Please select a start date after {DateTime.UtcNow.AddDays(MinimumDaysAhead):MMM dd, yyyy}.");
+        
+        RuleFor(x => x.EndDateTime)
             .NotEmpty()
-            .MaximumLength(500);
-
-        RuleFor(x => x.StartDate)
-            .NotEmpty();
-
-        RuleFor(x => x.EndDate)
-            .NotEmpty()
-            .GreaterThan(x => x.StartDate)
-            .WithMessage("EndDate phải sau StartDate.");
-
-        RuleFor(x => x.EventType)
-            .InclusiveBetween(1, 2)
-            .WithMessage("EventType phải là 1 (MallEvent) hoặc 2 (BrandEvent).");
-
-        RuleFor(x => x.ShopId)
-            .NotEmpty()
-            .When(x => x.EventType == 2)
-            .WithMessage("ShopId là bắt buộc khi EventType là BrandEvent.");
-
-        RuleFor(x => x.ShopName)
-            .MaximumLength(300);
+            .WithMessage("End date/time is required")
+            .GreaterThan(x => x.StartDateTime)
+            .WithMessage("End date must be after start date");
+        
+        RuleFor(x => x.LocationType).InclusiveBetween(1, 5);
+        RuleFor(x => x.ApprovalStatus).InclusiveBetween(1, 3);
+        RuleFor(x => x.GiftDescription).MaximumLength(500);
     }
 }

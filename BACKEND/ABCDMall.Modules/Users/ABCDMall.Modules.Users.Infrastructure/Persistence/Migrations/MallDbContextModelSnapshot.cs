@@ -22,6 +22,54 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.CarouselBid", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
+
+                    b.Property<decimal>("BidAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ShopId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime>("TargetMondayDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TemplateData")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TemplateType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShopId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("TargetMondayDate");
+
+                    b.ToTable("CarouselBids");
+                });
+
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.ForgotPasswordOtp", b =>
                 {
                     b.Property<string>("Id")
@@ -64,6 +112,40 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ForgotPasswordOtps");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.MovieCarouselAd", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("TargetMondayDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("TargetMondayDate")
+                        .IsUnique();
+
+                    b.ToTable("MovieCarouselAds");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PasswordResetOtp", b =>

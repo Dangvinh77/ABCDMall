@@ -3,6 +3,7 @@ using ABCDMall.Modules.Users.Application.DTOs.Auth;
 using ABCDMall.Modules.Users.Application.DTOs.Common;
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Application.DTOs;
+using ABCDMall.Modules.Users.Application.Services.RentalAreas;
 using ABCDMall.Modules.UtilityMap.Application.Services.Maps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,7 @@ public class AuthController : ControllerBase
     private readonly IUserQueryService _userQueryService;
     private readonly IDevOtpDebugService _devOtpDebugService;
     private readonly IMapCommandService _mapCommandService;
+    private readonly IRentalAreaCommandService _rentalAreaCommandService;
     private readonly IWebHostEnvironment _environment;
 
     public AuthController(
@@ -26,12 +28,14 @@ public class AuthController : ControllerBase
         IUserQueryService userQueryService,
         IDevOtpDebugService devOtpDebugService,
         IMapCommandService mapCommandService,
+        IRentalAreaCommandService rentalAreaCommandService,
         IWebHostEnvironment environment)
     {
         _userCommandService = userCommandService;
         _userQueryService = userQueryService;
         _devOtpDebugService = devOtpDebugService;
         _mapCommandService = mapCommandService;
+        _rentalAreaCommandService = rentalAreaCommandService;
         _environment = environment;
     }
 
@@ -73,6 +77,25 @@ public class AuthController : ControllerBase
     [HttpPost("forgotpassword/confirm-otp")]
     public async Task<IActionResult> ConfirmForgotPasswordOtp(ConfirmForgotPasswordOtpDto dto)
         => FromResult(await _userCommandService.ConfirmForgotPasswordOtpAsync(dto));
+
+    [HttpPost("forgotpassword/dev-otp")]
+    public async Task<IActionResult> GetSeedForgotPasswordOtp(SeedForgotPasswordOtpRequestDto dto)
+    {
+        if (!_environment.IsDevelopment())
+        {
+            return NotFound();
+        }
+
+        var result = await _devOtpDebugService.GetSeedForgotPasswordOtpAsync(dto);
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(result.Value),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
 
     [Authorize(Roles = "Admin")]
     [HttpPost("debug/otp")]
@@ -399,6 +422,26 @@ public class AuthController : ControllerBase
             && !string.IsNullOrWhiteSpace(result.Value?.ShopId))
         {
             await _mapCommandService.ReserveSlotAsync(dto.MapLocationId.Value, result.Value.ShopId);
+
+            var businessType = string.IsNullOrWhiteSpace(dto.BusinessType)
+                ? "Shop"
+                : dto.BusinessType.Trim();
+            var rentalSyncResult = await _rentalAreaCommandService.SyncRegisteredManagerRentalAsync(
+                dto.MapLocationId.Value.ToString(),
+                result.Value.ShopId,
+                result.Value.ShopName,
+                businessType);
+
+            if (rentalSyncResult.Status != ApplicationResultStatus.Ok)
+            {
+                return rentalSyncResult.Status switch
+                {
+                    ApplicationResultStatus.BadRequest => BadRequest(rentalSyncResult.Error),
+                    ApplicationResultStatus.NotFound => NotFound(rentalSyncResult.Error),
+                    ApplicationResultStatus.Unauthorized => Unauthorized(rentalSyncResult.Error),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError)
+                };
+            }
         }
 
         return result.Status switch

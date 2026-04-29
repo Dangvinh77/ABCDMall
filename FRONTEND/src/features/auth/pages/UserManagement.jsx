@@ -10,6 +10,18 @@ const emptyEditForm = {
   cccd: "",
 };
 
+function getBusinessTypeBadgeClasses(businessType) {
+  if (businessType === "FoodCourt") {
+    return "bg-amber-100 text-amber-800";
+  }
+
+  if (businessType === "Shop") {
+    return "bg-sky-100 text-sky-800";
+  }
+
+  return "bg-slate-100 text-slate-600";
+}
+
 export default function UserManagement() {
   const role = localStorage.getItem("role") || "Guest";
   const isAdmin = role === "Admin";
@@ -291,10 +303,11 @@ export default function UserManagement() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1120px] table-auto border-collapse text-left">
                   <colgroup>
-                    <col className="w-[32%]" />
-                    <col className="w-[14%]" />
-                    <col className="w-[24%]" />
+                    <col className="w-[28%]" />
+                    <col className="w-[12%]" />
+                    <col className="w-[16%]" />
                     <col className="w-[20%]" />
+                    <col className="w-[14%]" />
                     <col className="w-[10%]" />
                   </colgroup>
                   <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -303,6 +316,7 @@ export default function UserManagement() {
                       <th className="px-4 py-3">Role</th>
                       <th className="px-4 py-3">Full Name</th>
                       <th className="px-4 py-3">Shop</th>
+                      <th className="px-4 py-3">Business Type</th>
                       <th className="px-4 py-3">Action</th>
                     </tr>
                   </thead>
@@ -313,6 +327,15 @@ export default function UserManagement() {
                         <td className="whitespace-nowrap px-4 py-4">{user.role}</td>
                         <td className="px-4 py-4">{user.fullName || "-"}</td>
                         <td className="px-4 py-4">{user.shopName || "-"}</td>
+                        <td className="px-4 py-4">
+                          {user.businessType ? (
+                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${getBusinessTypeBadgeClasses(user.businessType)}`}>
+                              {user.businessType}
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-4">
                           <button type="button" onClick={() => { setSelectedUser(user); setDebugOtp(null); }} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5">View</button>
                         </td>
@@ -337,6 +360,7 @@ export default function UserManagement() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Role</p><p className="mt-1 font-bold text-slate-950">{selectedUser.role}</p></div>
               <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Shop</p><p className="mt-1 font-bold text-slate-950">{selectedUser.shopName || "-"}</p></div>
+              <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Business Type</p><p className="mt-1 font-bold text-slate-950">{selectedUser.businessType || "-"}</p></div>
               <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">CCCD</p><p className="mt-1 font-bold text-slate-950">{selectedUser.cccd || "-"}</p></div>
               <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Status</p><p className="mt-1 font-bold text-slate-950">{selectedUser.isActive === false ? "Inactive" : "Active"}</p></div>
             </div>

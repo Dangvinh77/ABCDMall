@@ -3,11 +3,16 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { HomePage } from "../pages/home/HomePage";
 
 const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagement"));
+const AdminBiddingPage = lazy(() => import("../features/bidding/pages/AdminBiddingPage"));
 const ChangeInitialPassword = lazy(() => import("../features/auth/pages/ChangeInitialPassword"));
+const BiddingCheckoutPage = lazy(() => import("../features/bidding/pages/BiddingCheckoutPage"));
+const BiddingPaymentCancelPage = lazy(() => import("../features/bidding/pages/BiddingPaymentCancelPage"));
+const BiddingPaymentSuccessPage = lazy(() => import("../features/bidding/pages/BiddingPaymentSuccessPage"));
 const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
 const FoodCourtManager = lazy(() => import("../features/auth/pages/FoodCourtManager"));
 const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
 const Login = lazy(() => import("../features/auth/pages/Login"));
+const ManagerBiddingPage = lazy(() => import("../features/bidding/pages/ManagerBiddingPage"));
 const ManagerShops = lazy(() => import("../features/auth/pages/ManagerShops"));
 const Profile = lazy(() => import("../features/auth/pages/Profile"));
 const Register = lazy(() => import("../features/auth/pages/Register"));
@@ -28,6 +33,9 @@ const MapPage = lazy(() => import("../pages/directory/MapPage").then((module) =>
 const EventsPage = lazy(() => import("../pages/events/EventsPage").then((module) => ({ default: module.EventsPage })));
 const FeedbackPage = lazy(() => import("../pages/feedbacks/FeedbackPage").then((module) => ({ default: module.FeedbackPage })));
 const FaqPage = lazy(() => import("../pages/support/FaqPage").then((module) => ({ default: module.FaqPage })));
+const EventDetailPage = lazy(() => import("../pages/events/EventDetailPage").then((module) => ({ default: module.EventDetailPage })));
+const AdminEventsPage = lazy(() => import("../features/events/pages/AdminEventsPage").then((module) => ({ default: module.AdminEventsPage })));
+const ManagerEventsPage = lazy(() => import("../features/events/pages/ManagerEventsPage").then((module) => ({ default: module.ManagerEventsPage })));
 
 function RouteFallback() {
   return (
@@ -50,6 +58,10 @@ export function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/change-initial-password" element={<ChangeInitialPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/manager-bidding" element={<ManagerBiddingPage />} />
+        <Route path="/manager-bidding/checkout/:bidId" element={<BiddingCheckoutPage />} />
+        <Route path="/manager-bidding/payment/success" element={<BiddingPaymentSuccessPage />} />
+        <Route path="/manager-bidding/payment/cancel" element={<BiddingPaymentCancelPage />} />
         <Route path="/food-court-manager" element={<FoodCourtManager />} />
         <Route path="/manager-shops" element={<ManagerShops />} />
         <Route path="/profile" element={<Profile />} />
@@ -57,6 +69,7 @@ export function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/shop-info" element={<ShopInfo />} />
         <Route path="/admin-management" element={<AdminManagement />} />
+        <Route path="/admin-management/bidding" element={<AdminBiddingPage />} />
         <Route path="/admin-management/users" element={<UserManagement />} />
         <Route path="/admin-management/revenue" element={<RevenueStatistics />} />
         <Route path="/rental-areas" element={<RentalAreasAdmin />} />
@@ -72,6 +85,9 @@ export function AppRoutes() {
 
         <Route path="/shops/*" element={<ShopsRoutes />} />
         <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route path="/admin-management/events" element={<AdminEventsPage />} />
+        <Route path="/manager-events" element={<ManagerEventsPage />} />
         <Route
           path="/gallery"
           element={

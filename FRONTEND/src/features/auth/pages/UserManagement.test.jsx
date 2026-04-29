@@ -171,4 +171,99 @@ describe("UserManagement", () => {
       totalLabel.compareDocumentPosition(emailHeader) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
+
+  it("shows business type badges for manager accounts", async () => {
+    getMock
+      .mockResolvedValueOnce([
+        {
+          id: "user-4",
+          email: "food.manager@example.com",
+          role: "Manager",
+          fullName: "Food Manager",
+          shopName: "Ocean Blue Seafood Buffet",
+          businessType: "FoodCourt",
+          isActive: true,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    render(
+      <MemoryRouter>
+        <UserManagement />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("food.manager@example.com")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /business type/i })).toBeInTheDocument();
+    expect(screen.getByText("FoodCourt")).toBeInTheDocument();
+  });
+
+  it("sends business type when updating a manager account", async () => {
+    getMock
+      .mockResolvedValueOnce([
+        {
+          id: "user-5",
+          email: "manager.update@example.com",
+          role: "Manager",
+          fullName: "Update Manager",
+          shopName: "Update Shop",
+          businessType: "Shop",
+          cccd: "123456789",
+          address: "Old address",
+          isActive: true,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    putMock.mockResolvedValueOnce({});
+
+    render(
+      <MemoryRouter>
+        <UserManagement />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("manager.update@example.com")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^view$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /update account/i }));
+    fireEvent.change(screen.getByLabelText(/business type/i), { target: { value: "FoodCourt" } });
+    fireEvent.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(putMock).toHaveBeenCalledWith("/Auth/users/user-5", expect.objectContaining({
+        businessType: "FoodCourt",
+      }));
+    });
+  });
+
+  it("locks business type to movies for movies admin accounts", async () => {
+    getMock
+      .mockResolvedValueOnce([
+        {
+          id: "user-6",
+          email: "movies.admin@example.com",
+          role: "MoviesAdmin",
+          fullName: "Movies Admin",
+          businessType: "Movies",
+          isActive: true,
+        },
+      ])
+      .mockResolvedValueOnce([]);
+
+    render(
+      <MemoryRouter>
+        <UserManagement />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("movies.admin@example.com")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^view$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /update account/i }));
+
+    const businessTypeSelect = screen.getByLabelText(/business type/i);
+    expect(businessTypeSelect).toBeDisabled();
+    expect(businessTypeSelect).toHaveValue("Movies");
+  });
 });

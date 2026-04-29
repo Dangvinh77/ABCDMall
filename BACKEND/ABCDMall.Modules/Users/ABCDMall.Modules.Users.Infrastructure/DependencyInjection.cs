@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Users.Application.Services.Auth;
+using ABCDMall.Modules.Users.Application.Services.Bidding;
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 using ABCDMall.Modules.Users.Application.Services.RentalPayments;
 using ABCDMall.Modules.Users.Application.Services.RentalAreas;
@@ -44,10 +45,12 @@ public static class DependencyInjection
         services.AddScoped<IPublicShopCatalogReadRepository, PublicShopCatalogReadRepository>();
         services.AddScoped<IManagerBusinessRouteRepository, ManagerBusinessRouteRepository>();
         services.AddScoped<IShopInfoPublicManagerRepository, ShopInfoPublicManagerRepository>();
+        services.AddScoped<IBiddingRepository, BiddingRepository>();
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IStripeCheckoutClient, StripeCheckoutClient>();
+        services.AddScoped<IBidStripePaymentGateway, BidStripePaymentGateway>();
         services.Configure<StripeSettings>(configuration.GetSection("StripeSettings"));
 
         var jwtKey = configuration["Jwt:Key"]

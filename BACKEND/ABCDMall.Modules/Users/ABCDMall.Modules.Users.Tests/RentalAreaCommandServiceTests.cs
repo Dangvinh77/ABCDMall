@@ -124,6 +124,33 @@ public class RentalAreaCommandServiceTests
         Assert.Equal("Business type is required", result.Error);
     }
 
+    [Fact]
+    public async Task SyncRegisteredManagerRentalAsync_updates_rental_area_with_business_type_and_manager_shop()
+    {
+        var repository = new FakeRentalAreaCommandRepository
+        {
+            RentalArea = new RentalArea
+            {
+                Id = "22",
+                AreaCode = "FC-08",
+                Status = "Available"
+            }
+        };
+
+        var service = new RentalAreaCommandService(
+            null!,
+            repository,
+            new FakeFileStorageService());
+
+        var result = await service.SyncRegisteredManagerRentalAsync("22", "shop-008", "Food Stall 08", "FoodCourt");
+
+        Assert.Equal(ApplicationResultStatus.Ok, result.Status);
+        Assert.Equal("Rented", repository.RentalArea!.Status);
+        Assert.Equal("shop-008", repository.RentalArea.ShopInfoId);
+        Assert.Equal("Food Stall 08", repository.RentalArea.TenantName);
+        Assert.Equal("FoodCourt", repository.RentalArea.BusinessType);
+    }
+
     private sealed class FakeRentalAreaCommandRepository : IRentalAreaCommandRepository
     {
         public RentalArea? RentalArea { get; set; }

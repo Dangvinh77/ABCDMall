@@ -8,6 +8,7 @@ public sealed class UserSummaryResponseDto
     public string? FullName { get; set; }
     public string? ShopId { get; set; }
     public string? ShopName { get; set; }
+    public string? BusinessType { get; set; }
     public string? Image { get; set; }
     public string? Address { get; set; }
     public string? CCCD { get; set; }

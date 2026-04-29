@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Users.Application.Services.RentalAreas;
 using ABCDMall.Modules.Users.Domain.Entities;
+using ABCDMall.Modules.UtilityMap.Domain.Entities;
 using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,6 +46,14 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
         if (mapLocation is null)
         {
             return null;
+        }
+
+        var persistedByAreaCode = await _context.RentalAreas
+            .FirstOrDefaultAsync(x => x.AreaCode == mapLocation.LocationSlot, cancellationToken);
+        if (persistedByAreaCode is not null)
+        {
+            _transientRentalAreas[rentalAreaId] = persistedByAreaCode;
+            return persistedByAreaCode;
         }
 
         var bridgedRentalArea = new RentalArea
@@ -116,9 +125,10 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
 
         changedRentalAreas.AddRange(_transientRentalAreas.Values);
 
-        foreach (var rentalArea in changedRentalAreas)
+        foreach (var rentalArea in changedRentalAreas.Distinct())
         {
-            var persistedRentalArea = await _context.RentalAreas.FirstOrDefaultAsync(x => x.Id == rentalArea.Id, cancellationToken);
+            var persistedRentalArea = await _context.RentalAreas.FirstOrDefaultAsync(x => x.Id == rentalArea.Id, cancellationToken)
+                ?? await _context.RentalAreas.FirstOrDefaultAsync(x => x.AreaCode == rentalArea.AreaCode, cancellationToken);
             if (persistedRentalArea is null)
             {
                 persistedRentalArea = new RentalArea
@@ -144,12 +154,15 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
             persistedRentalArea.ShopInfoId = rentalArea.ShopInfoId;
             persistedRentalArea.BusinessType = rentalArea.BusinessType;
 
-            if (!int.TryParse(rentalArea.Id, out var mapLocationId))
+            MapLocation? mapLocation = null;
+            if (int.TryParse(rentalArea.Id, out var mapLocationId))
             {
-                continue;
+                mapLocation = await _utilityMapContext.MapLocations.FirstOrDefaultAsync(x => x.Id == mapLocationId, cancellationToken);
             }
 
-            var mapLocation = await _utilityMapContext.MapLocations.FirstOrDefaultAsync(x => x.Id == mapLocationId, cancellationToken);
+            mapLocation ??= await _utilityMapContext.MapLocations
+                .FirstOrDefaultAsync(x => x.LocationSlot == rentalArea.AreaCode, cancellationToken);
+
             if (mapLocation is null)
             {
                 continue;

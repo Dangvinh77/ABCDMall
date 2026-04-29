@@ -6,7 +6,7 @@ Date: 2026-04-29
 
 Replace the `Snacks` action on the movies home page with `Support`, route that action to the existing `/faq` page, and add a support preview block on the movies home page that uses the same support data source as the FAQ page.
 
-The implementation must stop treating support content as movie-only demo UI. The movies home page and the FAQ page should consume the same support-facing data contract so the preview and the full support page stay aligned.
+The implementation must stop treating support content as movie-only demo UI. The movies home page and the FAQ page should consume the same support-facing data contract so the preview and the full support page stay aligned, even when the shared source is frontend-managed.
 
 ## Goals
 
@@ -16,6 +16,7 @@ The implementation must stop treating support content as movie-only demo UI. The
 - Reuse one support data source for both the support preview and the FAQ page.
 - Remove the current dependency on hardcoded FAQ content inside `FaqFeature`.
 - Keep the support experience scoped to the existing mall support page instead of creating a second movies-only support route.
+- Use a frontend-shared support source for now because no backend FAQ/support content endpoint was found during repository verification on 2026-04-29.
 
 ## Non-Goals
 
@@ -36,7 +37,7 @@ The implementation must stop treating support content as movie-only demo UI. The
 ### Backend
 
 - During repository inspection on 2026-04-29, no obvious FAQ or support content endpoint/controller was found under `BACKEND/**/*.cs`.
-- This means the implementation plan must treat backend support integration as a verification item, not an assumption. If a support endpoint exists under a non-obvious name, the frontend should connect to it. If it does not exist, the implementation should stop and surface the gap instead of silently inventing one.
+- The approved fallback for this change is frontend-only shared support content. That content should still move out of `FaqFeature` and into a reusable support data layer so both `/faq` and the movies home preview stay synchronized.
 
 ## Recommended Approach
 
@@ -44,10 +45,10 @@ Use the existing `/faq` page as the canonical support destination and introduce 
 
 - movies header button links to `/faq`
 - movies home renders a support preview section
-- FAQ page and support preview both read from a shared adapter or hook
-- the adapter is responsible for mapping backend support data into a frontend-friendly shape
+- FAQ page and support preview both read from a shared loader or adapter
+- the shared loader owns the support categories/questions currently embedded in `FaqFeature`
 
-This is the recommended approach because it avoids duplicate support pages, keeps navigation simple, and creates one place to change support content behavior later.
+This is the recommended approach because it avoids duplicate support pages, keeps navigation simple, and removes the current support-data duplication even without a backend content endpoint.
 
 ## Alternative Approaches Considered
 
@@ -60,7 +61,7 @@ Why this is recommended:
 - meets both requested behaviors
 - avoids duplicate support destinations
 - keeps support content aligned across pages
-- supports a backend-backed content source when the endpoint is confirmed
+- keeps the code ready for a future backend content source when one exists
 
 ### Option 2
 
@@ -95,14 +96,14 @@ This change should not introduce a new movies route helper unless one is actuall
 
 ### 2. Shared Support Data Layer
 
-Create a small support-facing frontend data layer that sits between UI components and raw support data.
+Create a small support-facing frontend data layer that sits between UI components and the shared support content.
 
 Responsibilities:
 
-- fetch support FAQ data from backend if an endpoint exists
-- map raw category/question data into a stable UI model
+- define the shared support categories and FAQ items in one place
+- expose one loader that returns a stable UI model
 - expose one loader that both the FAQ page and movies home can use
-- centralize fallback/error handling instead of duplicating it in multiple pages
+- centralize support-content ownership instead of duplicating it in multiple pages
 
 Expected output shape:
 
@@ -145,26 +146,24 @@ Presentation:
 
 ### 5. Error Handling and Fallback Rules
 
-Support content must not quietly fall back to hidden demo data.
+Support content must not be duplicated across screens.
 
 Rules:
 
-- if backend support data loads successfully, both `/faq` and the movies support preview use it
-- if the support endpoint is missing or integration is blocked, implementation must surface that explicitly during development rather than silently shipping contradictory data paths
-- UI fallback may show a limited empty-state message and a CTA to `/feedback`, but only after the integration path is intentionally defined
+- both `/faq` and the movies support preview must consume the same shared support loader
+- `FaqFeature` must no longer own a separate local FAQ array
+- the shared loader may be synchronous for now because the approved fallback is frontend-only
 
 ## Testing Strategy
 
 - Add or update frontend tests for the movies header navigation change.
-- Add or update FAQ feature tests for backend-driven data rendering.
+- Add or update FAQ feature tests for shared-loader-driven data rendering.
 - Add or update movies home tests for support preview rendering, loading states, and `/faq` CTA behavior.
 - Verify that removing local hardcoded FAQ arrays does not break `/faq` interactions.
 
-## Open Constraint
+## Future Constraint
 
-The key implementation constraint is backend discovery:
+If a real backend FAQ/support endpoint is added later:
 
-- if a support FAQ endpoint already exists under a non-obvious module or route, use it
-- if no such endpoint exists, stop and raise the mismatch because the requested backend-backed support source is not actually present in the inspected codebase
-
-This constraint should be resolved before implementation code is written.
+- move the shared loader behind an API fetch instead of duplicating page-specific fetch logic
+- keep the `FaqFeature` and movies support preview wired to the same loader contract

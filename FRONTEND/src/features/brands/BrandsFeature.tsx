@@ -173,13 +173,13 @@ export const BrandsFeature = () => {
                     <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
                       <img 
                         //src={brand.logoUrl} 
-                         src={getImageUrl(brand.logoUrl)}
+                         src={getImageUrl(brand.logoUrl ?? brand.imageUrl)}
                         alt={brand.name} 
                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
                       />
                     </div>
                     <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.floor)}</p>
+                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.location)}</p>
                   </Link>
                 ))}
               </div>

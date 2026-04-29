@@ -8,6 +8,7 @@ export default function Register() {
     fullName: "",
     shopName: "",
     cccd: "",
+    businessType: "Shop",
     floor: "",
     locationSlot: "",
     leaseStartDate: "",
@@ -53,6 +54,7 @@ export default function Register() {
         fullName: "",
         shopName: "",
         cccd: "",
+        businessType: "Shop",
         floor: "",
         locationSlot: "",
         leaseStartDate: "",
@@ -119,6 +121,13 @@ export default function Register() {
                       <input aria-label="CCCD" value={form.cccd} onChange={(e) => setValue("cccd", e.target.value)} className="mt-2 w-full rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-white outline-none" />
                     </label>
                   </div>
+
+                  <label className="block text-sm font-semibold text-white/80">Business Type
+                    <select aria-label="Business Type" value={form.businessType} onChange={(e) => setValue("businessType", e.target.value)} className="mt-2 w-full rounded-[16px] border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none">
+                      <option value="Shop">Shop</option>
+                      <option value="FoodCourt">Food Court</option>
+                    </select>
+                  </label>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block text-sm font-semibold text-white/80">Floor
