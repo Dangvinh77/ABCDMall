@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Users.Application.Services.Auth;
 using ABCDMall.Modules.Users.Domain.Entities;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABCDMall.Modules.Users.Infrastructure;
@@ -7,10 +8,12 @@ namespace ABCDMall.Modules.Users.Infrastructure;
 public sealed class UserCommandRepository : IUserCommandRepository
 {
     private readonly MallDbContext _context;
+    private readonly UtilityMapDbContext _utilityMapContext;
 
-    public UserCommandRepository(MallDbContext context)
+    public UserCommandRepository(MallDbContext context, UtilityMapDbContext utilityMapContext)
     {
         _context = context;
+        _utilityMapContext = utilityMapContext;
     }
 
     public Task<User?> GetUserByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
@@ -40,15 +43,10 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
         => _context.ShopInfos.FirstOrDefaultAsync(x => x.Id == shopId, cancellationToken);
 
-    public Task<ShopInfo?> GetShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default)
-        => _context.ShopInfos.FirstOrDefaultAsync(
-            x => x.CCCD == normalizedCccd && (excludedShopId == null || x.Id != excludedShopId),
-            cancellationToken);
-
     public Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default)
         => string.IsNullOrWhiteSpace(shopId)
             ? Task.FromResult(false)
-            : _context.RentalAreas.AnyAsync(
+            : _utilityMapContext.MapLocations.AnyAsync(
                 x => x.ShopInfoId == shopId && x.Status != "Available",
                 cancellationToken);
 
@@ -69,12 +67,6 @@ public sealed class UserCommandRepository : IUserCommandRepository
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-    public Task<ForgotPasswordOtp?> GetLatestForgotPasswordOtpByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
-        => _context.ForgotPasswordOtps
-            .Where(x => x.Email.ToLower() == normalizedEmail && !x.IsUsed)
-            .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
-
     public async Task RemoveUnusedPasswordResetOtpsAsync(string userId, CancellationToken cancellationToken = default)
     {
         var items = await _context.PasswordResetOtps
@@ -89,12 +81,6 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task<PasswordResetOtp?> GetPasswordResetOtpAsync(string userId, string otp, CancellationToken cancellationToken = default)
         => _context.PasswordResetOtps
             .Where(x => x.UserId == userId && x.Otp == otp && !x.IsUsed)
-            .OrderByDescending(x => x.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
-
-    public Task<PasswordResetOtp?> GetLatestPasswordResetOtpByUserIdAsync(string userId, CancellationToken cancellationToken = default)
-        => _context.PasswordResetOtps
-            .Where(x => x.UserId == userId && !x.IsUsed)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 

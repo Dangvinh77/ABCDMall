@@ -18,8 +18,6 @@ public interface IUserCommandRepository
 
     Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default);
 
-    Task<ShopInfo?> GetShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default);
-
     Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default);
 
     Task RemoveUnusedForgotPasswordOtpsAsync(string normalizedEmail, CancellationToken cancellationToken = default);
@@ -28,15 +26,11 @@ public interface IUserCommandRepository
 
     Task<ForgotPasswordOtp?> GetForgotPasswordOtpAsync(string normalizedEmail, string otp, CancellationToken cancellationToken = default);
 
-    Task<ForgotPasswordOtp?> GetLatestForgotPasswordOtpByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default);
-
     Task RemoveUnusedPasswordResetOtpsAsync(string userId, CancellationToken cancellationToken = default);
 
     Task AddPasswordResetOtpAsync(PasswordResetOtp otp, CancellationToken cancellationToken = default);
 
     Task<PasswordResetOtp?> GetPasswordResetOtpAsync(string userId, string otp, CancellationToken cancellationToken = default);
-
-    Task<PasswordResetOtp?> GetLatestPasswordResetOtpByUserIdAsync(string userId, CancellationToken cancellationToken = default);
 
     Task AddProfileUpdateHistoryAsync(ProfileUpdateHistory history, CancellationToken cancellationToken = default);
 

@@ -43,7 +43,7 @@ export default function ShopPage() {
             <input
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
-              placeholder="Search stores, categories, or locations..."
+              placeholder="Tìm cửa hàng, danh mục hoặc vị trí..."
               className="w-full rounded-[1.25rem] px-5 py-4 text-slate-700 outline-none"
             />
           </div>
@@ -54,7 +54,7 @@ export default function ShopPage() {
         <div className="flex flex-col gap-4 rounded-[2rem] bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-mall-primary">
-              API Connected
+              Kết nối API
             </p>
             <h2 className="mt-2 text-2xl font-black text-slate-900">
               Store imagery is now rendered from API data instead of static content.

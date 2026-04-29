@@ -28,7 +28,7 @@ internal sealed class ShopMonthlyBillConfiguration : IEntityTypeConfiguration<Sh
         entity.Property(x => x.WaterFee).HasPrecision(18, 2);
         entity.Property(x => x.ServiceFee).HasPrecision(18, 2);
         entity.Property(x => x.TotalDue).HasPrecision(18, 2);
-        entity.Property(x => x.PaymentStatus).HasMaxLength(50).HasDefaultValue("Unpaid").IsRequired();
+        entity.Property(x => x.PaymentStatus).HasMaxLength(30).HasDefaultValue("Unpaid").IsRequired();
         entity.Property(x => x.StripeSessionId).HasMaxLength(200);
         entity.Property(x => x.StripePaymentIntentId).HasMaxLength(200);
         entity.Property(x => x.ContractImage).HasMaxLength(500);

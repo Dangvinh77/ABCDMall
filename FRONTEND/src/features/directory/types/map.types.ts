@@ -7,6 +7,8 @@ export interface MapLocation {
   x: number;
   y: number;
   storefrontImageUrl: string;
+  status: string; 
+  shopInfoId?: string | null; 
 }
 
 export interface FloorPlan {

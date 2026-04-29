@@ -1,9 +1,9 @@
 using ABCDMall.Modules.Users.Application.DTOs.PublicCatalog;
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
-using ABCDMall.Modules.UtilityMap.Application.Services.Maps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ABCDMall.Modules.UtilityMap.Application.Services.Maps;
 
 namespace ABCDMall.WebAPI.Controllers;
 
@@ -14,15 +14,15 @@ public class ShopsController : ControllerBase
     private readonly IPublicShopCatalogService _shopCatalogService;
     private readonly IShopInfoPublicManagerService _shopManagerService;
     private readonly IMapCommandService _mapCommandService;
-
+    
     public ShopsController(
         IPublicShopCatalogService shopCatalogService,
         IShopInfoPublicManagerService shopManagerService,
-        IMapCommandService mapCommandService)
+        IMapCommandService mapCommandService)   // <-- THÊM
     {
         _shopCatalogService = shopCatalogService;
         _shopManagerService = shopManagerService;
-        _mapCommandService = mapCommandService;
+        _mapCommandService = mapCommandService; // <-- THÊM
     }
 
     [AllowAnonymous]
@@ -82,8 +82,8 @@ public class ShopsController : ControllerBase
     [Authorize(Roles = "Manager")]
     [HttpPost("manager")]
     public async Task<ActionResult<PublicShopDto>> CreateMyShop(
-        [FromForm] UpsertShopInfoPublicRequestDto request,
-        CancellationToken cancellationToken = default)
+            [FromForm] UpsertShopInfoPublicRequestDto request,
+            CancellationToken cancellationToken = default)
     {
         var ownerShopId = GetOwnerShopId();
         if (string.IsNullOrWhiteSpace(ownerShopId))
@@ -94,8 +94,12 @@ public class ShopsController : ControllerBase
         try
         {
             var shop = await _shopManagerService.CreateMyShopAsync(ownerShopId, request, cancellationToken);
-            await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, shop.ShopStatus, cancellationToken);
-            await _mapCommandService.UpdateLocationDetailsByShopInfoIdAsync(ownerShopId, shop.Name, $"/shops/{shop.Slug}", cancellationToken);
+
+            // --- MỚI: Sync trạng thái slot trên bản đồ ---
+            // ownerShopId là ShopInfo.Id được link trong MapLocation.ShopInfoId
+            var mapStatus = ShopInfoPublicMapper.DeriveShopStatus(request.OpeningDate);
+            await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, mapStatus, cancellationToken);
+
             return CreatedAtAction(nameof(GetShopBySlug), new { slug = shop.Slug }, shop);
         }
         catch (InvalidOperationException ex)
@@ -120,13 +124,13 @@ public class ShopsController : ControllerBase
         try
         {
             var shop = await _shopManagerService.UpdateMyShopAsync(ownerShopId, id, request, cancellationToken);
-            if (shop is not null)
-            {
-                await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, shop.ShopStatus, cancellationToken);
-                await _mapCommandService.UpdateLocationDetailsByShopInfoIdAsync(ownerShopId, shop.Name, $"/shops/{shop.Slug}", cancellationToken);
-            }
+            if (shop is null) return NotFound();
 
-            return shop is null ? NotFound() : Ok(shop);
+            // --- MỚI: Sync trạng thái slot trên bản đồ ---
+            var mapStatus = ShopInfoPublicMapper.DeriveShopStatus(request.OpeningDate);
+            await _mapCommandService.UpdateSlotStatusByShopInfoIdAsync(ownerShopId, mapStatus, cancellationToken);
+
+            return Ok(shop);
         }
         catch (InvalidOperationException ex)
         {

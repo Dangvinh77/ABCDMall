@@ -1,0 +1,2530 @@
+.
+├── -p
+├── BACKEND
+│   ├── ABCDMall.Modules
+│   │   ├── Events
+│   │   │   ├── ABCDMall.Modules.Events.Application
+│   │   │   │   ├── ABCDMall.Modules.Events.Application.csproj
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── EventDto.cs
+│   │   │   │   │   └── Events
+│   │   │   │   │       ├── CreateEventRequestDto.cs
+│   │   │   │   │       ├── EventListQueryDto.cs
+│   │   │   │   │       └── UpdateEventRequestDto.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Mappings
+│   │   │   │   │   └── EventProfile.cs
+│   │   │   │   ├── Services
+│   │   │   │   │   └── Events
+│   │   │   │   │       ├── EventCommandService.cs
+│   │   │   │   │       ├── EventQueryService.cs
+│   │   │   │   │       ├── IEventCommandService.cs
+│   │   │   │   │       ├── IEventQueryService.cs
+│   │   │   │   │       ├── IEventRepository.cs
+│   │   │   │   │       └── Validators
+│   │   │   │   │           ├── CreateEventRequestDtoValidator.cs
+│   │   │   │   │           ├── EventListQueryDtoValidator.cs
+│   │   │   │   │           └── UpdateEventRequestDtoValidator.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Events.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.983C8C87.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Events.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Events.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Events.Domain
+│   │   │   │   ├── ABCDMall.Modules.Events.Domain.csproj
+│   │   │   │   ├── Entities
+│   │   │   │   │   └── Event.cs
+│   │   │   │   ├── Enums
+│   │   │   │   │   ├── EventStatus.cs
+│   │   │   │   │   └── EventType.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Events.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Events.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Events.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Events.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Events.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Events.Infrastructure
+│   │   │       ├── ABCDMall.Modules.Events.Infrastructure.csproj
+│   │   │       ├── DependencyInjection.cs
+│   │   │       ├── Persistence
+│   │   │       │   └── Events
+│   │   │       │       ├── Configurations
+│   │   │       │       │   └── EventConfiguration.cs
+│   │   │       │       ├── EventsDbContext.cs
+│   │   │       │       ├── EventsDbContextFactory.cs
+│   │   │       │       └── Migrations
+│   │   │       │           ├── 20260419164000_InitEvents.Designer.cs
+│   │   │       │           ├── 20260419164000_InitEvents.cs
+│   │   │       │           └── EventsDbContextModelSnapshot.cs
+│   │   │       ├── Repositories
+│   │   │       │   └── EventRepository.cs
+│   │   │       ├── Seed
+│   │   │       │   └── FrontendEventsSeed.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Events.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │       │           ├── ABCDMall.Modules.Events.Infrastructure.pdb
+│   │   │       │           └── ABCDMall.Modules.Events.Infrastructure.runtimeconfig.json
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.91C37947.Up2Date
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.genruntimeconfig.cache
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Events.Infrastructure.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
+│   │   ├── Feedbacks
+│   │   │   ├── ABCDMall.Modules.Feedbacks.Application
+│   │   │   │   ├── ABCDMall.Modules.Feedbacks.Application.csproj
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Feedbacks.Application.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Application.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Application.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Feedbacks.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Feedbacks.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Feedbacks.Domain
+│   │   │   │   ├── ABCDMall.Modules.Feedbacks.Domain.csproj
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Feedbacks.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Domain.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Domain.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Feedbacks.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Feedbacks.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure
+│   │   │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Feedbacks.Infrastructure.dll
+│   │   │   │   │           └── ABCDMall.Modules.Feedbacks.Infrastructure.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Feedbacks.Infrastructure.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Feedbacks.Infrastructure.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Feedbacks.Infrastructure.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Feedbacks.Infrastructure.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Movies.Infrastructure
+│   │   ├── FoodCourt
+│   │   │   ├── ABCDMall.Modules.FoodCourt.Application
+│   │   │   │   ├── ABCDMall.Modules.FoodCourt.Application.csproj
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── FoodItemDto.cs
+│   │   │   │   │   └── Foods
+│   │   │   │   │       ├── CreateFoodRequestDto.cs
+│   │   │   │   │       ├── FoodListQueryDto.cs
+│   │   │   │   │       └── UpdateFoodRequestDto.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Helpers
+│   │   │   │   │   └── SlugHelper.cs
+│   │   │   │   ├── Mappings
+│   │   │   │   │   └── FoodProfile.cs
+│   │   │   │   ├── Services
+│   │   │   │   │   └── Foods
+│   │   │   │   │       ├── FoodCommandService.cs
+│   │   │   │   │       ├── FoodQueryService.cs
+│   │   │   │   │       ├── IFoodCommandService.cs
+│   │   │   │   │       ├── IFoodQueryService.cs
+│   │   │   │   │       ├── IFoodRepository.cs
+│   │   │   │   │       └── Validators
+│   │   │   │   │           ├── CreateFoodRequestDtoValidator.cs
+│   │   │   │   │           ├── FoodListQueryDtoValidator.cs
+│   │   │   │   │           └── UpdateFoodRequestDtoValidator.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.3CFAEB70.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.FoodCourt.Domain
+│   │   │   │   ├── ABCDMall.Modules.FoodCourt.Domain.csproj
+│   │   │   │   ├── Entities
+│   │   │   │   │   └── FoodItem.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.FoodCourt.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.FoodCourt.Infrastructure
+│   │   │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj
+│   │   │       ├── DependencyInjection.cs
+│   │   │       ├── Persistence
+│   │   │       │   └── FoodCourt
+│   │   │       │       ├── Configurations
+│   │   │       │       │   └── FoodItemConfiguration.cs
+│   │   │       │       ├── FoodCourtDbContext.cs
+│   │   │       │       ├── FoodCourtDbContextFactory.cs
+│   │   │       │       └── Migrations
+│   │   │       │           ├── 20260418073714_InitFoodCourt.Designer.cs
+│   │   │       │           ├── 20260418073714_InitFoodCourt.cs
+│   │   │       │           └── FoodCourtDbContextModelSnapshot.cs
+│   │   │       ├── Repositories
+│   │   │       │   └── FoodRepository.cs
+│   │   │       ├── Seed
+│   │   │       │   └── FrontendFoodCourtSeed.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.dll
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.pdb
+│   │   │       │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.runtimeconfig.json
+│   │   │       │           ├── ABCDMall.Shared.dll
+│   │   │       │           └── ABCDMall.Shared.pdb
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.FBAA44F3.Up2Date
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.genruntimeconfig.cache
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.FoodCourt.Infrastructure.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.FoodCourt.Infrastructure.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.FoodCourt.Infrastructure.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
+│   │   ├── Marketing
+│   │   │   ├── ABCDMall.Modules.Marketing.Application
+│   │   │   │   ├── ABCDMall.Modules.Marketing.Application.csproj
+│   │   │   │   ├── Class1.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Application.dll
+│   │   │   │   │           └── ABCDMall.Modules.Marketing.Application.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Marketing.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Marketing.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Marketing.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Marketing.Domain
+│   │   │   │   ├── ABCDMall.Modules.Marketing.Domain.csproj
+│   │   │   │   ├── Class1.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Marketing.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Marketing.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Marketing.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Marketing.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Marketing.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Marketing.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Marketing.Infrastructure
+│   │   │       ├── ABCDMall.Modules.Marketing.Infrastructure.csproj
+│   │   │       ├── Class1.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Marketing.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Marketing.Infrastructure.dll
+│   │   │       │           └── ABCDMall.Modules.Marketing.Infrastructure.pdb
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Marketing.Infrastructure.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Marketing.Infrastructure.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Marketing.Infrastructure.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
+│   │   ├── Movies
+│   │   │   ├── ABCDMall.Modules.Movies.Application
+│   │   │   │   ├── ABCDMall.Modules.Movies.Application.csproj
+│   │   │   │   ├── Contracts
+│   │   │   │   │   └── MoviesContractValueMapper.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── Bookings
+│   │   │   │   │   │   ├── BookingDetailResponseDto.cs
+│   │   │   │   │   │   ├── BookingHoldComboSnapshotDto.cs
+│   │   │   │   │   │   ├── BookingHoldResponseDto.cs
+│   │   │   │   │   │   ├── BookingHoldSeatResponseDto.cs
+│   │   │   │   │   │   ├── BookingItemResponseDto.cs
+│   │   │   │   │   │   ├── BookingQuoteComboItemDto.cs
+│   │   │   │   │   │   ├── BookingQuoteLineDto.cs
+│   │   │   │   │   │   ├── BookingQuotePromotionDto.cs
+│   │   │   │   │   │   ├── BookingQuoteRequestDto.cs
+│   │   │   │   │   │   ├── BookingQuoteResponseDto.cs
+│   │   │   │   │   │   ├── CreateBookingHoldRequestDto.cs
+│   │   │   │   │   │   ├── CreateBookingRequestDto.cs
+│   │   │   │   │   │   └── CreateBookingResponseDto.cs
+│   │   │   │   │   ├── Movies
+│   │   │   │   │   │   ├── MovieDetailResponseDto.cs
+│   │   │   │   │   │   ├── MovieHomeCinemaDto.cs
+│   │   │   │   │   │   ├── MovieHomeResponseDto.cs
+│   │   │   │   │   │   ├── MovieListItemResponseDto.cs
+│   │   │   │   │   │   ├── MovieListQueryDto.cs
+│   │   │   │   │   │   └── MovieShowtimesQueryDto.cs
+│   │   │   │   │   ├── Payments
+│   │   │   │   │   │   ├── PaymentResponseDto.cs
+│   │   │   │   │   │   ├── PaymentResultRequestDto.cs
+│   │   │   │   │   │   └── PaymentStatusResponseDto.cs
+│   │   │   │   │   ├── Promotions
+│   │   │   │   │   │   ├── EvaluatePromotionComboDto.cs
+│   │   │   │   │   │   ├── EvaluatePromotionRequestDto.cs
+│   │   │   │   │   │   ├── EvaluatePromotionResponseDto.cs
+│   │   │   │   │   │   ├── PromotionDetailResponseDTO.cs
+│   │   │   │   │   │   ├── PromotionResponseDto.cs
+│   │   │   │   │   │   ├── PromotionRuleDto.cs
+│   │   │   │   │   │   └── SnackComboResponseDto.cs
+│   │   │   │   │   └── Showtimes
+│   │   │   │   │       ├── MovieCinemaShowtimesDto.cs
+│   │   │   │   │       ├── MovieShowtimeDateGroupDto.cs
+│   │   │   │   │       ├── MovieShowtimesResponseDto.cs
+│   │   │   │   │       ├── SeatMapResponseDto.cs
+│   │   │   │   │       ├── SeatMapSeatDto.cs
+│   │   │   │   │       ├── ShowtimeDetailResponseDto.cs
+│   │   │   │   │       ├── ShowtimeListItemDto.cs
+│   │   │   │   │       ├── ShowtimeListQueryDto.cs
+│   │   │   │   │       └── ShowtimeResponseDto.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Mappings
+│   │   │   │   │   ├── MovieProfile.cs
+│   │   │   │   │   └── PromotionProfile.cs
+│   │   │   │   ├── Services
+│   │   │   │   │   ├── Bookings
+│   │   │   │   │   │   ├── BookingHoldService.cs
+│   │   │   │   │   │   ├── BookingQuoteService.cs
+│   │   │   │   │   │   ├── BookingService.cs
+│   │   │   │   │   │   ├── IBookingHoldRepository.cs
+│   │   │   │   │   │   ├── IBookingHoldService.cs
+│   │   │   │   │   │   ├── IBookingQuoteService.cs
+│   │   │   │   │   │   ├── IBookingRepository.cs
+│   │   │   │   │   │   ├── IBookingService.cs
+│   │   │   │   │   │   ├── IPaymentRepository.cs
+│   │   │   │   │   │   ├── IPaymentService.cs
+│   │   │   │   │   │   ├── PaymentProcessingResult.cs
+│   │   │   │   │   │   ├── PaymentService.cs
+│   │   │   │   │   │   └── Validators
+│   │   │   │   │   │       ├── BookingQuoteRequestDtoValidator.cs
+│   │   │   │   │   │       ├── CreateBookingHoldRequestDtoValidator.cs
+│   │   │   │   │   │       ├── CreateBookingRequestDtoValidator.cs
+│   │   │   │   │   │       └── PaymentResultRequestDtoValidator.cs
+│   │   │   │   │   ├── Movies
+│   │   │   │   │   │   ├── IMovieQueryService.cs
+│   │   │   │   │   │   ├── IMovieRepository.cs
+│   │   │   │   │   │   ├── MovieQueryService.cs
+│   │   │   │   │   │   └── Validators
+│   │   │   │   │   │       ├── MovieListQueryDtoValidator.cs
+│   │   │   │   │   │       └── MovieShowtimesQueryDtoValidator.cs
+│   │   │   │   │   ├── Promotions
+│   │   │   │   │   │   ├── IPromotionRepository.cs
+│   │   │   │   │   │   ├── ISnackComboQueryService.cs
+│   │   │   │   │   │   ├── Interface
+│   │   │   │   │   │   │   ├── IPromotionEvaluationService.cs
+│   │   │   │   │   │   │   └── IPromotionQueryService.cs
+│   │   │   │   │   │   ├── PromotionEvaluationService.cs
+│   │   │   │   │   │   ├── PromotionQueryService.cs
+│   │   │   │   │   │   ├── SnackComboQueryService.cs
+│   │   │   │   │   │   └── Validators
+│   │   │   │   │   │       └── EvaluatePromotionRequestDtoValidator.cs
+│   │   │   │   │   └── Showtimes
+│   │   │   │   │       ├── ISeatMapQueryService.cs
+│   │   │   │   │       ├── IShowtimeQueryService.cs
+│   │   │   │   │       ├── IShowtimeRepository.cs
+│   │   │   │   │       ├── SeatMapQueryService.cs
+│   │   │   │   │       ├── ShowtimeQueryService.cs
+│   │   │   │   │       └── Validators
+│   │   │   │   │           └── ShowtimeListQueryDtoValidator.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Movies.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Application.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Application.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Application.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Application.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.CDE2596E.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Movies.Domain
+│   │   │   │   ├── ABCDMall.Modules.Movies.Domain.csproj
+│   │   │   │   ├── Entities
+│   │   │   │   │   ├── AuditLog.cs
+│   │   │   │   │   ├── BookingHold.cs
+│   │   │   │   │   ├── BookingHoldSeat.cs
+│   │   │   │   │   ├── BookingItem.cs
+│   │   │   │   │   ├── Bookingg.cs
+│   │   │   │   │   ├── Cinema.cs
+│   │   │   │   │   ├── Genre.cs
+│   │   │   │   │   ├── GuestCustomer.cs
+│   │   │   │   │   ├── Hall.cs
+│   │   │   │   │   ├── HallSeat.cs
+│   │   │   │   │   ├── Movie.cs
+│   │   │   │   │   ├── MovieCredit.cs
+│   │   │   │   │   ├── MovieGenre.cs
+│   │   │   │   │   ├── OutboxEvent.cs
+│   │   │   │   │   ├── Payment.cs
+│   │   │   │   │   ├── Person.cs
+│   │   │   │   │   ├── Promotion.cs
+│   │   │   │   │   ├── PromotionRedemption.cs
+│   │   │   │   │   ├── PromotionRule.cs
+│   │   │   │   │   ├── Showtime.cs
+│   │   │   │   │   ├── ShowtimeSeatInventory.cs
+│   │   │   │   │   ├── SnackCombo.cs
+│   │   │   │   │   └── Ticket.cs
+│   │   │   │   ├── Enums
+│   │   │   │   │   ├── BookingHoldStatus.cs
+│   │   │   │   │   ├── BookingStatus.cs
+│   │   │   │   │   ├── HallType.cs
+│   │   │   │   │   ├── LanguageType.cs
+│   │   │   │   │   ├── MovieStatus.cs
+│   │   │   │   │   ├── PaymentProvider.cs
+│   │   │   │   │   ├── PaymentStatus.cs
+│   │   │   │   │   ├── PromotionEvaluationStatus.cs
+│   │   │   │   │   ├── PromotionRuleType.cs
+│   │   │   │   │   ├── PromotionStatus.cs
+│   │   │   │   │   ├── SeatInventoryStatus.cs
+│   │   │   │   │   ├── SeatType.cs
+│   │   │   │   │   └── ShowtimeStatus.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Movies.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Domain.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Domain.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Domain.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Movies.Infrastructure
+│   │   │   │   ├── ABCDMall.Modules.Movies.Infrastructure.csproj
+│   │   │   │   ├── BackgroundServices
+│   │   │   │   │   └── BookingHoldCleanupBackgroundService.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Persistence
+│   │   │   │   │   ├── Booking
+│   │   │   │   │   │   ├── Configurations
+│   │   │   │   │   │   │   ├── AuditLogConfiguration.cs
+│   │   │   │   │   │   │   ├── BookingHoldConfiguration.cs
+│   │   │   │   │   │   │   ├── BookingHoldSeatConfiguration.cs
+│   │   │   │   │   │   │   ├── BookingItemConfiguration.cs
+│   │   │   │   │   │   │   ├── BookinggConfiguration.cs
+│   │   │   │   │   │   │   ├── GuestCustomerConfiguration.cs
+│   │   │   │   │   │   │   ├── OutboxEventConfiguration.cs
+│   │   │   │   │   │   │   ├── PaymentConfiguration.cs
+│   │   │   │   │   │   │   ├── PromotionConfiguration.cs
+│   │   │   │   │   │   │   ├── PromotionRedemptionConfiguration.cs
+│   │   │   │   │   │   │   ├── PromotionRuleConfiguration.cs
+│   │   │   │   │   │   │   ├── SnackComboConfiguration.cs
+│   │   │   │   │   │   │   └── TicketConfiguration.cs
+│   │   │   │   │   │   ├── Migrations
+│   │   │   │   │   │   │   ├── 20260413102011_InitMoviesBooking.Designer.cs
+│   │   │   │   │   │   │   ├── 20260413102011_InitMoviesBooking.cs
+│   │   │   │   │   │   │   ├── 20260418062538_CreateBookingFromHold.Designer.cs
+│   │   │   │   │   │   │   ├── 20260418062538_CreateBookingFromHold.cs
+│   │   │   │   │   │   │   └── MoviesBookingDbContextModelSnapshot.cs
+│   │   │   │   │   │   ├── MoviesBookingDbContext.cs
+│   │   │   │   │   │   └── MoviesBookingDbContextFactory.cs
+│   │   │   │   │   └── Catalog
+│   │   │   │   │       ├── Configurations
+│   │   │   │   │       │   ├── CinemaConfiguration.cs
+│   │   │   │   │       │   ├── GenreConfiguration.cs
+│   │   │   │   │       │   ├── HallConfiguration.cs
+│   │   │   │   │       │   ├── HallSeatConfiguration.cs
+│   │   │   │   │       │   ├── MovieConfiguration.cs
+│   │   │   │   │       │   ├── MovieCreditConfiguration.cs
+│   │   │   │   │       │   ├── MovieGenreConfiguration.cs
+│   │   │   │   │       │   ├── PersonConfiguration.cs
+│   │   │   │   │       │   ├── ShowtimeConfiguration.cs
+│   │   │   │   │       │   └── ShowtimeSeatInventoryConfiguration.cs
+│   │   │   │   │       ├── Migrations
+│   │   │   │   │       │   ├── 20260413102001_InitMoviesCatalog.Designer.cs
+│   │   │   │   │       │   ├── 20260413102001_InitMoviesCatalog.cs
+│   │   │   │   │       │   └── MoviesCatalogDbContextModelSnapshot.cs
+│   │   │   │   │       ├── MoviesCatalogDbContext.cs
+│   │   │   │   │       └── MoviesCatalogDbContextFactory.cs
+│   │   │   │   ├── Repositories
+│   │   │   │   │   ├── Bookings
+│   │   │   │   │   │   ├── BookingHoldRepository.cs
+│   │   │   │   │   │   ├── BookingRepository.cs
+│   │   │   │   │   │   └── PaymentRepository.cs
+│   │   │   │   │   ├── Catalog
+│   │   │   │   │   │   └── MovieRepository.cs
+│   │   │   │   │   ├── Promotions
+│   │   │   │   │   │   └── PromotionRepository.cs
+│   │   │   │   │   └── Screening
+│   │   │   │   │       └── ShowtimeRepository.cs
+│   │   │   │   ├── Seed
+│   │   │   │   │   └── FrontendMoviesSeed.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.runtimeconfig.json
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │   │   │           ├── ABCDMall.Shared.dll
+│   │   │   │   │           └── ABCDMall.Shared.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Infrastructure.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Movies.Infrastructure.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.64FF6B3A.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.genruntimeconfig.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Movies.Infrastructure.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Movies.Tests
+│   │   │       ├── ABCDMall.Modules.Movies.Tests.csproj
+│   │   │       ├── CatalogSeedTestDb.cs
+│   │   │       ├── FakeBookingHoldRepository.cs
+│   │   │       ├── QueryValidationTests.cs
+│   │   │       ├── SeatMapAndShowtimeContractTests.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Movies.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │       │           ├── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │       │           ├── ABCDMall.Modules.Movies.Infrastructure.pdb
+│   │   │       │           ├── ABCDMall.Modules.Movies.Tests.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Movies.Tests.dll
+│   │   │       │           ├── ABCDMall.Modules.Movies.Tests.pdb
+│   │   │       │           ├── ABCDMall.Modules.Movies.Tests.runtimeconfig.json
+│   │   │       │           ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │       │           ├── ABCDMall.Shared.dll
+│   │   │       │           ├── ABCDMall.Shared.pdb
+│   │   │       │           ├── AutoMapper.dll
+│   │   │       │           ├── Azure.Core.dll
+│   │   │       │           ├── Azure.Identity.dll
+│   │   │       │           ├── CoverletSourceRootsMapping_ABCDMall.Modules.Movies.Tests
+│   │   │       │           ├── Dapper.dll
+│   │   │       │           ├── FluentValidation.dll
+│   │   │       │           ├── Microsoft.Bcl.AsyncInterfaces.dll
+│   │   │       │           ├── Microsoft.Data.SqlClient.dll
+│   │   │       │           ├── Microsoft.EntityFrameworkCore.Abstractions.dll
+│   │   │       │           ├── Microsoft.EntityFrameworkCore.InMemory.dll
+│   │   │       │           ├── Microsoft.EntityFrameworkCore.Relational.dll
+│   │   │       │           ├── Microsoft.EntityFrameworkCore.SqlServer.dll
+│   │   │       │           ├── Microsoft.EntityFrameworkCore.dll
+│   │   │       │           ├── Microsoft.Extensions.Caching.Abstractions.dll
+│   │   │       │           ├── Microsoft.Extensions.Caching.Memory.dll
+│   │   │       │           ├── Microsoft.Extensions.Caching.StackExchangeRedis.dll
+│   │   │       │           ├── Microsoft.Extensions.Configuration.Abstractions.dll
+│   │   │       │           ├── Microsoft.Extensions.DependencyInjection.Abstractions.dll
+│   │   │       │           ├── Microsoft.Extensions.DependencyInjection.dll
+│   │   │       │           ├── Microsoft.Extensions.Logging.Abstractions.dll
+│   │   │       │           ├── Microsoft.Extensions.Logging.dll
+│   │   │       │           ├── Microsoft.Extensions.Options.dll
+│   │   │       │           ├── Microsoft.Extensions.Primitives.dll
+│   │   │       │           ├── Microsoft.Identity.Client.Extensions.Msal.dll
+│   │   │       │           ├── Microsoft.Identity.Client.dll
+│   │   │       │           ├── Microsoft.IdentityModel.Abstractions.dll
+│   │   │       │           ├── Microsoft.IdentityModel.JsonWebTokens.dll
+│   │   │       │           ├── Microsoft.IdentityModel.Logging.dll
+│   │   │       │           ├── Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+│   │   │       │           ├── Microsoft.IdentityModel.Protocols.dll
+│   │   │       │           ├── Microsoft.IdentityModel.Tokens.dll
+│   │   │       │           ├── Microsoft.OpenApi.dll
+│   │   │       │           ├── Microsoft.SqlServer.Server.dll
+│   │   │       │           ├── Microsoft.TestPlatform.CommunicationUtilities.dll
+│   │   │       │           ├── Microsoft.TestPlatform.CoreUtilities.dll
+│   │   │       │           ├── Microsoft.TestPlatform.CrossPlatEngine.dll
+│   │   │       │           ├── Microsoft.TestPlatform.PlatformAbstractions.dll
+│   │   │       │           ├── Microsoft.TestPlatform.Utilities.dll
+│   │   │       │           ├── Microsoft.VisualStudio.CodeCoverage.Shim.dll
+│   │   │       │           ├── Microsoft.VisualStudio.TestPlatform.Common.dll
+│   │   │       │           ├── Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
+│   │   │       │           ├── Microsoft.Win32.SystemEvents.dll
+│   │   │       │           ├── Newtonsoft.Json.dll
+│   │   │       │           ├── Pipelines.Sockets.Unofficial.dll
+│   │   │       │           ├── StackExchange.Redis.dll
+│   │   │       │           ├── Swashbuckle.AspNetCore.Swagger.dll
+│   │   │       │           ├── Swashbuckle.AspNetCore.SwaggerGen.dll
+│   │   │       │           ├── Swashbuckle.AspNetCore.SwaggerUI.dll
+│   │   │       │           ├── System.ClientModel.dll
+│   │   │       │           ├── System.Configuration.ConfigurationManager.dll
+│   │   │       │           ├── System.Diagnostics.DiagnosticSource.dll
+│   │   │       │           ├── System.Drawing.Common.dll
+│   │   │       │           ├── System.Formats.Asn1.dll
+│   │   │       │           ├── System.IdentityModel.Tokens.Jwt.dll
+│   │   │       │           ├── System.Memory.Data.dll
+│   │   │       │           ├── System.Runtime.Caching.dll
+│   │   │       │           ├── System.Security.Cryptography.ProtectedData.dll
+│   │   │       │           ├── System.Security.Permissions.dll
+│   │   │       │           ├── System.Text.Json.dll
+│   │   │       │           ├── System.Windows.Extensions.dll
+│   │   │       │           ├── cs
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── de
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── es
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── fr
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── it
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── ja
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── ko
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── pl
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── pt-BR
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── ru
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── runtimes
+│   │   │       │           │   ├── unix
+│   │   │       │           │   │   └── lib
+│   │   │       │           │   │       └── net6.0
+│   │   │       │           │   │           ├── Microsoft.Data.SqlClient.dll
+│   │   │       │           │   │           └── System.Drawing.Common.dll
+│   │   │       │           │   ├── win
+│   │   │       │           │   │   └── lib
+│   │   │       │           │   │       └── net6.0
+│   │   │       │           │   │           ├── Microsoft.Data.SqlClient.dll
+│   │   │       │           │   │           ├── Microsoft.Win32.SystemEvents.dll
+│   │   │       │           │   │           ├── System.Drawing.Common.dll
+│   │   │       │           │   │           ├── System.Runtime.Caching.dll
+│   │   │       │           │   │           ├── System.Security.Cryptography.ProtectedData.dll
+│   │   │       │           │   │           └── System.Windows.Extensions.dll
+│   │   │       │           │   ├── win-arm
+│   │   │       │           │   │   └── native
+│   │   │       │           │   │       └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │       │           │   ├── win-arm64
+│   │   │       │           │   │   └── native
+│   │   │       │           │   │       └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │       │           │   ├── win-x64
+│   │   │       │           │   │   └── native
+│   │   │       │           │   │       └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │       │           │   └── win-x86
+│   │   │       │           │       └── native
+│   │   │       │           │           └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │       │           ├── testhost.dll
+│   │   │       │           ├── tr
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           ├── xunit.abstractions.dll
+│   │   │       │           ├── xunit.assert.dll
+│   │   │       │           ├── xunit.core.dll
+│   │   │       │           ├── xunit.execution.dotnet.dll
+│   │   │       │           ├── xunit.runner.visualstudio.testadapter.dll
+│   │   │       │           ├── zh-Hans
+│   │   │       │           │   ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │           │   ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │           │   ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │           │   └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       │           └── zh-Hant
+│   │   │       │               ├── Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+│   │   │       │               ├── Microsoft.TestPlatform.CoreUtilities.resources.dll
+│   │   │       │               ├── Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+│   │   │       │               ├── Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+│   │   │       │               └── Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.Movies.Tests.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.Movies.Tests.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.Movies.Tests.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.D621BD7C.Up2Date
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.dll
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.genruntimeconfig.cache
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.pdb
+│   │   │           │       ├── ABCDMall.Modules.Movies.Tests.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Movies.Tests.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Movies.Tests.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
+│   │   ├── Shops
+│   │   │   ├── ABCDMall.Modules.Shops.Application
+│   │   │   │   ├── ABCDMall.Modules.Shops.Application.csproj
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── ShopCatalogItemDto.cs
+│   │   │   │   │   ├── ShopDetailDto.cs
+│   │   │   │   │   ├── ShopProductDto.cs
+│   │   │   │   │   ├── ShopVoucherDto.cs
+│   │   │   │   │   └── UpsertManagedShopRequestDto.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Services
+│   │   │   │   │   ├── Catalog
+│   │   │   │   │   │   ├── IShopCatalogQueryService.cs
+│   │   │   │   │   │   ├── IShopCatalogRepository.cs
+│   │   │   │   │   │   └── ShopCatalogQueryService.cs
+│   │   │   │   │   └── Manager
+│   │   │   │   │       ├── IShopManagerRepository.cs
+│   │   │   │   │       ├── IShopManagerService.cs
+│   │   │   │   │       └── ShopManagerService.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Shops.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Application.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Application.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Application.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Application.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.4B0B3F05.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Shops.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Shops.Domain
+│   │   │   │   ├── ABCDMall.Modules.Shops.Domain.csproj
+│   │   │   │   ├── Entities
+│   │   │   │   │   ├── Shop.cs
+│   │   │   │   │   ├── ShopProduct.cs
+│   │   │   │   │   ├── ShopTag.cs
+│   │   │   │   │   └── ShopVoucher.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Shops.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Domain.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Shops.Domain.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Shops.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Shops.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Shops.Infrastructure
+│   │   │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj
+│   │   │       ├── DependencyInjection.cs
+│   │   │       ├── Persistence
+│   │   │       │   └── Shops
+│   │   │       │       ├── Configurations
+│   │   │       │       │   ├── ShopConfiguration.cs
+│   │   │       │       │   ├── ShopProductConfiguration.cs
+│   │   │       │       │   ├── ShopTagConfiguration.cs
+│   │   │       │       │   └── ShopVoucherConfiguration.cs
+│   │   │       │       ├── Migrations
+│   │   │       │       │   ├── 20260418082427_InitShops.Designer.cs
+│   │   │       │       │   ├── 20260418082427_InitShops.cs
+│   │   │       │       │   ├── 20260419164256_AddShopOwner.Designer.cs
+│   │   │       │       │   ├── 20260419164256_AddShopOwner.cs
+│   │   │       │       │   └── ShopsDbContextModelSnapshot.cs
+│   │   │       │       ├── ShopsDbContext.cs
+│   │   │       │       └── ShopsDbContextFactory.cs
+│   │   │       ├── Repositories
+│   │   │       │   └── ShopCatalogRepository.cs
+│   │   │       ├── Seed
+│   │   │       │   └── FrontendShopsSeed.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       ├── net8.0
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │       │           ├── ABCDMall.Modules.Shops.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │       │           ├── ABCDMall.Modules.Shops.Infrastructure.pdb
+│   │   │       │           └── ABCDMall.Modules.Shops.Infrastructure.runtimeconfig.json
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   ├── net8.0
+│   │   │           │   │   ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfo.cs
+│   │   │           │   │   ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │   │   ├── ABCDMall.Modules.Shops.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │   │   ├── ABCDMall.Modules.Shops.Infrastructure.GlobalUsings.g.cs
+│   │   │           │   │   ├── ABCDMall.Modules.Shops.Infrastructure.assets.cache
+│   │   │           │   │   ├── ref
+│   │   │           │   │   └── refint
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.A272A398.Up2Date
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.genruntimeconfig.cache
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Shops.Infrastructure.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
+│   │   ├── Users
+│   │   │   ├── ABCDMall.Modules.Users.Application
+│   │   │   │   ├── ABCDMall.Modules.Users.Application.csproj
+│   │   │   │   ├── Common
+│   │   │   │   │   └── ApplicationResult.cs
+│   │   │   │   ├── DTOs
+│   │   │   │   │   ├── Auth
+│   │   │   │   │   │   ├── AccessTokenResponseDto.cs
+│   │   │   │   │   │   ├── LoginResponseDto.cs
+│   │   │   │   │   │   ├── ProfileUpdateHistoryResponseDto.cs
+│   │   │   │   │   │   ├── RegisterUserResponseDto.cs
+│   │   │   │   │   │   ├── UpdateProfileResponseDto.cs
+│   │   │   │   │   │   ├── UserAccountMutationResponseDto.cs
+│   │   │   │   │   │   ├── UserProfileResponseDto.cs
+│   │   │   │   │   │   └── UserSummaryResponseDto.cs
+│   │   │   │   │   ├── Common
+│   │   │   │   │   │   └── MessageResponseDto.cs
+│   │   │   │   │   ├── ConfirmForgotPasswordOtpDto.cs
+│   │   │   │   │   ├── ConfirmResetPasswordOtpDto.cs
+│   │   │   │   │   ├── CreateRentalAreaDto.cs
+│   │   │   │   │   ├── LoginDto.cs
+│   │   │   │   │   ├── PublicCatalog
+│   │   │   │   │   │   ├── PublicShopDto.cs
+│   │   │   │   │   │   ├── ShopCreationStatusDto.cs
+│   │   │   │   │   │   └── UpsertShopInfoPublicRequestDto.cs
+│   │   │   │   │   ├── RefreshTokenDto.cs
+│   │   │   │   │   ├── RegisterDto.cs
+│   │   │   │   │   ├── RegisterTenantDto.cs
+│   │   │   │   │   ├── RentalAreas
+│   │   │   │   │   │   ├── CreateRentalAreaResponseDto.cs
+│   │   │   │   │   │   ├── ManagerLookupResponseDto.cs
+│   │   │   │   │   │   └── RentalAreaResponseDto.cs
+│   │   │   │   │   ├── RequestForgotPasswordOtpDto.cs
+│   │   │   │   │   ├── RequestResetPasswordOtpDto.cs
+│   │   │   │   │   ├── ResetPasswordDto.cs
+│   │   │   │   │   ├── ShopInfos
+│   │   │   │   │   │   └── ShopMonthlyBillResponseDto.cs
+│   │   │   │   │   ├── UpdateMonthlyBillDto.cs
+│   │   │   │   │   ├── UpdateProfileDto.cs
+│   │   │   │   │   └── UpdateUserAccountDto.cs
+│   │   │   │   ├── DependencyInjection.cs
+│   │   │   │   ├── Mappings
+│   │   │   │   │   └── UsersProfile.cs
+│   │   │   │   ├── Services
+│   │   │   │   │   ├── Auth
+│   │   │   │   │   │   ├── IUserCommandRepository.cs
+│   │   │   │   │   │   ├── IUserCommandService.cs
+│   │   │   │   │   │   ├── IUserQueryService.cs
+│   │   │   │   │   │   ├── IUserReadRepository.cs
+│   │   │   │   │   │   ├── UserCommandService.cs
+│   │   │   │   │   │   └── UserQueryService.cs
+│   │   │   │   │   ├── IEmailNotificationService.cs
+│   │   │   │   │   ├── IFileStorageService.cs
+│   │   │   │   │   ├── ITokenService.cs
+│   │   │   │   │   ├── PublicCatalog
+│   │   │   │   │   │   ├── IPublicShopCatalogReadRepository.cs
+│   │   │   │   │   │   ├── IPublicShopCatalogService.cs
+│   │   │   │   │   │   ├── IShopInfoPublicManagerRepository.cs
+│   │   │   │   │   │   ├── IShopInfoPublicManagerService.cs
+│   │   │   │   │   │   ├── PublicShopCatalogService.cs
+│   │   │   │   │   │   ├── ShopInfoPublicManagerService.cs
+│   │   │   │   │   │   └── ShopInfoPublicMapper.cs
+│   │   │   │   │   ├── RentalAreas
+│   │   │   │   │   │   ├── IRentalAreaCommandRepository.cs
+│   │   │   │   │   │   ├── IRentalAreaCommandService.cs
+│   │   │   │   │   │   ├── IRentalAreaQueryService.cs
+│   │   │   │   │   │   ├── IRentalAreaReadRepository.cs
+│   │   │   │   │   │   ├── RentalAreaCommandService.cs
+│   │   │   │   │   │   └── RentalAreaQueryService.cs
+│   │   │   │   │   └── ShopInfos
+│   │   │   │   │       ├── IShopInfoQueryService.cs
+│   │   │   │   │       ├── IShopMonthlyBillReadRepository.cs
+│   │   │   │   │       └── ShopInfoQueryService.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.dll
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Users.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Users.Application.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Application.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Application.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Application.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.193B6F11.Up2Date
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.csproj.AssemblyReference.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Application.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Users.Application.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Users.Application.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   ├── ABCDMall.Modules.Users.Domain
+│   │   │   │   ├── ABCDMall.Modules.Users.Domain.csproj
+│   │   │   │   ├── Entities
+│   │   │   │   │   ├── EmailSettings.cs
+│   │   │   │   │   ├── ForgotPasswordOtp.cs
+│   │   │   │   │   ├── PasswordResetOtp.cs
+│   │   │   │   │   ├── ProfileUpdateHistory.cs
+│   │   │   │   │   ├── PublicShop.cs
+│   │   │   │   │   ├── PublicShopProduct.cs
+│   │   │   │   │   ├── PublicShopVoucher.cs
+│   │   │   │   │   ├── RefreshToken.cs
+│   │   │   │   │   ├── RentalArea.cs
+│   │   │   │   │   ├── ShopInfo.cs
+│   │   │   │   │   ├── ShopMonthlyBill.cs
+│   │   │   │   │   └── User.cs
+│   │   │   │   ├── bin
+│   │   │   │   │   └── Debug
+│   │   │   │   │       ├── net8.0
+│   │   │   │   │       └── net9.0
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Domain.deps.json
+│   │   │   │   │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │   │           └── ABCDMall.Modules.Users.Domain.pdb
+│   │   │   │   └── obj
+│   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.dgspec.json
+│   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.props
+│   │   │   │       ├── ABCDMall.Modules.Users.Domain.csproj.nuget.g.targets
+│   │   │   │       ├── Debug
+│   │   │   │       │   ├── net8.0
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Domain.AssemblyInfo.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Domain.GlobalUsings.g.cs
+│   │   │   │       │   │   ├── ABCDMall.Modules.Users.Domain.assets.cache
+│   │   │   │       │   │   ├── ref
+│   │   │   │       │   │   └── refint
+│   │   │   │       │   └── net9.0
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.AssemblyInfo.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.AssemblyInfoInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.GlobalUsings.g.cs
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.assets.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.csproj.CoreCompileInputs.cache
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.csproj.FileListAbsolute.txt
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.pdb
+│   │   │   │       │       ├── ABCDMall.Modules.Users.Domain.sourcelink.json
+│   │   │   │       │       ├── ref
+│   │   │   │       │       │   └── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │       │       └── refint
+│   │   │   │       │           └── ABCDMall.Modules.Users.Domain.dll
+│   │   │   │       ├── project.assets.json
+│   │   │   │       └── project.nuget.cache
+│   │   │   └── ABCDMall.Modules.Users.Infrastructure
+│   │   │       ├── ABCDMall.Modules.Users.Infrastructure.csproj
+│   │   │       ├── DependencyInjection.cs
+│   │   │       ├── Persistence
+│   │   │       │   ├── Configurations
+│   │   │       │   │   ├── ForgotPasswordOtpConfiguration.cs
+│   │   │       │   │   ├── ModelConfigurationDefaults.cs
+│   │   │       │   │   ├── PasswordResetOtpConfiguration.cs
+│   │   │       │   │   ├── ProfileUpdateHistoryConfiguration.cs
+│   │   │       │   │   ├── PublicShopConfiguration.cs
+│   │   │       │   │   ├── PublicShopProductConfiguration.cs
+│   │   │       │   │   ├── PublicShopVoucherConfiguration.cs
+│   │   │       │   │   ├── RefreshTokenConfiguration.cs
+│   │   │       │   │   ├── RentalAreaConfiguration.cs
+│   │   │       │   │   ├── ShopInfoConfiguration.cs
+│   │   │       │   │   ├── ShopMonthlyBillConfiguration.cs
+│   │   │       │   │   └── UserConfiguration.cs
+│   │   │       │   ├── MallDbContext.cs
+│   │   │       │   └── Migrations
+│   │   │       │       ├── 20260418015304_InitMoviesUsers.Designer.cs
+│   │   │       │       ├── 20260418015304_InitMoviesUsers.cs
+│   │   │       │       ├── 20260420025110_AddPublicShopFieldsToShopInfos.Designer.cs
+│   │   │       │       ├── 20260420025110_AddPublicShopFieldsToShopInfos.cs
+│   │   │       │       ├── 20260420041437_AddShopInfoIdToRentalAreas.Designer.cs
+│   │   │       │       ├── 20260420041437_AddShopInfoIdToRentalAreas.cs
+│   │   │       │       ├── 20260420044506_AddOwnerShopInfoIdToShopInfos.Designer.cs
+│   │   │       │       ├── 20260420044506_AddOwnerShopInfoIdToShopInfos.cs
+│   │   │       │       ├── 20260420052000_AddIsActiveToUsers.Designer.cs
+│   │   │       │       ├── 20260420052000_AddIsActiveToUsers.cs
+│   │   │       │       └── MallDbContextModelSnapshot.cs
+│   │   │       ├── Repositories
+│   │   │       │   ├── PublicShopCatalogReadRepository.cs
+│   │   │       │   ├── RentalAreaCommandRepository.cs
+│   │   │       │   ├── RentalAreaReadRepository.cs
+│   │   │       │   ├── ShopInfoPublicManagerRepository.cs
+│   │   │       │   ├── ShopMonthlyBillReadRepository.cs
+│   │   │       │   ├── UserCommandRepository.cs
+│   │   │       │   └── UserReadRepository.cs
+│   │   │       ├── Seed
+│   │   │       │   └── FrontendUsersSeed.cs
+│   │   │       ├── Services
+│   │   │       │   ├── EmailNotificationService.cs
+│   │   │       │   ├── EmailService.cs
+│   │   │       │   ├── JwtService.cs
+│   │   │       │   ├── LocalFileStorageService.cs
+│   │   │       │   └── TokenService.cs
+│   │   │       ├── bin
+│   │   │       │   └── Debug
+│   │   │       │       ├── net8.0
+│   │   │       │       └── net9.0
+│   │   │       │           ├── ABCDMall.Modules.Users.Application.dll
+│   │   │       │           ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │       │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │       │           ├── ABCDMall.Modules.Users.Domain.pdb
+│   │   │       │           ├── ABCDMall.Modules.Users.Infrastructure.deps.json
+│   │   │       │           ├── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │       │           └── ABCDMall.Modules.Users.Infrastructure.pdb
+│   │   │       └── obj
+│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.dgspec.json
+│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.props
+│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.csproj.nuget.g.targets
+│   │   │           ├── Debug
+│   │   │           │   ├── net8.0
+│   │   │           │   │   ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfo.cs
+│   │   │           │   │   ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │   │   ├── ABCDMall.Modules.Users.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │   │   ├── ABCDMall.Modules.Users.Infrastructure.GlobalUsings.g.cs
+│   │   │           │   │   ├── ABCDMall.Modules.Users.Infrastructure.assets.cache
+│   │   │           │   │   ├── ref
+│   │   │           │   │   └── refint
+│   │   │           │   └── net9.0
+│   │   │           │       ├── ABCDMall.3A0B7DBB.Up2Date
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfo.cs
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.AssemblyInfoInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.GlobalUsings.g.cs
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.assets.cache
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.csproj.AssemblyReference.cache
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.csproj.CoreCompileInputs.cache
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.csproj.FileListAbsolute.txt
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.pdb
+│   │   │           │       ├── ABCDMall.Modules.Users.Infrastructure.sourcelink.json
+│   │   │           │       ├── ref
+│   │   │           │       │   └── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │           │       └── refint
+│   │   │           │           └── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │           ├── project.assets.json
+│   │   │           └── project.nuget.cache
+│   │   └── UtilityMap
+│   │       ├── ABCDMall.Modules.UtilityMap.Application
+│   │       │   ├── ABCDMall.Modules.UtilityMap.Application.csproj
+│   │       │   ├── DTOs
+│   │       │   │   └── Maps
+│   │       │   │       ├── AssignSlotRequestDto.cs
+│   │       │   │       ├── CreateFloorPlanRequestDto.cs
+│   │       │   │       ├── CreateMapLocationRequestDto.cs
+│   │       │   │       ├── FloorPlanAdminDto.cs
+│   │       │   │       ├── FloorPlanDto.cs
+│   │       │   │       ├── MapLocationAdminDto.cs
+│   │       │   │       ├── MapLocationDto.cs
+│   │       │   │       └── UpdateFloorPlanRequestDto.cs
+│   │       │   ├── DependencyInjection.cs
+│   │       │   ├── Mappings
+│   │       │   │   └── MapProfile.cs
+│   │       │   ├── Services
+│   │       │   │   └── Maps
+│   │       │   │       ├── IMapCommandService.cs
+│   │       │   │       ├── IMapQueryService.cs
+│   │       │   │       ├── IMapRepository.cs
+│   │       │   │       ├── MapCommandService.cs
+│   │       │   │       ├── MapQueryService.cs
+│   │       │   │       └── Validators
+│   │       │   │           ├── CreateFloorPlanRequestDtoValidator.cs
+│   │       │   │           └── CreateMapLocationRequestDtoValidator.cs
+│   │       │   ├── bin
+│   │       │   │   └── Debug
+│   │       │   │       └── net9.0
+│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Application.deps.json
+│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Application.dll
+│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Application.pdb
+│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │       │   │           └── ABCDMall.Modules.UtilityMap.Domain.pdb
+│   │       │   └── obj
+│   │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.nuget.dgspec.json
+│   │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.nuget.g.props
+│   │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.nuget.g.targets
+│   │       │       ├── Debug
+│   │       │       │   └── net9.0
+│   │       │       │       ├── ABCDMall.8AFFEFBB.Up2Date
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.AssemblyInfo.cs
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.AssemblyInfoInputs.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.GeneratedMSBuildEditorConfig.editorconfig
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.GlobalUsings.g.cs
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.assets.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.AssemblyReference.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.CoreCompileInputs.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.csproj.FileListAbsolute.txt
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.dll
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.pdb
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Application.sourcelink.json
+│   │       │       │       ├── ref
+│   │       │       │       │   └── ABCDMall.Modules.UtilityMap.Application.dll
+│   │       │       │       └── refint
+│   │       │       │           └── ABCDMall.Modules.UtilityMap.Application.dll
+│   │       │       ├── project.assets.json
+│   │       │       └── project.nuget.cache
+│   │       ├── ABCDMall.Modules.UtilityMap.Domain
+│   │       │   ├── ABCDMall.Modules.UtilityMap.Domain.csproj
+│   │       │   ├── Entities
+│   │       │   │   ├── FloorPlan.cs
+│   │       │   │   └── MapLocation.cs
+│   │       │   ├── bin
+│   │       │   │   └── Debug
+│   │       │   │       └── net9.0
+│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Domain.deps.json
+│   │       │   │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │       │   │           └── ABCDMall.Modules.UtilityMap.Domain.pdb
+│   │       │   └── obj
+│   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.dgspec.json
+│   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.g.props
+│   │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.nuget.g.targets
+│   │       │       ├── Debug
+│   │       │       │   └── net9.0
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.AssemblyInfo.cs
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.AssemblyInfoInputs.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.GeneratedMSBuildEditorConfig.editorconfig
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.GlobalUsings.g.cs
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.assets.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.CoreCompileInputs.cache
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.csproj.FileListAbsolute.txt
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.pdb
+│   │       │       │       ├── ABCDMall.Modules.UtilityMap.Domain.sourcelink.json
+│   │       │       │       ├── ref
+│   │       │       │       │   └── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │       │       │       └── refint
+│   │       │       │           └── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │       │       ├── project.assets.json
+│   │       │       └── project.nuget.cache
+│   │       └── ABCDMall.Modules.UtilityMap.Infrastructure
+│   │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj
+│   │           ├── DependencyInjection.cs
+│   │           ├── Persistence
+│   │           │   └── UtilityMap
+│   │           │       ├── Configurations
+│   │           │       │   ├── FloorPlanConfiguration.cs
+│   │           │       │   └── MapLocationConfiguration.cs
+│   │           │       ├── Migrations
+│   │           │       │   ├── 20260418113258_InitialUtilityMap.Designer.cs
+│   │           │       │   ├── 20260418113258_InitialUtilityMap.cs
+│   │           │       │   └── UtilityMapDbContextModelSnapshot.cs
+│   │           │       ├── UtilityMapDbContext.cs
+│   │           │       └── UtilityMapDbContextFactory.cs
+│   │           ├── Repositories
+│   │           │   └── MapRepository.cs
+│   │           ├── Seed
+│   │           │   └── FrontendUtilityMapSeed.cs
+│   │           ├── bin
+│   │           │   └── Debug
+│   │           │       └── net9.0
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Application.dll
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Application.pdb
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Domain.pdb
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.deps.json
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.dll
+│   │           │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.pdb
+│   │           │           └── ABCDMall.Modules.UtilityMap.Infrastructure.runtimeconfig.json
+│   │           └── obj
+│   │               ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.nuget.dgspec.json
+│   │               ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.nuget.g.props
+│   │               ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.nuget.g.targets
+│   │               ├── Debug
+│   │               │   └── net9.0
+│   │               │       ├── ABCDMall.1A768C5F.Up2Date
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.AssemblyInfo.cs
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.AssemblyInfoInputs.cache
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.GlobalUsings.g.cs
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.assets.cache
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.AssemblyReference.cache
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.CoreCompileInputs.cache
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.csproj.FileListAbsolute.txt
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.dll
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.genruntimeconfig.cache
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.pdb
+│   │               │       ├── ABCDMall.Modules.UtilityMap.Infrastructure.sourcelink.json
+│   │               │       ├── ref
+│   │               │       │   └── ABCDMall.Modules.UtilityMap.Infrastructure.dll
+│   │               │       └── refint
+│   │               │           └── ABCDMall.Modules.UtilityMap.Infrastructure.dll
+│   │               ├── project.assets.json
+│   │               └── project.nuget.cache
+│   ├── ABCDMall.Shared
+│   │   ├── ABCDMall.Shared.csproj
+│   │   ├── Persistence
+│   │   ├── bin
+│   │   │   └── Debug
+│   │   │       ├── net8.0
+│   │   │       └── net9.0
+│   │   │           ├── ABCDMall.Shared.deps.json
+│   │   │           ├── ABCDMall.Shared.dll
+│   │   │           ├── ABCDMall.Shared.pdb
+│   │   │           └── ABCDMall.Shared.runtimeconfig.json
+│   │   └── obj
+│   │       ├── ABCDMall.Shared.csproj.nuget.dgspec.json
+│   │       ├── ABCDMall.Shared.csproj.nuget.g.props
+│   │       ├── ABCDMall.Shared.csproj.nuget.g.targets
+│   │       ├── Debug
+│   │       │   ├── net8.0
+│   │       │   │   ├── ABCDMall.Shared.AssemblyInfo.cs
+│   │       │   │   ├── ABCDMall.Shared.AssemblyInfoInputs.cache
+│   │       │   │   ├── ABCDMall.Shared.GeneratedMSBuildEditorConfig.editorconfig
+│   │       │   │   ├── ABCDMall.Shared.GlobalUsings.g.cs
+│   │       │   │   ├── ref
+│   │       │   │   └── refint
+│   │       │   └── net9.0
+│   │       │       ├── ABCDMall.Shared.AssemblyInfo.cs
+│   │       │       ├── ABCDMall.Shared.AssemblyInfoInputs.cache
+│   │       │       ├── ABCDMall.Shared.GeneratedMSBuildEditorConfig.editorconfig
+│   │       │       ├── ABCDMall.Shared.GlobalUsings.g.cs
+│   │       │       ├── ABCDMall.Shared.assets.cache
+│   │       │       ├── ABCDMall.Shared.csproj.AssemblyReference.cache
+│   │       │       ├── ABCDMall.Shared.csproj.CoreCompileInputs.cache
+│   │       │       ├── ABCDMall.Shared.csproj.FileListAbsolute.txt
+│   │       │       ├── ABCDMall.Shared.dll
+│   │       │       ├── ABCDMall.Shared.genruntimeconfig.cache
+│   │       │       ├── ABCDMall.Shared.pdb
+│   │       │       ├── ABCDMall.Shared.sourcelink.json
+│   │       │       ├── ref
+│   │       │       │   └── ABCDMall.Shared.dll
+│   │       │       └── refint
+│   │       │           └── ABCDMall.Shared.dll
+│   │       ├── project.assets.json
+│   │       └── project.nuget.cache
+│   ├── ABCDMall.WebAPI
+│   │   ├── ABCDMall.WebAPI.csproj
+│   │   ├── ABCDMall.WebAPI.http
+│   │   ├── Controllers
+│   │   │   ├── AuthController.cs
+│   │   │   ├── BookingsController.cs
+│   │   │   ├── DbController.cs
+│   │   │   ├── EventsController.cs
+│   │   │   ├── FoodController.cs
+│   │   │   ├── MapsController.cs
+│   │   │   ├── MoviesController.cs
+│   │   │   ├── MoviesPromotionsController.cs
+│   │   │   ├── PaymentsController.cs
+│   │   │   ├── RentalAreaController.cs
+│   │   │   ├── ShopInfoController.cs
+│   │   │   ├── ShopsController.cs
+│   │   │   ├── ShowtimesController.cs
+│   │   │   └── SnackCombosController.cs
+│   │   ├── Program.cs
+│   │   ├── Properties
+│   │   │   └── launchSettings.json
+│   │   ├── appsettings.Development.example.json
+│   │   ├── appsettings.Development.json
+│   │   ├── appsettings.json
+│   │   ├── bin
+│   │   │   └── Debug
+│   │   │       ├── net8.0
+│   │   │       └── net9.0
+│   │   │           ├── ABCDMall.Modules.Events.Application.dll
+│   │   │           ├── ABCDMall.Modules.Events.Application.pdb
+│   │   │           ├── ABCDMall.Modules.Events.Domain.dll
+│   │   │           ├── ABCDMall.Modules.Events.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.Events.Infrastructure.pdb
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Application.dll
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Application.pdb
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.dll
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.FoodCourt.Infrastructure.pdb
+│   │   │           ├── ABCDMall.Modules.Movies.Application.dll
+│   │   │           ├── ABCDMall.Modules.Movies.Application.pdb
+│   │   │           ├── ABCDMall.Modules.Movies.Domain.dll
+│   │   │           ├── ABCDMall.Modules.Movies.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.Movies.Infrastructure.pdb
+│   │   │           ├── ABCDMall.Modules.Shops.Application.dll
+│   │   │           ├── ABCDMall.Modules.Shops.Application.pdb
+│   │   │           ├── ABCDMall.Modules.Shops.Domain.dll
+│   │   │           ├── ABCDMall.Modules.Shops.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.Shops.Infrastructure.pdb
+│   │   │           ├── ABCDMall.Modules.Users.Application.dll
+│   │   │           ├── ABCDMall.Modules.Users.Application.pdb
+│   │   │           ├── ABCDMall.Modules.Users.Domain.dll
+│   │   │           ├── ABCDMall.Modules.Users.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.Users.Infrastructure.pdb
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Application.dll
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Application.pdb
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Domain.dll
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Domain.pdb
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.dll
+│   │   │           ├── ABCDMall.Modules.UtilityMap.Infrastructure.pdb
+│   │   │           ├── ABCDMall.Shared.dll
+│   │   │           ├── ABCDMall.Shared.pdb
+│   │   │           ├── ABCDMall.WebAPI
+│   │   │           ├── ABCDMall.WebAPI.deps.json
+│   │   │           ├── ABCDMall.WebAPI.dll
+│   │   │           ├── ABCDMall.WebAPI.pdb
+│   │   │           ├── ABCDMall.WebAPI.runtimeconfig.json
+│   │   │           ├── ABCDMall.WebAPI.staticwebassets.endpoints.json
+│   │   │           ├── ABCDMall.WebAPI.staticwebassets.runtime.json
+│   │   │           ├── AutoMapper.dll
+│   │   │           ├── Azure.Core.dll
+│   │   │           ├── Azure.Identity.dll
+│   │   │           ├── BCrypt.Net-Next.dll
+│   │   │           ├── BouncyCastle.Crypto.dll
+│   │   │           ├── Dapper.dll
+│   │   │           ├── FluentValidation.DependencyInjectionExtensions.dll
+│   │   │           ├── FluentValidation.dll
+│   │   │           ├── Humanizer.dll
+│   │   │           ├── Microsoft.AspNetCore.Authentication.JwtBearer.dll
+│   │   │           ├── Microsoft.Bcl.AsyncInterfaces.dll
+│   │   │           ├── Microsoft.Build.Locator.dll
+│   │   │           ├── Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+│   │   │           ├── Microsoft.CodeAnalysis.CSharp.dll
+│   │   │           ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+│   │   │           ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+│   │   │           ├── Microsoft.CodeAnalysis.Workspaces.dll
+│   │   │           ├── Microsoft.CodeAnalysis.dll
+│   │   │           ├── Microsoft.Data.SqlClient.dll
+│   │   │           ├── Microsoft.EntityFrameworkCore.Abstractions.dll
+│   │   │           ├── Microsoft.EntityFrameworkCore.Design.dll
+│   │   │           ├── Microsoft.EntityFrameworkCore.Relational.dll
+│   │   │           ├── Microsoft.EntityFrameworkCore.SqlServer.dll
+│   │   │           ├── Microsoft.EntityFrameworkCore.dll
+│   │   │           ├── Microsoft.Extensions.Caching.Abstractions.dll
+│   │   │           ├── Microsoft.Extensions.Caching.Memory.dll
+│   │   │           ├── Microsoft.Extensions.Caching.StackExchangeRedis.dll
+│   │   │           ├── Microsoft.Extensions.Configuration.Abstractions.dll
+│   │   │           ├── Microsoft.Extensions.DependencyInjection.Abstractions.dll
+│   │   │           ├── Microsoft.Extensions.DependencyInjection.dll
+│   │   │           ├── Microsoft.Extensions.DependencyModel.dll
+│   │   │           ├── Microsoft.Extensions.Logging.Abstractions.dll
+│   │   │           ├── Microsoft.Extensions.Logging.dll
+│   │   │           ├── Microsoft.Extensions.Options.dll
+│   │   │           ├── Microsoft.Extensions.Primitives.dll
+│   │   │           ├── Microsoft.Identity.Client.Extensions.Msal.dll
+│   │   │           ├── Microsoft.Identity.Client.dll
+│   │   │           ├── Microsoft.IdentityModel.Abstractions.dll
+│   │   │           ├── Microsoft.IdentityModel.JsonWebTokens.dll
+│   │   │           ├── Microsoft.IdentityModel.Logging.dll
+│   │   │           ├── Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+│   │   │           ├── Microsoft.IdentityModel.Protocols.dll
+│   │   │           ├── Microsoft.IdentityModel.Tokens.dll
+│   │   │           ├── Microsoft.OpenApi.dll
+│   │   │           ├── Microsoft.SqlServer.Server.dll
+│   │   │           ├── Microsoft.Win32.SystemEvents.dll
+│   │   │           ├── Mono.TextTemplating.dll
+│   │   │           ├── Pipelines.Sockets.Unofficial.dll
+│   │   │           ├── StackExchange.Redis.dll
+│   │   │           ├── Swashbuckle.AspNetCore.Swagger.dll
+│   │   │           ├── Swashbuckle.AspNetCore.SwaggerGen.dll
+│   │   │           ├── Swashbuckle.AspNetCore.SwaggerUI.dll
+│   │   │           ├── System.ClientModel.dll
+│   │   │           ├── System.CodeDom.dll
+│   │   │           ├── System.Composition.AttributedModel.dll
+│   │   │           ├── System.Composition.Convention.dll
+│   │   │           ├── System.Composition.Hosting.dll
+│   │   │           ├── System.Composition.Runtime.dll
+│   │   │           ├── System.Composition.TypedParts.dll
+│   │   │           ├── System.Configuration.ConfigurationManager.dll
+│   │   │           ├── System.Diagnostics.DiagnosticSource.dll
+│   │   │           ├── System.Drawing.Common.dll
+│   │   │           ├── System.Formats.Asn1.dll
+│   │   │           ├── System.IdentityModel.Tokens.Jwt.dll
+│   │   │           ├── System.Memory.Data.dll
+│   │   │           ├── System.Runtime.Caching.dll
+│   │   │           ├── System.Security.Cryptography.ProtectedData.dll
+│   │   │           ├── System.Security.Permissions.dll
+│   │   │           ├── System.Text.Json.dll
+│   │   │           ├── System.Windows.Extensions.dll
+│   │   │           ├── appsettings.Development.example.json
+│   │   │           ├── appsettings.Development.json
+│   │   │           ├── appsettings.json
+│   │   │           ├── cs
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── de
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── es
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── fr
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── it
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── ja
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── ko
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── pl
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── pt-BR
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── ru
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── runtimes
+│   │   │           │   ├── unix
+│   │   │           │   │   └── lib
+│   │   │           │   │       └── net6.0
+│   │   │           │   │           ├── Microsoft.Data.SqlClient.dll
+│   │   │           │   │           └── System.Drawing.Common.dll
+│   │   │           │   ├── win
+│   │   │           │   │   └── lib
+│   │   │           │   │       └── net6.0
+│   │   │           │   │           ├── Microsoft.Data.SqlClient.dll
+│   │   │           │   │           ├── Microsoft.Win32.SystemEvents.dll
+│   │   │           │   │           ├── System.Drawing.Common.dll
+│   │   │           │   │           ├── System.Runtime.Caching.dll
+│   │   │           │   │           ├── System.Security.Cryptography.ProtectedData.dll
+│   │   │           │   │           └── System.Windows.Extensions.dll
+│   │   │           │   ├── win-arm
+│   │   │           │   │   └── native
+│   │   │           │   │       └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │           │   ├── win-arm64
+│   │   │           │   │   └── native
+│   │   │           │   │       └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │           │   ├── win-x64
+│   │   │           │   │   └── native
+│   │   │           │   │       └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │           │   └── win-x86
+│   │   │           │       └── native
+│   │   │           │           └── Microsoft.Data.SqlClient.SNI.dll
+│   │   │           ├── tr
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           ├── zh-Hans
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │           │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │           │   └── Microsoft.CodeAnalysis.resources.dll
+│   │   │           └── zh-Hant
+│   │   │               ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+│   │   │               ├── Microsoft.CodeAnalysis.CSharp.resources.dll
+│   │   │               ├── Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+│   │   │               ├── Microsoft.CodeAnalysis.Workspaces.resources.dll
+│   │   │               └── Microsoft.CodeAnalysis.resources.dll
+│   │   ├── obj
+│   │   │   ├── ABCDMall.WebAPI.csproj.nuget.dgspec.json
+│   │   │   ├── ABCDMall.WebAPI.csproj.nuget.g.props
+│   │   │   ├── ABCDMall.WebAPI.csproj.nuget.g.targets
+│   │   │   ├── Debug
+│   │   │   │   ├── net8.0
+│   │   │   │   │   ├── ABCDMall.WebAPI.AssemblyInfo.cs
+│   │   │   │   │   ├── ABCDMall.WebAPI.AssemblyInfoInputs.cache
+│   │   │   │   │   ├── ABCDMall.WebAPI.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │   │   ├── ABCDMall.WebAPI.GlobalUsings.g.cs
+│   │   │   │   │   ├── ref
+│   │   │   │   │   └── refint
+│   │   │   │   └── net9.0
+│   │   │   │       ├── ABCDMall.B080BB9C.Up2Date
+│   │   │   │       ├── ABCDMall.WebAPI.AssemblyInfo.cs
+│   │   │   │       ├── ABCDMall.WebAPI.AssemblyInfoInputs.cache
+│   │   │   │       ├── ABCDMall.WebAPI.GeneratedMSBuildEditorConfig.editorconfig
+│   │   │   │       ├── ABCDMall.WebAPI.GlobalUsings.g.cs
+│   │   │   │       ├── ABCDMall.WebAPI.MvcApplicationPartsAssemblyInfo.cache
+│   │   │   │       ├── ABCDMall.WebAPI.MvcApplicationPartsAssemblyInfo.cs
+│   │   │   │       ├── ABCDMall.WebAPI.assets.cache
+│   │   │   │       ├── ABCDMall.WebAPI.csproj.AssemblyReference.cache
+│   │   │   │       ├── ABCDMall.WebAPI.csproj.CoreCompileInputs.cache
+│   │   │   │       ├── ABCDMall.WebAPI.csproj.FileListAbsolute.txt
+│   │   │   │       ├── ABCDMall.WebAPI.dll
+│   │   │   │       ├── ABCDMall.WebAPI.genruntimeconfig.cache
+│   │   │   │       ├── ABCDMall.WebAPI.pdb
+│   │   │   │       ├── ABCDMall.WebAPI.sourcelink.json
+│   │   │   │       ├── apphost
+│   │   │   │       ├── ref
+│   │   │   │       │   └── ABCDMall.WebAPI.dll
+│   │   │   │       ├── refint
+│   │   │   │       │   └── ABCDMall.WebAPI.dll
+│   │   │   │       ├── rjimswa.dswa.cache.json
+│   │   │   │       ├── rjsmcshtml.dswa.cache.json
+│   │   │   │       ├── rjsmrazor.dswa.cache.json
+│   │   │   │       ├── rpswa.dswa.cache.json
+│   │   │   │       ├── staticwebassets
+│   │   │   │       ├── staticwebassets.build.endpoints.json
+│   │   │   │       ├── staticwebassets.build.json
+│   │   │   │       ├── staticwebassets.build.json.cache
+│   │   │   │       └── staticwebassets.development.json
+│   │   │   ├── project.assets.json
+│   │   │   └── project.nuget.cache
+│   │   └── wwwroot
+│   │       ├── images
+│   │       │   ├── contracts
+│   │       │   │   ├── 860a0f6832fe4025bb34082d474130b9.jpg
+│   │       │   │   ├── chau-accessories-contract.png
+│   │       │   │   ├── huy-sneakers-contract.png
+│   │       │   │   ├── lan-cosmetics-contract.png
+│   │       │   │   └── minh-fashion-contract.png
+│   │       │   ├── foodcourt
+│   │       │   │   ├── 0731f01c-b6d0-48f3-a22c-519e25af1f6c.png
+│   │       │   │   ├── 0bddc014-1e5b-49d1-9c22-32bdc0c2061c.png
+│   │       │   │   ├── 21ba6d9c-440e-4d4b-8c8c-13196bdc01cb.png
+│   │       │   │   ├── 231858df-1988-4279-a5dc-0223f9067f0d.png
+│   │       │   │   ├── 28743d71-7c4e-4da3-bec0-26260b358ade.png
+│   │       │   │   ├── 2a8755b1-efc6-40ea-9832-867a463dabba.png
+│   │       │   │   ├── 314e3363-1716-40ac-991d-c3a06dc5ebdf.png
+│   │       │   │   ├── 330ad780-2305-4904-878b-60f91b9c8ddc.png
+│   │       │   │   ├── 3c1cd101-23f1-41c0-91e7-d6592cff0291.png
+│   │       │   │   ├── 3fcdf09e-68c9-478d-996c-1b1336bfc6e5.png
+│   │       │   │   ├── 4113ac13-c04e-43c7-8287-1853bbce46b5.png
+│   │       │   │   ├── 46959ac1-933f-49d7-a90f-1bd9ca68f3e3.png
+│   │       │   │   ├── 490d997f-d460-4bfd-a015-2e191e1beeeb.png
+│   │       │   │   ├── 4a0ab7ad-b4a8-452d-937d-4c132a592d0e.png
+│   │       │   │   ├── 5f8bec71-a12c-4dca-be2d-30261a44546b.png
+│   │       │   │   ├── 641c0b06-64a6-43d2-a2b0-95946622000f.png
+│   │       │   │   ├── 67165b40-10d7-4e22-8349-2a45a3180130.png
+│   │       │   │   ├── 7527d8a3-a696-412d-840b-a0451c2b10a0.png
+│   │       │   │   ├── 780ed55d-1ee0-4ce8-88f9-5e5c3538f850.png
+│   │       │   │   ├── 7d26e69e-3448-4e51-a8ee-bb8bdf734c55.png
+│   │       │   │   ├── 9fa56b4e-1f7f-4074-a50c-f3617d5f06f4.png
+│   │       │   │   ├── a2d8666b-ed51-4af7-9893-56d7178e1d54.png
+│   │       │   │   ├── a56de76c-2411-4cfb-ad19-3aff90b16474.png
+│   │       │   │   ├── a7e5a199-fde3-47bc-a5c6-59e4cd5dd475.png
+│   │       │   │   ├── adbe0d3d-a7e5-41c5-b74e-3c3bdc3ceea1.png
+│   │       │   │   ├── b1b91506-3cf2-47fd-8239-f6321910fd42.png
+│   │       │   │   ├── c0cefae8-4bcd-4c33-b34f-594f5eaabc9d.png
+│   │       │   │   ├── c4308328-baba-4f70-bd6c-5e57880035e6.png
+│   │       │   │   ├── f57b17e3-ed66-420a-ac2f-aad3e2dbebca.png
+│   │       │   │   └── f8ed0731-c822-44b8-b114-596bc1cc07c1.png
+│   │       │   ├── maps
+│   │       │   │   ├── floor-tang1.png
+│   │       │   │   ├── floor-tang2.png
+│   │       │   │   ├── floor-tang3.png
+│   │       │   │   └── floor-tang4.png
+│   │       │   ├── profiles
+│   │       │   │   ├── admin-default.png
+│   │       │   │   ├── bc3c55f88029441ebbf4e2629b7b2b58.jpg
+│   │       │   │   ├── manager-1-old.png
+│   │       │   │   ├── manager-1.png
+│   │       │   │   ├── manager-2.png
+│   │       │   │   ├── manager-3.png
+│   │       │   │   ├── manager-4.png
+│   │       │   │   └── manager-5.png
+│   │       │   └── shops
+│   │       │       ├── covers
+│   │       │       │   ├── 90326d70ecba45efb03e16cd768014a6.jpg
+│   │       │       │   ├── c298d28f512244719bfdb22db914e4c7.jpg
+│   │       │       │   └── ceaa5c59ce624f7599a816f8068be8a7.jpg
+│   │       │       ├── logos
+│   │       │       │   ├── 04b2e84f91b24d67bb679f00842f84cb.jpg
+│   │       │       │   ├── 861e161d68c242bf87ce1728f3cd061f.jpg
+│   │       │       │   └── ad0a5d2e16f0437b951ee17af039fcea.jpg
+│   │       │       └── products
+│   │       │           ├── b0000471c07c457fa649ba52f530cba6.jpg
+│   │       │           ├── c8efa03a05e541acb6c9691fc067143b.jpg
+│   │       │           └── d2063ca15f4043e8833b7008185e5120.jpg
+│   │       ├── img
+│   │       │   ├── 2lands
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.webp
+│   │       │   ├── ABCDMall
+│   │       │   │   └── logo.png
+│   │       │   ├── Al Fresco's
+│   │       │   │   ├── in.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── Baa Baby
+│   │       │   │   └── logo.png
+│   │       │   ├── BalaBala
+│   │       │   │   └── logo.jpg
+│   │       │   ├── Belluni
+│   │       │   │   └── logo.png
+│   │       │   ├── Boba Bella Milk Tea
+│   │       │   │   └── logo.jpg
+│   │       │   ├── Bobapop
+│   │       │   │   ├── logo.jpg
+│   │       │   │   ├── menu.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── C&K
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── Chagee
+│   │       │   │   └── logo.png
+│   │       │   ├── Chang Kang Kung
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── Chilli Thai
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   ├── menu.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── Chuk chuk
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpeg
+│   │       │   ├── DongHai
+│   │       │   │   ├── in.jpeg
+│   │       │   │   ├── logo.webp
+│   │       │   │   └── out.jpeg
+│   │       │   ├── Dookki
+│   │       │   │   ├── logo.png
+│   │       │   │   ├── logo1.jpg
+│   │       │   │   ├── logo2.jpeg
+│   │       │   │   ├── menu.jpg
+│   │       │   │   ├── menu1.jpg
+│   │       │   │   └── menu2.webp
+│   │       │   ├── Elise
+│   │       │   │   └── logo.png
+│   │       │   ├── H BBQ Buffet
+│   │       │   │   ├── logo.jpg
+│   │       │   │   ├── menu.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── Hot Pot Story
+│   │       │   │   ├── gallery.jpg
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── ILA
+│   │       │   │   └── logo.webp
+│   │       │   ├── Insidemen
+│   │       │   │   └── logo.png
+│   │       │   ├── Joopii
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── King BBQ
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── Lok Lok Hotpot
+│   │       │   │   ├── gallery.jpg
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── Lẩu Nướng 88
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   ├── menu.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── Marukame Udon
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── Mei Wei
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── Mikado Sushi
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── Mochi Sweet
+│   │       │   │   └── logo.webp
+│   │       │   ├── NINOMAXX
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── Parfois
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in_1.jpg
+│   │       │   │   ├── out.jpg
+│   │       │   │   └── out_1.jpg
+│   │       │   ├── Shabu Ya
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in_1.jpg
+│   │       │   │   ├── in_2.webp
+│   │       │   │   ├── in_3.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── Sunnies Studios
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in_1.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── Tasaki BBQ
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── Thế Giới Kim Cương
+│   │       │   │   └── logo.jpg
+│   │       │   ├── V-Sixty Four
+│   │       │   │   └── logo.png
+│   │       │   ├── Vitimex
+│   │       │   │   └── logo.png
+│   │       │   ├── Vocuppa Caffe
+│   │       │   │   ├── logo.webp
+│   │       │   │   ├── menu.webp
+│   │       │   │   ├── out.jpg
+│   │       │   │   └── out_in.webp
+│   │       │   ├── Yamazaki Bakery
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in__1.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── adidas
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.webp
+│   │       │   ├── aldo
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── beautybox
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── bonchon
+│   │       │   │   └── logo.jpg
+│   │       │   ├── boo
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── buffethoangyen
+│   │       │   │   └── logo.webp
+│   │       │   ├── casio
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.png
+│   │       │   ├── chang
+│   │       │   │   └── logo.webp
+│   │       │   ├── cloudpot
+│   │       │   │   └── logo.png
+│   │       │   ├── converse
+│   │       │   │   ├── logo.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── crystaljade
+│   │       │   │   └── logo.png
+│   │       │   ├── dairyqueen
+│   │       │   │   ├── logo.jpg
+│   │       │   │   ├── menu.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── daoniuguo
+│   │       │   │   └── logo.jpg
+│   │       │   ├── ecco
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── futureword
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── gogi
+│   │       │   │   └── logo.png
+│   │       │   ├── johnhenry
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── khaolao
+│   │       │   │   └── logo.webp
+│   │       │   ├── kichi
+│   │       │   │   └── logo1.png
+│   │       │   ├── kohakusushi
+│   │       │   │   └── logo.png
+│   │       │   ├── lego
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.webp
+│   │       │   ├── levents
+│   │       │   │   ├── OUT.webp
+│   │       │   │   └── logo.png
+│   │       │   ├── levi
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in1.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── locphuc
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── lug
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.webp
+│   │       │   ├── minh
+│   │       │   │   └── longwang.png
+│   │       │   ├── miniso
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── mujosh
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── nike
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── pedro
+│   │       │   │   ├── inside.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── pedro_outdoor.png
+│   │       │   ├── phuongnam
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── pizzaCompany
+│   │       │   │   ├── in.webp
+│   │       │   │   ├── logo.webp
+│   │       │   │   └── out.jpg
+│   │       │   ├── pnj
+│   │       │   │   ├── logo.jpg
+│   │       │   │   ├── pnj_in.png
+│   │       │   │   └── pnj_out.png
+│   │       │   ├── popmart
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.webp
+│   │       │   ├── powerbowl
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── public bank
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── rabity
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── sonycenter
+│   │       │   │   ├── logo.jpeg
+│   │       │   │   └── out.png
+│   │       │   ├── starbuck
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── sushikei
+│   │       │   │   └── logo.webp
+│   │       │   ├── sushix
+│   │       │   │   ├── logo.avif
+│   │       │   │   └── logo.jpg
+│   │       │   ├── taipan
+│   │       │   │   └── logo.jpg
+│   │       │   ├── tanxin
+│   │       │   │   └── logo.png
+│   │       │   ├── texaschicken
+│   │       │   │   └── logo.jpg
+│   │       │   ├── thaiexpress
+│   │       │   │   └── logo.webp
+│   │       │   ├── trungnguyen
+│   │       │   │   └── logo.jpg
+│   │       │   ├── typo
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in_1.jpg
+│   │       │   │   └── out.jpg
+│   │       │   ├── uniqlo
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── vans
+│   │       │   │   ├── logo.jpg
+│   │       │   │   └── out.avif
+│   │       │   ├── vascara
+│   │       │   │   ├── in.jpg
+│   │       │   │   ├── in1.jpg
+│   │       │   │   ├── logo.png
+│   │       │   │   └── out.jpg
+│   │       │   ├── wowyakiniku
+│   │       │   │   └── logo.png
+│   │       │   └── wwwroot.lnk
+│   │       └── uploads
+│   ├── ABCDMall.sln
+│   ├── BE_structure.md
+│   ├── Connection_string.md
+│   ├── General_Rule.md
+│   ├── Movie_backend_work_split.md
+│   ├── Movie_design_document.md
+│   ├── Movie_dev1_execution_plan.md
+│   ├── Movie_dev2_execution_plan.md
+│   ├── Movie_feedback_feature_checklist.md
+│   ├── dev1-note-for-dev2-day5-quote.md
+│   ├── dotnet_cli.md
+│   ├── package_console_cli.md
+│   ├── working in progress.md
+│   ├── working-in-progress-dev1.md
+│   └── working-in-progress-dev2.md
+├── FRONTEND
+│   ├── COMPREHENSIVE_LOCALIZATION_SUMMARY.md
+│   ├── DEBUG_REPORT.md
+│   ├── FE_structure.md
+│   ├── FIXES_APPLIED.md
+│   ├── General_Rule.md
+│   ├── IMPROVEMENT_GUIDE.md
+│   ├── LOCALIZATION_FIXES.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── postcss.config.js
+│   ├── project_tree.txt
+│   ├── public
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── assets
+│   │   │   ├── hero.png
+│   │   │   ├── react.svg
+│   │   │   └── vite.svg
+│   │   ├── components
+│   │   ├── core
+│   │   │   ├── api
+│   │   │   │   ├── api.ts
+│   │   │   │   └── types
+│   │   │   ├── hooks
+│   │   │   ├── layouts
+│   │   │   │   ├── Footer.tsx
+│   │   │   │   └── Header.tsx
+│   │   │   └── utils
+│   │   │       └── image.ts
+│   │   ├── features
+│   │   │   ├── admin
+│   │   │   │   └── components
+│   │   │   ├── amenities
+│   │   │   │   └── AmenitiesFeature.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── pages
+│   │   │   │   │   ├── AdminManagement.jsx
+│   │   │   │   │   ├── Dashboard.jsx
+│   │   │   │   │   ├── ForgotPassword.jsx
+│   │   │   │   │   ├── Login.jsx
+│   │   │   │   │   ├── ManagerShops.jsx
+│   │   │   │   │   ├── Profile.jsx
+│   │   │   │   │   ├── Register.jsx
+│   │   │   │   │   ├── RentalAreas.jsx
+│   │   │   │   │   ├── RentalAreasAdmin.jsx
+│   │   │   │   │   ├── RevenueStatistics.jsx
+│   │   │   │   │   ├── ShopInfo.jsx
+│   │   │   │   │   └── UserManagement.jsx
+│   │   │   │   └── services
+│   │   │   │       └── auth.jsx
+│   │   │   ├── brands
+│   │   │   │   └── BrandsFeature.tsx
+│   │   │   ├── contact
+│   │   │   │   └── ContactFeature.tsx
+│   │   │   ├── directory
+│   │   │   │   ├── MapPage.tsx
+│   │   │   │   ├── api
+│   │   │   │   │   └── mapApi.ts
+│   │   │   │   ├── components
+│   │   │   │   │   └── InteractiveMap.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useMap.ts
+│   │   │   │   └── types
+│   │   │   │       └── map.types.ts
+│   │   │   ├── events
+│   │   │   │   ├── EventsFeature.tsx
+│   │   │   │   ├── api
+│   │   │   │   │   └── eventsApi.ts
+│   │   │   │   └── types
+│   │   │   │       └── event.types.ts
+│   │   │   ├── faq
+│   │   │   │   └── FaqFeature.tsx
+│   │   │   ├── feedbacks
+│   │   │   │   └── FeedbackFeature.tsx
+│   │   │   ├── food
+│   │   │   │   ├── api
+│   │   │   │   │   └── foodApi.ts
+│   │   │   │   ├── components
+│   │   │   │   │   ├── FoodCard.tsx
+│   │   │   │   │   ├── FoodDetailModal.tsx
+│   │   │   │   │   └── UploadImage.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── useFood.ts
+│   │   │   │   │   ├── useFoodStoreAssets.ts
+│   │   │   │   │   └── useLocalMenu.ts
+│   │   │   │   ├── pages
+│   │   │   │   │   ├── FoodDetailPage.tsx
+│   │   │   │   │   └── FoodPage.tsx
+│   │   │   │   └── routes
+│   │   │   │       └── FoodRoutes.tsx
+│   │   │   ├── food-court
+│   │   │   │   ├── api
+│   │   │   │   ├── components
+│   │   │   │   └── types
+│   │   │   ├── marketing
+│   │   │   │   └── components
+│   │   │   │       ├── HeroBanner.tsx
+│   │   │   │       ├── PromoCarousel.tsx
+│   │   │   │       └── QuickNav.tsx
+│   │   │   ├── movies
+│   │   │   │   ├── api
+│   │   │   │   │   ├── movieUiAdapter.ts
+│   │   │   │   │   └── moviesApi.ts
+│   │   │   │   ├── component
+│   │   │   │   │   └── ui
+│   │   │   │   │       ├── badge.tsx
+│   │   │   │   │       ├── button.tsx
+│   │   │   │   │       ├── tabs.tsx
+│   │   │   │   │       └── utils.tsx
+│   │   │   │   ├── data
+│   │   │   │   │   ├── booking.ts
+│   │   │   │   │   ├── movie.ts
+│   │   │   │   │   ├── promotions.ts
+│   │   │   │   │   └── schedules.ts
+│   │   │   │   ├── pages
+│   │   │   │   │   ├── CheckOutPage.tsx
+│   │   │   │   │   ├── MovieCard.tsx
+│   │   │   │   │   ├── MovieDetailPage.tsx
+│   │   │   │   │   ├── MovieHomePage.tsx
+│   │   │   │   │   ├── PromoCard.tsx
+│   │   │   │   │   ├── PromotionsPage.tsx
+│   │   │   │   │   ├── SchedulesPage.tsx
+│   │   │   │   │   └── SeatSelectionPage.tsx
+│   │   │   │   └── routes
+│   │   │   │       ├── MovieRoutes.tsx
+│   │   │   │       └── moviePaths.ts
+│   │   │   ├── movies-admin
+│   │   │   │   ├── data
+│   │   │   │   │   └── adminData.ts
+│   │   │   │   ├── pages
+│   │   │   │   │   ├── MoviesAdminDashboardPage.tsx
+│   │   │   │   │   ├── MoviesAdminSectionPage.tsx
+│   │   │   │   │   └── MoviesAdminShell.tsx
+│   │   │   │   └── routes
+│   │   │   │       ├── MoviesAdminRoutes.tsx
+│   │   │   │       └── movieAdminPaths.ts
+│   │   │   └── shops
+│   │   │       ├── ShopDetailFeature.tsx
+│   │   │       ├── api
+│   │   │       │   └── shopApi.ts
+│   │   │       ├── components
+│   │   │       │   └── ShopCard.tsx
+│   │   │       ├── hooks
+│   │   │       │   └── useShops.ts
+│   │   │       ├── pages
+│   │   │       │   ├── ShopDetailPage.tsx
+│   │   │       │   └── ShopPage.tsx
+│   │   │       ├── routes
+│   │   │       │   └── ShopsRoutes.tsx
+│   │   │       └── types
+│   │   │           └── shop.types.ts
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   ├── pages
+│   │   │   ├── amenities
+│   │   │   │   └── AmenitiesPage.tsx
+│   │   │   ├── brands
+│   │   │   │   └── BrandsPage.tsx
+│   │   │   ├── contact
+│   │   │   │   └── ContactPage.tsx
+│   │   │   ├── directory
+│   │   │   │   └── MapPage.tsx
+│   │   │   ├── events
+│   │   │   │   └── EventsPage.tsx
+│   │   │   ├── feedbacks
+│   │   │   │   └── FeedbackPage.tsx
+│   │   │   ├── food-court
+│   │   │   │   └── FoodCourtPage.tsx
+│   │   │   ├── home
+│   │   │   │   └── HomePage.tsx
+│   │   │   ├── shops
+│   │   │   │   ├── ShopDetailPage.tsx
+│   │   │   │   └── ShopPage.tsx
+│   │   │   └── support
+│   │   │       └── FaqPage.tsx
+│   │   ├── routes
+│   │   │   └── AppRoutes.tsx
+│   │   └── store
+│   ├── tailwind.config.js
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── README.md
+├── mermaid-diagram.png
+├── mkdir
+├── package-lock.json
+├── package.json
+└── project_tree.txt
+
+653 directories, 1875 files

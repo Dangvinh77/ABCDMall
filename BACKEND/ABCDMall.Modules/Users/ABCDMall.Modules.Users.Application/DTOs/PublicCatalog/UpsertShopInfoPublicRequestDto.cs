@@ -22,6 +22,7 @@ public sealed class UpsertShopInfoPublicRequestDto
     public string? Offer { get; set; }
     public DateTime? OpeningDate { get; set; }
     public string[] Tags { get; set; } = [];
+    public DateTime? OpeningDate { get; set; }
 }
 
 public sealed class UpsertShopProductRequestDto

@@ -9,6 +9,7 @@ public class ShopCatalogItemDto
     public string Location { get; set; } = string.Empty;
     public string Summary { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string LogoUrl { get; set; } = string.Empty;
     public string ImageUrl { get; set; } = string.Empty;
     public string? Badge { get; set; }
     public string? Offer { get; set; }

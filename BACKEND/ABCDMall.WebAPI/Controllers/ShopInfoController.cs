@@ -47,5 +47,6 @@ namespace ABCDMall.WebAPI.Controllers
 
             return Ok(await _shopInfoQueryService.GetRentalInfoAsync(shopId, HttpContext.RequestAborted));
         }
+
     }
 }

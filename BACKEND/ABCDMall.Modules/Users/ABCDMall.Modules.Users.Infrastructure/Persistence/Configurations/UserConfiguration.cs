@@ -21,7 +21,12 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         entity.Property(x => x.Image).HasMaxLength(500);
         entity.Property(x => x.Address).HasMaxLength(500);
         entity.Property(x => x.CCCD).HasMaxLength(50);
+        entity.Property(x => x.CccdFrontImage).HasMaxLength(500);
+        entity.Property(x => x.CccdBackImage).HasMaxLength(500);
         entity.Property(x => x.IsActive).HasDefaultValue(true);
         entity.Property(x => x.LoginOtpCode).HasMaxLength(10);
+        entity.Property(x => x.MustChangePassword).HasDefaultValue(false);
+        entity.Property(x => x.OneTimePasswordHash).HasMaxLength(500);
+        entity.Property(x => x.PasswordSetupToken).HasMaxLength(128);
     }
 }

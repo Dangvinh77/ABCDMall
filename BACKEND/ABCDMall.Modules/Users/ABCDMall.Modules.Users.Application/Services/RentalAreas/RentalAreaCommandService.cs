@@ -4,6 +4,7 @@ using ABCDMall.Modules.Users.Application.Common;
 using ABCDMall.Modules.Users.Application.DTOs.Common;
 using ABCDMall.Modules.Users.Application.DTOs.RentalAreas;
 using ABCDMall.Modules.Users.Application.DTOs;
+using ABCDMall.Modules.Users.Application.Services;
 using ABCDMall.Modules.Users.Domain.Entities;
 
 namespace ABCDMall.Modules.Users.Application.Services.RentalAreas;
@@ -13,15 +14,18 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
     private readonly AutoMapper.IMapper _mapper;
     private readonly IRentalAreaCommandRepository _rentalAreaCommandRepository;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IEmailNotificationService _emailNotificationService;
 
     public RentalAreaCommandService(
         AutoMapper.IMapper mapper,
         IRentalAreaCommandRepository rentalAreaCommandRepository,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        IEmailNotificationService emailNotificationService)
     {
         _mapper = mapper;
         _rentalAreaCommandRepository = rentalAreaCommandRepository;
         _fileStorageService = fileStorageService;
+        _emailNotificationService = emailNotificationService;
     }
 
     public Task<ApplicationResult<CreateRentalAreaResponseDto>> CreateRentalAreaAsync(CreateRentalAreaDto dto, CancellationToken cancellationToken = default)
@@ -30,11 +34,6 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
 
     public async Task<ApplicationResult<MessageResponseDto>> RegisterTenantAsync(string rentalAreaId, RegisterTenantDto dto, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(dto.BusinessType))
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("Business type is required");
-        }
-
         if (string.IsNullOrWhiteSpace(dto.CCCD)
             || string.IsNullOrWhiteSpace(dto.Location)
             || dto.StartDate == default
@@ -44,13 +43,7 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             || dto.LeaseTermDays <= 0
             || dto.ContractImage is null)
         {
-            return ApplicationResult<MessageResponseDto>.BadRequest("CCCD, location, business type, start date, electricity fee, water fee, fee, rental duration, and contract image are required");
-        }
-
-        var normalizedBusinessType = dto.BusinessType.Trim();
-        if (normalizedBusinessType is not ("Shop" or "FoodCourt"))
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("Business type must be Shop or FoodCourt");
+            return ApplicationResult<MessageResponseDto>.BadRequest("CCCD, location, start date, electricity fee, water fee, fee, rental duration, and contract image are required");
         }
 
         var minimumStartDate = DateTime.Today.AddDays(1);
@@ -82,12 +75,10 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("Manager with this CCCD does not exist");
         }
 
-        var shopInfo = await _rentalAreaCommandRepository.GetShopInfoByManagerAsync(manager, normalizedCccd, cancellationToken)
-            ?? await CreateShopInfoForManagerAsync(manager, normalizedCccd, cancellationToken);
-
-        if (string.IsNullOrWhiteSpace(manager.ShopId) || manager.ShopId != shopInfo.Id)
+        var shopInfo = await _rentalAreaCommandRepository.GetShopInfoByManagerAsync(manager, normalizedCccd, cancellationToken);
+        if (shopInfo is null)
         {
-            manager.ShopId = shopInfo.Id;
+            return ApplicationResult<MessageResponseDto>.NotFound("Shop info for this manager does not exist");
         }
 
         var contractPath = await _fileStorageService.SaveContractImageAsync(dto.ContractImage, cancellationToken);
@@ -117,10 +108,17 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             dto.LeaseTermDays,
             contractPath), cancellationToken);
 
-        rentalArea.Status = "Rented";
-        rentalArea.TenantName = shopInfo.ShopName;
-        rentalArea.ShopInfoId = shopInfo.Id;
-        rentalArea.BusinessType = normalizedBusinessType;
+        var tenantLinked = await _rentalAreaCommandRepository.UpdateRentalAreaTenantAsync(
+            rentalAreaId,
+            status: "Reserved",
+            shopInfoId: shopInfo.Id,
+            tenantName: shopInfo.ShopName,
+            cancellationToken);
+
+        if (!tenantLinked)
+        {
+            return ApplicationResult<MessageResponseDto>.NotFound("Rental area does not exist");
+        }
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
 
@@ -128,69 +126,6 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
         {
             Message = "Tenant registered successfully"
         });
-    }
-
-    public async Task<ApplicationResult<MessageResponseDto>> SyncRegisteredManagerRentalAsync(
-        string rentalAreaId,
-        string shopInfoId,
-        string tenantName,
-        string businessType,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(rentalAreaId)
-            || string.IsNullOrWhiteSpace(shopInfoId)
-            || string.IsNullOrWhiteSpace(tenantName)
-            || string.IsNullOrWhiteSpace(businessType))
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("Rental area, shop, tenant, and business type are required");
-        }
-
-        var normalizedBusinessType = businessType.Trim();
-        if (normalizedBusinessType is not ("Shop" or "FoodCourt"))
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("Business type must be Shop or FoodCourt");
-        }
-
-        var rentalArea = await _rentalAreaCommandRepository.GetRentalAreaByIdAsync(rentalAreaId, cancellationToken);
-        if (rentalArea is null)
-        {
-            return ApplicationResult<MessageResponseDto>.NotFound("Rental area does not exist");
-        }
-
-        rentalArea.Status = "Rented";
-        rentalArea.ShopInfoId = shopInfoId.Trim();
-        rentalArea.TenantName = tenantName.Trim();
-        rentalArea.BusinessType = normalizedBusinessType;
-
-        await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
-
-        return ApplicationResult<MessageResponseDto>.Ok(new MessageResponseDto
-        {
-            Message = "Rental area synced successfully"
-        });
-    }
-
-    private async Task<ShopInfo> CreateShopInfoForManagerAsync(User manager, string normalizedCccd, CancellationToken cancellationToken)
-    {
-        var shopInfo = new ShopInfo
-        {
-            ShopName = RentalAreaQueryService.BuildDefaultShopName(manager.FullName),
-            ManagerName = manager.FullName,
-            CCCD = normalizedCccd,
-            Slug = GenerateShopSlug(manager.FullName),
-            Category = "Pending Setup",
-            Floor = string.Empty,
-            LocationSlot = string.Empty,
-            Summary = "Shop information was created during rental registration.",
-            Description = "This shop profile was created automatically when the manager was assigned to a rental location.",
-            Tags = "ABCD Mall, Pending Setup",
-            IsPublicVisible = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        await _rentalAreaCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
-        manager.ShopId = shopInfo.Id;
-        return shopInfo;
     }
 
     public async Task<ApplicationResult<MessageResponseDto>> UpdateMonthlyBillAsync(string rentalAreaId, UpdateMonthlyBillDto dto, CancellationToken cancellationToken = default)
@@ -224,7 +159,7 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("Shop info for this rental area does not exist");
         }
 
-        await _rentalAreaCommandRepository.AddMonthlyBillAsync(CreateMonthlyBill(
+        var monthlyBill = CreateMonthlyBill(
             shopInfo,
             shopInfo.ManagerName,
             dto.BillingMonth.Trim(),
@@ -235,9 +170,22 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             shopInfo.WaterFee,
             shopInfo.ServiceFee,
             shopInfo.LeaseTermDays,
-            shopInfo.ContractImages ?? shopInfo.ContractImage), cancellationToken);
+            shopInfo.ContractImages ?? shopInfo.ContractImage);
+
+        await _rentalAreaCommandRepository.AddMonthlyBillAsync(monthlyBill, cancellationToken);
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
+
+        var manager = await _rentalAreaCommandRepository.GetManagerByShopInfoIdAsync(shopInfo.Id ?? string.Empty, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(manager?.Email))
+        {
+            await _emailNotificationService.SendRentalBillUpdatedEmailAsync(
+                manager.Email,
+                manager.FullName,
+                shopInfo.ShopName,
+                monthlyBill.Month,
+                monthlyBill.TotalDue);
+        }
 
         return ApplicationResult<MessageResponseDto>.Ok(new MessageResponseDto
         {
@@ -258,10 +206,17 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             return ApplicationResult<MessageResponseDto>.BadRequest("This rental area does not have a tenant");
         }
 
-        rentalArea.Status = "Available";
-        rentalArea.TenantName = null;
-        rentalArea.ShopInfoId = null;
-        rentalArea.BusinessType = null;
+        var tenantCleared = await _rentalAreaCommandRepository.UpdateRentalAreaTenantAsync(
+            rentalAreaId,
+            status: "Available",
+            shopInfoId: null,
+            tenantName: null,
+            cancellationToken);
+
+        if (!tenantCleared)
+        {
+            return ApplicationResult<MessageResponseDto>.NotFound("Rental area does not exist");
+        }
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
 
@@ -362,17 +317,5 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
         return decimal.TryParse(normalizedValue, NumberStyles.Number, CultureInfo.InvariantCulture, out var value)
             ? value
             : 0;
-    }
-
-    private static string GenerateShopSlug(string? managerName)
-    {
-        var source = string.IsNullOrWhiteSpace(managerName)
-            ? $"pending-shop-{Guid.NewGuid():N}"
-            : managerName.Trim().ToLowerInvariant();
-
-        var sanitized = Regex.Replace(source, @"[^a-z0-9]+", "-").Trim('-');
-        return string.IsNullOrWhiteSpace(sanitized)
-            ? $"pending-shop-{Guid.NewGuid():N}"
-            : sanitized;
     }
 }

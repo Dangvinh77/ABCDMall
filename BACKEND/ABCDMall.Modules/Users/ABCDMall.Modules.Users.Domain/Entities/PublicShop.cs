@@ -18,4 +18,5 @@ public sealed class PublicShop
     public string? Offer { get; set; }
     public string ShopStatus { get; set; } = "Active";
     public DateTime? OpeningDate { get; set; }
+
 }

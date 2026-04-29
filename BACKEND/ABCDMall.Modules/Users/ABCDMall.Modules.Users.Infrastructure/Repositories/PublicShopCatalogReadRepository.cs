@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
 using ABCDMall.Modules.Users.Domain.Entities;
+using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABCDMall.Modules.Users.Infrastructure.Repositories;
@@ -7,10 +8,12 @@ namespace ABCDMall.Modules.Users.Infrastructure.Repositories;
 public sealed class PublicShopCatalogReadRepository : IPublicShopCatalogReadRepository
 {
     private readonly MallDbContext _context;
+    private readonly UtilityMapDbContext _utilityMapContext;
 
-    public PublicShopCatalogReadRepository(MallDbContext context)
+    public PublicShopCatalogReadRepository(MallDbContext context, UtilityMapDbContext utilityMapContext)
     {
         _context = context;
+        _utilityMapContext = utilityMapContext;
     }
 
     public async Task<IReadOnlyList<ShopInfo>> GetShopInfosAsync(CancellationToken cancellationToken = default)
@@ -23,10 +26,25 @@ public sealed class PublicShopCatalogReadRepository : IPublicShopCatalogReadRepo
 
     public async Task<IReadOnlyList<RentalArea>> GetRentalAreasAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.RentalAreas
+        var shopInfos = await _context.ShopInfos
             .AsNoTracking()
-            .OrderBy(x => x.AreaCode)
             .ToListAsync(cancellationToken);
+
+        var shopInfosById = shopInfos
+            .Where(x => x.Id != null)
+            .ToDictionary(x => x.Id!, StringComparer.OrdinalIgnoreCase);
+
+        var locations = await _utilityMapContext.MapLocations
+            .AsNoTracking()
+            .Include(x => x.FloorPlan)
+            .OrderBy(x => x.LocationSlot)
+            .ToListAsync(cancellationToken);
+
+        return locations
+            .Select(location => RentalAreaReadRepository.MapToRentalArea(
+                location,
+                RentalAreaReadRepository.ResolveShopInfo(location, shopInfosById, shopInfos)))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<PublicShopProduct>> GetProductsAsync(IEnumerable<string> shopIds, CancellationToken cancellationToken = default)

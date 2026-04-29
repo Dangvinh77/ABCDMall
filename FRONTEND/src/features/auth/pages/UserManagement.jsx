@@ -1,175 +1,256 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../core/api/api";
+
+const formatDate = (value) => {
+  if (!value) {
+    return "-";
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "-"
+    : new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(date);
+};
 
 const emptyEditForm = {
   email: "",
   fullName: "",
   shopName: "",
   address: "",
+  image: "",
   cccd: "",
 };
 
-function getBusinessTypeBadgeClasses(businessType) {
-  if (businessType === "FoodCourt") {
-    return "bg-amber-100 text-amber-800";
+const accountsPerPage = 10;
+const API_ORIGIN = "http://localhost:5184";
+
+const resolveFileUrl = (imagePath) => {
+  if (!imagePath) {
+    return "";
   }
 
-  if (businessType === "Shop") {
-    return "bg-sky-100 text-sky-800";
+  const normalizedPath = imagePath.replace(/\\/g, "/").trim();
+  if (normalizedPath.startsWith("http://") || normalizedPath.startsWith("https://")) {
+    return normalizedPath;
   }
 
-  return "bg-slate-100 text-slate-600";
-}
+  return `${API_ORIGIN}${normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`}`;
+};
 
 export default function UserManagement() {
   const role = localStorage.getItem("role") || "Guest";
   const isAdmin = role === "Admin";
   const [users, setUsers] = useState([]);
   const [profileRequests, setProfileRequests] = useState([]);
-  const [activeTab, setActiveTab] = useState("accounts");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(isAdmin);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedViewUser, setSelectedViewUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(null);
   const [editForm, setEditForm] = useState(emptyEditForm);
-  const [debugOtp, setDebugOtp] = useState(null);
-  const [debugOtpLoading, setDebugOtpLoading] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("accounts");
 
   const loadUsers = async () => {
-    const res = await api.get("/Auth/users");
-    setUsers(res || []);
+    try {
+      setLoading(true);
+      setError("");
+      const res = await api.get("/Auth/users");
+      const allUsers = res.data || [];
+      setUsers(allUsers);
+      setSelectedViewUser((current) => (
+        current ? allUsers.find((user) => user.id === current.id) || null : null
+      ));
+    } catch (err) {
+      setError(err.response?.data || "Unable to load registered users.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadProfileRequests = async () => {
-    const res = await api.get("/Auth/profile-update-requests?status=Pending");
-    setProfileRequests(res || []);
-  };
-
-  const reloadAll = async () => {
-    await Promise.all([loadUsers(), loadProfileRequests()]);
+    try {
+      const res = await api.get("/Auth/profile-update-requests?status=Pending");
+      setProfileRequests(res.data || []);
+    } catch (err) {
+      setError(err.response?.data || "Unable to load profile update requests.");
+    }
   };
 
   useEffect(() => {
     if (!isAdmin) {
-      setLoading(false);
       return;
     }
 
-    const run = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        await reloadAll();
-      } catch (err) {
-        setError(err?.message || "Unable to load user management data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    run();
+    loadUsers();
+    loadProfileRequests();
   }, [isAdmin]);
 
   const visibleUsers = useMemo(() => {
-    const source = activeTab === "inactive"
-      ? users.filter((user) => user.isActive === false)
-      : users.filter((user) => user.isActive !== false);
+    if (activeTab === "inactive") {
+      return users.filter((user) => user.isActive === false);
+    }
+
+    if (activeTab === "accounts") {
+      return users.filter((user) => user.isActive !== false);
+    }
+
+    return [];
+  }, [activeTab, users]);
+
+  const filteredUsers = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
 
     if (!keyword) {
-      return source;
+      return visibleUsers;
     }
 
-    return source.filter((user) =>
-      [user.email, user.role, user.fullName, user.shopName, user.cccd]
+    return visibleUsers.filter((user) =>
+      [
+        user.email,
+        user.role,
+        user.fullName,
+        user.shopName,
+      ]
         .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(keyword)),
+        .some((value) => String(value).toLowerCase().includes(keyword))
     );
-  }, [activeTab, searchTerm, users]);
+  }, [searchTerm, visibleUsers]);
 
-  const openEdit = (user) => {
+  const stats = useMemo(
+    () =>
+      users.reduce(
+        (result, user) => ({
+          total: result.total + 1,
+          admin: result.admin + (user.role === "Admin" ? 1 : 0),
+          manager: result.manager + (user.role === "Manager" ? 1 : 0),
+          inactive: result.inactive + (user.isActive === false ? 1 : 0),
+        }),
+        { total: 0, admin: 0, manager: 0, inactive: 0 }
+      ),
+    [users]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / accountsPerPage));
+  const pageStartIndex = (currentPage - 1) * accountsPerPage;
+  const pagedUsers = filteredUsers.slice(pageStartIndex, pageStartIndex + accountsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const openViewModal = (user) => {
+    setError("");
+    setSuccess("");
+    setSelectedViewUser(user);
+  };
+
+  const closeViewModal = () => {
+    setSelectedViewUser(null);
+    setError("");
+  };
+
+  const openEditModal = (user) => {
+    setError("");
+    setSuccess("");
     setEditingUser(user);
     setEditForm({
       email: user.email || "",
       fullName: user.fullName || "",
       shopName: user.shopName || "",
       address: user.address || "",
+      image: user.image || "",
       cccd: user.cccd || "",
     });
+    setAvatarFile(null);
   };
 
-  const handleRevealInitialOtp = async (user) => {
-    try {
-      setDebugOtpLoading(true);
-      setError("");
-      setSuccess("");
-      const res = await api.post("/Auth/debug/otp", {
-        userId: user.id,
-        regenerateInitialPasswordOtp: true,
-      });
-      setDebugOtp(res || null);
-      setSuccess("Initial password OTP regenerated successfully.");
-    } catch (err) {
-      setDebugOtp(null);
-      setError(err?.message || "Unable to reveal initial password OTP.");
-    } finally {
-      setDebugOtpLoading(false);
-    }
+  const closeEditModal = () => {
+    setEditingUser(null);
+    setEditForm(emptyEditForm);
+    setAvatarFile(null);
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
   };
 
   const handleUpdateUser = async () => {
+    const requiredFields = [
+      editForm.email,
+      editForm.fullName,
+      editForm.shopName,
+      editForm.cccd,
+    ];
+
+    if (requiredFields.some((value) => !String(value).trim())) {
+      setError("Please complete email, full name, shop name, and CCCD.");
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");
       setSuccess("");
-      await api.put(`/Auth/users/${editingUser.id}`, {
-        email: editForm.email.trim(),
-        fullName: editForm.fullName.trim(),
-        shopName: editForm.shopName.trim(),
-        address: editForm.address.trim(),
-        cccd: editForm.cccd.trim(),
+
+      const formData = new FormData();
+      formData.append("email", editForm.email.trim());
+      formData.append("fullName", editForm.fullName.trim());
+      formData.append("shopName", editForm.shopName.trim());
+      formData.append("address", editForm.address.trim());
+      formData.append("image", editForm.image.trim());
+      formData.append("cccd", editForm.cccd.trim());
+
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+
+      await api.put(`/Auth/users/${editingUser.id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      setEditingUser(null);
+
+      closeEditModal();
       setSuccess("User account updated successfully.");
       await loadUsers();
     } catch (err) {
-      setError(err?.message || "Unable to update user account.");
+      setError(err.response?.data || "Unable to update user account.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeactivate = async (user) => {
+  const handleDeleteUser = async () => {
     try {
       setSaving(true);
       setError("");
       setSuccess("");
-      await api.delete(`/Auth/users/${user.id}`);
-      setSelectedUser(null);
+
+      await api.delete(`/Auth/users/${deletingUser.id}`);
+
+      setDeletingUser(null);
+      setSelectedViewUser(null);
       setSuccess("User account set to inactive successfully.");
       await loadUsers();
     } catch (err) {
-      setError(err?.message || "Unable to set user inactive.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleActivate = async (user) => {
-    try {
-      setSaving(true);
-      setError("");
-      setSuccess("");
-      await api.post(`/Auth/users/${user.id}/activate`, {});
-      setSelectedUser(null);
-      setSuccess("User account activated successfully.");
-      await loadUsers();
-    } catch (err) {
-      setError(err?.message || "Unable to activate user account.");
+      setError(err.response?.data || "Unable to set user account inactive.");
     } finally {
       setSaving(false);
     }
@@ -180,11 +261,31 @@ export default function UserManagement() {
       setSaving(true);
       setError("");
       setSuccess("");
+
       await api.post(`/Auth/users/${user.id}/resend-initial-password`, {});
-      setSuccess("Password setup link resent successfully.");
+
+      setSuccess("One-time password and change-password link resent successfully.");
       await loadUsers();
     } catch (err) {
-      setError(err?.message || "Unable to resend password setup link.");
+      setError(err.response?.data || "Unable to resend password setup link.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleActivateUser = async (user) => {
+    try {
+      setSaving(true);
+      setError("");
+      setSuccess("");
+
+      await api.post(`/Auth/users/${user.id}/activate`, {});
+
+      setSelectedViewUser(null);
+      setSuccess("User account activated successfully.");
+      await loadUsers();
+    } catch (err) {
+      setError(err.response?.data || "Unable to activate user account.");
     } finally {
       setSaving(false);
     }
@@ -195,11 +296,15 @@ export default function UserManagement() {
       setSaving(true);
       setError("");
       setSuccess("");
+
       await api.post(`/Auth/profile-update-requests/${requestId}/${action}`, {});
-      setSuccess(action === "approve" ? "Profile update request approved successfully." : "Profile update request rejected successfully.");
-      await reloadAll();
+
+      setSuccess(action === "approve"
+        ? "Profile update request approved successfully."
+        : "Profile update request rejected successfully.");
+      await Promise.all([loadUsers(), loadProfileRequests()]);
     } catch (err) {
-      setError(err?.message || "Unable to review profile update request.");
+      setError(err.response?.data || "Unable to review profile update request.");
     } finally {
       setSaving(false);
     }
@@ -207,9 +312,21 @@ export default function UserManagement() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 pb-6 pt-24 text-slate-900 sm:px-6 sm:pt-28 lg:px-8">
         <div className="mx-auto max-w-3xl rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_80px_rgba(15,23,42,0.08)]">
-          <h1 className="text-3xl font-black">Admin access only</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">
+            User Management
+          </p>
+          <h1 className="mt-3 text-3xl font-black">Admin access only</h1>
+          <p className="mt-3 text-sm text-slate-600">
+            Registered user management is only available for admin accounts.
+          </p>
+          <Link
+            to="/admin-management"
+            className="mt-6 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+          >
+            Back to Admin Management
+          </Link>
         </div>
       </div>
     );
@@ -217,98 +334,244 @@ export default function UserManagement() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] text-slate-900">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-6 pt-24 sm:px-6 sm:pt-28 lg:px-8">
         <header className="rounded-[28px] border border-white/70 bg-white/80 px-5 py-4 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">
                 User Management
               </div>
-              <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Registered Users</h1>
+              <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+                Registered Users
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
+                Review admin and manager accounts that have been created in the system.
+              </p>
             </div>
+
             <div className="flex flex-wrap gap-3">
-              <Link to="/register" className="inline-flex items-center justify-center rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200">
+              <Link
+                to="/register"
+                className="inline-flex items-center justify-center rounded-full bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
+              >
                 Create Manager
               </Link>
-              <Link to="/admin-management" className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5">
+              <Link
+                to="/admin-management"
+                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+              >
                 Back to Admin Management
               </Link>
             </div>
           </div>
         </header>
 
-        <main className="mt-6 flex flex-1 flex-col gap-5">
-          <section className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-[30px] border border-slate-200 bg-slate-950 px-5 py-5 text-white shadow-[0_24px_90px_rgba(15,23,42,0.12)] sm:px-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Total</p>
-              <p className="mt-2 text-4xl font-black">{users.length}</p>
-            </div>
-            <div className="rounded-[30px] border border-amber-200 bg-amber-100 px-5 py-5 text-slate-950 shadow-[0_24px_90px_rgba(245,158,11,0.14)] sm:px-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Pending Approvals</p>
-              <p className="mt-2 text-4xl font-black">{profileRequests.length}</p>
-            </div>
-          </section>
-
-          <section className="overflow-hidden rounded-[30px] border border-slate-200 bg-white/90 shadow-[0_24px_90px_rgba(15,23,42,0.08)]">
-            <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
-              <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setActiveTab("accounts")} className={`rounded-full px-4 py-2 text-xs font-bold transition ${activeTab === "accounts" ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}>Account List</button>
-                <button type="button" onClick={() => setActiveTab("inactive")} className={`rounded-full px-4 py-2 text-xs font-bold transition ${activeTab === "inactive" ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}>Inactive Accounts</button>
-                <button type="button" onClick={() => setActiveTab("approvals")} className={`rounded-full px-4 py-2 text-xs font-bold transition ${activeTab === "approvals" ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}>Profile Approval</button>
+        <main className="mt-6 grid flex-1 gap-5 lg:grid-cols-[280px_1fr]">
+          <aside className="rounded-[30px] border border-slate-200 bg-white/90 p-4 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <p className="px-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+              User Summary
+            </p>
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-[24px] bg-slate-950 px-5 py-5 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">Total</p>
+                <p className="mt-2 text-4xl font-black">{stats.total}</p>
               </div>
+              <div className="rounded-[24px] bg-amber-100 px-5 py-5 text-slate-950">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Managers</p>
+                <p className="mt-2 text-3xl font-black">{stats.manager}</p>
+              </div>
+              <div className="rounded-[24px] bg-slate-100 px-5 py-5 text-slate-950">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Admins</p>
+                <p className="mt-2 text-3xl font-black">{stats.admin}</p>
+              </div>
+              <div className="rounded-[24px] bg-rose-100 px-5 py-5 text-slate-950">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose-700">Inactive</p>
+                <p className="mt-2 text-3xl font-black">{stats.inactive}</p>
+              </div>
+            </div>
+          </aside>
 
-              {activeTab !== "approvals" && (
+          <section className="overflow-hidden rounded-[30px] border border-slate-200 bg-white/90 shadow-[0_24px_90px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                  Directory
+                </p>
+                <h2 className="mt-2 text-2xl font-black text-slate-950">
+                  {activeTab === "accounts"
+                    ? "Account List"
+                    : activeTab === "inactive"
+                      ? "Inactive Accounts"
+                      : "Profile Approval"}
+                </h2>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("accounts")}
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                      activeTab === "accounts"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Account List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("inactive")}
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                      activeTab === "inactive"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Inactive Accounts
+                    <span className="ml-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-slate-700">
+                      {stats.inactive}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("approvals")}
+                    className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                      activeTab === "approvals"
+                        ? "bg-slate-950 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    Profile Approval
+                    <span className="ml-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] text-slate-700">
+                      {profileRequests.length}
+                    </span>
+                  </button>
+                </div>
+                {success && <p className="mt-2 text-sm font-medium text-emerald-600">{success}</p>}
+                {error && !selectedViewUser && !editingUser && !deletingUser && <p className="mt-2 text-sm font-medium text-rose-600">{error}</p>}
+              </div>
+              {(activeTab === "accounts" || activeTab === "inactive") && (
                 <input
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search by email, role, name, shop..."
-                  className="mt-4 w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 sm:max-w-md"
+                  className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100 sm:max-w-md"
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               )}
-
-              {success && <p className="mt-3 text-sm font-medium text-emerald-600">{success}</p>}
-              {error && <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>}
             </div>
 
-            {loading ? (
-              <div className="px-6 py-8 text-sm text-slate-500">Loading registered users...</div>
-            ) : activeTab === "approvals" ? (
-              <div className="space-y-3 bg-amber-50/40 px-5 py-4 sm:px-6">
+            {activeTab === "approvals" ? (
+              <div className="bg-amber-50/40 px-5 py-4 sm:px-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">
+                      Profile Approval
+                    </p>
+                    <h3 className="mt-1 text-lg font-black text-slate-950">
+                      Pending Profile Update Requests
+                    </h3>
+                  </div>
+                  <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700">
+                    {profileRequests.length} pending
+                  </span>
+                </div>
+
                 {profileRequests.length === 0 ? (
-                  <p className="text-sm text-slate-500">No manager profile updates are waiting for approval.</p>
+                  <p className="mt-3 text-sm text-slate-500">
+                    No manager profile updates are waiting for approval.
+                  </p>
                 ) : (
-                  profileRequests.map((request) => (
-                    <div key={request.id} className="rounded-[22px] border border-amber-100 bg-white p-4">
-                      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="min-w-0 flex-1">
-                          <p className="break-all text-sm font-bold text-slate-950">{request.email}</p>
-                          <div className="mt-3 grid gap-2 text-sm md:grid-cols-3">
-                            <div className="rounded-[16px] bg-slate-50 p-3"><p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Full Name</p><p className="mt-1 line-through decoration-rose-300">{request.currentFullName || "-"}</p><p className="mt-1 font-semibold text-slate-950">{request.requestedFullName || "-"}</p></div>
-                            <div className="rounded-[16px] bg-slate-50 p-3"><p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Address</p><p className="mt-1 line-through decoration-rose-300">{request.currentAddress || "-"}</p><p className="mt-1 font-semibold text-slate-950">{request.requestedAddress || "-"}</p></div>
-                            <div className="rounded-[16px] bg-slate-50 p-3"><p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD</p><p className="mt-1 line-through decoration-rose-300">{request.currentCCCD || "-"}</p><p className="mt-1 font-semibold text-slate-950">{request.requestedCCCD || "-"}</p></div>
+                  <div className="mt-4 grid gap-3">
+                    {profileRequests.map((request) => (
+                      <div
+                        key={request.id}
+                        className="rounded-[22px] border border-amber-100 bg-white p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)]"
+                      >
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="break-all text-sm font-bold text-slate-950">{request.email}</p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Requested: {formatDate(request.requestedAt)}
+                            </p>
+                            <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-3">
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Full Name</p>
+                                <p className="mt-1 line-through decoration-rose-300">{request.currentFullName || "-"}</p>
+                                <p className="mt-1 font-semibold text-slate-950">{request.requestedFullName || "-"}</p>
+                              </div>
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Address</p>
+                                <p className="mt-1 line-through decoration-rose-300">{request.currentAddress || "-"}</p>
+                                <p className="mt-1 font-semibold text-slate-950">{request.requestedAddress || "-"}</p>
+                              </div>
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD</p>
+                                <p className="mt-1 line-through decoration-rose-300">{request.currentCCCD || "-"}</p>
+                                <p className="mt-1 font-semibold text-slate-950">{request.requestedCCCD || "-"}</p>
+                              </div>
+                            </div>
+                            <div className="mt-3 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD Front Image</p>
+                                {request.requestedCccdFrontImage ? (
+                                  <a href={resolveFileUrl(request.requestedCccdFrontImage)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-[12px] border border-slate-200">
+                                    <img src={resolveFileUrl(request.requestedCccdFrontImage)} alt="Requested CCCD front" className="h-28 w-full object-cover" />
+                                  </a>
+                                ) : (
+                                  <p className="mt-2 text-xs text-slate-500">Not uploaded</p>
+                                )}
+                              </div>
+                              <div className="rounded-[16px] bg-slate-50 p-3">
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">CCCD Back Image</p>
+                                {request.requestedCccdBackImage ? (
+                                  <a href={resolveFileUrl(request.requestedCccdBackImage)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-[12px] border border-slate-200">
+                                    <img src={resolveFileUrl(request.requestedCccdBackImage)} alt="Requested CCCD back" className="h-28 w-full object-cover" />
+                                  </a>
+                                ) : (
+                                  <p className="mt-2 text-xs text-slate-500">Not uploaded</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={() => handleProfileRequestDecision(request.id, "approve")}
+                              className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              disabled={saving}
+                              onClick={() => handleProfileRequestDecision(request.id, "reject")}
+                              className="rounded-full bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button type="button" disabled={saving} onClick={() => handleProfileRequestDecision(request.id, "approve")} className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-50">Approve</button>
-                          <button type="button" disabled={saving} onClick={() => handleProfileRequestDecision(request.id, "reject")} className="rounded-full bg-rose-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:opacity-50">Reject</button>
-                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
-            ) : visibleUsers.length === 0 ? (
-              <div className="px-6 py-8 text-sm text-slate-500">No users found.</div>
+            ) : loading ? (
+              <div className="px-6 py-8 text-sm text-slate-500">Loading registered users...</div>
+            ) : error ? (
+              <div className="px-6 py-8 text-sm font-medium text-rose-600">{error}</div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="px-6 py-8 text-sm text-slate-500">
+                {activeTab === "inactive" ? "No inactive users found." : "No users found."}
+              </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[1120px] table-auto border-collapse text-left">
+                <table className="w-full table-fixed border-collapse text-left">
                   <colgroup>
-                    <col className="w-[28%]" />
+                    <col className="w-[30%]" />
                     <col className="w-[12%]" />
-                    <col className="w-[16%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[14%]" />
-                    <col className="w-[10%]" />
+                    <col className="w-[22%]" />
+                    <col className="w-[24%]" />
+                    <col className="w-[12%]" />
                   </colgroup>
                   <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                     <tr>
@@ -316,119 +579,305 @@ export default function UserManagement() {
                       <th className="px-4 py-3">Role</th>
                       <th className="px-4 py-3">Full Name</th>
                       <th className="px-4 py-3">Shop</th>
-                      <th className="px-4 py-3">Business Type</th>
                       <th className="px-4 py-3">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                    {visibleUsers.map((user) => (
-                      <tr key={user.id} className="transition hover:bg-amber-50/60">
-                        <td className="break-all px-4 py-4 font-semibold text-slate-950">{user.email}</td>
-                        <td className="whitespace-nowrap px-4 py-4">{user.role}</td>
-                        <td className="px-4 py-4">{user.fullName || "-"}</td>
-                        <td className="px-4 py-4">{user.shopName || "-"}</td>
+                    {pagedUsers.map((user) => (
+                      <tr key={user.id} className="align-top transition hover:bg-amber-50/60">
+                        <td className="px-4 py-4 font-semibold text-slate-950">{user.email}</td>
                         <td className="px-4 py-4">
-                          {user.businessType ? (
-                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${getBusinessTypeBadgeClasses(user.businessType)}`}>
-                              {user.businessType}
+                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.role === "Admin" ? "bg-slate-950 text-white" : user.isActive === false ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-800"}`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">{user.fullName || "-"}</td>
+                        <td className="px-4 py-4">
+                          <div>{user.shopName || "-"}</div>
+                          {user.mustChangePassword && (
+                            <span className="mt-2 inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">
+                              Password setup pending
                             </span>
-                          ) : (
-                            "-"
                           )}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4">
-                          <button type="button" onClick={() => { setSelectedUser(user); setDebugOtp(null); }} className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5">View</button>
+                        <td className="px-4 py-4">
+                          <button
+                            type="button"
+                            className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5"
+                            onClick={() => openViewModal(user)}
+                          >
+                            View
+                          </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <p>
+                    Showing{" "}
+                    <span className="font-semibold text-slate-950">{pageStartIndex + 1}</span>
+                    {" - "}
+                    <span className="font-semibold text-slate-950">{Math.min(pageStartIndex + accountsPerPage, filteredUsers.length)}</span>
+                    {" of "}
+                    <span className="font-semibold text-slate-950">{filteredUsers.length}</span>
+                    {" accounts"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                      className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <span className="rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700">
+                      Page {currentPage} / {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                      className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </section>
         </main>
       </div>
 
-      {selectedUser && (
+      {selectedViewUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[30px] bg-white p-5 shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-slate-950">{selectedUser.email}</h3>
-              <button type="button" onClick={() => { setSelectedUser(null); setDebugOtp(null); }} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">Close</button>
-            </div>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Role</p><p className="mt-1 font-bold text-slate-950">{selectedUser.role}</p></div>
-              <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Shop</p><p className="mt-1 font-bold text-slate-950">{selectedUser.shopName || "-"}</p></div>
-              <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Business Type</p><p className="mt-1 font-bold text-slate-950">{selectedUser.businessType || "-"}</p></div>
-              <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">CCCD</p><p className="mt-1 font-bold text-slate-950">{selectedUser.cccd || "-"}</p></div>
-              <div className="rounded-[18px] bg-slate-50 px-4 py-3"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Status</p><p className="mt-1 font-bold text-slate-950">{selectedUser.isActive === false ? "Inactive" : "Active"}</p></div>
-            </div>
-
-            {selectedUser.role !== "Admin" && (
-              <div className="mt-5 flex flex-wrap gap-3">
-                {selectedUser.isActive === false ? (
-                  <button type="button" disabled={saving} onClick={() => handleActivate(selectedUser)} className="rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-50">Activate Account</button>
-                ) : (
-                  <>
-                    <button type="button" onClick={() => openEdit(selectedUser)} className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5">Update Account</button>
-                    {selectedUser.mustChangePassword && (
-                      <>
-                        <button type="button" disabled={saving} onClick={() => handleResendInitialPassword(selectedUser)} className="rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 disabled:opacity-50">Resend Password Link</button>
-                        <button type="button" disabled={debugOtpLoading} onClick={() => handleRevealInitialOtp(selectedUser)} className="rounded-full bg-sky-100 px-5 py-3 text-sm font-semibold text-sky-950 transition hover:bg-sky-200 disabled:opacity-50">
-                          {debugOtpLoading ? "Revealing OTP..." : "Reveal New Initial OTP"}
-                        </button>
-                      </>
-                    )}
-                    <button type="button" disabled={saving} onClick={() => handleDeactivate(selectedUser)} className="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:opacity-50">Inactive Account</button>
-                  </>
-                )}
+          <div className="max-h-[92vh] w-full max-w-4xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Account Details</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">{selectedViewUser.email}</h3>
               </div>
-            )}
+              <button type="button" onClick={closeViewModal} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+                Close
+              </button>
+            </div>
 
-            {debugOtp && (
-              <div className="mt-5 rounded-[22px] border border-sky-200 bg-sky-50 px-4 py-4">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Development Debug OTP</p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[16px] bg-white px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Initial OTP</p>
-                    <p className="mt-1 break-all font-mono text-sm font-bold text-slate-950">{debugOtp.initialPasswordOtp || "-"}</p>
+            <div className="space-y-5 p-5">
+              <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Account Information</p>
+                    <h4 className="mt-2 text-2xl font-black text-slate-950">{selectedViewUser.fullName || "Unnamed account"}</h4>
                   </div>
-                  <div className="rounded-[16px] bg-white px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Expires At</p>
-                    <p className="mt-1 break-all text-sm font-bold text-slate-950">{debugOtp.initialPasswordExpiresAt || "-"}</p>
-                  </div>
-                  <div className="rounded-[16px] bg-white px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Password Setup Token</p>
-                    <p className="mt-1 break-all font-mono text-sm font-bold text-slate-950">{debugOtp.passwordSetupToken || "-"}</p>
-                  </div>
-                  <div className="rounded-[16px] bg-white px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Change Password URL</p>
-                    <p className="mt-1 break-all text-sm font-bold text-slate-950">{debugOtp.changePasswordUrl || "-"}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${selectedViewUser.role === "Admin" ? "bg-slate-950 text-white" : "bg-amber-100 text-amber-800"}`}>
+                      {selectedViewUser.role}
+                    </span>
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${selectedViewUser.isActive === false ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}>
+                      {selectedViewUser.isActive === false ? "Inactive" : "Active"}
+                    </span>
+                    {selectedViewUser.mustChangePassword && (
+                      <span className="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-700">
+                        Password setup pending
+                      </span>
+                    )}
                   </div>
                 </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Email</p>
+                    <p className="mt-1 break-words font-bold text-slate-950">{selectedViewUser.email || "-"}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Shop</p>
+                    <p className="mt-1 font-bold text-slate-950">{selectedViewUser.shopName || "-"}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">CCCD</p>
+                    <p className="mt-1 font-bold text-slate-950">{selectedViewUser.cccd || "-"}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Created</p>
+                    <p className="mt-1 font-bold text-slate-950">{formatDate(selectedViewUser.createdAt)}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Updated</p>
+                    <p className="mt-1 font-bold text-slate-950">{formatDate(selectedViewUser.updatedAt)}</p>
+                  </div>
+                  <div className="rounded-[18px] bg-white px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Password Setup</p>
+                    <p className="mt-1 font-bold text-slate-950">
+                      {selectedViewUser.mustChangePassword ? "Pending" : "Completed"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-[18px] bg-white px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Address</p>
+                  <p className="mt-1 font-bold text-slate-950">{selectedViewUser.address || "-"}</p>
+                </div>
+              </section>
+
+              {selectedViewUser.role === "Admin" ? (
+                <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-sm font-semibold text-slate-600">Admin accounts can only be viewed here.</p>
+                </section>
+              ) : selectedViewUser.isActive === false ? (
+                <section className="rounded-[24px] border border-emerald-100 bg-emerald-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Account Actions</p>
+                  <h4 className="mt-2 text-xl font-black text-slate-950">Activate this manager account</h4>
+                  <p className="mt-1 text-sm text-emerald-800">
+                    This will set the account back to active and return it to the Account List tab.
+                  </p>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      disabled={saving}
+                      className="rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => handleActivateUser(selectedViewUser)}
+                    >
+                      Active Account
+                    </button>
+                  </div>
+                </section>
+              ) : (
+                <section className="rounded-[24px] border border-amber-100 bg-amber-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">Account Actions</p>
+                  <h4 className="mt-2 text-xl font-black text-slate-950">Manage this manager account</h4>
+                  <p className="mt-1 text-sm text-amber-800">
+                    Inactive will set this account to inactive and hide it from Account List. Data will remain in the database.
+                  </p>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+                      onClick={() => {
+                        openEditModal(selectedViewUser);
+                        setSelectedViewUser(null);
+                      }}
+                    >
+                      Update Account
+                    </button>
+                    {selectedViewUser.mustChangePassword && (
+                      <button
+                        type="button"
+                        disabled={saving}
+                        className="rounded-full bg-amber-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => handleResendInitialPassword(selectedViewUser)}
+                      >
+                        Resend Password Link
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-rose-600"
+                      onClick={() => {
+                        setDeletingUser(selectedViewUser);
+                        setSelectedViewUser(null);
+                      }}
+                    >
+                      Inactive Account
+                    </button>
+                  </div>
+                </section>
+              )}
+
+              <div className="space-y-1">
+                {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+                {success && <p className="text-sm font-medium text-emerald-600">{success}</p>}
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
 
       {editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[30px] bg-white p-5 shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-slate-950">Update Account</h3>
-              <button type="button" onClick={() => setEditingUser(null)} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">Close</button>
+          <div className="w-full max-w-3xl overflow-hidden rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-700">Update Account</p>
+                <h3 className="mt-1 text-xl font-black text-slate-950">{editingUser.email}</h3>
+              </div>
+              <button type="button" onClick={closeEditModal} className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white">
+                Close
+              </button>
             </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="block text-sm font-semibold text-slate-700">Email<input value={editForm.email} onChange={(e) => setEditForm((current) => ({ ...current, email: e.target.value }))} className="mt-2 w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none" /></label>
-              <label className="block text-sm font-semibold text-slate-700">Full Name<input value={editForm.fullName} onChange={(e) => setEditForm((current) => ({ ...current, fullName: e.target.value }))} className="mt-2 w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none" /></label>
-              <label className="block text-sm font-semibold text-slate-700">Shop Name<input value={editForm.shopName} onChange={(e) => setEditForm((current) => ({ ...current, shopName: e.target.value }))} className="mt-2 w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none" /></label>
-              <label className="block text-sm font-semibold text-slate-700">CCCD<input value={editForm.cccd} onChange={(e) => setEditForm((current) => ({ ...current, cccd: e.target.value }))} className="mt-2 w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none" /></label>
-              <label className="block text-sm font-semibold text-slate-700 sm:col-span-2">Address<input value={editForm.address} onChange={(e) => setEditForm((current) => ({ ...current, address: e.target.value }))} className="mt-2 w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none" /></label>
+
+            <div className="grid gap-4 p-5 sm:grid-cols-2">
+              <div className="sm:col-span-2 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">System Info</p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">
+                  Role: {editingUser.role} | Shop ID: {editingUser.shopId || "-"} | Created: {formatDate(editingUser.createdAt)}
+                </p>
+              </div>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Email</span>
+                <input value={editForm.email} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleEditChange("email", e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Full Name</span>
+                <input value={editForm.fullName} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleEditChange("fullName", e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Shop Name</span>
+                <input value={editForm.shopName} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleEditChange("shopName", e.target.value)} />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">CCCD</span>
+                <input value={editForm.cccd} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleEditChange("cccd", e.target.value)} />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Address</span>
+                <input value={editForm.address} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" onChange={(e) => handleEditChange("address", e.target.value)} />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">Avatar</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                />
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  {avatarFile ? avatarFile.name : editingUser.image ? "Current avatar will be kept if no new file is selected." : "No avatar uploaded yet."}
+                </p>
+              </label>
             </div>
-            <div className="mt-5 flex justify-end">
-              <button type="button" disabled={saving} onClick={handleUpdateUser} className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:opacity-50">Save Changes</button>
+
+            <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                {error && <p className="text-sm font-medium text-rose-600">{error}</p>}
+                {success && <p className="text-sm font-medium text-emerald-600">{success}</p>}
+              </div>
+              <button type="button" disabled={saving} onClick={handleUpdateUser} className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50">
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deletingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-[30px] bg-white p-5 shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-rose-600">Inactive Account</p>
+            <h3 className="mt-2 text-2xl font-black text-slate-950">{deletingUser.email}</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              This will set the manager account to inactive, revoke active refresh tokens, and hide it from Account List. The database record will not be deleted.
+            </p>
+            {error && <p className="mt-4 text-sm font-medium text-rose-600">{error}</p>}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button type="button" disabled={saving} onClick={() => setDeletingUser(null)} className="rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50">
+                Cancel
+              </button>
+              <button type="button" disabled={saving} onClick={handleDeleteUser} className="rounded-full bg-rose-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50">
+                {saving ? "Saving..." : "Inactive Account"}
+              </button>
             </div>
           </div>
         </div>

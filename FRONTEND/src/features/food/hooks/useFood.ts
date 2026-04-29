@@ -1,40 +1,39 @@
 import { useEffect, useState } from "react";
 import { getFoods } from "../api/foodApi"; 
 
-export type FoodDto = {
-  id?: string | null;
+export interface Food {
+  id: string;
   name: string;
-  slug?: string | null;
-  description?: string | null;
-  imageUrl?: string | null;
-};
+  slug: string;
+  description: string;
+  imageUrl: string;
+  price?: number;
+  tags?: string[];
+  [key: string]: any;
+}
 
 export const useFood = () => {
-  const [foods, setFoods] = useState<FoodDto[]>([]);
+  const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
 
-    const load = async () => {
+    const fetchFoods = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
-
-        const data = await getFoods<FoodDto[]>();
-        if (!active) {
-          return;
+        const data = await getFoods();
+        if (active) {
+          setFoods(Array.isArray(data) ? data : []);
         }
-
-        setFoods(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (!active) {
-          return;
+      } catch (err: unknown) {
+        if (active) {
+          const errorMsg = err instanceof Error ? err.message : "Không thể tải danh sách thực phẩm";
+          setError(errorMsg);
+          console.error("Lỗi khi tải thực phẩm:", err);
         }
-
-        setError(err instanceof Error ? err.message : "Unable to load food court stores.");
-        setFoods([]);
       } finally {
         if (active) {
           setLoading(false);
@@ -42,7 +41,7 @@ export const useFood = () => {
       }
     };
 
-    void load();
+    fetchFoods();
 
     return () => {
       active = false;

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../../core/api/api";
 
@@ -45,7 +45,7 @@ export default function ChangeInitialPassword() {
       window.dispatchEvent(new Event("auth:changed"));
       setTimeout(() => navigate("/login"), 900);
     } catch (err) {
-      setError(err?.message || "Unable to change password.");
+      setError(err.response?.data || "Unable to change password.");
     } finally {
       setLoading(false);
     }

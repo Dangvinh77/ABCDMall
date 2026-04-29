@@ -1,72 +1,14 @@
-import { api, BASE_URL } from "../../../core/api/api";
+import { api } from "../../../core/api/api";
+import type { FoodItemDto } from "../types/food";
 
-export type FoodMenuItem = {
-  id?: string;
-  name: string;
-  price: number;
-  note: string;
-  tag: string;
-  imageUrl: string;
-  ingredients: string[];
-  isAvailable: boolean;
-  displayOrder?: number;
-};
+// GET
+export const getFoods = () => api.get("/food");
 
-export type FoodStall = {
-  id?: string;
-  name: string;
-  imageUrl?: string | null;
-  slug?: string | null;
-  description?: string | null;
-  categorySlug?: string | null;
-  location?: string | null;
-  openHours?: string | null;
-  phone?: string | null;
-  promo?: string | null;
-  isActive?: boolean;
-  menuItems?: FoodMenuItem[];
-};
+export const getFoodBySlug = (slug: string) =>
+  api.get<FoodItemDto>(`/food/slug/${slug}`);
 
-export type AvailableFoodCourtLocation = {
-  rentalAreaId?: string;
-  locationSlot: string;
-  floor: string;
-  areaName?: string | null;
-};
-
-export type FoodCourtCreationStatus = {
-  stallCount: number;
-  rentedFoodCourtCount: number;
-  canCreate: boolean;
-  message: string;
-  availableRentalLocations?: AvailableFoodCourtLocation[];
-};
-
-export const getFoods = <T = FoodStall[]>() => api.get<T>("/food");
-
-export const getFoodBySlug = <T = FoodStall>(slug: string) => api.get<T>(`/food/slug/${slug}`);
-
-export async function getMyFoodStalls(): Promise<FoodStall[]> {
-  return api.get<FoodStall[]>("/food/manager");
-}
-
-export async function getMyFoodCourtCreationStatus(): Promise<FoodCourtCreationStatus> {
-  return api.get<FoodCourtCreationStatus>("/food/manager/creation-status");
-}
-
-export async function createMyFoodStall(request: FormData): Promise<FoodStall> {
-  return api.post<FoodStall, FormData>("/food/manager", request);
-}
-
-export async function updateMyFoodStall(id: string, request: FormData): Promise<FoodStall> {
-  return api.put<FoodStall, FormData>(`/food/manager/${id}`, request);
-}
-
-export async function deleteMyFoodStall(id: string): Promise<void> {
-  return api.delete<void>(`/food/manager/${id}`);
-}
-
-export const createFood = async (data: { name: string; description?: string; imageUrl?: string }, file?: File) => {
+// CREATE
+export const createFood = async (data: any, file?: File) => {
   const formData = new FormData();
 
   formData.append("name", data.name);
@@ -78,22 +20,23 @@ export const createFood = async (data: { name: string; description?: string; ima
     formData.append("imageUrl", data.imageUrl);
   }
 
-  const res = await fetch(`${BASE_URL}/food`, {
+  const res = await fetch("http://localhost:5184/api/food", {
     method: "POST",
-    body: formData,
+    body: formData, 
   });
 
   return res.json();
 };
 
+// UPLOAD riêng (nếu cần)
 export const uploadFoodImage = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE_URL}/food/upload`, {
+  const res = await fetch("http://localhost:5184/api/food/upload", {
     method: "POST",
     body: formData,
   });
 
-  return res.json();
+  return res.json(); // { imageUrl: "/images/foodcourt/xxx.png" }
 };

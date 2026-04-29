@@ -54,5 +54,19 @@ namespace ABCDMall.Modules.Users.Domain.Entities
         public string? LoginOtpCode { get; set; }
 
         public DateTime? LoginOtpExpiresAt { get; set; }
+
+        public bool MustChangePassword { get; set; }
+
+        public string? OneTimePasswordHash { get; set; }
+
+        public DateTime? OneTimePasswordExpiresAt { get; set; }
+
+        public DateTime? OneTimePasswordUsedAt { get; set; }
+
+        public string? PasswordSetupToken { get; set; }
+
+        public DateTime? PasswordSetupTokenExpiresAt { get; set; }
+
+        public DateTime? PasswordSetupCompletedAt { get; set; }
     }
 }

@@ -21,4 +21,7 @@ public sealed class Shop
     public ICollection<ShopTag> Tags { get; set; } = new List<ShopTag>();
     public ICollection<ShopProduct> Products { get; set; } = new List<ShopProduct>();
     public ICollection<ShopVoucher> Vouchers { get; set; } = new List<ShopVoucher>();
+    public string ShopStatus { get; set; } = "Active";
+
+    public DateTime? OpeningDate { get; set; }
 }

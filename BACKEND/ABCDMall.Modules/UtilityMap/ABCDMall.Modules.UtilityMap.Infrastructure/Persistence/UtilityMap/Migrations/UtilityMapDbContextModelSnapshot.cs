@@ -83,8 +83,8 @@ namespace ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap.Migr
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("Available");
 
                     b.Property<string>("StorefrontImageUrl")
@@ -101,6 +101,10 @@ namespace ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap.Migr
                     b.HasKey("Id");
 
                     b.HasIndex("FloorPlanId");
+
+                    b.HasIndex("ShopInfoId");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("MapLocations", "utility_map");
                 });

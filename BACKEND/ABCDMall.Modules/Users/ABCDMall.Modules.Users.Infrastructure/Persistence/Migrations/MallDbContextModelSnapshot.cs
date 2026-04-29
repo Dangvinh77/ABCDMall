@@ -22,54 +22,6 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.CarouselBid", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)")
-                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
-
-                    b.Property<decimal>("BidAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ShopId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<DateTime>("TargetMondayDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TemplateData")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TemplateType")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ShopId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TargetMondayDate");
-
-                    b.ToTable("CarouselBids");
-                });
-
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.ForgotPasswordOtp", b =>
                 {
                     b.Property<string>("Id")
@@ -112,40 +64,6 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ForgotPasswordOtps");
-                });
-
-            modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.MovieCarouselAd", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)")
-                        .HasDefaultValueSql("LOWER(REPLACE(CONVERT(varchar(36), NEWID()), '-', ''))");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("TargetMondayDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("TargetMondayDate")
-                        .IsUnique();
-
-                    b.ToTable("MovieCarouselAds");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Users.Domain.Entities.PasswordResetOtp", b =>
@@ -208,6 +126,14 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("PreviousCccdBackImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PreviousCccdFrontImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("PreviousFullName")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -226,6 +152,14 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.Property<string>("UpdatedCCCD")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UpdatedCccdBackImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UpdatedCccdFrontImage")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("UpdatedFullName")
                         .HasMaxLength(200)
@@ -563,10 +497,6 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("BusinessType")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -829,8 +759,8 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                     b.Property<string>("PaymentStatus")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
                         .HasDefaultValue("Unpaid");
 
                     b.Property<string>("RentalLocation")
@@ -911,10 +841,12 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("CccdBackImage")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("CccdFrontImage")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -948,13 +880,16 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("MustChangePassword")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime?>("OneTimePasswordExpiresAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OneTimePasswordHash")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("OneTimePasswordUsedAt")
                         .HasColumnType("datetime2");
@@ -967,7 +902,8 @@ namespace ABCDMall.Modules.Users.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordSetupToken")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<DateTime?>("PasswordSetupTokenExpiresAt")
                         .HasColumnType("datetime2");

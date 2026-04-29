@@ -35,4 +35,46 @@ public sealed class MapQueryService : IMapQueryService
 
         return _mapper.Map<FloorPlanDto>(floor);
     }
+    public async Task<IReadOnlyList<FloorPlanAdminDto>> GetAllFloorsForAdminAsync(CancellationToken cancellationToken = default)
+    {
+        var floors = await _repo.GetAllFloorsAsync(cancellationToken);
+        _logger.LogInformation("Admin fetched {Count} floor plans with full slot status.", floors.Count);
+        return floors.Select(MapToAdminDto).ToList();
+    }
+
+    public async Task<FloorPlanAdminDto?> GetFloorPlanForAdminAsync(string floorLevel, CancellationToken cancellationToken = default)
+    {
+        var floor = await _repo.GetFloorPlanAsync(floorLevel, cancellationToken);
+        if (floor is null)
+        {
+            _logger.LogWarning("Admin: Floor plan {FloorLevel} was not found.", floorLevel);
+            return null;
+        }
+
+        return MapToAdminDto(floor);
+    }
+
+    private static FloorPlanAdminDto MapToAdminDto(
+        ABCDMall.Modules.UtilityMap.Domain.Entities.FloorPlan floor)
+    {
+        return new FloorPlanAdminDto
+        {
+            Id = floor.Id,
+            FloorLevel = floor.FloorLevel,
+            Description = floor.Description,
+            BlueprintImageUrl = floor.BlueprintImageUrl,
+            Locations = floor.Locations.Select(l => new MapLocationAdminDto
+            {
+                Id = l.Id,
+                ShopName = l.ShopName,
+                LocationSlot = l.LocationSlot,
+                ShopUrl = l.ShopUrl,
+                X = l.X,
+                Y = l.Y,
+                StorefrontImageUrl = l.StorefrontImageUrl,
+                Status = l.Status,
+                ShopInfoId = l.ShopInfoId
+            }).ToList()
+        };
+    }
 }

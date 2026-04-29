@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ABCDMall.Modules.Users.Application.Common;
+using ABCDMall.Modules.Users.Application.DTOs.RentalPayments;
 using ABCDMall.Modules.Users.Application.Services.RentalPayments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

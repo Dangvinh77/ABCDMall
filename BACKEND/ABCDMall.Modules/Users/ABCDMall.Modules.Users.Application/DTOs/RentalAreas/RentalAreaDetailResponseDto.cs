@@ -10,7 +10,6 @@ public sealed class RentalAreaDetailResponseDto
     public decimal MonthlyRent { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? TenantName { get; set; }
-    public string? BusinessType { get; set; }
     public string? ShopInfoId { get; set; }
     public string? ManagerName { get; set; }
     public string? CCCD { get; set; }

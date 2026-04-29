@@ -57,6 +57,7 @@ public sealed class ShopManagerService : IShopManagerService
 
         ApplyRequest(shop, request);
         await _repository.SaveChangesAsync(cancellationToken);
+
         return MapDetail(shop);
     }
 

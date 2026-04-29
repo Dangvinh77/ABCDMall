@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Users.Application.Services.PublicCatalog;
+using ABCDMall.Modules.Users.Application.DTOs.PublicCatalog;
 using ABCDMall.Modules.Users.Domain.Entities;
 using ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap;
 using Microsoft.EntityFrameworkCore;
@@ -60,76 +61,53 @@ public sealed class ShopInfoPublicManagerRepository : IShopInfoPublicManagerRepo
             x => x.IsPublicVisible && (x.Id == shopId || x.OwnerShopInfoId == shopId),
             cancellationToken);
 
-    public async Task<int> CountRentedAreasAsync(string shopId, string tenantName, CancellationToken cancellationToken = default)
-    {
-        var shopInfo = await GetShopInfoByIdAsync(shopId, cancellationToken);
-        
-        // Get all sub-shop IDs owned by this manager
-        var subShopIds = await _context.ShopInfos
-            .Where(x => x.OwnerShopInfoId == shopId)
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
-
-        var allRelatedShopIds = subShopIds.Concat(new[] { shopId }).Where(x => x != null).ToList();
-
-        // 1. Primary count: Locations explicitly linked via ShopInfoId
-        var linkedCount = await _utilityMapContext.MapLocations.CountAsync(
-            x => x.Status != "Available" && x.ShopInfoId != null && allRelatedShopIds.Contains(x.ShopInfoId),
+    public Task<int> CountRentedAreasAsync(string shopId, string tenantName, CancellationToken cancellationToken = default)
+        => _utilityMapContext.MapLocations.CountAsync(
+            x => x.Status != "Available" && (x.ShopInfoId == shopId || (x.ShopInfoId == null && x.ShopName == tenantName)),
             cancellationToken);
 
-        if (linkedCount > 0)
-        {
-            return linkedCount;
-        }
-
-        // 2. Fallback: If no ID links exist, check by ShopName or RentalLocation (for newly registered but not yet linked areas)
-        var rentalLocation = shopInfo?.RentalLocation;
-        return await _utilityMapContext.MapLocations.CountAsync(
-            x => x.Status != "Available" && x.ShopInfoId == null && (
-                x.ShopName == tenantName || 
-                (!string.IsNullOrEmpty(rentalLocation) && x.LocationSlot == rentalLocation)
-            ),
-            cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<ShopInfo>> GetRentedAreaLocationsAsync(string shopId, string tenantName, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<AvailableRentalLocationDto>> GetAvailableRentalLocationsAsync(string shopId, string tenantName, CancellationToken cancellationToken = default)
     {
-        var shopInfo = await GetShopInfoByIdAsync(shopId, cancellationToken);
-        
-        var subShopIds = await _context.ShopInfos
-            .Where(x => x.OwnerShopInfoId == shopId)
-            .Select(x => x.Id)
-            .ToListAsync(cancellationToken);
-
-        var allRelatedShopIds = subShopIds.Concat(new[] { shopId }).Where(x => x != null).ToList();
-
-        // Try linked first
-        var locations = await _utilityMapContext.MapLocations
+        var assignedLocations = await _utilityMapContext.MapLocations
             .AsNoTracking()
             .Include(x => x.FloorPlan)
-            .Where(x => x.Status != "Available" && x.ShopInfoId != null && allRelatedShopIds.Contains(x.ShopInfoId))
+            .Where(x => x.Status != "Available" && (x.ShopInfoId == shopId || (x.ShopInfoId == null && x.ShopName == tenantName)))
             .ToListAsync(cancellationToken);
 
-        if (locations.Count == 0)
+        var usedLocationSlots = await _context.ShopInfos
+            .AsNoTracking()
+            .Where(x => x.IsPublicVisible && (x.Id == shopId || x.OwnerShopInfoId == shopId))
+            .Select(x => x.LocationSlot)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToListAsync(cancellationToken);
+
+        return assignedLocations
+            .Select(x => new AvailableRentalLocationDto
+            {
+                LocationSlot = x.LocationSlot,
+                Floor = string.IsNullOrWhiteSpace(x.FloorPlan?.FloorLevel)
+                    ? ResolveFloorFromLocationSlot(x.LocationSlot)
+                    : $"Floor {x.FloorPlan.FloorLevel.Trim()}",
+                AreaName = x.ShopName
+            })
+            .Where(x => !usedLocationSlots.Contains(x.LocationSlot, StringComparer.OrdinalIgnoreCase))
+            .GroupBy(x => $"{x.Floor}|{x.LocationSlot}", StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .OrderBy(x => x.Floor)
+            .ThenBy(x => x.LocationSlot)
+            .ToList();
+    }
+
+    private static string ResolveFloorFromLocationSlot(string? locationSlot)
+    {
+        var value = locationSlot?.Trim();
+        if (string.IsNullOrWhiteSpace(value))
         {
-            // Fallback to name/location matching
-            var rentalLocation = shopInfo?.RentalLocation;
-            locations = await _utilityMapContext.MapLocations
-                .AsNoTracking()
-                .Include(x => x.FloorPlan)
-                .Where(x => x.Status != "Available" && x.ShopInfoId == null && (
-                    x.ShopName == tenantName || 
-                    (!string.IsNullOrEmpty(rentalLocation) && x.LocationSlot == rentalLocation)
-                ))
-                .ToListAsync(cancellationToken);
+            return string.Empty;
         }
 
-        return locations.Select(x => new ShopInfo
-        {
-            LocationSlot = x.LocationSlot,
-            Floor = x.FloorPlan?.FloorLevel ?? string.Empty,
-            ShopName = x.ShopName ?? string.Empty
-        }).ToList();
+        var digits = new string(value.TakeWhile(char.IsDigit).ToArray());
+        return string.IsNullOrWhiteSpace(digits) ? value : $"Floor {digits}";
     }
 
     public Task AddShopInfoAsync(ShopInfo shopInfo, CancellationToken cancellationToken = default)

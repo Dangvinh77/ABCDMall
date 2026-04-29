@@ -12,12 +12,12 @@ export const AdminMapPickerModal = ({ onClose, onSelectSlot }: Props) => {
   const [activeFloor, setActiveFloor] = useState<FloorPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const apiBase = "http://localhost:5184";
+  const API_BASE = "http://localhost:5184";
 
   useEffect(() => {
     const fetchAdminFloors = async () => {
       try {
-        const data = await mapApi.getAllFloors();
+        const data = await mapApi.getAdminFloors();
         setFloors(data);
         if (data.length > 0) {
           setActiveFloor(data[0]);
@@ -33,19 +33,11 @@ export const AdminMapPickerModal = ({ onClose, onSelectSlot }: Props) => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 text-white">
-        Loading mall map...
-      </div>
-    );
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 text-white">Loading mall map...</div>;
   }
 
   if (error) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 text-red-300">
-        {error}
-      </div>
-    );
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 text-red-300">{error}</div>;
   }
 
   if (!activeFloor) {
@@ -94,18 +86,18 @@ export const AdminMapPickerModal = ({ onClose, onSelectSlot }: Props) => {
           <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-slate-100 p-6">
             <div className="relative aspect-[3/4] w-full max-w-lg rounded-2xl border bg-white shadow-inner">
               <img
-                src={`${apiBase}${activeFloor.blueprintImageUrl}`}
+                src={`${API_BASE}${activeFloor.blueprintImageUrl}`}
                 alt={`Blueprint ${activeFloor.floorLevel}`}
                 className="absolute inset-0 h-full w-full object-contain"
               />
 
               {activeFloor.locations.map((loc) => {
-                const isAvailable =
-                  String(loc.status || "").toLowerCase() === "available" ||
-                  !loc.shopName?.trim();
+                const isAvailable = loc.status === "Available";
                 const occupiedLabel = loc.shopName?.trim()
                   ? loc.shopName.trim()
-                  : "Occupied";
+                  : loc.shopInfoId
+                    ? "Reserved"
+                    : "Occupied";
 
                 return (
                   <button

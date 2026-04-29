@@ -17,9 +17,13 @@ internal sealed class ProfileUpdateHistoryConfiguration : IEntityTypeConfigurati
         entity.Property(x => x.PreviousAddress).HasMaxLength(500);
         entity.Property(x => x.PreviousImage).HasMaxLength(500);
         entity.Property(x => x.PreviousCCCD).HasMaxLength(50);
+        entity.Property(x => x.PreviousCccdFrontImage).HasMaxLength(500);
+        entity.Property(x => x.PreviousCccdBackImage).HasMaxLength(500);
         entity.Property(x => x.UpdatedFullName).HasMaxLength(200);
         entity.Property(x => x.UpdatedAddress).HasMaxLength(500);
         entity.Property(x => x.UpdatedImage).HasMaxLength(500);
         entity.Property(x => x.UpdatedCCCD).HasMaxLength(50);
+        entity.Property(x => x.UpdatedCccdFrontImage).HasMaxLength(500);
+        entity.Property(x => x.UpdatedCccdBackImage).HasMaxLength(500);
     }
 }

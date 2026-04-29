@@ -14,21 +14,19 @@ public sealed class RentalPaymentService : IRentalPaymentService
     private const string RentalModuleMetadataValue = "rental";
     private const string PaidStatus = "Paid";
     private const string UnpaidStatus = "Unpaid";
-    private const decimal MinimumStripeCheckoutAmountVnd = 13000m;
-    private const string MinimumStripeCheckoutAmountMessage = "Rental bill total is below Stripe's minimum checkout amount for the current settlement currency.";
+
+    private static readonly HashSet<string> ZeroDecimalCurrencies = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "bif", "clp", "djf", "gnf", "jpy", "kmf", "krw", "mga", "pyg", "rwf", "ugx", "vnd", "vuv", "xaf", "xof", "xpf"
+    };
 
     private readonly MallDbContext _context;
     private readonly StripeSettings _settings;
-    private readonly IStripeCheckoutClient _stripeCheckoutClient;
 
-    public RentalPaymentService(
-        MallDbContext context,
-        IOptions<StripeSettings> settings,
-        IStripeCheckoutClient stripeCheckoutClient)
+    public RentalPaymentService(MallDbContext context, IOptions<StripeSettings> settings)
     {
         _context = context;
         _settings = settings.Value;
-        _stripeCheckoutClient = stripeCheckoutClient;
     }
 
     public async Task<ApplicationResult<RentalCheckoutSessionResponseDto>> CreateCheckoutSessionAsync(
@@ -58,11 +56,6 @@ public sealed class RentalPaymentService : IRentalPaymentService
             return ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest("Rental bill total due must be greater than 0.");
         }
 
-        if (bill.TotalDue < MinimumStripeCheckoutAmountVnd)
-        {
-            return ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest(MinimumStripeCheckoutAmountMessage);
-        }
-
         if (string.IsNullOrWhiteSpace(_settings.SecretKey))
         {
             return ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest("StripeSettings:SecretKey is missing.");
@@ -80,6 +73,7 @@ public sealed class RentalPaymentService : IRentalPaymentService
         var successUrl = $"{frontendBaseUrl}/shop-info?payment=success&billId={Uri.EscapeDataString(bill.Id ?? string.Empty)}&session_id={{CHECKOUT_SESSION_ID}}";
         var cancelUrl = $"{frontendBaseUrl}/shop-info?payment=cancel&billId={Uri.EscapeDataString(bill.Id ?? string.Empty)}";
         var description = $"ABCDMall rental bill {bill.Month} - {bill.ShopName}";
+
         var metadata = new Dictionary<string, string>
         {
             ["module"] = RentalModuleMetadataValue,
@@ -89,34 +83,55 @@ public sealed class RentalPaymentService : IRentalPaymentService
             ["billingMonth"] = bill.BillingMonthKey
         };
 
-        var session = await _stripeCheckoutClient.CreateSessionAsync(
-            new StripeCheckoutSessionRequest
+        var options = new SessionCreateOptions
+        {
+            Mode = "payment",
+            SuccessUrl = successUrl,
+            CancelUrl = cancelUrl,
+            CustomerEmail = manager?.Email,
+            Metadata = metadata,
+            PaymentMethodTypes = new List<string> { "card" },
+            PaymentIntentData = new SessionPaymentIntentDataOptions
             {
-                SuccessUrl = successUrl,
-                CancelUrl = cancelUrl,
-                CustomerEmail = manager?.Email,
-                Currency = "vnd",
-                Amount = bill.TotalDue,
-                ProductName = $"Rental bill - {bill.ShopName}",
+                Metadata = metadata,
                 Description = description,
-                Metadata = metadata
+                ReceiptEmail = manager?.Email
             },
-            cancellationToken);
+            LineItems = new List<SessionLineItemOptions>
+            {
+                new()
+                {
+                    Quantity = 1,
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        Currency = "vnd",
+                        UnitAmount = ConvertMajorAmountToMinorUnits(bill.TotalDue, "vnd"),
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = $"Rental bill - {bill.ShopName}",
+                            Description = description
+                        }
+                    }
+                }
+            }
+        };
 
-        if (string.IsNullOrWhiteSpace(session.CheckoutUrl))
+        var service = new SessionService();
+        var session = await service.CreateAsync(options, cancellationToken: cancellationToken);
+        if (string.IsNullOrWhiteSpace(session.Url))
         {
             return ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest("Stripe Checkout session URL was not returned.");
         }
 
-        bill.StripeSessionId = session.SessionId;
+        bill.StripeSessionId = session.Id;
         bill.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         return ApplicationResult<RentalCheckoutSessionResponseDto>.Ok(new RentalCheckoutSessionResponseDto
         {
             BillId = bill.Id ?? string.Empty,
-            SessionId = session.SessionId,
-            CheckoutUrl = session.CheckoutUrl,
+            SessionId = session.Id,
+            CheckoutUrl = session.Url,
             PaymentStatus = bill.PaymentStatus
         });
     }
@@ -183,5 +198,21 @@ public sealed class RentalPaymentService : IRentalPaymentService
     }
 
     private static string? GetMetadataValue(Dictionary<string, string>? metadata, string key)
-        => metadata is not null && metadata.TryGetValue(key, out var value) ? value : null;
+    {
+        if (metadata is null)
+        {
+            return null;
+        }
+
+        return metadata.TryGetValue(key, out var value) ? value : null;
+    }
+
+    private static long ConvertMajorAmountToMinorUnits(decimal amount, string currency)
+    {
+        var rounded = ZeroDecimalCurrencies.Contains(currency)
+            ? decimal.Round(amount, 0, MidpointRounding.AwayFromZero)
+            : decimal.Round(amount * 100m, 0, MidpointRounding.AwayFromZero);
+
+        return Convert.ToInt64(rounded);
+    }
 }

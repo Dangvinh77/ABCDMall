@@ -84,63 +84,85 @@ public sealed class MapCommandService : IMapCommandService
 
         return result;
     }
-
-    public async Task<bool> ReserveSlotAsync(int locationId, string shopInfoId, CancellationToken cancellationToken = default)
+    public async Task<bool> ReserveSlotAsync(
+        int locationId,
+        string shopInfoId,
+        CancellationToken cancellationToken = default)
     {
-        var location = await _repo.GetLocationByIdAsync(locationId, cancellationToken);
-        if (location is null)
+        if (string.IsNullOrWhiteSpace(shopInfoId))
         {
-            _logger.LogWarning("Cannot reserve map location {LocationId} because it does not exist.", locationId);
+            _logger.LogWarning("ReserveSlot called with empty shopInfoId for location {LocationId}.", locationId);
             return false;
         }
 
-        location.Status = "Reserved";
-        location.ShopInfoId = shopInfoId;
-        await _repo.UpdateLocationSlotAsync(location, cancellationToken);
-        _logger.LogInformation("Reserved map location {LocationId} for shop info {ShopInfoId}.", locationId, shopInfoId);
-        return true;
-    }
-
-    public async Task<bool> ReleaseSlotAsync(int locationId, CancellationToken cancellationToken = default)
-    {
         var location = await _repo.GetLocationByIdAsync(locationId, cancellationToken);
         if (location is null)
         {
-            _logger.LogWarning("Cannot release map location {LocationId} because it does not exist.", locationId);
+            _logger.LogWarning("Cannot reserve location {LocationId}: not found.", locationId);
             return false;
         }
 
-        location.Status = "Available";
-        location.ShopInfoId = null;
-        await _repo.UpdateLocationSlotAsync(location, cancellationToken);
-        _logger.LogInformation("Released map location {LocationId}.", locationId);
-        return true;
-    }
+        if (location.Status != "Available")
+        {
+            _logger.LogWarning(
+                "Cannot reserve location {LocationId}: current status is '{Status}'.",
+                locationId, location.Status);
+            return false;
+        }
 
-    public async Task<bool> UpdateSlotStatusByShopInfoIdAsync(string shopInfoId, string status, CancellationToken cancellationToken = default)
-    {
-        var normalizedStatus = string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim();
-        var result = await _repo.UpdateLocationStatusByShopInfoIdAsync(shopInfoId, normalizedStatus, cancellationToken);
-
+        var result = await _repo.UpdateLocationSlotAsync(locationId, "Reserved", shopInfoId, cancellationToken);
         if (result)
         {
-            _logger.LogInformation("Updated map slot status for shop info {ShopInfoId} to {Status}.", shopInfoId, normalizedStatus);
+            _logger.LogInformation(
+                "Reserved location {LocationId} (slot '{Slot}') for ShopInfo {ShopInfoId}.",
+                locationId, location.LocationSlot, shopInfoId);
+        }
+
+        return result;
+    }
+
+    public async Task<bool> ReleaseSlotAsync(
+        int locationId,
+        CancellationToken cancellationToken = default)
+    {
+        var location = await _repo.GetLocationByIdAsync(locationId, cancellationToken);
+        if (location is null)
+        {
+            _logger.LogWarning("Cannot release location {LocationId}: not found.", locationId);
+            return false;
+        }
+
+        if (location.Status == "Available")
+        {
+            _logger.LogWarning("Location {LocationId} is already Available.", locationId);
+            return false;
+        }
+
+        var result = await _repo.UpdateLocationSlotAsync(locationId, "Available", null, cancellationToken);
+        if (result)
+        {
+            _logger.LogInformation("Released location {LocationId} back to Available.", locationId);
+        }
+
+        return result;
+    }
+
+    public async Task UpdateSlotStatusByShopInfoIdAsync(
+        string shopInfoId,
+        string status,
+        CancellationToken cancellationToken = default)
+    {
+        // Bỏ qua nếu không tìm thấy slot (slot assignment là optional)
+        var updated = await _repo.UpdateLocationStatusByShopInfoIdAsync(shopInfoId, status, cancellationToken);
+        if (updated)
+        {
+            _logger.LogInformation(
+                "Updated map slot status to '{Status}' for ShopInfo {ShopInfoId}.", status, shopInfoId);
         }
         else
         {
-            _logger.LogWarning("Cannot update map slot status for shop info {ShopInfoId} because no mapped location exists.", shopInfoId);
+            _logger.LogDebug(
+                "No map slot found for ShopInfo {ShopInfoId} — status sync skipped.", shopInfoId);
         }
-
-        return result;
-    }
-
-    public async Task<bool> UpdateLocationDetailsByShopInfoIdAsync(string shopInfoId, string shopName, string shopUrl, CancellationToken cancellationToken = default)
-    {
-        var result = await _repo.UpdateLocationDetailsByShopInfoIdAsync(shopInfoId, shopName, shopUrl, cancellationToken);
-        if (result)
-        {
-            _logger.LogInformation("Updated map details for shop info {ShopInfoId} (Name: {ShopName}, Url: {ShopUrl}).", shopInfoId, shopName, shopUrl);
-        }
-        return result;
     }
 }

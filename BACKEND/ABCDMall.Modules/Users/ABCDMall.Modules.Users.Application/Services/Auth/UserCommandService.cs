@@ -10,9 +10,6 @@ namespace ABCDMall.Modules.Users.Application.Services.Auth;
 
 public sealed class UserCommandService : IUserCommandService
 {
-    private const string AdminRole = "Admin";
-    private const string ManagerRole = "Manager";
-    private const string MoviesAdminRole = "MoviesAdmin";
     private readonly AutoMapper.IMapper _mapper;
     private readonly IUserCommandRepository _userCommandRepository;
     private readonly IEmailNotificationService _emailNotificationService;
@@ -145,17 +142,6 @@ public sealed class UserCommandService : IUserCommandService
             ResetFailedLoginAttempts(user);
         }
 
-        // Auto-repair for Managers with missing ShopId
-        if (user.Role == ManagerRole && string.IsNullOrWhiteSpace(user.ShopId) && !string.IsNullOrWhiteSpace(user.CCCD))
-        {
-            var existingShopInfo = await _userCommandRepository.GetShopInfoByCccdAsync(user.CCCD, cancellationToken: cancellationToken);
-            if (existingShopInfo != null)
-            {
-                user.ShopId = existingShopInfo.Id;
-                await _userCommandRepository.SaveChangesAsync(cancellationToken);
-            }
-        }
-
         var refreshTokenValue = _tokenService.GenerateRefreshToken();
         await _userCommandRepository.AddRefreshTokenAsync(new RefreshToken
         {
@@ -190,6 +176,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<MessageResponseDto>.NotFound("Email does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
         }
 
         await _userCommandRepository.RemoveUnusedForgotPasswordOtpsAsync(normalizedEmail, cancellationToken);
@@ -243,7 +234,13 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         user.Password = forgotPasswordOtp.NewPasswordHash;
+        ClearPasswordSetupState(user);
         user.UpdatedAt = DateTime.UtcNow;
         forgotPasswordOtp.IsUsed = true;
         forgotPasswordOtp.UsedAt = DateTime.UtcNow;
@@ -296,7 +293,7 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UpdateProfileResponseDto>.BadRequest("No profile changes were detected");
         }
 
-        if (string.Equals(user.Role, ManagerRole, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(user.Role, "Manager", StringComparison.OrdinalIgnoreCase))
         {
             if (!string.IsNullOrWhiteSpace(normalizedCccd)
                 && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, user.Id, cancellationToken)
@@ -451,6 +448,42 @@ public sealed class UserCommandService : IUserCommandService
         });
     }
 
+    private async Task ApplyApprovedProfileUpdateAsync(
+        User user,
+        string? normalizedFullName,
+        string? normalizedAddress,
+        string? normalizedCccd,
+        string? cccdFrontImage,
+        string? cccdBackImage,
+        CancellationToken cancellationToken)
+    {
+        await _userCommandRepository.AddProfileUpdateHistoryAsync(new ProfileUpdateHistory
+        {
+            UserId = user.Id ?? string.Empty,
+            Email = user.Email,
+            PreviousFullName = user.FullName,
+            PreviousAddress = user.Address,
+            PreviousImage = user.Image,
+            PreviousCCCD = user.CCCD,
+            PreviousCccdFrontImage = user.CccdFrontImage,
+            PreviousCccdBackImage = user.CccdBackImage,
+            UpdatedFullName = normalizedFullName,
+            UpdatedAddress = normalizedAddress,
+            UpdatedImage = user.Image,
+            UpdatedCCCD = normalizedCccd,
+            UpdatedCccdFrontImage = cccdFrontImage,
+            UpdatedCccdBackImage = cccdBackImage,
+            UpdatedAt = DateTime.UtcNow
+        }, cancellationToken);
+
+        user.FullName = normalizedFullName;
+        user.Address = normalizedAddress;
+        user.CCCD = normalizedCccd;
+        user.CccdFrontImage = cccdFrontImage;
+        user.CccdBackImage = cccdBackImage;
+        user.UpdatedAt = DateTime.UtcNow;
+    }
+
     public async Task<ApplicationResult<MessageResponseDto>> RequestResetPasswordOtpAsync(string userId, RequestResetPasswordOtpDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.CurrentPassword) || string.IsNullOrWhiteSpace(dto.NewPassword))
@@ -462,6 +495,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
         }
 
         if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.Password))
@@ -495,6 +533,46 @@ public sealed class UserCommandService : IUserCommandService
         });
     }
 
+    public async Task<ApplicationResult<MessageResponseDto>> ResetPasswordAsync(string userId, ResetPasswordDto dto, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.CurrentPassword) || string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("Current password and new password are required");
+        }
+
+        var user = await _userCommandRepository.GetUserByIdAsync(userId, cancellationToken);
+        if (user is null)
+        {
+            return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.Password))
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("The current password is incorrect");
+        }
+
+        if (dto.CurrentPassword == dto.NewPassword)
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("The new password must be different from the current password");
+        }
+
+        user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        ClearPasswordSetupState(user);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userCommandRepository.RemoveUnusedPasswordResetOtpsAsync(userId, cancellationToken);
+        await _userCommandRepository.SaveChangesAsync(cancellationToken);
+
+        return ApplicationResult<MessageResponseDto>.Ok(new MessageResponseDto
+        {
+            Message = "Password reset successful"
+        });
+    }
+
     public async Task<ApplicationResult<MessageResponseDto>> ConfirmResetPasswordOtpAsync(string userId, ConfirmResetPasswordOtpDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Otp))
@@ -519,7 +597,13 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<MessageResponseDto>.NotFound("User does not exist");
         }
 
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
         user.Password = resetOtp.NewPasswordHash;
+        ClearPasswordSetupState(user);
         user.UpdatedAt = DateTime.UtcNow;
         resetOtp.IsUsed = true;
         resetOtp.UsedAt = DateTime.UtcNow;
@@ -532,53 +616,14 @@ public sealed class UserCommandService : IUserCommandService
         });
     }
 
-    public async Task<ApplicationResult<MessageResponseDto>> CompleteInitialPasswordChangeAsync(CompleteInitialPasswordChangeDto dto, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("Token and new password are required");
-        }
-
-        var user = await _userCommandRepository.GetUserByPasswordSetupTokenAsync(dto.Token.Trim(), cancellationToken);
-        if (user is null)
-        {
-            return ApplicationResult<MessageResponseDto>.NotFound("This password setup link is invalid");
-        }
-
-        if (!user.IsActive)
-        {
-            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
-        }
-
-        if (!user.MustChangePassword)
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("This account has already completed password setup");
-        }
-
-        if (user.PasswordSetupTokenExpiresAt is null || user.PasswordSetupTokenExpiresAt < DateTime.UtcNow)
-        {
-            return ApplicationResult<MessageResponseDto>.BadRequest("This password setup link has expired");
-        }
-
-        user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        ClearPasswordSetupState(user);
-        user.UpdatedAt = DateTime.UtcNow;
-
-        await _userCommandRepository.RevokeUserRefreshTokensAsync(user.Id ?? string.Empty, cancellationToken);
-        await _userCommandRepository.SaveChangesAsync(cancellationToken);
-
-        return ApplicationResult<MessageResponseDto>.Ok(new MessageResponseDto
-        {
-            Message = "Initial password changed successfully"
-        });
-    }
-
     public async Task<ApplicationResult<UserAccountMutationResponseDto>> UpdateUserAccountAsync(string userId, UpdateUserAccountDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.FullName))
+            || string.IsNullOrWhiteSpace(dto.FullName)
+            || string.IsNullOrWhiteSpace(dto.ShopName)
+            || string.IsNullOrWhiteSpace(dto.CCCD))
         {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email and full name are required");
+            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email, full name, shop name, and CCCD are required");
         }
 
         var user = await _userCommandRepository.GetUserByIdAsync(userId, cancellationToken);
@@ -587,42 +632,34 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.NotFound("User does not exist");
         }
 
-        if (user.Role == AdminRole)
+        if (user.Role == "Admin")
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be updated here");
         }
 
-        var resolvedRole = NormalizeManagedRole(dto.Role, user.Role);
-        if (resolvedRole is null)
-        {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Only Manager and MoviesAdmin roles are supported");
-        }
-
-        if (!string.Equals(resolvedRole, user.Role, StringComparison.Ordinal))
-        {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Changing account role between Manager and MoviesAdmin is not supported here");
-        }
-
         var normalizedEmail = dto.Email.Trim();
         var normalizedFullName = dto.FullName.Trim();
+        var normalizedShopName = dto.ShopName.Trim();
         var normalizedAddress = NormalizeOptionalValue(dto.Address);
-        var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
-        var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
+        var resolvedImagePath = user.Image;
+        var normalizedCccd = dto.CCCD.Trim();
+
+        if (dto.Avatar is not null)
+        {
+            resolvedImagePath = await _fileStorageService.SaveProfileAvatarAsync(dto.Avatar, cancellationToken);
+        }
+        else if (!string.IsNullOrWhiteSpace(dto.Image))
+        {
+            resolvedImagePath = NormalizeOptionalValue(dto.Image);
+        }
 
         if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), userId, cancellationToken))
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Email already exists");
         }
 
-        if (resolvedRole == ManagerRole
-            && (string.IsNullOrWhiteSpace(normalizedShopName) || string.IsNullOrWhiteSpace(normalizedCccd)))
-        {
-            return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
-        }
-
-        if (!string.IsNullOrWhiteSpace(normalizedCccd)
-            && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, userId, cancellationToken)
-                || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, user.ShopId, cancellationToken)))
+        if (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, userId, cancellationToken)
+            || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, user.ShopId, cancellationToken))
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("CCCD already exists");
         }
@@ -630,43 +667,25 @@ public sealed class UserCommandService : IUserCommandService
         user.Email = normalizedEmail;
         user.FullName = normalizedFullName;
         user.Address = normalizedAddress;
+        user.Image = resolvedImagePath;
         user.CCCD = normalizedCccd;
-        user.Role = resolvedRole;
         user.UpdatedAt = DateTime.UtcNow;
 
-        if (resolvedRole == ManagerRole)
+        if (!string.IsNullOrWhiteSpace(user.ShopId))
         {
-            var shopInfo = !string.IsNullOrWhiteSpace(user.ShopId)
-                ? await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken)
-                : await _userCommandRepository.GetShopInfoByCccdAsync(normalizedCccd!, null, cancellationToken);
-
-            if (shopInfo is null)
+            var shopInfo = await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken);
+            if (shopInfo is not null)
             {
-                shopInfo = new ShopInfo
-                {
-                    ShopName = normalizedShopName!,
-                    ManagerName = normalizedFullName,
-                    CCCD = normalizedCccd!,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
-            }
-            else
-            {
-                shopInfo.ShopName = normalizedShopName!;
+                shopInfo.ShopName = normalizedShopName;
                 shopInfo.ManagerName = normalizedFullName;
-                shopInfo.CCCD = normalizedCccd!;
+                shopInfo.CCCD = normalizedCccd;
             }
-
-            user.ShopId = shopInfo.Id;
         }
 
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
 
-        var emailSent = resolvedRole == ManagerRole
-            ? await TrySendAsync(() =>
-                _emailNotificationService.SendManagerAccountUpdatedEmailAsync(normalizedEmail, normalizedFullName, normalizedShopName!))
-            : false;
+        var emailSent = await TrySendAsync(() =>
+            _emailNotificationService.SendManagerAccountUpdatedEmailAsync(normalizedEmail, normalizedFullName, normalizedShopName));
 
         return ApplicationResult<UserAccountMutationResponseDto>.Ok(new UserAccountMutationResponseDto
         {
@@ -688,7 +707,7 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("User account is already inactive");
         }
 
-        if (user.Role == AdminRole)
+        if (user.Role == "Admin")
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be deactivated here");
         }
@@ -702,10 +721,8 @@ public sealed class UserCommandService : IUserCommandService
             ? await _userCommandRepository.GetShopInfoByIdAsync(user.ShopId, cancellationToken)
             : null;
 
-        var emailSent = user.Role == ManagerRole
-            ? await TrySendAsync(() =>
-                _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName))
-            : false;
+        var emailSent = await TrySendAsync(() =>
+            _emailNotificationService.SendManagerAccountDeletedEmailAsync(user.Email, user.FullName, shopInfo?.ShopName));
 
         user.IsActive = false;
         user.UpdatedAt = DateTime.UtcNow;
@@ -734,7 +751,7 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("User account is already active");
         }
 
-        if (user.Role == AdminRole)
+        if (user.Role == "Admin")
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts cannot be activated here");
         }
@@ -766,7 +783,7 @@ public sealed class UserCommandService : IUserCommandService
             return ApplicationResult<UserAccountMutationResponseDto>.Unauthorized("This account is inactive");
         }
 
-        if (user.Role == AdminRole)
+        if (user.Role == "Admin")
         {
             return ApplicationResult<UserAccountMutationResponseDto>.BadRequest("Admin accounts do not use manager password setup links");
         }
@@ -806,6 +823,53 @@ public sealed class UserCommandService : IUserCommandService
         });
     }
 
+    public async Task<ApplicationResult<MessageResponseDto>> CompleteInitialPasswordChangeAsync(CompleteInitialPasswordChangeDto dto, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("Token and new password are required");
+        }
+
+        var user = await _userCommandRepository.GetUserByPasswordSetupTokenAsync(dto.Token.Trim(), cancellationToken);
+        if (user is null)
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("Invalid password setup link");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<MessageResponseDto>.Unauthorized("This account is inactive");
+        }
+
+        if (!user.MustChangePassword)
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("This password setup link has already been used");
+        }
+
+        if (user.PasswordSetupTokenExpiresAt is null || user.PasswordSetupTokenExpiresAt < DateTime.UtcNow)
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("This password setup link has expired");
+        }
+
+        user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.MustChangePassword = false;
+        user.OneTimePasswordHash = null;
+        user.OneTimePasswordExpiresAt = null;
+        user.OneTimePasswordUsedAt = null;
+        user.PasswordSetupToken = null;
+        user.PasswordSetupTokenExpiresAt = null;
+        user.PasswordSetupCompletedAt = DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userCommandRepository.RevokeUserRefreshTokensAsync(user.Id ?? string.Empty, cancellationToken);
+        await _userCommandRepository.SaveChangesAsync(cancellationToken);
+
+        return ApplicationResult<MessageResponseDto>.Ok(new MessageResponseDto
+        {
+            Message = "Password changed successfully"
+        });
+    }
+
     public async Task<ApplicationResult<AccessTokenResponseDto>> RefreshTokenAsync(RefreshTokenDto dto, CancellationToken cancellationToken = default)
     {
         var refreshToken = await _userCommandRepository.GetRefreshTokenAsync(dto.RefreshToken, cancellationToken);
@@ -828,6 +892,11 @@ public sealed class UserCommandService : IUserCommandService
         if (user is null)
         {
             return ApplicationResult<AccessTokenResponseDto>.Unauthorized("User does not exist");
+        }
+
+        if (!user.IsActive)
+        {
+            return ApplicationResult<AccessTokenResponseDto>.Unauthorized("This account is inactive");
         }
 
         return ApplicationResult<AccessTokenResponseDto>.Ok(new AccessTokenResponseDto
@@ -862,135 +931,133 @@ public sealed class UserCommandService : IUserCommandService
     public async Task<ApplicationResult<RegisterUserResponseDto>> RegisterAsync(RegisterDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Email)
-            || string.IsNullOrWhiteSpace(dto.FullName))
+            || string.IsNullOrWhiteSpace(dto.FullName)
+            || string.IsNullOrWhiteSpace(dto.ShopName)
+            || string.IsNullOrWhiteSpace(dto.CCCD)
+            || string.IsNullOrWhiteSpace(dto.Floor)
+            || string.IsNullOrWhiteSpace(dto.LocationSlot)
+            || dto.LeaseStartDate is null
+            || dto.LeaseTermDays is null
+            || dto.ElectricityFee is null
+            || dto.WaterFee is null
+            || dto.ServiceFee is null)
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email and full name are required");
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Missing required registration information.");
+        }
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        var normalizedFullName = dto.FullName.Trim();
+        var normalizedShopName = dto.ShopName.Trim();
+        var normalizedCccd = dto.CCCD.Trim();
+        var normalizedFloor = dto.Floor.Trim();
+        var normalizedLocationSlot = dto.LocationSlot.Trim();
+        var normalizedLeaseStartDate = DateTime.SpecifyKind(dto.LeaseStartDate.Value.Date, DateTimeKind.Utc);
+        var normalizedLeaseTermDays = dto.LeaseTermDays.Value;
+        var normalizedElectricityFee = dto.ElectricityFee.Value;
+        var normalizedWaterFee = dto.WaterFee.Value;
+        var normalizedServiceFee = dto.ServiceFee.Value;
+        if (normalizedLeaseStartDate < DateTime.UtcNow.Date.AddDays(1))
+        {
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Start date must be from tomorrow onward.");
+        }
+        if (normalizedLeaseTermDays < 30 || normalizedLeaseTermDays % 30 != 0)
+        {
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Lease term must be at least 30 days and divisible by 30.");
         }
 
-        var resolvedRole = NormalizeManagedRole(dto.Role, ManagerRole);
-        if (resolvedRole is null)
+        if (normalizedElectricityFee <= 0 || normalizedWaterFee <= 0 || normalizedServiceFee <= 0)
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Only Manager and MoviesAdmin roles are supported");
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Electricity fee, water fee, and service fee must be greater than 0.");
         }
-
-        var normalizedEmail = dto.Email.Trim();
-        var normalizedAddress = NormalizeOptionalValue(dto.Address);
-        var normalizedShopName = NormalizeOptionalValue(dto.ShopName);
-        var normalizedCccd = NormalizeOptionalValue(dto.CCCD);
-
-        if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail.ToLowerInvariant(), null, cancellationToken))
+        if (await _userCommandRepository.ExistsUserByEmailAsync(normalizedEmail, null, cancellationToken))
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email already exists.");
+        if (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
+            || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken))
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Email already exists");
+            return ApplicationResult<RegisterUserResponseDto>.BadRequest("CCCD already exists.");
         }
-
-        if (resolvedRole == ManagerRole
-            && (string.IsNullOrWhiteSpace(normalizedShopName) || string.IsNullOrWhiteSpace(normalizedCccd)))
+        var avatarPath = dto.Avatar is not null
+            ? await _fileStorageService.SaveProfileAvatarAsync(dto.Avatar, cancellationToken)
+            : null;
+        var cccdFrontImagePath = dto.CccdFrontImage is not null
+            ? await _fileStorageService.SaveCccdImageAsync(dto.CccdFrontImage, cancellationToken)
+            : null;
+        var cccdBackImagePath = dto.CccdBackImage is not null
+            ? await _fileStorageService.SaveCccdImageAsync(dto.CccdBackImage, cancellationToken)
+            : null;
+        var contractImagePath = dto.ContractImage is not null
+            ? await _fileStorageService.SaveContractImageAsync(dto.ContractImage, cancellationToken)
+            : null;
+        var newShopId = Guid.NewGuid().ToString("N");
+        var shopInfo = new ShopInfo
         {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Shop name and CCCD are required for Manager accounts");
-        }
-
-        if (resolvedRole == ManagerRole
-            && !string.IsNullOrWhiteSpace(dto.BusinessType)
-            && dto.BusinessType.Trim() is not ("Shop" or "FoodCourt"))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("Business type must be Shop or FoodCourt");
-        }
-
-        if (!string.IsNullOrWhiteSpace(normalizedCccd)
-            && (await _userCommandRepository.ExistsUserByCccdAsync(normalizedCccd, null, cancellationToken)
-                || await _userCommandRepository.ExistsShopInfoByCccdAsync(normalizedCccd, null, cancellationToken)))
-        {
-            return ApplicationResult<RegisterUserResponseDto>.BadRequest("CCCD already exists");
-        }
-
-        ShopInfo? shopInfo = null;
-        if (resolvedRole == ManagerRole)
-        {
-            shopInfo = new ShopInfo
-            {
-                ShopName = normalizedShopName!,
-                CCCD = normalizedCccd!,
-                CreatedAt = DateTime.UtcNow
-            };
-            await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
-        }
-
-        var user = new User
-        {
-            Email = normalizedEmail,
-            FullName = dto.FullName.Trim(),
-            Address = normalizedAddress,
-            Role = resolvedRole,
-            ShopId = shopInfo?.Id,
+            Id = newShopId,
+            ShopName = normalizedShopName,
+            Slug = normalizedShopName.ToLowerInvariant().Replace(" ", "-"),
+            Category = "Coming Soon",
+            Floor = normalizedFloor,
+            LocationSlot = normalizedLocationSlot,
             CCCD = normalizedCccd,
+            ManagerName = normalizedFullName,
+            RentalLocation = normalizedLocationSlot,
+            LeaseStartDate = normalizedLeaseStartDate,
+            ElectricityUsage = "0 kWh",
+            ElectricityFee = normalizedElectricityFee,
+            WaterUsage = "0 m3",
+            WaterFee = normalizedWaterFee,
+            ServiceFee = normalizedServiceFee,
+            LeaseTermDays = normalizedLeaseTermDays,
+            TotalDue = 0,
+            ContractImage = contractImagePath,
+            ContractImages = contractImagePath,
+            OpeningDate = null,
             CreatedAt = DateTime.UtcNow
         };
-
-        string? oneTimePassword = null;
-        string? passwordSetupToken = null;
-        if (resolvedRole == ManagerRole)
+        await _userCommandRepository.AddShopInfoAsync(shopInfo, cancellationToken);
+        var oneTimePassword = CreateOtp();
+        var oneTimePasswordHash = BCrypt.Net.BCrypt.HashPassword(oneTimePassword);
+        var passwordSetupToken = CreateSecureToken();
+        var passwordSetupExpiresAt = DateTime.UtcNow.AddHours(24);
+        var user = new User
         {
-            oneTimePassword = CreateOtp();
-            passwordSetupToken = CreateSecureToken();
-            var passwordSetupExpiresAt = DateTime.UtcNow.AddHours(24);
-
-            user.Password = BCrypt.Net.BCrypt.HashPassword(oneTimePassword);
-            user.MustChangePassword = true;
-            user.OneTimePasswordHash = user.Password;
-            user.OneTimePasswordExpiresAt = passwordSetupExpiresAt;
-            user.PasswordSetupToken = passwordSetupToken;
-            user.PasswordSetupTokenExpiresAt = passwordSetupExpiresAt;
-            user.IsActive = true;
-        }
-        else
-        {
-            if (string.IsNullOrWhiteSpace(dto.Password))
-            {
-                return ApplicationResult<RegisterUserResponseDto>.BadRequest("Password is required");
-            }
-
-            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-        }
-
+            Id = Guid.NewGuid().ToString("N"),
+            Email = normalizedEmail,
+            Password = oneTimePasswordHash,
+            FullName = normalizedFullName,
+            Role = "Manager",
+            ShopId = newShopId,
+            Image = avatarPath,
+            CCCD = normalizedCccd,
+            CccdFrontImage = cccdFrontImagePath,
+            CccdBackImage = cccdBackImagePath,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true,
+            MustChangePassword = true,
+            OneTimePasswordHash = oneTimePasswordHash,
+            OneTimePasswordExpiresAt = passwordSetupExpiresAt,
+            OneTimePasswordUsedAt = null,
+            PasswordSetupToken = passwordSetupToken,
+            PasswordSetupTokenExpiresAt = passwordSetupExpiresAt
+        };
         await _userCommandRepository.AddUserAsync(user, cancellationToken);
         await _userCommandRepository.SaveChangesAsync(cancellationToken);
-
-        var emailSent = resolvedRole == ManagerRole
-            ? await TrySendAsync(() =>
-                _emailNotificationService.SendManagerInitialPasswordEmailAsync(
-                    user.Email,
-                    user.FullName,
-                    oneTimePassword!,
-                    CreatePasswordSetupUrl(passwordSetupToken!)))
-            : false;
-
+        var emailSent = await TrySendAsync(() =>
+            _emailNotificationService.SendManagerInitialPasswordEmailAsync(
+                user.Email,
+                user.FullName,
+                oneTimePassword,
+                CreatePasswordSetupUrl(passwordSetupToken)));
         return ApplicationResult<RegisterUserResponseDto>.Ok(new RegisterUserResponseDto
         {
-            Message = "User created successfully",
+            Message = "User and Shop created successfully",
             EmailSent = emailSent,
             Email = user.Email,
             Role = user.Role,
-            ShopId = user.ShopId,
+            ShopId = newShopId,
             CCCD = user.CCCD,
-            ShopName = shopInfo?.ShopName ?? string.Empty,
+            ShopName = shopInfo.ShopName,
             CreatedAt = user.CreatedAt
         });
     }
-
-    private static string? NormalizeManagedRole(string? requestedRole, string fallbackRole)
-    {
-        var normalizedRole = string.IsNullOrWhiteSpace(requestedRole)
-            ? fallbackRole
-            : requestedRole.Trim();
-
-        return normalizedRole switch
-        {
-            ManagerRole => ManagerRole,
-            MoviesAdminRole => MoviesAdminRole,
-            _ => null
-        };
-    }
-
     private async Task<bool> IssueLoginOtpAsync(User user, CancellationToken cancellationToken)
     {
         var otp = CreateOtp();
@@ -1001,8 +1068,8 @@ public sealed class UserCommandService : IUserCommandService
         return await _emailNotificationService.SendLoginOtpEmailAsync(user.Email, user.FullName, otp);
     }
 
-private static string CreateOtp()
-    => Random.Shared.Next(100000, 999999).ToString();
+    private static string CreateOtp()
+        => Random.Shared.Next(100000, 999999).ToString();
 
     private static string CreateSecureToken()
         => Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
@@ -1027,43 +1094,11 @@ private static string CreateOtp()
         user.UpdatedAt = DateTime.UtcNow;
     }
 
-private static void ClearLoginOtpState(User user)
+    private static void ClearLoginOtpState(User user)
     {
         user.FailedLoginAttempts = 0;
         user.LoginOtpCode = null;
         user.LoginOtpExpiresAt = null;
-        user.UpdatedAt = DateTime.UtcNow;
-    }
-
-    private async Task ApplyApprovedProfileUpdateAsync(
-        User user,
-        string? normalizedFullName,
-        string? normalizedAddress,
-        string? normalizedCccd,
-        string? resolvedCccdFrontImage,
-        string? resolvedCccdBackImage,
-        CancellationToken cancellationToken)
-    {
-        await _userCommandRepository.AddProfileUpdateHistoryAsync(new ProfileUpdateHistory
-        {
-            UserId = user.Id ?? string.Empty,
-            Email = user.Email,
-            PreviousFullName = user.FullName,
-            PreviousAddress = user.Address,
-            PreviousImage = user.Image,
-            PreviousCCCD = user.CCCD,
-            UpdatedFullName = normalizedFullName,
-            UpdatedAddress = normalizedAddress,
-            UpdatedImage = user.Image,
-            UpdatedCCCD = normalizedCccd,
-            UpdatedAt = DateTime.UtcNow
-        }, cancellationToken);
-
-        user.FullName = normalizedFullName;
-        user.Address = normalizedAddress;
-        user.CCCD = normalizedCccd;
-        user.CccdFrontImage = resolvedCccdFrontImage;
-        user.CccdBackImage = resolvedCccdBackImage;
         user.UpdatedAt = DateTime.UtcNow;
     }
 
@@ -1078,7 +1113,7 @@ private static void ClearLoginOtpState(User user)
         user.PasswordSetupCompletedAt = DateTime.UtcNow;
     }
 
-private static async Task<bool> TrySendAsync(Func<Task<bool>> send)
+    private static async Task<bool> TrySendAsync(Func<Task<bool>> send)
     {
         try
         {
@@ -1090,3 +1125,4 @@ private static async Task<bool> TrySendAsync(Func<Task<bool>> send)
         }
     }
 }
+

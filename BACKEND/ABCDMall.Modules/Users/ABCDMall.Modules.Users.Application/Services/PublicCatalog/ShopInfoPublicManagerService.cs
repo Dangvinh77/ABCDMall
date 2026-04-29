@@ -49,36 +49,18 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
         }
 
         var rentedAreaCount = await _repository.CountRentedAreasAsync(shopId, shopInfo.ShopName, cancellationToken);
+        var availableRentalLocations = await _repository.GetAvailableRentalLocationsAsync(shopId, shopInfo.ShopName, cancellationToken);
         var canCreate = shopCount < rentedAreaCount;
-
-        var availableLocations = await _repository.GetRentedAreaLocationsAsync(shopId, shopInfo.ShopName, cancellationToken);
-
-        string message;
-        if (rentedAreaCount == 0)
-        {
-            message = "You have not registered any rental area (tenant) yet. Please register a tenant first to be eligible for creating shop pages.";
-        }
-        else if (canCreate)
-        {
-            message = $"You can create {rentedAreaCount - shopCount} more shop page(s).";
-        }
-        else
-        {
-            message = "You cannot create a new shop because the number of shop pages is equal to the number of rented areas.";
-        }
 
         return new ShopCreationStatusDto
         {
             ShopCount = shopCount,
             RentedAreaCount = rentedAreaCount,
             CanCreate = canCreate,
-            AvailableRentalLocations = availableLocations.Select(x => new AvailableRentalLocationDto
-            {
-                LocationSlot = x.LocationSlot,
-                Floor = x.Floor,
-                AreaName = x.ShopName
-            }).ToList(),
-            Message = message
+            AvailableRentalLocations = availableRentalLocations,
+            Message = canCreate
+                ? $"You can create {rentedAreaCount - shopCount} more shop page(s)."
+                : "You cannot create a new shop because the number of shop pages is equal to the number of rented areas."
         };
     }
 
@@ -92,12 +74,21 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
 
         var ownerShopInfo = await _repository.GetShopInfoByIdAsync(shopId, cancellationToken)
             ?? throw new InvalidOperationException("Manager account does not have shop information.");
+        var availableRentalLocations = await _repository.GetAvailableRentalLocationsAsync(shopId, ownerShopInfo.ShopName, cancellationToken);
+        var selectedRentalLocation = availableRentalLocations.FirstOrDefault(location =>
+            string.Equals(location.LocationSlot, request.LocationSlot?.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        if (selectedRentalLocation is null)
+        {
+            throw new InvalidOperationException("Location must be one of your rented areas that has not created a shop page yet.");
+        }
 
         var shopInfo = new ShopInfo
         {
             Id = Guid.NewGuid().ToString("N"),
             OwnerShopInfoId = shopId,
             ManagerName = ownerShopInfo.ManagerName,
+            CCCD = ownerShopInfo.CCCD,
             RentalLocation = ownerShopInfo.RentalLocation,
             Month = ownerShopInfo.Month,
             LeaseStartDate = ownerShopInfo.LeaseStartDate,
@@ -110,6 +101,9 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
         };
 
         await ApplyRequestAsync(shopInfo, request, cancellationToken);
+        shopInfo.Floor = selectedRentalLocation.Floor;
+        shopInfo.LocationSlot = selectedRentalLocation.LocationSlot;
+        shopInfo.RentalLocation = selectedRentalLocation.LocationSlot;
         shopInfo.IsPublicVisible = true;
         await _repository.AddShopInfoAsync(shopInfo, cancellationToken);
         await SyncCatalogShopAsync(shopInfo, cancellationToken);
@@ -216,7 +210,7 @@ public sealed class ShopInfoPublicManagerService : IShopInfoPublicManagerService
             Badge = shopInfo.Badge,
             Offer = shopInfo.Offer,
             ShopStatus = ShopInfoPublicMapper.DeriveShopStatus(shopInfo.OpeningDate),
-            OpeningDate = shopInfo.OpeningDate
+            OpeningDate = shopInfo.OpeningDate,
         }, cancellationToken);
     }
 

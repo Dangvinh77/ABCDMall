@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../core/api/api";
 
@@ -9,7 +9,7 @@ const formatCurrency = (value) =>
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,
-  }).format(value || 0);
+  }).format(value);
 
 const resolveContractUrl = (imagePath) => {
   if (!imagePath) {
@@ -42,9 +42,42 @@ export default function ShopInfo() {
   const [payingBillId, setPayingBillId] = useState("");
   const [selectedContract, setSelectedContract] = useState(null);
   const [selectedRental, setSelectedRental] = useState(null);
-  const activeRental = selectedRental
-    ? shopRentals.find((item) => item.id === selectedRental.id) || selectedRental
-    : null;
+
+  const loadShopInfos = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const [rentalInfoRes, billsRes] = await Promise.all([
+        api.get("/ShopInfo/rental-information"),
+        api.get("/ShopInfo"),
+      ]);
+      setRentalInfo(rentalInfoRes.data);
+      setShopRentals(billsRes.data || []);
+    } catch (err) {
+      setError(err.response?.data || "Unable to load shop rental information.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePayBill = async (billId) => {
+    try {
+      setPayingBillId(billId);
+      setError("");
+      setSuccess("");
+      const res = await api.post(`/RentalPayments/${billId}/checkout-session`);
+      if (res.data?.checkoutUrl) {
+        window.location.href = res.data.checkoutUrl;
+        return;
+      }
+
+      setError("Unable to start online payment.");
+    } catch (err) {
+      setError(err.response?.data || "Unable to start online payment.");
+    } finally {
+      setPayingBillId("");
+    }
+  };
 
   useEffect(() => {
     if (!isManager) {
@@ -59,62 +92,12 @@ export default function ShopInfo() {
       setError("Payment was cancelled. You can try again from the unpaid bill row.");
     }
 
-    const loadShopInfos = async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const [rentalInfoData, billsData] = await Promise.all([
-          api.get("/ShopInfo/rental-information"),
-          api.get("/ShopInfo"),
-        ]);
-        setRentalInfo(rentalInfoData);
-        setShopRentals(billsData || []);
-      } catch (err) {
-        setError(err.message || "Unable to load shop rental information.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadShopInfos();
   }, [isManager]);
 
-  useEffect(() => {
-    if (!selectedRental) {
-      return;
-    }
-
-    const refreshedRental = shopRentals.find((item) => item.id === selectedRental.id);
-    if (refreshedRental && refreshedRental !== selectedRental) {
-      setSelectedRental(refreshedRental);
-    }
-  }, [selectedRental, shopRentals]);
-
-  const handlePayBill = async (billId) => {
-    try {
-      setPayingBillId(billId);
-      setError("");
-      setSuccess("");
-      const result = await api.post("/payments/checkout-session/stripe/rental-bills", {
-        billId,
-      });
-
-      if (result?.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
-        return;
-      }
-
-      setError("Unable to start online payment.");
-    } catch (err) {
-      setError(err.message || "Unable to start online payment.");
-    } finally {
-      setPayingBillId("");
-    }
-  };
-
   if (!isManager) {
     return (
-      <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] px-4 pb-6 pt-28 text-slate-900 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl rounded-[28px] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_80px_rgba(15,23,42,0.08)]">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">
             Shop Info
@@ -136,7 +119,7 @@ export default function ShopInfo() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] text-slate-900">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-6 pt-28 sm:px-6 lg:px-8">
         <header className="rounded-[28px] border border-white/70 bg-white/80 px-5 py-4 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -234,58 +217,58 @@ export default function ShopInfo() {
               <>
                 {success && <div className="border-b border-emerald-100 bg-emerald-50 px-6 py-3 text-sm font-semibold text-emerald-700">{success}</div>}
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-0 table-fixed border-collapse text-left">
-                    <colgroup>
-                      <col className="w-[22%]" />
-                      <col className="w-[18%]" />
-                      <col className="w-[16%]" />
-                      <col className="w-[18%]" />
-                      <col className="w-[12%]" />
-                      <col className="w-[14%]" />
-                    </colgroup>
-                    <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      <tr>
-                        <th className="px-4 py-3">Shop Name</th>
-                        <th className="px-4 py-3">Location</th>
-                        <th className="px-4 py-3">Billing Month</th>
-                        <th className="px-4 py-3">Total Due</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                      {shopRentals.map((item) => {
-                        const isPaid = String(item.paymentStatus || "").toLowerCase() === "paid";
+                <table className="w-full min-w-0 table-fixed border-collapse text-left">
+                  <colgroup>
+                    <col className="w-[22%]" />
+                    <col className="w-[18%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[18%]" />
+                    <col className="w-[12%]" />
+                    <col className="w-[14%]" />
+                  </colgroup>
+                  <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Shop Name</th>
+                      <th className="px-4 py-3">Location</th>
+                      <th className="px-4 py-3">Billing Month</th>
+                      <th className="px-4 py-3">Total Due</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
+                    {shopRentals.map((item) => {
+                      const isPaid = String(item.paymentStatus || "").toLowerCase() === "paid";
 
-                        return (
-                          <tr key={item.id} className="align-top transition hover:bg-amber-50/60">
-                            <td className="px-4 py-4 font-semibold text-slate-950">
-                              <span className="block truncate" title={item.shopName}>
-                                {item.shopName}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4">{item.rentalLocation}</td>
-                            <td className="px-4 py-4">{item.month}</td>
-                            <td className="px-4 py-4 font-bold text-slate-950">{formatCurrency(item.totalDue)}</td>
-                            <td className="px-4 py-4">
-                              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                                {isPaid ? "Paid" : "Unpaid"}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedRental(item)}
-                                className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5"
-                              >
-                                View Details
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                      return (
+                        <tr key={item.id} className="align-top transition hover:bg-amber-50/60">
+                          <td className="px-4 py-4 font-semibold text-slate-950">
+                            <span className="block truncate" title={item.shopName}>
+                              {item.shopName}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4">{item.rentalLocation}</td>
+                          <td className="px-4 py-4">{item.month}</td>
+                          <td className="px-4 py-4 font-bold text-slate-950">{formatCurrency(item.totalDue)}</td>
+                          <td className="px-4 py-4">
+                            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+                              {isPaid ? "Paid" : "Unpaid"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRental(item)}
+                              className="rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:-translate-y-0.5"
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
                 </div>
               </>
             )}
@@ -317,14 +300,14 @@ export default function ShopInfo() {
         </div>
       )}
 
-      {activeRental && (
+      {selectedRental && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 py-6 backdrop-blur-sm">
           <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[30px] bg-white shadow-[0_30px_120px_rgba(15,23,42,0.3)]">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
               <div>
                 <h3 className="text-xl font-black text-slate-950">Rental Bill Details</h3>
                 <p className="text-sm text-slate-500">
-                  {activeRental.shopName} | {activeRental.month}
+                  {selectedRental.shopName} | {selectedRental.month}
                 </p>
               </div>
               <button
@@ -339,30 +322,30 @@ export default function ShopInfo() {
             <div className="space-y-5 p-5">
               <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Shop Rental</p>
-                <h4 className="mt-2 text-2xl font-black text-slate-950">{activeRental.shopName}</h4>
+                <h4 className="mt-2 text-2xl font-black text-slate-950">{selectedRental.shopName}</h4>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Detail label="Location" value={activeRental.rentalLocation} />
-                  <Detail label="Billing Month" value={activeRental.month} />
-                  <Detail label="Usage Month" value={activeRental.usageMonth} />
-                  <Detail label="Start Date" value={activeRental.leaseStartDate} />
-                  <Detail label="Manager" value={activeRental.managerName} />
-                  <Detail label="CCCD" value={activeRental.cccd} />
-                  <Detail label="Lease Term" value={activeRental.leaseTermDays ? `${activeRental.leaseTermDays} days` : "-"} />
-                  <Detail label="Status" value={activeRental.paymentStatus || "Unpaid"} />
+                  <Detail label="Location" value={selectedRental.rentalLocation} />
+                  <Detail label="Billing Month" value={selectedRental.month} />
+                  <Detail label="Usage Month" value={selectedRental.usageMonth} />
+                  <Detail label="Start Date" value={selectedRental.leaseStartDate} />
+                  <Detail label="Manager" value={selectedRental.managerName} />
+                  <Detail label="CCCD" value={selectedRental.cccd} />
+                  <Detail label="Lease Term" value={`${selectedRental.leaseTermDays} days`} />
+                  <Detail label="Status" value={selectedRental.paymentStatus || "Unpaid"} />
                 </div>
               </section>
 
               <section className="rounded-[24px] border border-amber-100 bg-amber-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-700">Usage and Fees</p>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Detail label="Electricity" value={activeRental.electricityUsage || "-"} />
-                  <Detail label="Electricity Fee" value={formatCurrency(activeRental.electricityFee)} />
-                  <Detail label="Water" value={activeRental.waterUsage || "-"} />
-                  <Detail label="Water Fee" value={formatCurrency(activeRental.waterFee)} />
-                  <Detail label="Service Fee" value={formatCurrency(activeRental.serviceFee)} />
-                  <Detail label="Total Due" value={formatCurrency(activeRental.totalDue)} strong />
-                  <Detail label="Paid At" value={activeRental.paidAtUtc ? new Date(activeRental.paidAtUtc).toLocaleString() : "-"} />
+                  <Detail label="Electricity" value={selectedRental.electricityUsage || "-"} />
+                  <Detail label="Electricity Fee" value={formatCurrency(selectedRental.electricityFee)} />
+                  <Detail label="Water" value={selectedRental.waterUsage || "-"} />
+                  <Detail label="Water Fee" value={formatCurrency(selectedRental.waterFee)} />
+                  <Detail label="Service Fee" value={formatCurrency(selectedRental.serviceFee)} />
+                  <Detail label="Total Due" value={formatCurrency(selectedRental.totalDue)} strong />
+                  <Detail label="Paid At" value={selectedRental.paidAtUtc ? new Date(selectedRental.paidAtUtc).toLocaleString() : "-"} />
                 </div>
               </section>
 
@@ -371,25 +354,27 @@ export default function ShopInfo() {
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
-                    disabled={!resolveContractUrl(activeRental.contractImage || activeRental.contractImages)}
-                    onClick={() => setSelectedContract(resolveContractUrl(activeRental.contractImage || activeRental.contractImages))}
+                    disabled={!resolveContractUrl(selectedRental.contractImage || selectedRental.contractImages)}
+                    onClick={() => {
+                      setSelectedContract(resolveContractUrl(selectedRental.contractImage || selectedRental.contractImages));
+                    }}
                     className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:hover:translate-y-0"
                   >
                     View Contract
                   </button>
 
-                  {String(activeRental.paymentStatus || "").toLowerCase() === "paid" ? (
+                  {String(selectedRental.paymentStatus || "").toLowerCase() === "paid" ? (
                     <span className="inline-flex items-center rounded-full bg-emerald-100 px-5 py-3 text-sm font-bold text-emerald-700">
                       Payment Completed
                     </span>
                   ) : (
                     <button
                       type="button"
-                      disabled={payingBillId === activeRental.id}
-                      onClick={() => handlePayBill(activeRental.id)}
+                      disabled={payingBillId === selectedRental.id}
+                      onClick={() => handlePayBill(selectedRental.id)}
                       className="rounded-full bg-amber-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {payingBillId === activeRental.id ? "Opening..." : "Pay Now"}
+                      {payingBillId === selectedRental.id ? "Opening..." : "Pay Now"}
                     </button>
                   )}
                 </div>

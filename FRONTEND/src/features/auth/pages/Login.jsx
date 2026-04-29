@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../../core/api/api";
 
@@ -24,14 +24,14 @@ export default function Login() {
             }
 
             const res = await api.post("/Auth/login", payload);
-            const { accessToken, refreshToken, requiresPasswordChange, passwordSetupToken } = res;
+            const { accessToken, refreshToken, requiresPasswordChange, passwordSetupToken } = res.data;
 
             localStorage.setItem("token", accessToken);
             localStorage.setItem("refreshToken", refreshToken);
 
             const profileRes = await api.get("/Auth/getprofile");
-            localStorage.setItem("role", profileRes.role);
-            localStorage.setItem("profile", JSON.stringify(profileRes));
+            localStorage.setItem("role", profileRes.data.role);
+            localStorage.setItem("profile", JSON.stringify(profileRes.data));
             window.dispatchEvent(new Event("auth:changed"));
 
             setOtpRequired(false);
@@ -43,9 +43,11 @@ export default function Login() {
 
             navigate("/");
         } catch (err) {
-            const responseData = err?.data;
+            const responseData = err.response?.data;
             const nextRequiresOtp = Boolean(responseData?.requiresOtp);
-            const message = responseData?.message || err?.message || "Sign in failed.";
+            const message = typeof responseData === "string"
+                ? responseData
+                : responseData?.message || "Sign in failed.";
 
             setOtpRequired(nextRequiresOtp || otpRequired);
             setError(message);
@@ -64,7 +66,7 @@ export default function Login() {
             <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
             <div className="absolute -bottom-24 -right-20 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
 
-            <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-10">
+            <div className="relative z-10 flex min-h-[calc(100vh-80px)] items-center justify-center px-4 pb-12 pt-28">
                 <div className="w-full max-w-6xl grid lg:grid-cols-2 rounded-[32px] overflow-hidden border border-white/10 bg-white/10 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
 
                     <div className="hidden lg:flex flex-col justify-between p-10 bg-gradient-to-br from-amber-400 via-orange-400 to-rose-500 text-slate-950">
