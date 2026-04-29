@@ -30,6 +30,11 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
 
     public async Task<ApplicationResult<MessageResponseDto>> RegisterTenantAsync(string rentalAreaId, RegisterTenantDto dto, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(dto.BusinessType))
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("Business type is required");
+        }
+
         if (string.IsNullOrWhiteSpace(dto.CCCD)
             || string.IsNullOrWhiteSpace(dto.Location)
             || dto.StartDate == default
@@ -39,7 +44,13 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
             || dto.LeaseTermDays <= 0
             || dto.ContractImage is null)
         {
-            return ApplicationResult<MessageResponseDto>.BadRequest("CCCD, location, start date, electricity fee, water fee, fee, rental duration, and contract image are required");
+            return ApplicationResult<MessageResponseDto>.BadRequest("CCCD, location, business type, start date, electricity fee, water fee, fee, rental duration, and contract image are required");
+        }
+
+        var normalizedBusinessType = dto.BusinessType.Trim();
+        if (normalizedBusinessType is not ("Shop" or "FoodCourt"))
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("Business type must be Shop or FoodCourt");
         }
 
         var minimumStartDate = DateTime.Today.AddDays(1);
@@ -109,6 +120,7 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
         rentalArea.Status = "Rented";
         rentalArea.TenantName = shopInfo.ShopName;
         rentalArea.ShopInfoId = shopInfo.Id;
+        rentalArea.BusinessType = normalizedBusinessType;
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
 
@@ -209,6 +221,7 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
         rentalArea.Status = "Available";
         rentalArea.TenantName = null;
         rentalArea.ShopInfoId = null;
+        rentalArea.BusinessType = null;
 
         await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
 

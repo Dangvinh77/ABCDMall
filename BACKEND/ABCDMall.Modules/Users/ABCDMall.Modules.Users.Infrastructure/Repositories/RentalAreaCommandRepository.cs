@@ -118,6 +118,32 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
 
         foreach (var rentalArea in changedRentalAreas)
         {
+            var persistedRentalArea = await _context.RentalAreas.FirstOrDefaultAsync(x => x.Id == rentalArea.Id, cancellationToken);
+            if (persistedRentalArea is null)
+            {
+                persistedRentalArea = new RentalArea
+                {
+                    Id = rentalArea.Id,
+                    AreaCode = rentalArea.AreaCode,
+                    Floor = rentalArea.Floor,
+                    AreaName = rentalArea.AreaName,
+                    Size = rentalArea.Size,
+                    MonthlyRent = rentalArea.MonthlyRent,
+                    CreatedAt = rentalArea.CreatedAt
+                };
+                await _context.RentalAreas.AddAsync(persistedRentalArea, cancellationToken);
+            }
+
+            persistedRentalArea.AreaCode = rentalArea.AreaCode;
+            persistedRentalArea.Floor = rentalArea.Floor;
+            persistedRentalArea.AreaName = rentalArea.AreaName;
+            persistedRentalArea.Size = rentalArea.Size;
+            persistedRentalArea.MonthlyRent = rentalArea.MonthlyRent;
+            persistedRentalArea.Status = rentalArea.Status;
+            persistedRentalArea.TenantName = rentalArea.TenantName;
+            persistedRentalArea.ShopInfoId = rentalArea.ShopInfoId;
+            persistedRentalArea.BusinessType = rentalArea.BusinessType;
+
             if (!int.TryParse(rentalArea.Id, out var mapLocationId))
             {
                 continue;
@@ -133,7 +159,7 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
                 ? "Available"
                 : "Rented";
             mapLocation.ShopInfoId = rentalArea.ShopInfoId;
-            mapLocation.ShopName = rentalArea.TenantName;
+            mapLocation.ShopName = rentalArea.TenantName ?? string.Empty;
         }
 
         await _context.SaveChangesAsync(cancellationToken);

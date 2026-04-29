@@ -62,6 +62,7 @@ public class RentalAreaCommandServiceTests
         {
             CCCD = "089204000080",
             Location = "1-01",
+            BusinessType = "FoodCourt",
             StartDate = DateTime.Today.AddDays(1),
             ElectricityFee = 3500m,
             WaterFee = 15000m,
@@ -75,9 +76,52 @@ public class RentalAreaCommandServiceTests
         Assert.Equal("Prospect Manager 80", repository.CreatedShopInfo!.ManagerName);
         Assert.Equal("089204000080", repository.CreatedShopInfo.CCCD);
         Assert.Equal("1-01", repository.CreatedShopInfo.RentalLocation);
+        Assert.Equal("FoodCourt", repository.RentalArea!.BusinessType);
         Assert.Equal("users-manager-080", repository.Manager!.Id);
         Assert.Equal(repository.CreatedShopInfo.Id, repository.Manager.ShopId);
         Assert.Single(repository.AddedMonthlyBills);
+    }
+
+    [Fact]
+    public async Task RegisterTenantAsync_returns_bad_request_when_business_type_is_missing()
+    {
+        var repository = new FakeRentalAreaCommandRepository
+        {
+            RentalArea = new RentalArea
+            {
+                Id = "1",
+                AreaCode = "1-01",
+                Status = "Available"
+            },
+            Manager = new User
+            {
+                Id = "users-manager-081",
+                Role = "Manager",
+                FullName = "Prospect Manager 81",
+                CCCD = "089204000081"
+            }
+        };
+
+        var service = new RentalAreaCommandService(
+            null!,
+            repository,
+            new FakeFileStorageService());
+
+        var result = await service.RegisterTenantAsync("1", new RegisterTenantDto
+        {
+            CCCD = "089204000081",
+            Location = "1-01",
+            BusinessType = "",
+            StartDate = DateTime.Today.AddDays(1),
+            ElectricityFee = 3500m,
+            WaterFee = 15000m,
+            ServiceFee = 600000m,
+            LeaseTermDays = 180,
+            ContractImage = new FormFile(Stream.Null, 0, 0, "contract", "contract.png")
+        });
+
+        Assert.Equal(ApplicationResultStatus.BadRequest, result.Status);
+        Assert.Equal("Business type is required", result.Error);
     }
 
     private sealed class FakeRentalAreaCommandRepository : IRentalAreaCommandRepository

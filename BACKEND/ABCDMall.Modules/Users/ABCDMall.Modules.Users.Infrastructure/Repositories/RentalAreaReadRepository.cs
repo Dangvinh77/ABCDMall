@@ -19,6 +19,14 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
 
     public async Task<IReadOnlyList<RentalArea>> GetRentalAreasAsync(CancellationToken cancellationToken = default)
     {
+        var persistedRentalAreas = await _context.RentalAreas
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var persistedRentalAreasById = persistedRentalAreas
+            .Where(x => x.Id != null)
+            .ToDictionary(x => x.Id!, StringComparer.OrdinalIgnoreCase);
+
         var shopInfos = await _context.ShopInfos
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -34,7 +42,12 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
             .ToListAsync(cancellationToken);
 
         return locations
-            .Select(location => MapToRentalArea(location, ResolveShopInfo(location, shopInfosById, shopInfos)))
+            .Select(location => MapToRentalArea(
+                location,
+                ResolveShopInfo(location, shopInfosById, shopInfos),
+                persistedRentalAreasById.TryGetValue(location.Id.ToString(), out var persistedRentalArea)
+                    ? persistedRentalArea
+                    : null))
             .ToList();
     }
 
@@ -59,12 +72,16 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        var persistedRentalArea = await _context.RentalAreas
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == rentalAreaId, cancellationToken);
+
         var shopInfosById = shopInfos
             .Where(x => x.Id != null)
             .ToDictionary(x => x.Id!, StringComparer.OrdinalIgnoreCase);
 
         var shopInfo = ResolveShopInfo(location, shopInfosById, shopInfos);
-        return MapToRentalAreaDetail(location, shopInfo);
+        return MapToRentalAreaDetail(location, shopInfo, persistedRentalArea);
     }
 
     public Task<User?> GetManagerByCccdAsync(string normalizedCccd, CancellationToken cancellationToken = default)
@@ -85,7 +102,8 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
 
     internal static RentalArea MapToRentalArea(
         Modules.UtilityMap.Domain.Entities.MapLocation location,
-        ShopInfo? shopInfo)
+        ShopInfo? shopInfo,
+        RentalArea? persistedRentalArea = null)
     {
         var tenantName = !string.IsNullOrWhiteSpace(shopInfo?.ShopName)
             ? shopInfo.ShopName
@@ -106,6 +124,7 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
             Status = string.Equals(location.Status, "Available", StringComparison.OrdinalIgnoreCase) ? "Available" : "Rented",
             TenantName = tenantName,
             ShopInfoId = location.ShopInfoId,
+            BusinessType = persistedRentalArea?.BusinessType,
             CreatedAt = DateTime.UtcNow,
             RemainingLeaseDays = CalculateRemainingLeaseDays(shopInfo),
             RemainingLeaseLabel = FormatRemainingLeaseLabel(shopInfo)
@@ -140,7 +159,8 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
 
     private static RentalAreaDetailResponseDto MapToRentalAreaDetail(
         Modules.UtilityMap.Domain.Entities.MapLocation location,
-        ShopInfo? shopInfo)
+        ShopInfo? shopInfo,
+        RentalArea? persistedRentalArea = null)
     {
         var tenantName = !string.IsNullOrWhiteSpace(shopInfo?.ShopName)
             ? shopInfo.ShopName
@@ -160,6 +180,7 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
             MonthlyRent = 0,
             Status = string.Equals(location.Status, "Available", StringComparison.OrdinalIgnoreCase) ? "Available" : "Rented",
             TenantName = tenantName,
+            BusinessType = persistedRentalArea?.BusinessType,
             ShopInfoId = location.ShopInfoId,
             ManagerName = shopInfo?.ManagerName,
             CCCD = shopInfo?.CCCD,

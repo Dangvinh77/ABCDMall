@@ -6,6 +6,7 @@ namespace ABCDMall.Modules.Users.Application.DTOs
     {
         public string CCCD { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
+        public string BusinessType { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public decimal ElectricityFee { get; set; }
         public decimal WaterFee { get; set; }

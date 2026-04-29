@@ -22,6 +22,8 @@ namespace ABCDMall.Modules.Users.Domain.Entities
 
         public string? ShopInfoId { get; set; }
 
+        public string? BusinessType { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [NotMapped]
