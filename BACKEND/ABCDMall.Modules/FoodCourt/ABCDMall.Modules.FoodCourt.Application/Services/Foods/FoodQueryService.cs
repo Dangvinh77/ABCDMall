@@ -1,4 +1,5 @@
 using ABCDMall.Modules.FoodCourt.Application.DTOs;
+using ABCDMall.Modules.FoodCourt.Application.DTOs.Foods;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 
@@ -40,28 +41,28 @@ public sealed class FoodQueryService : IFoodQueryService
         return _mapper.Map<IReadOnlyList<FoodItemDto>>(foods);
     }
 
-    public async Task<FoodItemDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<FoodDetailDto?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        var food = await _foodRepository.GetFoodByIdAsync(id, cancellationToken);
+        var food = await _foodRepository.GetFoodDetailByIdAsync(id, cancellationToken);
         if (food is null)
         {
             _logger.LogWarning("Food {FoodId} was not found.", id);
             return null;
         }
 
-        return _mapper.Map<FoodItemDto>(food);
+        return _mapper.Map<FoodDetailDto>(food);
     }
 
-    public async Task<FoodItemDto?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    public async Task<FoodDetailDto?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
-        var food = await _foodRepository.GetFoodBySlugAsync(slug, cancellationToken);
+        var food = await _foodRepository.GetFoodDetailBySlugAsync(slug, cancellationToken);
         if (food is null)
         {
             _logger.LogWarning("Food with slug {FoodSlug} was not found.", slug);
             return null;
         }
 
-        return _mapper.Map<FoodItemDto>(food);
+        return _mapper.Map<FoodDetailDto>(food);
     }
 }
 

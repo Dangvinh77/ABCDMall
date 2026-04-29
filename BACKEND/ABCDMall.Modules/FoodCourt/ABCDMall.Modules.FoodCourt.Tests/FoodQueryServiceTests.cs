@@ -1,55 +1,64 @@
+using AutoMapper;
 using ABCDMall.Modules.FoodCourt.Application.DTOs.Foods;
+using ABCDMall.Modules.FoodCourt.Application.Mappings;
 using ABCDMall.Modules.FoodCourt.Application.Services.Foods;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ABCDMall.Modules.FoodCourt.Tests;
 
-public sealed class FoodCommandServiceTests
+public sealed class FoodQueryServiceTests
 {
     [Fact]
-    public async Task CreateAsync_UsesProvidedImageUrl_WhenControllerAlreadySavedTheUpload()
-    {
-        var repository = new InMemoryFoodRepository();
-        var service = new FoodCommandService(repository, NullLogger<FoodCommandService>.Instance);
-
-        await service.CreateAsync(new CreateFoodRequestDto
-        {
-            Name = "Dookki",
-            Description = "Korean buffet",
-            ImageUrl = "/images/foodcourt/dookki.png"
-        });
-
-        var created = Assert.Single(repository.Items);
-        Assert.Equal("/images/foodcourt/dookki.png", created.ImageUrl);
-    }
-
-    [Fact]
-    public async Task UpdateAsync_PreservesProvidedImageUrl_WithoutAnyAdditionalStorageStep()
+    public async Task GetBySlugAsync_returns_menu_items_for_food_stall_detail()
     {
         var repository = new InMemoryFoodRepository();
         repository.Items.Add(new FoodItem
         {
-            Id = "food-1",
-            Name = "Old Name",
-            Slug = "old-name",
-            Description = "Old description",
-            ImageUrl = "/images/foodcourt/original.png"
+            Id = "stall-1",
+            OwnerShopId = "shop-info-1",
+            Name = "Boba Bella",
+            Slug = "boba-bella",
+            Description = "Milk tea stall",
+            ImageUrl = "/images/boba.png",
+            CategorySlug = "drinks",
+            MenuItems =
+            [
+                new FoodMenuItem
+                {
+                    Id = "menu-1",
+                    FoodStallId = "stall-1",
+                    Name = "Brown Sugar Milk Tea",
+                    Price = 49000m,
+                    Note = "Best seller",
+                    Tag = "Signature",
+                    ImageUrl = "/images/milk-tea.png",
+                    IngredientsJson = "[\"Black tea\",\"Boba\"]",
+                    IsAvailable = true,
+                    DisplayOrder = 1
+                }
+            ]
         });
 
-        var service = new FoodCommandService(repository, NullLogger<FoodCommandService>.Instance);
+        var service = new FoodQueryService(repository, CreateMapper(), NullLogger<FoodQueryService>.Instance);
 
-        var updated = await service.UpdateAsync("food-1", new UpdateFoodRequestDto
-        {
-            Name = "New Name",
-            Description = "New description",
-            ImageUrl = "/images/foodcourt/updated.png"
-        });
+        var result = await service.GetBySlugAsync("boba-bella");
 
-        Assert.True(updated);
-        var item = Assert.Single(repository.Items);
-        Assert.Equal("/images/foodcourt/updated.png", item.ImageUrl);
+        Assert.NotNull(result);
+        Assert.IsType<FoodDetailDto>(result);
+        Assert.Single(result!.MenuItems);
+        Assert.Equal("Brown Sugar Milk Tea", result.MenuItems[0].Name);
+        Assert.Equal("Black tea", result.MenuItems[0].Ingredients[0]);
+    }
+
+    private static IMapper CreateMapper()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddAutoMapper(cfg => { }, typeof(FoodProfile));
+        return services.BuildServiceProvider().GetRequiredService<IMapper>();
     }
 
     private sealed class InMemoryFoodRepository : IFoodRepository

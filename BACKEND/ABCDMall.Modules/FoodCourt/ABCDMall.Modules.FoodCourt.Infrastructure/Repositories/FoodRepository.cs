@@ -36,6 +36,22 @@ public class FoodRepository : IFoodRepository
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
+    public async Task<FoodItem?> GetFoodDetailByIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FoodItems
+            .AsNoTracking()
+            .Include(x => x.MenuItems.OrderBy(menuItem => menuItem.DisplayOrder))
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
+    public async Task<FoodItem?> GetFoodDetailBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.FoodItems
+            .AsNoTracking()
+            .Include(x => x.MenuItems.OrderBy(menuItem => menuItem.DisplayOrder))
+            .FirstOrDefaultAsync(x => x.Slug == slug, cancellationToken);
+    }
+
     public async Task CreateFoodAsync(FoodItem item, CancellationToken cancellationToken = default)
     {
         await _dbContext.FoodItems.AddAsync(item, cancellationToken);
