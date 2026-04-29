@@ -9,6 +9,7 @@ const initialRentalForm = {
   managerName: "",
   shopName: "",
   location: "",
+  businessType: "Shop",
   startDate: "",
   electricityFee: "",
   waterFee: "",
@@ -261,6 +262,7 @@ export default function RentalAreasAdmin() {
       const formData = new FormData();
       formData.append("cccd", rentalForm.cccd.trim());
       formData.append("location", rentalForm.location.trim());
+      formData.append("businessType", rentalForm.businessType);
       formData.append("startDate", rentalForm.startDate);
       formData.append("electricityFee", Number(rentalForm.electricityFee));
       formData.append("waterFee", Number(rentalForm.waterFee));
@@ -420,6 +422,7 @@ export default function RentalAreasAdmin() {
                         <th className="px-4 py-3">Floor</th>
                         <th className="px-4 py-3">Area Name</th>
                         <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">Business Type</th>
                         <th className="px-4 py-3">Tenant</th>
                         <th className="px-4 py-3">Lease Left</th>
                         <th className="px-4 py-3 text-right">Action</th>
@@ -428,7 +431,7 @@ export default function RentalAreasAdmin() {
                     <tbody className="divide-y divide-slate-100">
                       {paginatedRentalAreas.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-10 text-center text-sm text-slate-500">No rental areas match the current filters.</td>
+                          <td colSpan={8} className="px-4 py-10 text-center text-sm text-slate-500">No rental areas match the current filters.</td>
                         </tr>
                       ) : (
                         paginatedRentalAreas.map((area) => (
@@ -441,6 +444,7 @@ export default function RentalAreasAdmin() {
                                 {area.status}
                               </span>
                             </td>
+                            <td className="px-4 py-4 text-sm text-slate-600">{area.businessType || "-"}</td>
                             <td className="px-4 py-4 text-sm text-slate-600">{area.tenantName || "No tenant"}</td>
                             <td className="px-4 py-4 text-sm text-slate-600">
                               {area.remainingLeaseLabel || (Number.isFinite(area.remainingLeaseDays) ? `${area.remainingLeaseDays} days` : "-")}
@@ -494,49 +498,56 @@ export default function RentalAreasAdmin() {
 
               <div className="grid gap-4 p-5 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">CCCD</label>
+                  <label htmlFor="rental-cccd" className="mb-2 block text-sm font-semibold text-slate-700">CCCD</label>
                   <div className="flex gap-2">
-                    <input value={rentalForm.cccd} onChange={(event) => updateRentalForm("cccd", event.target.value)} placeholder="Enter CCCD" className="min-w-0 flex-1 rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                    <input id="rental-cccd" value={rentalForm.cccd} onChange={(event) => updateRentalForm("cccd", event.target.value)} placeholder="Enter CCCD" className="min-w-0 flex-1 rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
                     <button type="button" onClick={handleCheckCccd} disabled={checkingCccd} className="rounded-[16px] bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50">
                       {checkingCccd ? "Checking..." : "Check"}
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Manager Name</label>
-                  <input value={rentalForm.managerName} readOnly className="w-full rounded-[16px] border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 outline-none" />
+                  <label htmlFor="rental-manager-name" className="mb-2 block text-sm font-semibold text-slate-700">Manager Name</label>
+                  <input id="rental-manager-name" value={rentalForm.managerName} readOnly className="w-full rounded-[16px] border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 outline-none" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Shop Name</label>
-                  <input value={rentalForm.shopName} readOnly className="w-full rounded-[16px] border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 outline-none" />
+                  <label htmlFor="rental-shop-name" className="mb-2 block text-sm font-semibold text-slate-700">Shop Name</label>
+                  <input id="rental-shop-name" value={rentalForm.shopName} readOnly className="w-full rounded-[16px] border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-700 outline-none" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Location</label>
-                  <input value={rentalForm.location} onChange={(event) => updateRentalForm("location", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                  <label htmlFor="rental-location" className="mb-2 block text-sm font-semibold text-slate-700">Location</label>
+                  <input id="rental-location" value={rentalForm.location} onChange={(event) => updateRentalForm("location", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Start Date</label>
-                  <input type="date" min={tomorrowDate} value={rentalForm.startDate} onChange={(event) => updateRentalForm("startDate", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                  <label htmlFor="rental-start-date" className="mb-2 block text-sm font-semibold text-slate-700">Start Date</label>
+                  <input id="rental-start-date" type="date" min={tomorrowDate} value={rentalForm.startDate} onChange={(event) => updateRentalForm("startDate", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Electricity Fee</label>
-                  <input type="number" min="0" value={rentalForm.electricityFee} onChange={(event) => updateRentalForm("electricityFee", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                  <label htmlFor="rental-business-type" className="mb-2 block text-sm font-semibold text-slate-700">Business Type</label>
+                  <select id="rental-business-type" value={rentalForm.businessType} onChange={(event) => updateRentalForm("businessType", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100">
+                    <option value="Shop">Shop</option>
+                    <option value="FoodCourt">FoodCourt</option>
+                  </select>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Water Fee</label>
-                  <input type="number" min="0" value={rentalForm.waterFee} onChange={(event) => updateRentalForm("waterFee", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                  <label htmlFor="rental-electricity-fee" className="mb-2 block text-sm font-semibold text-slate-700">Electricity Fee</label>
+                  <input id="rental-electricity-fee" type="number" min="0" value={rentalForm.electricityFee} onChange={(event) => updateRentalForm("electricityFee", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Fee</label>
-                  <input type="number" min="0" value={rentalForm.serviceFee} onChange={(event) => updateRentalForm("serviceFee", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                  <label htmlFor="rental-water-fee" className="mb-2 block text-sm font-semibold text-slate-700">Water Fee</label>
+                  <input id="rental-water-fee" type="number" min="0" value={rentalForm.waterFee} onChange={(event) => updateRentalForm("waterFee", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Rental Duration (days)</label>
-                  <input type="number" min="30" step="30" value={rentalForm.leaseTermDays} onChange={(event) => updateRentalForm("leaseTermDays", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                  <label htmlFor="rental-service-fee" className="mb-2 block text-sm font-semibold text-slate-700">Fee</label>
+                  <input id="rental-service-fee" type="number" min="0" value={rentalForm.serviceFee} onChange={(event) => updateRentalForm("serviceFee", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
+                </div>
+                <div>
+                  <label htmlFor="rental-lease-term-days" className="mb-2 block text-sm font-semibold text-slate-700">Rental Duration (days)</label>
+                  <input id="rental-lease-term-days" type="number" min="30" step="30" value={rentalForm.leaseTermDays} onChange={(event) => updateRentalForm("leaseTermDays", event.target.value)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100" />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">Contract Image</label>
-                  <input type="file" accept="image/*" onChange={(event) => setContractFile(event.target.files?.[0] || null)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
+                  <label htmlFor="rental-contract-image" className="mb-2 block text-sm font-semibold text-slate-700">Contract Image</label>
+                  <input id="rental-contract-image" type="file" accept="image/*" onChange={(event) => setContractFile(event.target.files?.[0] || null)} className="w-full rounded-[16px] border border-slate-200 px-4 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
                 </div>
               </div>
 
@@ -592,6 +603,7 @@ export default function RentalAreasAdmin() {
                         <DetailCard label="CCCD" value={selectedViewArea.cccd} />
                         <DetailCard label="Manager Name" value={selectedViewArea.managerName} />
                         <DetailCard label="Shop Name" value={selectedViewArea.shopName} />
+                        <DetailCard label="Business Type" value={selectedViewArea.businessType} />
                         <DetailCard label="Location" value={selectedViewArea.rentalLocation} />
                         <DetailCard label="Start Date" value={selectedViewArea.leaseStartDate} />
                         <DetailCard label="Electricity Fee" value={formatCurrency(selectedViewArea.electricityFee)} />

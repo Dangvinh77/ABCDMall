@@ -5,6 +5,7 @@ import { HomePage } from "../pages/home/HomePage";
 const AdminManagement = lazy(() => import("../features/auth/pages/AdminManagement"));
 const ChangeInitialPassword = lazy(() => import("../features/auth/pages/ChangeInitialPassword"));
 const Dashboard = lazy(() => import("../features/auth/pages/Dashboard"));
+const FoodCourtManager = lazy(() => import("../features/auth/pages/FoodCourtManager"));
 const ForgotPassword = lazy(() => import("../features/auth/pages/ForgotPassword"));
 const Login = lazy(() => import("../features/auth/pages/Login"));
 const ManagerShops = lazy(() => import("../features/auth/pages/ManagerShops"));
@@ -49,6 +50,7 @@ export function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/change-initial-password" element={<ChangeInitialPassword />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/food-court-manager" element={<FoodCourtManager />} />
         <Route path="/manager-shops" element={<ManagerShops />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -26,6 +26,7 @@ export type FoodCategoryKey =
   | "bakery";
 
 export type FoodMenuItem = {
+  id?: string;
   name: string;
   price: string;
   note: string;
@@ -239,24 +240,6 @@ const STORE_IMAGES: Record<string, string[]> = {
   "yamazaki-bakery": ["/img/Yamazaki Bakery/menu.jpg", "/img/Yamazaki Bakery/menu1.jpg", "/img/Yamazaki Bakery/menu2.jpg", "/img/Yamazaki Bakery/in.jpg", "/img/Yamazaki Bakery/in_1.jpg", "/img/Yamazaki Bakery/out.jpg"],
 };
 
-const FALLBACK_MENU_NAMES: Record<FoodCategoryKey, string[]> = {
-  coffee: ["Reserve Cold Brew", "Signature Latte", "Mocha Cloud", "Butter Croissant"],
-  drinks: ["Brown Sugar Milk Tea", "Fruit Tea Splash", "Cheese Foam Cup", "Taro Ice Blend"],
-  seafood: ["Lobster Feast", "Oyster Platter", "Grilled Squid Skewer", "Sashimi Tower"],
-  international: ["Pasta Aglio Olio", "Baked Rice Set", "Cream Soup Bowl", "Dessert Plate"],
-  vietnamese: ["Grilled Pork Rice", "Pho Special Bowl", "Spring Roll Plate", "Herb Plate"],
-  japanese: ["Ramen Bowl", "Sushi Roll", "Donburi Set", "Tempura Basket"],
-  korean: ["BBQ Set", "Kimchi Stew", "Fried Chicken Box", "Rice & Side Dish"],
-  lao: ["Larb Plate", "Herb Noodle", "Steamed Fish", "Sticky Rice Set"],
-  fastfood: ["Chicken Combo", "Crunch Burger", "Loaded Fries", "Honey Biscuit"],
-  thai: ["Pad Thai", "Green Curry", "Tom Yum Soup", "Sticky Rice Dessert"],
-  hotpot: ["Hotpot Combo", "Broth Set", "Meat Platter", "Vegetable Basket"],
-  bbq: ["Yakiniku Set", "Marinated Beef", "Pork Belly", "Rice & Soup"],
-  pizza: ["Seafood Pizza", "Cheese Pizza", "Chicken Wings", "Pasta Bowl"],
-  chinese: ["Dim Sum Basket", "Roast Duck", "Stir-fry Noodles", "Dumpling Soup"],
-  bakery: ["Shokupan Loaf", "Cream Bun", "Butter Croissant", "Cheese Tart"],
-};
-
 export function titleCase(value: string) {
   return value
     .replace(/[-_]+/g, " ")
@@ -293,32 +276,6 @@ export function imageSrc(url?: string | null) {
 export function getStoreImages(food?: FoodListItem | null) {
   const slug = food?.slug?.toLowerCase() ?? "";
   return STORE_IMAGES[slug] ?? [];
-}
-
-export function buildFoodMenu(food: FoodListItem): FoodMenuItem[] {
-  const category = normalizeFoodCategory(food);
-  const brand = titleCase(food.name);
-  const menuImages = getStoreImages(food);
-
-  if (menuImages.length > 0) {
-    return menuImages.map((imageUrl, index) => ({
-      name: `${brand} ${FALLBACK_MENU_NAMES[category][index % FALLBACK_MENU_NAMES[category].length]}`,
-      price: `${category === "seafood" ? 129 : category === "bbq" ? 119 : 39 + index * 12}K`,
-      note: `A house favorite prepared for the ${brand} counter.`,
-      tag: index === 0 ? "Signature" : index === 1 ? "Popular" : index === 2 ? "Shareable" : "Fresh Pick",
-      imageUrl,
-      ingredients: [CATEGORY_PRESETS[category].label, index === 0 ? "Chef recommended" : "Guest favorite", "Fast service"],
-    }));
-  }
-
-  return FALLBACK_MENU_NAMES[category].map((suffix, index) => ({
-    name: `${brand} ${suffix}`,
-    price: `${category === "seafood" ? 129 : category === "bbq" ? 119 : 39 + index * 12}K`,
-    note: `A house favorite prepared for the ${brand} counter.`,
-    tag: index === 0 ? "Signature" : index === 1 ? "Popular" : index === 2 ? "Shareable" : "Fresh Pick",
-    imageUrl: imageSrc(food.imageUrl),
-    ingredients: [CATEGORY_PRESETS[category].label, index === 0 ? "Chef recommended" : "Guest favorite", "Fast service"],
-  }));
 }
 
 export function buildFoodGallery(food: FoodListItem) {
