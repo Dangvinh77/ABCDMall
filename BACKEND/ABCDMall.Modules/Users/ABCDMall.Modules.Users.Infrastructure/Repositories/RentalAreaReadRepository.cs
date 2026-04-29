@@ -104,7 +104,7 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
                 : $"Map Slot {location.LocationSlot}",
             Size = string.Empty,
             MonthlyRent = 0,
-            Status = string.Equals(location.Status, "Available", StringComparison.OrdinalIgnoreCase) ? "Available" : "Rented",
+            Status = ResolveRentalStatus(location, tenantName),
             TenantName = tenantName,
             ShopInfoId = location.ShopInfoId,
             CreatedAt = DateTime.UtcNow,
@@ -122,6 +122,15 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
             && shopInfosById.TryGetValue(location.ShopInfoId, out var matchedById))
         {
             return matchedById;
+        }
+
+        var isClearlyAvailable = string.Equals(location.Status, "Available", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(location.ShopInfoId)
+            && string.IsNullOrWhiteSpace(location.ShopName);
+
+        if (isClearlyAvailable)
+        {
+            return null;
         }
 
         var matchedByLocation = shopInfos.FirstOrDefault(x =>
@@ -159,7 +168,7 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
                 : $"Map Slot {location.LocationSlot}",
             Size = string.Empty,
             MonthlyRent = 0,
-            Status = string.Equals(location.Status, "Available", StringComparison.OrdinalIgnoreCase) ? "Available" : "Rented",
+            Status = ResolveRentalStatus(location, tenantName),
             TenantName = tenantName,
             ShopInfoId = location.ShopInfoId,
             ManagerName = shopInfo?.ManagerName,
@@ -176,6 +185,18 @@ public sealed class RentalAreaReadRepository : IRentalAreaReadRepository
             ContractImage = shopInfo?.ContractImage,
             ContractImages = shopInfo?.ContractImages
         };
+    }
+
+    private static string ResolveRentalStatus(Modules.UtilityMap.Domain.Entities.MapLocation location, string? tenantName)
+    {
+        if (!string.IsNullOrWhiteSpace(location.ShopInfoId) || !string.IsNullOrWhiteSpace(tenantName))
+        {
+            return "Rented";
+        }
+
+        return string.Equals(location.Status, "Available", StringComparison.OrdinalIgnoreCase)
+            ? "Available"
+            : "Rented";
     }
 
     private static int? CalculateRemainingLeaseDays(ShopInfo? shopInfo)

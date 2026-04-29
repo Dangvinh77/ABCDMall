@@ -796,7 +796,7 @@ public sealed class UserCommandService : IUserCommandService
         var oneTimePassword = CreateOtp();
         var oneTimePasswordHash = BCrypt.Net.BCrypt.HashPassword(oneTimePassword);
         var passwordSetupToken = CreateSecureToken();
-        var passwordSetupExpiresAt = DateTime.UtcNow.AddHours(24);
+        var passwordSetupExpiresAt = DateTime.UtcNow.AddMinutes(2);
 
         user.Password = oneTimePasswordHash;
         user.OneTimePasswordHash = oneTimePasswordHash;

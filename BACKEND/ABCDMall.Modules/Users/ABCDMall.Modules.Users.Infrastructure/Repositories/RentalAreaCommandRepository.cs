@@ -120,4 +120,5 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
         await _context.SaveChangesAsync(cancellationToken);
         await _utilityMapContext.SaveChangesAsync(cancellationToken);
     }
+
 }
