@@ -85,6 +85,9 @@ public sealed class RentalAreaCommandRepository : IRentalAreaCommandRepository
         return shopInfo ?? await _context.ShopInfos.FirstOrDefaultAsync(x => x.CCCD == normalizedCccd, cancellationToken);
     }
 
+    public Task AddShopInfoAsync(ShopInfo shopInfo, CancellationToken cancellationToken = default)
+        => _context.ShopInfos.AddAsync(shopInfo, cancellationToken).AsTask();
+
     public async Task<ShopInfo?> GetShopInfoByRentalAreaAsync(
         string rentalLocation,
         string? tenantName,

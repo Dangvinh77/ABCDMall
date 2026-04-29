@@ -286,6 +286,9 @@ ABCDMall";
             return true;
         }
 
+        public Task<bool> SendEventRegistrationSuccessEmailAsync(string toEmail, string? fullName, string subject, string body)
+            => SendSimpleNotificationAsync(toEmail, subject, body);
+
         public async Task<bool> SendManagerInitialPasswordEmailAsync(
             string toEmail,
             string? fullName,
@@ -372,6 +375,81 @@ Status: Unpaid
 Please sign in to your manager dashboard and complete the online payment.
 
 ABCDMall";
+            message.IsBodyHtml = false;
+
+            using var client = new SmtpClient(settings.Host, settings.Port)
+            {
+                EnableSsl = settings.EnableSsl
+            };
+
+            if (!string.IsNullOrWhiteSpace(settings.UserName))
+            {
+                client.Credentials = new NetworkCredential(settings.UserName, settings.Password);
+            }
+            else
+            {
+                client.UseDefaultCredentials = true;
+            }
+
+            await client.SendMailAsync(message);
+            return true;
+        }
+
+        public Task<bool> SendCarouselBidWonEmailAsync(string toEmail, string? fullName, string? shopName, decimal amount, DateTime targetMondayDate)
+            => SendSimpleNotificationAsync(
+                toEmail,
+                "Carousel bid result - You won",
+                $@"Hello {(string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName)},
+
+Congratulations. Your carousel bid has won.
+Shop: {(string.IsNullOrWhiteSpace(shopName) ? "N/A" : shopName)}
+Target Monday: {targetMondayDate:yyyy-MM-dd}
+Winning amount: {amount:N0} VND
+
+ABCDMall");
+
+        public Task<bool> SendCarouselBidLostEmailAsync(string toEmail, string? fullName, string? shopName, decimal amount, DateTime targetMondayDate)
+            => SendSimpleNotificationAsync(
+                toEmail,
+                "Carousel bid result - Not selected",
+                $@"Hello {(string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName)},
+
+Your carousel bid was not selected.
+Shop: {(string.IsNullOrWhiteSpace(shopName) ? "N/A" : shopName)}
+Target Monday: {targetMondayDate:yyyy-MM-dd}
+Bid amount: {amount:N0} VND
+
+ABCDMall");
+
+        public Task<bool> SendCarouselBidPaymentSuccessEmailAsync(string toEmail, string? fullName, string? shopName, decimal amount, DateTime targetMondayDate)
+            => SendSimpleNotificationAsync(
+                toEmail,
+                "Carousel bid payment successful",
+                $@"Hello {(string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName)},
+
+Your carousel bid payment was received successfully.
+Shop: {(string.IsNullOrWhiteSpace(shopName) ? "N/A" : shopName)}
+Target Monday: {targetMondayDate:yyyy-MM-dd}
+Amount paid: {amount:N0} VND
+
+ABCDMall");
+
+        private async Task<bool> SendSimpleNotificationAsync(string toEmail, string subject, string body)
+        {
+            var settings = _configuration.GetSection("EmailSettings").Get<EmailSettings>();
+
+            if (settings == null ||
+                string.IsNullOrWhiteSpace(settings.Host) ||
+                string.IsNullOrWhiteSpace(settings.FromEmail))
+            {
+                return false;
+            }
+
+            using var message = new MailMessage();
+            message.From = new MailAddress(settings.FromEmail, settings.FromName);
+            message.To.Add(toEmail);
+            message.Subject = subject;
+            message.Body = body;
             message.IsBodyHtml = false;
 
             using var client = new SmtpClient(settings.Host, settings.Port)

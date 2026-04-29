@@ -11,6 +11,13 @@ public interface IRentalPaymentService
         string? managerShopId,
         CancellationToken cancellationToken = default);
 
+    Task<ApplicationResult<ConfirmRentalPaymentResponseDto>> ConfirmCheckoutSessionAsync(
+        string billId,
+        string sessionId,
+        string managerUserId,
+        string? managerShopId,
+        CancellationToken cancellationToken = default);
+
     Task ProcessStripeWebhookAsync(
         string payload,
         string signatureHeader,

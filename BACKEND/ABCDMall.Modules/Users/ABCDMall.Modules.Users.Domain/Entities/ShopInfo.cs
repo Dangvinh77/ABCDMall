@@ -65,7 +65,5 @@ namespace ABCDMall.Modules.Users.Domain.Entities
         public string? ContractImages { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-          public DateTime? OpeningDate { get; set; }
     }
 }

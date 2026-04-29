@@ -26,11 +26,15 @@ public interface IUserCommandRepository
 
     Task<ForgotPasswordOtp?> GetForgotPasswordOtpAsync(string normalizedEmail, string otp, CancellationToken cancellationToken = default);
 
+    Task<ForgotPasswordOtp?> GetLatestForgotPasswordOtpByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default);
+
     Task RemoveUnusedPasswordResetOtpsAsync(string userId, CancellationToken cancellationToken = default);
 
     Task AddPasswordResetOtpAsync(PasswordResetOtp otp, CancellationToken cancellationToken = default);
 
     Task<PasswordResetOtp?> GetPasswordResetOtpAsync(string userId, string otp, CancellationToken cancellationToken = default);
+
+    Task<PasswordResetOtp?> GetLatestPasswordResetOtpByUserIdAsync(string userId, CancellationToken cancellationToken = default);
 
     Task AddProfileUpdateHistoryAsync(ProfileUpdateHistory history, CancellationToken cancellationToken = default);
 

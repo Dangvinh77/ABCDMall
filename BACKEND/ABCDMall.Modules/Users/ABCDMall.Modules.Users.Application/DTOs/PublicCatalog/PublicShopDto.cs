@@ -22,8 +22,6 @@ public sealed class PublicShopDto
     public DateTime? OpeningDate { get; set; }
     public IReadOnlyList<PublicShopProductDto> Products { get; set; } = [];
     public IReadOnlyList<PublicShopVoucherDto> Vouchers { get; set; } = [];
-    public string ShopStatus { get; set; } = "Active";
-    public DateTime? OpeningDate { get; set; }
 }
 
 public sealed class PublicShopProductDto

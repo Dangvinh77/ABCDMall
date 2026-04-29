@@ -67,6 +67,12 @@ public sealed class UserCommandRepository : IUserCommandRepository
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
+    public Task<ForgotPasswordOtp?> GetLatestForgotPasswordOtpByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+        => _context.ForgotPasswordOtps
+            .Where(x => x.Email.ToLower() == normalizedEmail)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public async Task RemoveUnusedPasswordResetOtpsAsync(string userId, CancellationToken cancellationToken = default)
     {
         var items = await _context.PasswordResetOtps
@@ -81,6 +87,12 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task<PasswordResetOtp?> GetPasswordResetOtpAsync(string userId, string otp, CancellationToken cancellationToken = default)
         => _context.PasswordResetOtps
             .Where(x => x.UserId == userId && x.Otp == otp && !x.IsUsed)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<PasswordResetOtp?> GetLatestPasswordResetOtpByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+        => _context.PasswordResetOtps
+            .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 

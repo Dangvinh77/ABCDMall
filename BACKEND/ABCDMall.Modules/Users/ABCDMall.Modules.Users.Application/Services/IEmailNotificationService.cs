@@ -20,10 +20,18 @@ public interface IEmailNotificationService
 
     Task<bool> SendLoginOtpEmailAsync(string toEmail, string? fullName, string otp);
 
+    Task<bool> SendEventRegistrationSuccessEmailAsync(string toEmail, string? fullName, string subject, string body);
+
     Task<bool> SendRentalBillUpdatedEmailAsync(
         string toEmail,
         string? fullName,
         string shopName,
         string billingMonth,
         decimal totalDue);
+
+    Task<bool> SendCarouselBidWonEmailAsync(string toEmail, string? fullName, string? shopName, decimal amount, DateTime targetMondayDate);
+
+    Task<bool> SendCarouselBidLostEmailAsync(string toEmail, string? fullName, string? shopName, decimal amount, DateTime targetMondayDate);
+
+    Task<bool> SendCarouselBidPaymentSuccessEmailAsync(string toEmail, string? fullName, string? shopName, decimal amount, DateTime targetMondayDate);
 }

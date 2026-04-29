@@ -12,6 +12,14 @@ internal sealed class NullRentalPaymentService : IRentalPaymentService
         CancellationToken cancellationToken = default)
         => Task.FromResult(ApplicationResult<RentalCheckoutSessionResponseDto>.BadRequest("Rental payment service is not configured."));
 
+    public Task<ApplicationResult<ConfirmRentalPaymentResponseDto>> ConfirmCheckoutSessionAsync(
+        string billId,
+        string sessionId,
+        string managerUserId,
+        string? managerShopId,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(ApplicationResult<ConfirmRentalPaymentResponseDto>.BadRequest("Rental payment service is not configured."));
+
     public Task ProcessStripeWebhookAsync(
         string payload,
         string signatureHeader,

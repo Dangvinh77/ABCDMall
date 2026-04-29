@@ -51,6 +51,37 @@ public sealed class RentalPaymentsController : ControllerBase
         };
     }
 
+    [HttpPost("confirm")]
+    [Authorize(Roles = "Manager")]
+    public async Task<IActionResult> ConfirmCheckoutSession(
+        [FromBody] ConfirmRentalPaymentRequestDto dto,
+        CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        var shopId = User.FindFirstValue("shopId");
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Unauthorized("User id is missing from token.");
+        }
+
+        var result = await _rentalPaymentService.ConfirmCheckoutSessionAsync(
+            dto.BillId,
+            dto.SessionId,
+            userId,
+            shopId,
+            cancellationToken);
+
+        return result.Status switch
+        {
+            ApplicationResultStatus.Ok => Ok(result.Value),
+            ApplicationResultStatus.BadRequest => BadRequest(result.Error),
+            ApplicationResultStatus.NotFound => NotFound(result.Error),
+            ApplicationResultStatus.Unauthorized => Unauthorized(result.Error),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
+
     [HttpPost("webhooks/stripe")]
     [AllowAnonymous]
     public async Task<IActionResult> StripeWebhook(CancellationToken cancellationToken)

@@ -84,15 +84,32 @@ export default function ShopInfo() {
       return;
     }
 
-    const query = new URLSearchParams(window.location.search);
-    const payment = query.get("payment");
-    if (payment === "success") {
-      setSuccess("Payment completed. The bill status will update after Stripe confirms the payment.");
-    } else if (payment === "cancel") {
-      setError("Payment was cancelled. You can try again from the unpaid bill row.");
-    }
+    const syncPaymentAndLoad = async () => {
+      const query = new URLSearchParams(window.location.search);
+      const payment = query.get("payment");
+      const billId = query.get("billId");
+      const sessionId = query.get("session_id");
 
-    loadShopInfos();
+      if (payment === "success" && billId && sessionId) {
+        try {
+          await api.post("/RentalPayments/confirm", {
+            billId,
+            sessionId,
+          });
+          setSuccess("Payment completed successfully.");
+        } catch (err) {
+          setError(err.response?.data || err.message || "Payment succeeded but the rental bill could not be confirmed yet.");
+        }
+      } else if (payment === "success") {
+        setSuccess("Payment completed. The rental bill will update after payment confirmation.");
+      } else if (payment === "cancel") {
+        setError("Payment was cancelled. You can try again from the unpaid bill row.");
+      }
+
+      await loadShopInfos();
+    };
+
+    syncPaymentAndLoad();
   }, [isManager]);
 
   if (!isManager) {

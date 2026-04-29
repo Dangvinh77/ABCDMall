@@ -136,6 +136,82 @@ public sealed class RentalPaymentService : IRentalPaymentService
         });
     }
 
+    public async Task<ApplicationResult<ConfirmRentalPaymentResponseDto>> ConfirmCheckoutSessionAsync(
+        string billId,
+        string sessionId,
+        string managerUserId,
+        string? managerShopId,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedBillId = billId.Trim();
+        var normalizedSessionId = sessionId.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedBillId) || string.IsNullOrWhiteSpace(normalizedSessionId))
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.BadRequest("Bill id and Stripe session id are required.");
+        }
+
+        var bill = await _context.ShopMonthlyBills.FirstOrDefaultAsync(x => x.Id == normalizedBillId, cancellationToken);
+        if (bill is null)
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.NotFound("Rental bill does not exist.");
+        }
+
+        if (string.IsNullOrWhiteSpace(managerShopId) || bill.ShopInfoId != managerShopId)
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.Unauthorized("You can only confirm your own rental bills.");
+        }
+
+        if (string.Equals(bill.PaymentStatus, PaidStatus, StringComparison.OrdinalIgnoreCase))
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.Ok(new ConfirmRentalPaymentResponseDto
+            {
+                BillId = bill.Id ?? string.Empty,
+                PaymentStatus = bill.PaymentStatus,
+                PaidAtUtc = bill.PaidAtUtc
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(_settings.SecretKey))
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.BadRequest("StripeSettings:SecretKey is missing.");
+        }
+
+        StripeConfiguration.ApiKey = _settings.SecretKey;
+
+        var sessionService = new SessionService();
+        var session = await sessionService.GetAsync(normalizedSessionId, cancellationToken: cancellationToken);
+        if (session is null)
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.NotFound("Stripe checkout session does not exist.");
+        }
+
+        var metadataBillId = GetMetadataValue(session.Metadata, "billId");
+        if (!string.Equals(metadataBillId, bill.Id, StringComparison.Ordinal))
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.BadRequest("Stripe checkout session does not belong to this rental bill.");
+        }
+
+        if (!string.Equals(session.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
+        {
+            return ApplicationResult<ConfirmRentalPaymentResponseDto>.BadRequest("Stripe payment has not been completed yet.");
+        }
+
+        bill.PaymentStatus = PaidStatus;
+        bill.StripeSessionId = session.Id;
+        bill.StripePaymentIntentId = session.PaymentIntentId ?? session.Id;
+        bill.PaidAtUtc = DateTime.UtcNow;
+        bill.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return ApplicationResult<ConfirmRentalPaymentResponseDto>.Ok(new ConfirmRentalPaymentResponseDto
+        {
+            BillId = bill.Id ?? string.Empty,
+            PaymentStatus = bill.PaymentStatus,
+            PaidAtUtc = bill.PaidAtUtc
+        });
+    }
+
     public async Task ProcessStripeWebhookAsync(
         string payload,
         string signatureHeader,

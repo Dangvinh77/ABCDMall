@@ -56,8 +56,6 @@ public static class ShopInfoPublicMapper
                 .ThenBy(x => x.Title)
                 .Select(MapVoucher)
                 .ToList(),
-            ShopStatus = DeriveShopStatus(shopInfo.OpeningDate),
-            OpeningDate = shopInfo.OpeningDate,
         };
     }
 
@@ -98,8 +96,6 @@ public static class ShopInfoPublicMapper
                 .ThenBy(x => x.Title)
                 .Select(MapVoucher)
                 .ToList(),
-            ShopStatus = shop.ShopStatus,
-            OpeningDate = shop.OpeningDate,
         };
     }
 
@@ -211,8 +207,4 @@ public static class ShopInfoPublicMapper
     /// - OpeningDate trong tương lai → "ComingSoon"
     /// - Ngày hiện tại hoặc quá khứ, hoặc null → "Active"
     /// </summary>
-    public static string DeriveShopStatus(DateTime? openingDate)
-        => openingDate.HasValue && openingDate.Value.Date > DateTime.UtcNow.Date
-            ? "ComingSoon"
-            : "Active";
 }

@@ -128,6 +128,52 @@ public sealed class RentalAreaCommandService : IRentalAreaCommandService
         });
     }
 
+    public async Task<ApplicationResult<MessageResponseDto>> SyncRegisteredManagerRentalAsync(
+        string rentalAreaId,
+        string shopInfoId,
+        string tenantName,
+        string businessType,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(rentalAreaId)
+            || string.IsNullOrWhiteSpace(shopInfoId)
+            || string.IsNullOrWhiteSpace(tenantName)
+            || string.IsNullOrWhiteSpace(businessType))
+        {
+            return ApplicationResult<MessageResponseDto>.BadRequest("Rental area, shop, tenant, and business type are required");
+        }
+
+        var rentalArea = await _rentalAreaCommandRepository.GetRentalAreaByIdAsync(rentalAreaId, cancellationToken);
+        if (rentalArea is null)
+        {
+            return ApplicationResult<MessageResponseDto>.NotFound("Rental area does not exist");
+        }
+
+        rentalArea.Status = "Rented";
+        rentalArea.ShopInfoId = shopInfoId.Trim();
+        rentalArea.TenantName = tenantName.Trim();
+        rentalArea.BusinessType = businessType.Trim();
+
+        var tenantLinked = await _rentalAreaCommandRepository.UpdateRentalAreaTenantAsync(
+            rentalAreaId,
+            status: "Rented",
+            shopInfoId: rentalArea.ShopInfoId,
+            tenantName: rentalArea.TenantName,
+            cancellationToken);
+
+        if (!tenantLinked)
+        {
+            return ApplicationResult<MessageResponseDto>.NotFound("Rental area does not exist");
+        }
+
+        await _rentalAreaCommandRepository.SaveChangesAsync(cancellationToken);
+
+        return ApplicationResult<MessageResponseDto>.Ok(new MessageResponseDto
+        {
+            Message = "Rental area synced successfully"
+        });
+    }
+
     public async Task<ApplicationResult<MessageResponseDto>> UpdateMonthlyBillAsync(string rentalAreaId, UpdateMonthlyBillDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.BillingMonth)
