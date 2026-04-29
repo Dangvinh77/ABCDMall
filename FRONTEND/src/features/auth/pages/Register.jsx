@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../core/api/api";
+import { AdminMapPickerModal } from "../../admin-map/components/AdminMapPickerModal";
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -26,6 +27,9 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [mapLocationId, setMapLocationId] = useState(null);
+  const [displaySlotName, setDisplaySlotName] = useState("");
 
   const setValue = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const setFile = (key, file) => setFiles((current) => ({ ...current, [key]: file }));
@@ -38,6 +42,9 @@ export default function Register() {
 
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => formData.append(key, value));
+      if (mapLocationId !== null && mapLocationId !== undefined) {
+        formData.append("mapLocationId", String(mapLocationId));
+      }
       if (files.avatar) formData.append("avatar", files.avatar);
       if (files.cccdFrontImage) formData.append("cccdFrontImage", files.cccdFrontImage);
       if (files.cccdBackImage) formData.append("cccdBackImage", files.cccdBackImage);
@@ -69,6 +76,8 @@ export default function Register() {
         cccdBackImage: null,
         contractImage: null,
       });
+      setMapLocationId(null);
+      setDisplaySlotName("");
         } catch (err) {
             setError(err?.message || "Server error");
         } finally {
@@ -78,6 +87,22 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#fff8ef_0%,#fffdf8_42%,#f8fbff_100%)] text-slate-900">
+      {isMapOpen && (
+        <AdminMapPickerModal
+          onClose={() => setIsMapOpen(false)}
+          onSelectSlot={(locationId, locationSlot, floorLevel) => {
+            setMapLocationId(locationId);
+            setDisplaySlotName(`${floorLevel} - Lot ${locationSlot}`);
+            setForm((current) => ({
+              ...current,
+              floor: floorLevel,
+              locationSlot,
+            }));
+            setIsMapOpen(false);
+          }}
+        />
+      )}
+
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
         <header className="rounded-[28px] border border-white/70 bg-white/80 px-5 py-4 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -106,6 +131,25 @@ export default function Register() {
                   {error && <div className="rounded-[18px] border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div>}
                   {success && <div className="rounded-[18px] border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{success}</div>}
 
+                  <div className="rounded-[18px] border border-amber-300/30 bg-amber-500/10 p-4">
+                    <label className="mb-2 block text-sm font-semibold text-amber-300">Select Rental Slot</label>
+                    <div className="flex gap-2">
+                      <input
+                        readOnly
+                        value={displaySlotName}
+                        placeholder="No rental slot selected yet..."
+                        className="w-full rounded-[14px] border border-white/10 bg-black/20 px-4 py-2 text-white outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setIsMapOpen(true)}
+                        className="whitespace-nowrap rounded-[14px] bg-amber-400 px-4 py-2 text-sm font-bold text-slate-900 hover:bg-amber-300"
+                      >
+                        Open Map
+                      </button>
+                    </div>
+                  </div>
+
                   <label className="block text-sm font-semibold text-white/80">Full Name
                     <input aria-label="Full Name" value={form.fullName} onChange={(e) => setValue("fullName", e.target.value)} className="mt-2 w-full rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-white outline-none" />
                   </label>
@@ -131,10 +175,10 @@ export default function Register() {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block text-sm font-semibold text-white/80">Floor
-                      <input aria-label="Floor" value={form.floor} onChange={(e) => setValue("floor", e.target.value)} className="mt-2 w-full rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-white outline-none" />
+                      <input aria-label="Floor" readOnly value={form.floor} placeholder="Selected from map" className="mt-2 w-full rounded-[16px] border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" />
                     </label>
                     <label className="block text-sm font-semibold text-white/80">Location Slot
-                      <input aria-label="Location Slot" value={form.locationSlot} onChange={(e) => setValue("locationSlot", e.target.value)} className="mt-2 w-full rounded-[16px] border border-white/10 bg-black/10 px-4 py-3 text-white outline-none" />
+                      <input aria-label="Location Slot" readOnly value={form.locationSlot} placeholder="Selected from map" className="mt-2 w-full rounded-[16px] border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" />
                     </label>
                   </div>
 
