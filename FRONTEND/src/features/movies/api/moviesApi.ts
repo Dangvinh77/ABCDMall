@@ -1263,3 +1263,13 @@ export async function confirmBookingHold(holdId: string) {
 export async function releaseBookingHold(holdId: string) {
   await api.delete(`/bookings/holds/${holdId}`);
 }
+
+export async function resendTicketEmail(payload: {
+  email: string;
+  bookingCode: string;
+}) {
+  return api.post<{ message: string }, { email: string; bookingCode: string }>(
+    "/bookings/resend-ticket-email",
+    payload,
+  );
+}

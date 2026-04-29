@@ -11,4 +11,8 @@ public interface IBookingService
     Task<BookingDetailResponseDto?> GetByCodeAsync(
         string bookingCode,
         CancellationToken cancellationToken = default);
+
+    Task<ResendTicketEmailResponseDto> ResendTicketEmailAsync(
+        ResendTicketEmailRequestDto request,
+        CancellationToken cancellationToken = default);
 }

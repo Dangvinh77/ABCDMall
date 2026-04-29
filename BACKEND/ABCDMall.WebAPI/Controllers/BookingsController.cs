@@ -16,6 +16,7 @@ public sealed class BookingsController : ControllerBase
     private readonly IValidator<CreateBookingHoldRequestDto> _bookingHoldValidator;
     private readonly IBookingService _bookingService;
     private readonly IValidator<CreateBookingRequestDto> _createBookingValidator;
+    private readonly IValidator<ResendTicketEmailRequestDto> _resendTicketEmailValidator;
     private readonly IPaymentService _paymentService;
     private readonly IValidator<PaymentResultRequestDto> _paymentResultValidator;
 
@@ -26,6 +27,7 @@ public sealed class BookingsController : ControllerBase
         IValidator<CreateBookingHoldRequestDto> bookingHoldValidator,
         IBookingService bookingService,
         IValidator<CreateBookingRequestDto> createBookingValidator,
+        IValidator<ResendTicketEmailRequestDto> resendTicketEmailValidator,
         IPaymentService paymentService,
         IValidator<PaymentResultRequestDto> paymentResultValidator)
     {
@@ -35,6 +37,7 @@ public sealed class BookingsController : ControllerBase
         _bookingHoldValidator = bookingHoldValidator;
         _bookingService = bookingService;
         _createBookingValidator = createBookingValidator;
+        _resendTicketEmailValidator = resendTicketEmailValidator;
         _paymentService = paymentService;
         _paymentResultValidator = paymentResultValidator;
     }
@@ -174,6 +177,33 @@ public sealed class BookingsController : ControllerBase
     {
         var result = await _bookingService.GetByCodeAsync(bookingCode, cancellationToken);
         return result is null ? NotFound() : Ok(result);
+    }
+
+    [HttpPost("resend-ticket-email")]
+    public async Task<ActionResult<ResendTicketEmailResponseDto>> ResendTicketEmail(
+        [FromBody] ResendTicketEmailRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var validationResult = await _resendTicketEmailValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return ValidationProblem(ToValidationProblemDetails(validationResult));
+        }
+
+        try
+        {
+            var result = await _bookingService.ResendTicketEmailAsync(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Unable to resend ticket email.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest
+            });
+        }
     }
 
     [HttpPost("{bookingId:guid}/payment-result")]
