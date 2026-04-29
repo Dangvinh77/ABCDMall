@@ -22,6 +22,22 @@ describe("FoodDetailPage", () => {
       imageUrl: "/img/starbuck/logo.png",
       categorySlug: "coffee",
       mallSlug: "ABCD Mall",
+      openHours: "07:00 - 22:00",
+      location: "Coffee zone",
+      phone: "1900 1234",
+      promo: "Morning combo deal",
+      menuItems: [
+        {
+          id: "menu-1",
+          name: "Brown Sugar Milk Tea",
+          price: 49000,
+          note: "Best seller",
+          tag: "Signature",
+          imageUrl: "/images/milk-tea.png",
+          ingredients: ["Black tea", "Boba"],
+          isAvailable: true,
+        },
+      ],
     });
   });
 
@@ -44,5 +60,18 @@ describe("FoodDetailPage", () => {
 
     expect(screen.getByRole("heading", { name: "Signature dishes and drinks" })).toBeInTheDocument();
     expect(screen.getAllByText("Menu preview").length).toBeGreaterThan(0);
+  });
+
+  it("renders backend menu items instead of generated fallback labels", async () => {
+    render(
+      <MemoryRouter initialEntries={["/food/starbucks"]}>
+        <Routes>
+          <Route path="/food/:slug" element={<FoodDetailPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect((await screen.findAllByText("Brown Sugar Milk Tea")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("Best seller")).length).toBeGreaterThan(0);
   });
 });

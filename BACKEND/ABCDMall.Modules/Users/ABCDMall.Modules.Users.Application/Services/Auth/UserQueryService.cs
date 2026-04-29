@@ -25,6 +25,18 @@ public sealed class UserQueryService : IUserQueryService
         return _mapper.Map<IReadOnlyList<ProfileUpdateHistoryResponseDto>>(history);
     }
 
+    public async Task<IReadOnlyList<ProfileUpdateRequestResponseDto>> GetProfileUpdateRequestsAsync(string? status, CancellationToken cancellationToken = default)
+    {
+        var requests = await _userReadRepository.GetProfileUpdateRequestsAsync(status, cancellationToken);
+        return _mapper.Map<IReadOnlyList<ProfileUpdateRequestResponseDto>>(requests);
+    }
+
+    public async Task<IReadOnlyList<ProfileUpdateRequestResponseDto>> GetMyProfileUpdateRequestsAsync(string userId, string? status, CancellationToken cancellationToken = default)
+    {
+        var requests = await _userReadRepository.GetProfileUpdateRequestsByUserAsync(userId, status, 10, cancellationToken);
+        return _mapper.Map<IReadOnlyList<ProfileUpdateRequestResponseDto>>(requests);
+    }
+
     public async Task<IReadOnlyList<UserSummaryResponseDto>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         var users = await _userReadRepository.GetUsersAsync(cancellationToken);
@@ -42,6 +54,7 @@ public sealed class UserQueryService : IUserQueryService
         CancellationToken cancellationToken)
     {
         var shopNamesById = await _userReadRepository.GetShopNamesByIdsAsync(cancellationToken);
+        var businessTypesByShopId = await _userReadRepository.GetBusinessTypesByShopIdsAsync(cancellationToken);
 
         var responses = _mapper.Map<List<UserSummaryResponseDto>>(users);
         foreach (var response in responses)
@@ -49,6 +62,11 @@ public sealed class UserQueryService : IUserQueryService
             if (!string.IsNullOrWhiteSpace(response.ShopId) && shopNamesById.TryGetValue(response.ShopId, out var shopName))
             {
                 response.ShopName = shopName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(response.ShopId) && businessTypesByShopId.TryGetValue(response.ShopId, out var businessType))
+            {
+                response.BusinessType = businessType;
             }
         }
 

@@ -11,4 +11,5 @@ public interface IMapCommandService
     Task<bool> ReserveSlotAsync(int locationId, string shopInfoId, CancellationToken cancellationToken = default);
     Task<bool> ReleaseSlotAsync(int locationId, CancellationToken cancellationToken = default);
     Task<bool> UpdateSlotStatusByShopInfoIdAsync(string shopInfoId, string status, CancellationToken cancellationToken = default);
+    Task<bool> UpdateLocationDetailsByShopInfoIdAsync(string shopInfoId, string shopName, string shopUrl, CancellationToken cancellationToken = default);
 }

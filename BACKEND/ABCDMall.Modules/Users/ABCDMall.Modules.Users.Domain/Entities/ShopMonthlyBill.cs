@@ -40,6 +40,14 @@ namespace ABCDMall.Modules.Users.Domain.Entities
 
         public decimal TotalDue { get; set; }
 
+        public string PaymentStatus { get; set; } = "Unpaid";
+
+        public string? StripeSessionId { get; set; }
+
+        public string? StripePaymentIntentId { get; set; }
+
+        public DateTime? PaidAtUtc { get; set; }
+
         public string? ContractImage { get; set; }
 
         public string? ContractImages { get; set; }

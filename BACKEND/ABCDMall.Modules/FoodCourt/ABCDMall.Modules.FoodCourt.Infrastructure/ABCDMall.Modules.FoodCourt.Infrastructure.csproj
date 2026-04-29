@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules.FoodCourt.Domain\ABCDMall.Modules.FoodCourt.Domain.csproj" />
     <ProjectReference Include="..\ABCDMall.Modules.FoodCourt.Application\ABCDMall.Modules.FoodCourt.Application.csproj" />
+    <ProjectReference Include="..\..\Users\ABCDMall.Modules.Users.Infrastructure\ABCDMall.Modules.Users.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\ABCDMall.Shared\ABCDMall.Shared.csproj" />
   </ItemGroup>
 

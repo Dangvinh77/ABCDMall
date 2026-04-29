@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<BookingQuoteRequestDto>, BookingQuoteRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingHoldRequestDto>, CreateBookingHoldRequestDtoValidator>();
         services.AddScoped<IValidator<CreateBookingRequestDto>, CreateBookingRequestDtoValidator>();
+        services.AddScoped<IValidator<ResendTicketEmailRequestDto>, ResendTicketEmailRequestDtoValidator>();
         services.AddScoped<IValidator<CreateStripeCheckoutSessionRequestDto>, CreateStripeCheckoutSessionRequestDtoValidator>();
         services.AddScoped<IValidator<PaymentResultRequestDto>, PaymentResultRequestDtoValidator>();
         services.AddScoped<IValidator<CreateMovieFeedbackRequestDto>, CreateMovieFeedbackRequestDtoValidator>();

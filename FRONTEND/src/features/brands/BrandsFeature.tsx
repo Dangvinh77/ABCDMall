@@ -1,22 +1,39 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { mockBrandsData } from './api/brandsMockData';
+import { getShops, type Shop } from '../shops/api/shopApi';
 import { getImageUrl } from "@/core/utils/image";
 
 export const BrandsFeature = () => {
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [searchParams, setSearchParams] = useSearchParams();
   const currentCategory = searchParams.get('category') || 'all';
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLetter, setActiveLetter] = useState<string | null>(null);
   const [activeFloor, setActiveFloor] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        setLoading(true);
+        const data = await getShops();
+        setShops(data);
+      } catch (err) {
+        setError('Unable to load brands. Please try again later.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchShops();
+  }, []);
+
   const categories = [
     { name: 'All', slug: 'all' },
-    { name: 'Fashion', slug: 'thoi-trang' },
-    { name: 'Jewelry & Accessories', slug: 'phu-kien' },
-    { name: 'Dining', slug: 'am-thuc' },
-    { name: 'Education', slug: 'giao-duc' },
-    { name: 'Entertainment', slug: 'giai-tri' },
+    { name: 'Fashion', slug: 'Lifestyle' },
+    { name: 'Dining', slug: 'Dining' },
   ];
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -31,14 +48,22 @@ export const BrandsFeature = () => {
     floors.find((item) => item.value === floor)?.label ?? floor;
 
   const filteredBrands = useMemo(() => {
-    return mockBrandsData.filter(brand => {
+    return shops.filter(brand => {
       const matchCategory = currentCategory === 'all' || brand.category === currentCategory;
       const matchSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchLetter = !activeLetter || brand.name.toUpperCase().startsWith(activeLetter);
-      const matchFloor = !activeFloor || brand.floor === activeFloor;
+      const matchFloor = !activeFloor || brand.location?.includes(activeFloor);
       return matchCategory && matchSearch && matchLetter && matchFloor;
     });
-  }, [currentCategory, searchTerm, activeLetter, activeFloor]);
+  }, [shops, currentCategory, searchTerm, activeLetter, activeFloor]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-2xl font-bold text-gray-400 animate-pulse">Loading brands...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 pt-10 pb-20">
@@ -47,7 +72,7 @@ export const BrandsFeature = () => {
         {/* HEADER */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500 mb-6 tracking-tight">
-            {categories.find(c => c.slug === currentCategory)?.name || 'Brands'}
+            Brands
           </h1>
           
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-3xl mx-auto">
@@ -72,6 +97,7 @@ export const BrandsFeature = () => {
               ))}
             </select>
           </div>
+          {error && <p className="mt-4 text-red-500 font-bold">{error}</p>}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -147,13 +173,13 @@ export const BrandsFeature = () => {
                     <div className="w-24 h-24 md:w-32 md:h-32 mb-4 flex items-center justify-center p-2">
                       <img 
                         //src={brand.logoUrl} 
-                         src={getImageUrl(brand.logoUrl)}
+                         src={getImageUrl(brand.logoUrl ?? brand.imageUrl)}
                         alt={brand.name} 
                         className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" 
                       />
                     </div>
                     <h3 className="font-black text-gray-800 uppercase tracking-wide group-hover:text-red-500 transition-colors">{brand.name}</h3>
-                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.floor)}</p>
+                    <p className="text-xs font-bold text-gray-400 mt-2 bg-gray-50 px-3 py-1 rounded-full">📍 {getFloorLabel(brand.location)}</p>
                   </Link>
                 ))}
               </div>

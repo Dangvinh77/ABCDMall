@@ -1,11 +1,38 @@
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/auth";
+import { getManagerBusinessRoute } from "../services/managerBusinessApi";
 
 export default function DashboardMall() {
   const role = localStorage.getItem("role") || "Guest";
   const isAdmin = role === "Admin";
   const isManager = role === "Manager";
   const navigate = useNavigate();
+  const [managerBusinessPath, setManagerBusinessPath] = useState("/manager-shops");
+
+  useEffect(() => {
+    if (!isManager) {
+      return;
+    }
+
+    let cancelled = false;
+
+    getManagerBusinessRoute()
+      .then((result) => {
+        if (!cancelled && result?.targetPath) {
+          setManagerBusinessPath(result.targetPath);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setManagerBusinessPath("/rental-areas");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isManager]);
 
   const handleLogout = async () => {
     await logoutUser();
@@ -77,26 +104,52 @@ export default function DashboardMall() {
                   {isManager && (
                     <>
                       <a
+                        href="/manager-bidding"
+                        className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
+                      >
+                        Manager Bidding
+                      </a>
+                      <a
                         href="/shop-info"
                         className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
                       >
                         Shop Info
                       </a>
                       <a
-                        href="/manager-shops"
+                        href={managerBusinessPath}
                         className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
                       >
-                        Manage My Shop
+                        My Business Management
+                      </a>
+                      <a
+                        href="/manager-events"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Create Shop Event
                       </a>
                     </>
                   )}
                   {isAdmin && (
-                    <a
-                      href="/admin-management"
-                      className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
-                    >
-                      Admin Management
-                    </a>
+                    <>
+                      <a
+                        href="/admin-management"
+                        className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-200"
+                      >
+                        Admin Management
+                      </a>
+                      <a
+                        href="/admin-management/bidding"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Bidding Control
+                      </a>
+                      <a
+                        href="/admin-management/events"
+                        className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        Event Management
+                      </a>
+                    </>
                   )}
                 </div>
               </div>

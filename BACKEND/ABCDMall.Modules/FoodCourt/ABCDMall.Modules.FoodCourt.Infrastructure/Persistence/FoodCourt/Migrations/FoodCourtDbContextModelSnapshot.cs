@@ -43,6 +43,14 @@ namespace ABCDMall.Modules.FoodCourt.Infrastructure.Persistence.FoodCourt.Migrat
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("MallSlug")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -52,6 +60,26 @@ namespace ABCDMall.Modules.FoodCourt.Infrastructure.Persistence.FoodCourt.Migrat
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OpenHours")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OwnerShopId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Promo")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -64,6 +92,75 @@ namespace ABCDMall.Modules.FoodCourt.Infrastructure.Persistence.FoodCourt.Migrat
                         .IsUnique();
 
                     b.ToTable("FoodItems", "foodcourt");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.FoodCourt.Domain.Entities.FoodMenuItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FoodStallId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("IngredientsJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodStallId", "DisplayOrder");
+
+                    b.ToTable("FoodMenuItems", "foodcourt");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.FoodCourt.Domain.Entities.FoodMenuItem", b =>
+                {
+                    b.HasOne("ABCDMall.Modules.FoodCourt.Domain.Entities.FoodItem", "FoodStall")
+                        .WithMany("MenuItems")
+                        .HasForeignKey("FoodStallId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FoodStall");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.FoodCourt.Domain.Entities.FoodItem", b =>
+                {
+                    b.Navigation("MenuItems");
                 });
 #pragma warning restore 612, 618
         }

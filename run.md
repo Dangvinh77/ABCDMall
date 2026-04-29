@@ -183,3 +183,18 @@ npm run dev
 ---
 
 _Lưu ý: Nếu gặp lỗi về Webhook Stripe, bạn cần cài đặt [Stripe CLI](https://stripe.com/docs/stripe-cli) và chạy lệnh `stripe listen --forward-to https://localhost:5184/api/payments/webhooks/stripe` để nhận thông báo thanh toán._
+
+# **_Easy Run_**
+
+## **Terminal 1**
+
+```bash
+npm run stripe
+```
+
+## **Terminal 2**
+
+```bash
+taskkill /IM dotnet.exe /F
+npm run dev
+```

@@ -20,6 +20,7 @@ internal sealed class RentalAreaConfiguration : IEntityTypeConfiguration<RentalA
         entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
         entity.Property(x => x.TenantName).HasMaxLength(200);
         entity.Property(x => x.ShopInfoId).HasMaxLength(64);
+        entity.Property(x => x.BusinessType).HasMaxLength(32);
         entity.HasIndex(x => x.ShopInfoId);
     }
 }

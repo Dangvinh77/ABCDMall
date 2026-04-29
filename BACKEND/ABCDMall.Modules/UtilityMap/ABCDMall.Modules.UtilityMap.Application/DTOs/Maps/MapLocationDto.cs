@@ -9,4 +9,5 @@ public class MapLocationDto
     public double X { get; set; }
     public double Y { get; set; }
     public string StorefrontImageUrl { get; set; } = string.Empty;
+    public string Status { get; set; } = "Available";
 }

@@ -19,6 +19,9 @@ public sealed class RentalAreaQueryService : IRentalAreaQueryService
         return _mapper.Map<IReadOnlyList<RentalAreaResponseDto>>(rentalAreas);
     }
 
+    public Task<RentalAreaDetailResponseDto?> GetRentalAreaDetailAsync(string rentalAreaId, CancellationToken cancellationToken = default)
+        => _rentalAreaReadRepository.GetRentalAreaDetailByIdAsync(rentalAreaId, cancellationToken);
+
     public async Task<ManagerLookupResponseDto?> CheckManagerByCccdAsync(string cccd, CancellationToken cancellationToken = default)
     {
         var normalizedCccd = cccd.Trim();
@@ -29,17 +32,18 @@ public sealed class RentalAreaQueryService : IRentalAreaQueryService
         }
 
         var shopInfo = await _rentalAreaReadRepository.GetShopInfoByManagerAsync(manager, normalizedCccd, cancellationToken);
-        if (shopInfo is null)
-        {
-            return null;
-        }
 
         return new ManagerLookupResponseDto
         {
             ManagerName = manager.FullName,
-            ShopName = shopInfo.ShopName,
-            ShopId = shopInfo.Id,
+            ShopName = shopInfo?.ShopName ?? BuildDefaultShopName(manager.FullName),
+            ShopId = shopInfo?.Id,
             CCCD = normalizedCccd
         };
     }
+
+    internal static string BuildDefaultShopName(string? managerName)
+        => string.IsNullOrWhiteSpace(managerName)
+            ? "Pending Shop Registration"
+            : $"{managerName.Trim()}'s Shop";
 }

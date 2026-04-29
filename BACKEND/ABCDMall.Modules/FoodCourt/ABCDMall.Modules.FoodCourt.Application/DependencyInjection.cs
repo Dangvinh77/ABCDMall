@@ -19,9 +19,12 @@ public static class DependencyInjection
         services.AddScoped<IValidator<FoodListQueryDto>, FoodListQueryDtoValidator>();
         services.AddScoped<IValidator<CreateFoodRequestDto>, CreateFoodRequestDtoValidator>();
         services.AddScoped<IValidator<UpdateFoodRequestDto>, UpdateFoodRequestDtoValidator>();
+        services.AddScoped<IValidator<UpsertFoodManagerRequestDto>, UpsertFoodManagerRequestDtoValidator>();
+        services.AddScoped<IValidator<UpsertFoodMenuItemRequestDto>, UpsertFoodMenuItemRequestDtoValidator>();
 
         services.AddScoped<IFoodQueryService, FoodQueryService>();
         services.AddScoped<IFoodCommandService, FoodCommandService>();
+        services.AddScoped<IFoodManagerService, FoodManagerService>();
         return services;
     }
 }

@@ -27,6 +27,35 @@ public sealed class UserReadRepository : IUserReadRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ProfileUpdateRequest>> GetProfileUpdateRequestsAsync(string? status, CancellationToken cancellationToken = default)
+    {
+        var query = _context.ProfileUpdateRequests.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(x => x.Status == status);
+        }
+
+        return await query
+            .OrderByDescending(x => x.RequestedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<ProfileUpdateRequest>> GetProfileUpdateRequestsByUserAsync(string userId, string? status, int take, CancellationToken cancellationToken = default)
+    {
+        var query = _context.ProfileUpdateRequests.Where(x => x.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(x => x.Status == status);
+        }
+
+        return await query
+            .OrderByDescending(x => x.RequestedAt)
+            .Take(take)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<User>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Users
@@ -47,5 +76,18 @@ public sealed class UserReadRepository : IUserReadRepository
         return await _context.ShopInfos
             .Where(x => !string.IsNullOrWhiteSpace(x.Id))
             .ToDictionaryAsync(x => x.Id!, x => x.ShopName, cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<string, string>> GetBusinessTypesByShopIdsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.RentalAreas
+            .Where(x => !string.IsNullOrWhiteSpace(x.ShopInfoId) && !string.IsNullOrWhiteSpace(x.BusinessType))
+            .GroupBy(x => x.ShopInfoId!)
+            .ToDictionaryAsync(
+                group => group.Key,
+                group => group
+                    .Select(item => item.BusinessType!)
+                    .First(),
+                cancellationToken);
     }
 }

@@ -93,4 +93,18 @@ public class MapRepository : IMapRepository
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task<bool> UpdateLocationDetailsByShopInfoIdAsync(string shopInfoId, string shopName, string shopUrl, CancellationToken cancellationToken = default)
+    {
+        var location = await _context.MapLocations.FirstOrDefaultAsync(x => x.ShopInfoId == shopInfoId, cancellationToken);
+        if (location is null)
+        {
+            return false;
+        }
+
+        location.ShopName = shopName;
+        location.ShopUrl = shopUrl;
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

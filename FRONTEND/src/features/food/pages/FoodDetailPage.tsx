@@ -13,10 +13,9 @@ import {
   X,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { getFoodBySlug } from "../api/foodApi";
+import { getFoodBySlug, type FoodStall } from "../api/foodApi";
 import {
   buildFoodGallery,
-  buildFoodMenu,
   CATEGORY_PRESETS,
   imageSrc,
   normalizeFoodCategory,
@@ -142,7 +141,7 @@ function MenuModal({
 
 export default function FoodDetailPage() {
   const { slug } = useParams();
-  const [food, setFood] = useState<FoodListItem | null>(null);
+  const [food, setFood] = useState<FoodStall | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -162,7 +161,7 @@ export default function FoodDetailPage() {
 
       try {
         setLoading(true);
-        const result = await getFoodBySlug<FoodListItem>(slug);
+        const result = await getFoodBySlug<FoodStall>(slug);
         if (!active) return;
         setFood(result);
         setError(null);
@@ -191,10 +190,24 @@ export default function FoodDetailPage() {
     }
   }, [food]);
 
-  const category = useMemo(() => normalizeFoodCategory(food), [food]);
+  const category = useMemo(() => normalizeFoodCategory(food as FoodListItem | null), [food]);
   const preset = CATEGORY_PRESETS[category];
-  const menu = useMemo(() => (food ? buildFoodMenu(food) : []), [food]);
-  const gallery = useMemo(() => (food ? buildFoodGallery(food) : []), [food]);
+  const menu = useMemo<FoodMenuItem[]>(
+    () =>
+      (food?.menuItems ?? [])
+        .filter((item) => item.isAvailable)
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: `${new Intl.NumberFormat("vi-VN").format(item.price)} VND`,
+          note: item.note,
+          tag: item.tag,
+          imageUrl: item.imageUrl,
+          ingredients: item.ingredients,
+        })),
+    [food],
+  );
+  const gallery = useMemo(() => (food ? buildFoodGallery(food as FoodListItem) : []), [food]);
   const heroImage = imageSrc(food?.imageUrl) || gallery[0] || "";
   const brand = food ? titleCase(food.name) : "Restaurant";
 
@@ -224,10 +237,10 @@ export default function FoodDetailPage() {
 
   const quickFacts = [
     { label: "Category", value: preset.label, icon: BadgeInfo },
-    { label: "Opening hours", value: preset.hours, icon: Clock3 },
+    { label: "Opening hours", value: food.openHours || preset.hours, icon: Clock3 },
     { label: "Rating", value: `${getRating(food.slug ?? food.name)} / 5 • ${getReviewCount(food.slug ?? food.name)}+ reviews`, icon: Star },
-    { label: "Location", value: preset.location, icon: MapPin },
-    { label: "Contact", value: "Store hotline / counter", icon: Phone },
+    { label: "Location", value: food.location || preset.location, icon: MapPin },
+    { label: "Contact", value: food.phone || "Store hotline / counter", icon: Phone },
   ];
 
   return (
@@ -367,7 +380,7 @@ export default function FoodDetailPage() {
                 <h3 className="mt-1 text-xl font-bold text-gray-900">Highlight of the day</h3>
               </div>
             </div>
-            <p className="mt-4 text-sm leading-7 text-gray-600">{preset.promo}</p>
+            <p className="mt-4 text-sm leading-7 text-gray-600">{food.promo || preset.promo}</p>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {quickFacts.map((fact) => {
@@ -396,15 +409,15 @@ export default function FoodDetailPage() {
             <div className="mt-5 space-y-3 text-sm text-gray-700">
               <div className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-gray-400" />
-                <span>ABCD Mall • Food Court</span>
+                <span>ABCD Mall • {food.location || "Food Court"}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Clock3 className="h-4 w-4 text-gray-400" />
-                <span>{preset.hours}</span>
+                <span>{food.openHours || preset.hours}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-gray-400" />
-                <span>Contact counter / store hotline</span>
+                <span>{food.phone || "Contact counter / store hotline"}</span>
               </div>
             </div>
           </section>

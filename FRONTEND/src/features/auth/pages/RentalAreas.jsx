@@ -34,9 +34,9 @@ export default function RentalAreas() {
       setLoading(true);
       setLoadError("");
       const res = await api.get("/RentalArea");
-      setRentalAreas(res.data);
+      setRentalAreas(res || []);
     } catch (err) {
-      setLoadError(err.response?.data || "Unable to load rental areas.");
+      setLoadError(err?.message || "Unable to load rental areas.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function RentalAreas() {
       setSuccess("Rental area created successfully.");
       await loadRentalAreas();
     } catch (err) {
-      setActionError(err.response?.data || "Unable to create rental area.");
+      setActionError(err?.message || "Unable to create rental area.");
     } finally {
       setSaving(false);
     }
@@ -94,7 +94,7 @@ export default function RentalAreas() {
       setSuccess("Tenant registered successfully.");
       await loadRentalAreas();
     } catch (err) {
-      setActionError(err.response?.data || "Unable to register tenant.");
+      setActionError(err?.message || "Unable to register tenant.");
     } finally {
       setSaving(false);
     }
@@ -111,7 +111,7 @@ export default function RentalAreas() {
       setSuccess("Tenant rental cancelled successfully.");
       await loadRentalAreas();
     } catch (err) {
-      setActionError(err.response?.data || "Unable to cancel tenant rental.");
+      setActionError(err?.message || "Unable to cancel tenant rental.");
     } finally {
       setSaving(false);
     }

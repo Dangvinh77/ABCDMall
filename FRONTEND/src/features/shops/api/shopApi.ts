@@ -9,6 +9,7 @@ export type Shop = {
   summary: string;
   description: string;
   imageUrl: string;
+  logoUrl?: string;
   badge?: string;
   offer?: string;
   openHours: string;
@@ -46,11 +47,18 @@ export type ShopDetail = Shop & {
 
 export type ManagedShopRequest = FormData;
 
+export type AvailableRentalLocation = {
+  locationSlot: string;
+  floor: string;
+  areaName?: string | null;
+};
+
 export type ShopCreationStatus = {
   shopCount: number;
   rentedAreaCount: number;
   canCreate: boolean;
   message: string;
+  availableRentalLocations?: AvailableRentalLocation[];
 };
 
 export async function getShops(): Promise<Shop[]> {

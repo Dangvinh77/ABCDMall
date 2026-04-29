@@ -13,11 +13,13 @@ public class FoodCourtDbContext : DbContext
     }
 
     public DbSet<FoodItem> FoodItems => Set<FoodItem>();
+    public DbSet<FoodMenuItem> FoodMenuItems => Set<FoodMenuItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(DefaultSchema);
         modelBuilder.ApplyConfiguration(new FoodItemConfiguration());
+        modelBuilder.ApplyConfiguration(new FoodMenuItemConfiguration());
         base.OnModelCreating(modelBuilder);
     }
 }

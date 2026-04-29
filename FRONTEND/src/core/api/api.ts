@@ -1,5 +1,10 @@
 import axios, { AxiosError } from "axios";
 
+type ApiError = Error & {
+  data?: unknown;
+  status?: number;
+};
+
 // API FETCH NOTE:
 // Vite exposes env vars that start with VITE_. If you create FRONTEND/.env with
 // VITE_API_BASE_URL=http://localhost:5184/api, the frontend will call that API.
@@ -67,17 +72,23 @@ http.interceptors.response.use(
 
 function mapApiError(error: unknown): never {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ detail?: string; title?: string }>;
+    const axiosError = error as AxiosError<string | { detail?: string; title?: string; message?: string }>;
+    const responseData = axiosError.response?.data;
     // API FETCH NOTE:
     // ASP.NET Core often returns ProblemDetails with "detail" or "title".
     // We convert that backend response into a normal Error for pages to display.
     const message =
-      axiosError.response?.data?.detail ??
-      axiosError.response?.data?.title ??
+      (typeof responseData === "string" ? responseData : undefined) ??
+      (typeof responseData === "object" ? responseData?.detail : undefined) ??
+      (typeof responseData === "object" ? responseData?.title : undefined) ??
+      (typeof responseData === "object" ? responseData?.message : undefined) ??
       axiosError.message ??
       "Request failed.";
 
-    throw new Error(message);
+    const mappedError = new Error(message) as ApiError;
+    mappedError.data = axiosError.response?.data;
+    mappedError.status = axiosError.response?.status;
+    throw mappedError;
   }
 
   throw error;
@@ -129,4 +140,4 @@ export const api = {
   },
 };
 
-export default http;
+export default api;

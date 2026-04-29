@@ -11,6 +11,13 @@ public interface IRentalAreaCommandService
 
     Task<ApplicationResult<MessageResponseDto>> RegisterTenantAsync(string rentalAreaId, RegisterTenantDto dto, CancellationToken cancellationToken = default);
 
+    Task<ApplicationResult<MessageResponseDto>> SyncRegisteredManagerRentalAsync(
+        string rentalAreaId,
+        string shopInfoId,
+        string tenantName,
+        string businessType,
+        CancellationToken cancellationToken = default);
+
     Task<ApplicationResult<MessageResponseDto>> UpdateMonthlyBillAsync(string rentalAreaId, UpdateMonthlyBillDto dto, CancellationToken cancellationToken = default);
 
     Task<ApplicationResult<MessageResponseDto>> CancelTenantAsync(string rentalAreaId, CancellationToken cancellationToken = default);

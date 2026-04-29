@@ -1,9 +1,11 @@
 using ABCDMall.Modules.Events.Application.DTOs;
+using ABCDMall.Modules.Events.Application.Common;
 using ABCDMall.Modules.Events.Application.DTOs.Events;
 using ABCDMall.Modules.Events.Application.Services.Events;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ABCDMall.WebAPI.Controllers;
 
@@ -32,23 +34,25 @@ public class EventsController : ControllerBase
     }
 
     /// <summary>
-    /// Lấy danh sách sự kiện. Hỗ trợ filter: keyword, eventType (1/2), status (upcoming/ongoing/ended), isHot.
+    /// Legacy public list endpoint kept for backward compatibility.
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<IReadOnlyList<EventDto>>> GetEvents(
         [FromQuery] string? keyword,
-        [FromQuery] int? eventType,
-        [FromQuery] string? status,
-        [FromQuery] bool? isHot,
+        [FromQuery] string? timeFilter,
+        [FromQuery] string? shopId,
+        [FromQuery] int? approvalStatus,
+        [FromQuery] bool includeAllStatuses = false,
         CancellationToken cancellationToken = default)
     {
         var query = new EventListQueryDto
         {
-            Keyword   = keyword,
-            EventType = eventType,
-            Status    = status,
-            IsHot     = isHot
+            Keyword = keyword,
+            TimeFilter = timeFilter,
+            ShopId = shopId,
+            ApprovalStatus = approvalStatus,
+            IncludeAllStatuses = includeAllStatuses
         };
 
         var validationResult = await _listQueryValidator.ValidateAsync(query, cancellationToken);
@@ -61,14 +65,14 @@ public class EventsController : ControllerBase
     }
 
     /// <summary>
-    /// Lấy danh sách sự kiện HOT cho Banner Slider trang chủ.
+    /// Legacy "hot" endpoint mapped to active public events.
     /// </summary>
     [HttpGet("hot")]
     [AllowAnonymous]
     public async Task<ActionResult<IReadOnlyList<EventDto>>> GetHotEvents(
         CancellationToken cancellationToken = default)
     {
-        return Ok(await _eventQueryService.GetHotEventsAsync(cancellationToken));
+        return Ok(await _eventQueryService.GetActiveEventsAsync(cancellationToken));
     }
 
     /// <summary>
@@ -85,7 +89,7 @@ public class EventsController : ControllerBase
     }
 
     /// <summary>
-    /// Tạo sự kiện mới. Yêu cầu role Admin hoặc Manager.
+    /// Legacy create endpoint routed to admin/manager flows.
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin,Manager")]
@@ -101,7 +105,29 @@ public class EventsController : ControllerBase
 
         try
         {
-            var newId = await _eventCommandService.CreateAsync(request, cancellationToken);
+            ApplicationResult<Guid> createResult;
+
+            if (User.IsInRole("Manager"))
+            {
+                var shopId = User.FindFirstValue("shopId");
+                if (string.IsNullOrWhiteSpace(shopId))
+                {
+                    return BadRequest(new { message = "Manager shop id is missing." });
+                }
+
+                createResult = await _eventCommandService.CreateShopEventAsync(shopId, request, cancellationToken);
+            }
+            else
+            {
+                createResult = await _eventCommandService.CreateMallEventAsync(request, cancellationToken);
+            }
+
+            if (createResult.Status != ApplicationResultStatus.Ok)
+            {
+                return FromResult(createResult);
+            }
+
+            var newId = createResult.Value;
             return CreatedAtAction(
                 nameof(GetEventById),
                 new { id = newId },
@@ -131,9 +157,7 @@ public class EventsController : ControllerBase
 
         try
         {
-            var updated = await _eventCommandService.UpdateAsync(id, request, cancellationToken);
-            if (!updated) return NotFound();
-            return Ok(new { message = "Event updated successfully." });
+            return FromResult(await _eventCommandService.UpdateAsync(id, request, cancellationToken));
         }
         catch (InvalidOperationException ex)
         {
@@ -142,7 +166,7 @@ public class EventsController : ControllerBase
     }
 
     /// <summary>
-    /// Xóa sự kiện. Yêu cầu role Admin hoặc Manager.
+    /// Delete is not supported in the current event workflow.
     /// </summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin,Manager")]
@@ -150,9 +174,8 @@ public class EventsController : ControllerBase
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        var deleted = await _eventCommandService.DeleteAsync(id, cancellationToken);
-        if (!deleted) return NotFound();
-        return Ok(new { message = "Event deleted successfully." });
+        await Task.CompletedTask;
+        return StatusCode(StatusCodes.Status501NotImplemented, new { message = $"Deleting event '{id}' is not supported by the current workflow." });
     }
 
     private static ValidationProblemDetails ToValidationProblemDetails(
@@ -165,4 +188,12 @@ public class EventsController : ControllerBase
                     group => group.Key,
                     group => group.Select(x => x.ErrorMessage).ToArray()));
     }
+
+    private IActionResult FromResult<T>(ApplicationResult<T> result) => result.Status switch
+    {
+        ApplicationResultStatus.Ok => Ok(result.Value),
+        ApplicationResultStatus.NotFound => NotFound(new { message = result.Error }),
+        ApplicationResultStatus.BadRequest => BadRequest(new { message = result.Error }),
+        _ => StatusCode(StatusCodes.Status500InternalServerError, new { message = "Unexpected error." })
+    };
 }

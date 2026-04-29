@@ -4,6 +4,7 @@ using ABCDMall.Modules.Events.Infrastructure.Persistence.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
@@ -25,13 +26,15 @@ namespace ABCDMall.Modules.Events.Infrastructure.Persistence.Events.Migrations
             modelBuilder.Entity("ABCDMall.Modules.Events.Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedNever()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CoverImageUrl")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                    b.Property<int>("ApprovalStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -41,32 +44,39 @@ namespace ABCDMall.Modules.Events.Infrastructure.Persistence.Events.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("EndDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("EndDate");
 
-                    b.Property<int>("EventType")
-                        .HasColumnType("int");
+                    b.Property<string>("GiftDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsHot")
+                    b.Property<bool>("HasGiftRegistration")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("Location")
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("CoverImageUrl");
+
+                    b.Property<int>("LocationType")
+                        .HasColumnType("int")
+                        .HasColumnName("EventType");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShopId")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<string>("ShopName")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("StartDate");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -75,13 +85,68 @@ namespace ABCDMall.Modules.Events.Infrastructure.Persistence.Events.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventType");
+                    b.HasIndex("ApprovalStatus", "StartDateTime", "EndDateTime");
 
-                    b.HasIndex("IsHot");
-
-                    b.HasIndex("StartDate", "EndDate");
+                    b.HasIndex("LocationType", "StartDateTime", "EndDateTime");
 
                     b.ToTable("Events", "events");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Events.Domain.Entities.EventRegistration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("nvarchar(160)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("CustomerPhone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RedeemCode")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("nvarchar(6)");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RedeemCode");
+
+                    b.HasIndex("EventId", "CustomerEmail");
+
+                    b.ToTable("EventRegistrations", "events");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Events.Domain.Entities.EventRegistration", b =>
+                {
+                    b.HasOne("ABCDMall.Modules.Events.Domain.Entities.Event", "Event")
+                        .WithMany("Registrations")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Events.Domain.Entities.Event", b =>
+                {
+                    b.Navigation("Registrations");
                 });
 #pragma warning restore 612, 618
         }
