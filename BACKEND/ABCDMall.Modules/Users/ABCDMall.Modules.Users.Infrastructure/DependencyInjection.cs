@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IRentalPaymentService, RentalPaymentService>();
         services.AddScoped<IShopMonthlyBillReadRepository, ShopMonthlyBillReadRepository>();
         services.AddScoped<IPublicShopCatalogReadRepository, PublicShopCatalogReadRepository>();
+        services.AddScoped<IManagerBusinessRouteRepository, ManagerBusinessRouteRepository>();
         services.AddScoped<IShopInfoPublicManagerRepository, ShopInfoPublicManagerRepository>();
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IFileStorageService, LocalFileStorageService>();

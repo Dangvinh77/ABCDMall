@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IRentalPaymentService, NullRentalPaymentService>();
         services.AddScoped<IShopInfoQueryService, ShopInfoQueryService>();
         services.AddScoped<IPublicShopCatalogService, PublicShopCatalogService>();
+        services.AddScoped<IManagerBusinessRouteService, ManagerBusinessRouteService>();
         services.AddScoped<IShopInfoPublicManagerService, ShopInfoPublicManagerService>();
 
         return services;
