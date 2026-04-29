@@ -1,31 +1,31 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Film,
-  Popcorn,
-  Clock,
   CalendarDays,
   TrendingUp,
   Sparkles,
   ChevronRight,
   ChevronLeft,
-  ShieldUser,
 } from "lucide-react";
 import { Button } from "../component/ui/button";
 import { Badge } from "../component/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "../component/ui/tabs";
+import { MovieHeader } from "../component/MovieHeader";
 import { MovieCard } from "./MovieCard";
 import { PromoCard } from "./PromoCard";
 import type { Movie } from "../data/movie";
 import { getDefaultBookingDate } from "../data/promotions";
 import { moviePaths } from "../routes/moviePaths";
 import { loadHomeUiData, type HomePromo } from "../api/movieUiAdapter";
+import { loadSupportFaqs } from "../../support/api/supportUiAdapter";
+import type { SupportFaqItem } from "../../support/types/support";
 
 export function MovieHomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [nowShowingMovies, setNowShowingMovies] = useState<Movie[]>([]);
   const [comingSoonMovies, setComingSoonMovies] = useState<Movie[]>([]);
   const [promos, setPromos] = useState<HomePromo[]>([]);
+  const [supportItems, setSupportItems] = useState<SupportFaqItem[]>([]);
   const [heroIndex, setHeroIndex] = useState(0);
   const [nowShowingIndex, setNowShowingIndex] = useState(0);
   const [comingSoonIndex, setComingSoonIndex] = useState(0);
@@ -57,7 +57,10 @@ export function MovieHomePage() {
       try {
         // API FETCH NOTE:
         // This keeps the original home UI/carousels intact while replacing the source arrays with API data.
-        const data = await loadHomeUiData();
+        const [data, supportData] = await Promise.all([
+          loadHomeUiData(),
+          loadSupportFaqs(),
+        ]);
         if (!active) return;
 
         setNowShowingMovies(data.nowShowingMovies);
@@ -65,11 +68,13 @@ export function MovieHomePage() {
         setComingSoonMovies(data.comingSoonMovies);
         setComingSoonIndex(data.comingSoonMovies.length > 0 ? data.comingSoonMovies.length : 0);
         setPromos(data.promos);
+        setSupportItems(supportData.featuredItems);
       } catch (error) {
         if (!active) return;
         setNowShowingMovies([]);
         setComingSoonMovies([]);
         setPromos([]);
+        setSupportItems([]);
         setNowShowingIndex(0);
         setComingSoonIndex(0);
         console.warn("Movies home API failed.", error);
@@ -274,56 +279,11 @@ export function MovieHomePage() {
         />
       </div>
       {/* Header */}
-      <header className="relative z-30 border-b border-white/10 bg-[#040816]/35 shadow-[0_10px_40px_rgba(3,7,18,0.28)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 via-fuchsia-600 to-pink-500 shadow-lg shadow-fuchsia-950/35">
-              <Film className="size-5 text-white" />
-            </div>
-
-            <div>
-              <h1
-                className="bg-[linear-gradient(90deg,#fff7ed_0%,#f472b6_18%,#ffffff_38%,#22d3ee_62%,#c084fc_82%,#fff7ed_100%)] bg-[length:260%_260%] bg-clip-text text-xl font-black uppercase leading-none tracking-[0.22em] text-transparent drop-shadow-[0_0_24px_rgba(244,114,182,0.28)] sm:text-[1.65rem]"
-                style={{
-                  animation:
-                    "cinema-marquee-glow 4.6s ease-in-out infinite, cinema-gradient-shift 5.2s ease-in-out infinite",
-                }}
-              >
-                ABCD Cinema
-              </h1>
-              <p className="mt-1 text-xs text-gray-400 sm:text-sm">
-                Online movie booking made fast and easy
-              </p>
-            </div>
-          </div>
-
-          <nav className="flex items-center gap-2 sm:gap-4">
-            <Button
-              variant="ghost"
-              onClick={() => handleOpenShowtimes()}
-              className="hidden h-10 px-3 text-base font-semibold text-gray-200 hover:bg-white/20 hover:text-white md:inline-flex"
-            >
-              <Clock className="mr-2 size-4" />
-              Showtimes
-            </Button>
-            <Button
-              variant="ghost"
-              className="hidden h-10 px-3 text-base font-semibold text-gray-200 hover:bg-white/20 hover:text-white md:inline-flex"
-            >
-              <Popcorn className="mr-2 size-4" />
-              Snacks
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => navigate(moviePaths.admin())}
-              className="hidden h-10 px-3 text-base font-semibold text-gray-200 hover:bg-white/20 hover:text-white md:inline-flex"
-            >
-              <ShieldUser className="mr-2 size-4" />
-              Admin
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <MovieHeader
+        onShowtimes={() => handleOpenShowtimes()}
+        onSupport={() => navigate("/faq")}
+        onAdmin={() => navigate(moviePaths.admin())}
+      />
 
       {/* Hero Section */}
       <section className="relative min-h-[30rem] overflow-hidden md:min-h-[34rem]">
@@ -613,6 +573,49 @@ export function MovieHomePage() {
                   }
                 />
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative py-10 sm:py-12">
+        <div className="container mx-auto px-4">
+          <div className="rounded-[2rem] border border-cyan-400/15 bg-[linear-gradient(180deg,rgba(34,211,238,0.06),rgba(15,23,42,0.4))] px-4 py-5 shadow-[0_18px_60px_rgba(2,6,23,0.2)] sm:px-6 sm:py-6">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-black uppercase tracking-[0.12em] text-cyan-100 sm:text-3xl">
+                  Need help?
+                </h2>
+                <p className="text-sm text-gray-300 sm:text-base">
+                  Find quick answers for movie booking, ticket email, arrival time, and promotions.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-cyan-300 hover:text-cyan-200"
+                onClick={() => navigate("/faq")}
+              >
+                View all FAQs
+                <ChevronRight className="ml-1 size-4" />
+              </Button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {supportItems.length > 0 ? (
+                supportItems.map((item) => (
+                  <article
+                    key={item.id}
+                    className="rounded-2xl border border-white/10 bg-slate-950/45 p-5 text-white"
+                  >
+                    <h3 className="text-base font-semibold">{item.q}</h3>
+                    <p className="mt-2 text-sm text-gray-300">{item.a}</p>
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 p-5 text-sm text-gray-300 md:col-span-3">
+                  Support articles are temporarily unavailable. Visit the FAQ page for the latest updates.
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -199,6 +199,37 @@ public sealed class BookingService : IBookingService
         return booking is null ? null : MapDetail(booking);
     }
 
+    public async Task<ResendTicketEmailResponseDto> ResendTicketEmailAsync(
+        ResendTicketEmailRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedBookingCode = request.BookingCode.Trim();
+        var normalizedEmail = request.Email.Trim();
+
+        var booking = await _bookingRepository.GetByCodeAsync(normalizedBookingCode, cancellationToken);
+        if (booking is null)
+        {
+            throw new InvalidOperationException("Booking does not exist.");
+        }
+
+        if (!string.Equals(booking.CustomerEmail?.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Email does not match this booking.");
+        }
+
+        if (booking.Status != BookingStatus.Confirmed)
+        {
+            throw new InvalidOperationException("This booking is not eligible for ticket resend.");
+        }
+
+        await _bookingRepository.ResendTicketEmailAsync(booking.Id, cancellationToken);
+
+        return new ResendTicketEmailResponseDto
+        {
+            Message = "Ticket email resent successfully."
+        };
+    }
+
     private static IReadOnlyCollection<BookingHoldComboSnapshotDto> ReadComboSnapshots(string? comboSnapshotJson)
     {
         if (string.IsNullOrWhiteSpace(comboSnapshotJson))

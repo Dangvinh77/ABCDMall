@@ -119,6 +119,9 @@ public sealed class BookingServiceTests
         public Task<Bookingg?> GetByCodeAsync(string bookingCode, CancellationToken cancellationToken = default)
             => Task.FromResult(_bookings.FirstOrDefault(x => x.BookingCode == bookingCode));
 
+        public Task ResendTicketEmailAsync(Guid bookingId, CancellationToken cancellationToken = default)
+            => Task.CompletedTask;
+
         public Task<GuestCustomer?> FindGuestCustomerAsync(string email, string phoneNumber, CancellationToken cancellationToken = default)
             => Task.FromResult<GuestCustomer?>(null);
 

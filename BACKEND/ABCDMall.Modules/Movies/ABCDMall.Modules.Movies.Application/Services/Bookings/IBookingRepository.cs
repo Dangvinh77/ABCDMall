@@ -28,6 +28,10 @@ public interface IBookingRepository
         string bookingCode,
         CancellationToken cancellationToken = default);
 
+    Task ResendTicketEmailAsync(
+        Guid bookingId,
+        CancellationToken cancellationToken = default);
+
     Task<GuestCustomer?> FindGuestCustomerAsync(
         string email,
         string phoneNumber,

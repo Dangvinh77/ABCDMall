@@ -3,6 +3,7 @@ using ABCDMall.Modules.Movies.Application.Services.Bookings;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
+using ABCDMall.Modules.Movies.Infrastructure.Services.Tickets;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings;
@@ -10,10 +11,12 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings;
 public sealed class BookingRepository : IBookingRepository
 {
     private readonly MoviesBookingDbContext _dbContext;
+    private readonly ITicketEmailDispatcher _ticketEmailDispatcher;
 
-    public BookingRepository(MoviesBookingDbContext dbContext)
+    public BookingRepository(MoviesBookingDbContext dbContext, ITicketEmailDispatcher ticketEmailDispatcher)
     {
         _dbContext = dbContext;
+        _ticketEmailDispatcher = ticketEmailDispatcher;
     }
 
     public Task<BookingHold?> GetHoldForBookingAsync(
@@ -84,6 +87,11 @@ public sealed class BookingRepository : IBookingRepository
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.BookingCode == bookingCode, cancellationToken);
     }
+
+    public Task ResendTicketEmailAsync(
+        Guid bookingId,
+        CancellationToken cancellationToken = default)
+        => _ticketEmailDispatcher.SendTicketEmailAsync(bookingId, cancellationToken);
 
     public Task<GuestCustomer?> FindGuestCustomerAsync(
         string email,

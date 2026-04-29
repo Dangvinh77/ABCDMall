@@ -127,6 +127,9 @@ public sealed class StripePaymentServiceTests
         public Task<Bookingg?> GetByCodeAsync(string bookingCode, CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 
+        public Task ResendTicketEmailAsync(Guid bookingId, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
         public Task<GuestCustomer?> FindGuestCustomerAsync(string email, string phoneNumber, CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 
