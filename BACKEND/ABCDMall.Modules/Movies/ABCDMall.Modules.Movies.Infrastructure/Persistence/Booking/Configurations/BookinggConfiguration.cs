@@ -1,12 +1,13 @@
 ﻿using ABCDMall.Modules.Movies.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using BookingEntity = ABCDMall.Modules.Movies.Domain.Entities.Booking;
 
 namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Configurations;
 
-public class BookingConfiguration : IEntityTypeConfiguration<Booking>
+public class BookingConfiguration : IEntityTypeConfiguration<BookingEntity>
 {
-    public void Configure(EntityTypeBuilder<Booking> builder)
+    public void Configure(EntityTypeBuilder<BookingEntity> builder)
     {
         builder.ToTable("Bookings");
 

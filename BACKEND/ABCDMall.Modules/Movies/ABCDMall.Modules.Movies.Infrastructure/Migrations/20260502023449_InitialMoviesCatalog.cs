@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Migrations.MoviesCatalogDb
+namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitCatalog : Migration
+    public partial class InitialMoviesCatalog : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.Users.Infrastructure.Migrations
 {
     [DbContext(typeof(MallDbContext))]
-    [Migration("20260428052625_InitUsers")]
-    partial class InitUsers
+    [Migration("20260502023444_InitialUsers")]
+    partial class InitialUsers
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

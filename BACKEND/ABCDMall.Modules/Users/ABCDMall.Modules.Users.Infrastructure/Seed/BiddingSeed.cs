@@ -22,33 +22,42 @@ public static class BiddingSeed
             return;
         }
 
-        var currentWeekMonday = BiddingBusinessClock.GetCurrentWeekMonday(DateTime.UtcNow);
-        var pastWeekMonday = currentWeekMonday.AddDays(-7);
-        var nextWeekMonday = currentWeekMonday.AddDays(7);
+        // ĐÃ SỬA: Neo cứng ngày Demo để dữ liệu luôn chính xác cho buổi bảo vệ
+        // Hôm nay: Thứ Tư, 29/04/2026
+        var demoDate = new DateTime(2026, 4, 29, 12, 0, 0, DateTimeKind.Utc);
+        
+        var currentWeekMonday = BiddingBusinessClock.GetCurrentWeekMonday(demoDate); // 27/04/2026
+        var pastWeekMonday = currentWeekMonday.AddDays(-7); // 20/04/2026
+        var nextWeekMonday = currentWeekMonday.AddDays(7); // 04/05/2026
 
         await SeedPastWeekAsync(db, managerShopIds, pastWeekMonday, ct);
         await SeedCurrentWeekAsync(db, managerShopIds, currentWeekMonday, ct);
-        await SeedNextWeekAsync(db, managerShopIds, nextWeekMonday, ct);
+        
+        // Truyền thêm currentWeekMonday để fix lỗi "Ngày tạo đơn ở tương lai"
+        await SeedNextWeekAsync(db, managerShopIds, nextWeekMonday, currentWeekMonday, ct); 
 
         await db.SaveChangesAsync(ct);
     }
 
-    private static async Task SeedPastWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime monday, CancellationToken ct)
+    private static async Task SeedPastWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime targetMonday, CancellationToken ct)
     {
-        var bids = CreateWeeklyBids("past", shopIds, monday, CarouselBidStatus.Expired);
+        // 1. DỮ LIỆU LỊCH SỬ: Đấu giá hiển thị tuần trước -> Giờ đã hết hạn (Expired)
+        var bids = CreateWeeklyBids("past", shopIds, targetMonday, CarouselBidStatus.Expired);
         await UpsertBidsAsync(db, bids, ct);
-        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-past", monday, isActive: false), ct);
+        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-past", targetMonday, isActive: false), ct);
     }
 
-    private static async Task SeedCurrentWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime monday, CancellationToken ct)
+    private static async Task SeedCurrentWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime targetMonday, CancellationToken ct)
     {
-        var bids = CreateWeeklyBids("current", shopIds, monday, CarouselBidStatus.Active);
+        // 2. DỮ LIỆU HIỆN TẠI: Đấu giá tuần trước thắng -> Tuần này đang hiển thị trên Web (Active)
+        var bids = CreateWeeklyBids("current", shopIds, targetMonday, CarouselBidStatus.Active);
         await UpsertBidsAsync(db, bids, ct);
-        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-current", monday, isActive: true), ct);
+        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-current", targetMonday, isActive: true), ct);
     }
 
-    private static async Task SeedNextWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime monday, CancellationToken ct)
+    private static async Task SeedNextWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime targetMonday, DateTime currentWeekMonday, CancellationToken ct)
     {
+        // 3. DỮ LIỆU DEMO ADMIN: 8 Shop đang đấu giá hôm nay để giành giật 5 slot của tuần sau (Pending)
         var bidAmounts = new[] { 190m, 275m, 225m, 310m, 255m, 205m, 340m, 295m };
         var bids = new List<CarouselBid>(8);
 
@@ -62,21 +71,24 @@ public static class BiddingSeed
                 ShopId = shopId,
                 BidAmount = bidAmounts[index],
                 TemplateType = templateType,
-                TemplateData = BuildTemplateData(templateType, index, monday),
+                TemplateData = BuildTemplateData(templateType, index, targetMonday),
                 Status = CarouselBidStatus.Pending,
-                TargetMondayDate = monday,
-                CreatedAt = monday.AddDays(-2).AddHours(index)
+                TargetMondayDate = targetMonday,
+                
+                // ĐÃ SỬA: Ngày nộp đơn đấu thầu là Thứ Ba (Hôm qua) hoặc sáng nay (Thứ Tư)
+                // Đảm bảo không bị ảo ma Canada xuất hiện ngày nộp đơn ở tương lai.
+                CreatedAt = currentWeekMonday.AddDays(1).AddHours(index) 
             });
         }
 
         await UpsertBidsAsync(db, bids, ct);
-        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-next", monday, isActive: false), ct);
+        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-next", targetMonday, isActive: false), ct);
     }
 
     private static CarouselBid[] CreateWeeklyBids(
         string prefix,
         IReadOnlyList<string> shopIds,
-        DateTime monday,
+        DateTime targetMonday,
         CarouselBidStatus status)
     {
         return shopIds
@@ -89,10 +101,11 @@ public static class BiddingSeed
                     ShopId = shopId,
                     BidAmount = 180m + (index * 25m),
                     TemplateType = templateType,
-                    TemplateData = BuildTemplateData(templateType, index, monday),
+                    TemplateData = BuildTemplateData(templateType, index, targetMonday),
                     Status = status,
-                    TargetMondayDate = monday,
-                    CreatedAt = monday.AddDays(-3).AddHours(index)
+                    TargetMondayDate = targetMonday,
+                    // Thời gian tạo của các đơn đã Active/Expired là từ tuần trước đó nữa
+                    CreatedAt = targetMonday.AddDays(-3).AddHours(index)
                 };
             })
             .ToArray();

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.UtilityMap.Infrastructure.Migrations
 {
     [DbContext(typeof(UtilityMapDbContext))]
-    [Migration("20260428052643_InitMap")]
-    partial class InitMap
+    [Migration("20260502023506_InitialMap")]
+    partial class InitialMap
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

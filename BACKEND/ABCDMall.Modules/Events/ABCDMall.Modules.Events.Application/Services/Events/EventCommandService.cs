@@ -234,6 +234,8 @@ public sealed class EventCommandService : IEventCommandService
             EventLocationType.HallFloor4 => "Hall Floor 4",
             _ => locationType.ToString()
         };
-        return $"{floorDisplay} at this time is already booked by {bookedBy}.";
+        
+        var conflictTime = conflict.StartDateTime.ToString("MMM dd, yyyy HH:mm");
+        return $"The selected time slot conflicts with an existing event at {floorDisplay} (starts at {conflictTime}). Please choose a different time.";
     }
 }

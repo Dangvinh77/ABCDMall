@@ -30,7 +30,8 @@ public sealed class AdminEventsController : ControllerBase
         var validation = await _createValidator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
         {
-            return BadRequest(validation.Errors);
+            var errorMessages = validation.Errors.Select(e => e.ErrorMessage).ToList();
+            return BadRequest(new { message = "Invalid input data.", details = errorMessages });
         }
 
         return FromResult(await _commandService.CreateMallEventAsync(request, cancellationToken));

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Migrations.MoviesCatalogDb
+namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 {
     [DbContext(typeof(MoviesCatalogDbContext))]
     partial class MoviesCatalogDbContextModelSnapshot : ModelSnapshot

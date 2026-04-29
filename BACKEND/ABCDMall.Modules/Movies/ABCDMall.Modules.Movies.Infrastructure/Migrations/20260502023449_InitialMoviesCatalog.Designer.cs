@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Migrations.MoviesCatalogDb
+namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 {
     [DbContext(typeof(MoviesCatalogDbContext))]
-    [Migration("20260428081846_InitCatalog")]
-    partial class InitCatalog
+    [Migration("20260502023449_InitialMoviesCatalog")]
+    partial class InitialMoviesCatalog
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

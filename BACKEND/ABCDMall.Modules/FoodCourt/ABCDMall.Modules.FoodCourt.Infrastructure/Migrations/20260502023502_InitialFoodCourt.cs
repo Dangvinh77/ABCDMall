@@ -5,7 +5,7 @@
 namespace ABCDMall.Modules.FoodCourt.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitFoodCourt : Migration
+    public partial class InitialFoodCourt : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

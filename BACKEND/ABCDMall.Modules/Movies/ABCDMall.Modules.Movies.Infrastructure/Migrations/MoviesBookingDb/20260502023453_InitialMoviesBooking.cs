@@ -3,20 +3,16 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
+namespace ABCDMall.Modules.Movies.Infrastructure.Migrations.MoviesBookingDb
 {
     /// <inheritdoc />
-    public partial class InitMovies : Migration
+    public partial class InitialMoviesBooking : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "movies");
-
             migrationBuilder.CreateTable(
                 name: "AuditLogs",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -34,7 +30,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "BookingHolds",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -61,7 +56,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "GuestCustomers",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -78,7 +72,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "OutboxEvents",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -97,7 +90,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Promotions",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -125,7 +117,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "SnackCombos",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -145,7 +136,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "BookingHoldSeats",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -162,7 +152,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_BookingHoldSeats_BookingHolds_BookingHoldId",
                         column: x => x.BookingHoldId,
-                        principalSchema: "movies",
                         principalTable: "BookingHolds",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -170,7 +159,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Bookings",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -199,7 +187,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Bookings_GuestCustomers_GuestCustomerId",
                         column: x => x.GuestCustomerId,
-                        principalSchema: "movies",
                         principalTable: "GuestCustomers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
@@ -207,7 +194,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PromotionRedemptions",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -224,7 +210,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_PromotionRedemptions_Promotions_PromotionId",
                         column: x => x.PromotionId,
-                        principalSchema: "movies",
                         principalTable: "Promotions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -232,7 +217,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "PromotionRules",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -249,7 +233,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_PromotionRules_Promotions_PromotionId",
                         column: x => x.PromotionId,
-                        principalSchema: "movies",
                         principalTable: "Promotions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -257,7 +240,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "BookingItems",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -276,7 +258,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_BookingItems_Bookings_BookingId",
                         column: x => x.BookingId,
-                        principalSchema: "movies",
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -284,7 +265,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "MovieFeedbackRequests",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -310,7 +290,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_MovieFeedbackRequests_Bookings_BookingId",
                         column: x => x.BookingId,
-                        principalSchema: "movies",
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -318,7 +297,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Payments",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -341,7 +319,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Payments_Bookings_BookingId",
                         column: x => x.BookingId,
-                        principalSchema: "movies",
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -349,7 +326,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Tickets",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -372,7 +348,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_Tickets_Bookings_BookingId",
                         column: x => x.BookingId,
-                        principalSchema: "movies",
                         principalTable: "Bookings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -380,7 +355,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateTable(
                 name: "MovieFeedbacks",
-                schema: "movies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -406,77 +380,65 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_MovieFeedbacks_Bookings_BookingId",
                         column: x => x.BookingId,
-                        principalSchema: "movies",
                         principalTable: "Bookings",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_MovieFeedbacks_MovieFeedbackRequests_FeedbackRequestId",
                         column: x => x.FeedbackRequestId,
-                        principalSchema: "movies",
                         principalTable: "MovieFeedbackRequests",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_EntityName_EntityId_CreatedAtUtc",
-                schema: "movies",
                 table: "AuditLogs",
                 columns: new[] { "EntityName", "EntityId", "CreatedAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingHolds_HoldCode",
-                schema: "movies",
                 table: "BookingHolds",
                 column: "HoldCode",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingHolds_PromotionId",
-                schema: "movies",
                 table: "BookingHolds",
                 column: "PromotionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingHolds_ShowtimeId_Status_ExpiresAtUtc",
-                schema: "movies",
                 table: "BookingHolds",
                 columns: new[] { "ShowtimeId", "Status", "ExpiresAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingHoldSeats_BookingHoldId_SeatInventoryId",
-                schema: "movies",
                 table: "BookingHoldSeats",
                 columns: new[] { "BookingHoldId", "SeatInventoryId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingHoldSeats_SeatInventoryId",
-                schema: "movies",
                 table: "BookingHoldSeats",
                 column: "SeatInventoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingItems_BookingId",
-                schema: "movies",
                 table: "BookingItems",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookingItems_SeatInventoryId",
-                schema: "movies",
                 table: "BookingItems",
                 column: "SeatInventoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_BookingCode",
-                schema: "movies",
                 table: "Bookings",
                 column: "BookingCode",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_BookingHoldId",
-                schema: "movies",
                 table: "Bookings",
                 column: "BookingHoldId",
                 unique: true,
@@ -484,56 +446,47 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_GuestCustomerId",
-                schema: "movies",
                 table: "Bookings",
                 column: "GuestCustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_ShowtimeId",
-                schema: "movies",
                 table: "Bookings",
                 column: "ShowtimeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuestCustomers_Email",
-                schema: "movies",
                 table: "GuestCustomers",
                 column: "Email");
 
             migrationBuilder.CreateIndex(
                 name: "IX_GuestCustomers_PhoneNumber",
-                schema: "movies",
                 table: "GuestCustomers",
                 column: "PhoneNumber");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbackRequests_BookingId_ShowtimeId",
-                schema: "movies",
                 table: "MovieFeedbackRequests",
                 columns: new[] { "BookingId", "ShowtimeId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbackRequests_ExpiresAtUtc",
-                schema: "movies",
                 table: "MovieFeedbackRequests",
                 column: "ExpiresAtUtc");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbackRequests_MovieId",
-                schema: "movies",
                 table: "MovieFeedbackRequests",
                 column: "MovieId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbackRequests_Status_AvailableAtUtc",
-                schema: "movies",
                 table: "MovieFeedbackRequests",
                 columns: new[] { "Status", "AvailableAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbackRequests_TokenHash",
-                schema: "movies",
                 table: "MovieFeedbackRequests",
                 column: "TokenHash",
                 unique: true,
@@ -541,50 +494,42 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbacks_BookingId",
-                schema: "movies",
                 table: "MovieFeedbacks",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbacks_FeedbackRequestId",
-                schema: "movies",
                 table: "MovieFeedbacks",
                 column: "FeedbackRequestId",
                 filter: "[FeedbackRequestId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbacks_MovieId_IsVisible_ModerationStatus_CreatedAtUtc",
-                schema: "movies",
                 table: "MovieFeedbacks",
                 columns: new[] { "MovieId", "IsVisible", "ModerationStatus", "CreatedAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbacks_MovieId_Rating_CreatedAtUtc",
-                schema: "movies",
                 table: "MovieFeedbacks",
                 columns: new[] { "MovieId", "Rating", "CreatedAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieFeedbacks_ShowtimeId",
-                schema: "movies",
                 table: "MovieFeedbacks",
                 column: "ShowtimeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxEvents_Status_OccurredAtUtc",
-                schema: "movies",
                 table: "OutboxEvents",
                 columns: new[] { "Status", "OccurredAtUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_BookingId",
-                schema: "movies",
                 table: "Payments",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_ProviderTransactionId",
-                schema: "movies",
                 table: "Payments",
                 column: "ProviderTransactionId",
                 unique: true,
@@ -592,87 +537,73 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_Status",
-                schema: "movies",
                 table: "Payments",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionRedemptions_BookingId",
-                schema: "movies",
                 table: "PromotionRedemptions",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionRedemptions_CouponCode",
-                schema: "movies",
                 table: "PromotionRedemptions",
                 column: "CouponCode");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionRedemptions_GuestCustomerId",
-                schema: "movies",
                 table: "PromotionRedemptions",
                 column: "GuestCustomerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionRedemptions_PromotionId",
-                schema: "movies",
                 table: "PromotionRedemptions",
                 column: "PromotionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionRules_PromotionId",
-                schema: "movies",
                 table: "PromotionRules",
                 column: "PromotionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionRules_PromotionId_SortOrder",
-                schema: "movies",
                 table: "PromotionRules",
                 columns: new[] { "PromotionId", "SortOrder" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Promotions_Code",
-                schema: "movies",
                 table: "Promotions",
                 column: "Code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Promotions_Status_ValidFromUtc_ValidToUtc",
-                schema: "movies",
                 table: "Promotions",
                 columns: new[] { "Status", "ValidFromUtc", "ValidToUtc" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_SnackCombos_Code",
-                schema: "movies",
                 table: "SnackCombos",
                 column: "Code",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SnackCombos_IsActive",
-                schema: "movies",
                 table: "SnackCombos",
                 column: "IsActive");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_BookingId",
-                schema: "movies",
                 table: "Tickets",
                 column: "BookingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_SeatInventoryId",
-                schema: "movies",
                 table: "Tickets",
                 column: "SeatInventoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_TicketCode",
-                schema: "movies",
                 table: "Tickets",
                 column: "TicketCode",
                 unique: true);
@@ -682,64 +613,49 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AuditLogs",
-                schema: "movies");
+                name: "AuditLogs");
 
             migrationBuilder.DropTable(
-                name: "BookingHoldSeats",
-                schema: "movies");
+                name: "BookingHoldSeats");
 
             migrationBuilder.DropTable(
-                name: "BookingItems",
-                schema: "movies");
+                name: "BookingItems");
 
             migrationBuilder.DropTable(
-                name: "MovieFeedbacks",
-                schema: "movies");
+                name: "MovieFeedbacks");
 
             migrationBuilder.DropTable(
-                name: "OutboxEvents",
-                schema: "movies");
+                name: "OutboxEvents");
 
             migrationBuilder.DropTable(
-                name: "Payments",
-                schema: "movies");
+                name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "PromotionRedemptions",
-                schema: "movies");
+                name: "PromotionRedemptions");
 
             migrationBuilder.DropTable(
-                name: "PromotionRules",
-                schema: "movies");
+                name: "PromotionRules");
 
             migrationBuilder.DropTable(
-                name: "SnackCombos",
-                schema: "movies");
+                name: "SnackCombos");
 
             migrationBuilder.DropTable(
-                name: "Tickets",
-                schema: "movies");
+                name: "Tickets");
 
             migrationBuilder.DropTable(
-                name: "BookingHolds",
-                schema: "movies");
+                name: "BookingHolds");
 
             migrationBuilder.DropTable(
-                name: "MovieFeedbackRequests",
-                schema: "movies");
+                name: "MovieFeedbackRequests");
 
             migrationBuilder.DropTable(
-                name: "Promotions",
-                schema: "movies");
+                name: "Promotions");
 
             migrationBuilder.DropTable(
-                name: "Bookings",
-                schema: "movies");
+                name: "Bookings");
 
             migrationBuilder.DropTable(
-                name: "GuestCustomers",
-                schema: "movies");
+                name: "GuestCustomers");
         }
     }
 }

@@ -67,7 +67,7 @@ http.interceptors.response.use(
 
 function mapApiError(error: unknown): never {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ detail?: string; title?: string }>;
+    const axiosError = error as AxiosError<{ detail?: string; title?: string; message?: string; details?: string[] }>;
     // API FETCH NOTE:
     // ASP.NET Core often returns ProblemDetails with "detail" or "title".
     // We convert that backend response into a normal Error for pages to display.
@@ -75,14 +75,16 @@ function mapApiError(error: unknown): never {
     const asString = typeof raw === "string" ? raw.trim() : "";
     const problem =
       raw && typeof raw === "object"
-        ? (raw as { detail?: string; title?: string })
+        ? (raw as { detail?: string; title?: string; message?: string; details?: string[] })
         : undefined;
-    const message =
-      asString ||
-      problem?.detail ||
-      problem?.title ||
-      axiosError.message ||
-      "Request failed.";
+    
+    // Ưu tiên message, sau đó detail, title, cuối cùng là axiosError.message
+    let message = problem?.message || asString || problem?.detail || problem?.title || axiosError.message || "Request failed.";
+    
+    // Nếu có details (mảng lỗi validation), hiển thị tất cả
+    if (problem?.details && Array.isArray(problem.details) && problem.details.length > 0) {
+      message = message + "\n" + problem.details.join("\n");
+    }
 
     throw new Error(message);
   }

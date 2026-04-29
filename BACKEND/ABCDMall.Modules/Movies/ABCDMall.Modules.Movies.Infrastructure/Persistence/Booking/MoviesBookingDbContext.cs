@@ -1,6 +1,7 @@
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking.Configurations;
 using Microsoft.EntityFrameworkCore;
+using BookingEntity = ABCDMall.Modules.Movies.Domain.Entities.Booking;
 
 namespace ABCDMall.Modules.Movies.Infrastructure.Persistence.Booking;
 
@@ -13,7 +14,7 @@ public class MoviesBookingDbContext : DbContext
     public DbSet<GuestCustomer> GuestCustomers => Set<GuestCustomer>();
     public DbSet<BookingHold> BookingHolds => Set<BookingHold>();
     public DbSet<BookingHoldSeat> BookingHoldSeats => Set<BookingHoldSeat>();
-    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<BookingEntity> Bookings => Set<BookingEntity>();
     public DbSet<BookingItem> BookingItems => Set<BookingItem>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Promotion> Promotions => Set<Promotion>();

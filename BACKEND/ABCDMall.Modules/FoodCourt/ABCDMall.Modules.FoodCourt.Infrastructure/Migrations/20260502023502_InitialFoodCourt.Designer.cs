@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ABCDMall.Modules.FoodCourt.Infrastructure.Migrations
 {
     [DbContext(typeof(FoodCourtDbContext))]
-    [Migration("20260428052638_InitFoodCourt")]
-    partial class InitFoodCourt
+    [Migration("20260502023502_InitialFoodCourt")]
+    partial class InitialFoodCourt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

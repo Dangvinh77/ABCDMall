@@ -228,8 +228,26 @@ export function AdminEventsPage() {
               <p className="mt-2 text-sm text-slate-500">Publish hall-based events and highlight special rewards for shoppers.</p>
             </div>
 
-            {error && <div className="mb-5 rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">{error}</div>}
-            {message && <div className="mb-5 rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">{message}</div>}
+            {error && (
+              <div className="mb-5 rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+                <div className="flex items-start gap-2">
+                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="whitespace-pre-wrap">{error}</div>
+                </div>
+              </div>
+            )}
+            {message && (
+              <div className="mb-5 rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-700">
+                <div className="flex items-start gap-2">
+                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>{message}</span>
+                </div>
+              </div>
+            )}
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid gap-4 sm:grid-cols-2">
