@@ -14,6 +14,8 @@ export interface Showtime {
   priceFrom: number; // VND
   isBookable: boolean;
   bookingUnavailableReason?: string;
+  businessDate?: string;
+  showtimeStartAtUtc?: string;
 }
 
 export interface CinemaSchedule {

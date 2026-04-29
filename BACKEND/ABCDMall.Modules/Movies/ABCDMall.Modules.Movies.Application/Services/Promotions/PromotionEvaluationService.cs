@@ -76,7 +76,7 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
         var appliedRules = new List<string>();
         foreach (var rule in promotion.Rules.OrderBy(x => x.SortOrder))
         {
-            var passed = EvaluateRule(rule, request);
+            var passed = await EvaluateRuleAsync(rule, request, cancellationToken);
             if (!passed)
             {
                 if (rule.IsRequired)
@@ -124,17 +124,22 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
         };
     }
 
-    private static bool EvaluateRule(PromotionRule rule, EvaluatePromotionRequestDto request)
+    private async Task<bool> EvaluateRuleAsync(
+        PromotionRule rule,
+        EvaluatePromotionRequestDto request,
+        CancellationToken cancellationToken)
     {
         switch (rule.RuleType)
         {
             case PromotionRuleType.MinimumSpend:
-                return !rule.ThresholdValue.HasValue
-                    || (request.SeatSubtotal + request.ComboSubtotal) >= rule.ThresholdValue.Value;
+                var minimumSpendThreshold = ResolveNumericThreshold(rule);
+                return !minimumSpendThreshold.HasValue
+                    || (request.SeatSubtotal + request.ComboSubtotal) >= minimumSpendThreshold.Value;
 
             case PromotionRuleType.SeatCount:
-                return !rule.ThresholdValue.HasValue
-                    || request.SeatInventoryIds.Count >= rule.ThresholdValue.Value;
+                var requiredSeatCount = ResolveNumericThreshold(rule);
+                return !requiredSeatCount.HasValue
+                    || request.SeatInventoryIds.Count >= requiredSeatCount.Value;
 
             case PromotionRuleType.SeatType:
                 return request.SeatTypes.Any(x =>
@@ -162,12 +167,14 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
                     && string.Equals(request.PaymentProvider, rule.RuleValue, StringComparison.OrdinalIgnoreCase);
 
             case PromotionRuleType.Combo:
-                if (!Guid.TryParse(rule.RuleValue, out var comboId))
+                if (Guid.TryParse(rule.RuleValue, out var comboId))
                 {
-                    return false;
+                    return request.SnackCombos.Any(x => x.ComboId == comboId && x.Quantity > 0);
                 }
 
-                return request.SnackCombos.Any(x => x.ComboId == comboId && x.Quantity > 0);
+                var combo = await _promotionRepository.GetSnackComboByCodeAsync(rule.RuleValue, cancellationToken);
+                return combo is not null
+                    && request.SnackCombos.Any(x => x.ComboId == combo.Id && x.Quantity > 0);
 
             case PromotionRuleType.CouponCode:
                 return !string.IsNullOrWhiteSpace(request.CouponCode)
@@ -225,6 +232,18 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
         }
 
         return decimal.Round(discount, 2, MidpointRounding.AwayFromZero);
+    }
+
+    private static decimal? ResolveNumericThreshold(PromotionRule rule)
+    {
+        if (rule.ThresholdValue.HasValue)
+        {
+            return rule.ThresholdValue.Value;
+        }
+
+        return decimal.TryParse(rule.RuleValue, out var parsedThreshold)
+            ? parsedThreshold
+            : null;
     }
 
     private static EvaluatePromotionResponseDto BuildResult(

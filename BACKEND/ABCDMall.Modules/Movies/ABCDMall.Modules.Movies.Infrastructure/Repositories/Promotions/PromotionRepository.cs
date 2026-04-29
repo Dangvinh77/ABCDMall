@@ -58,6 +58,13 @@ public sealed class PromotionRepository : IPromotionRepository
             .FirstOrDefaultAsync(x => x.Id == comboId && x.IsActive, cancellationToken);
     }
 
+    public async Task<SnackCombo?> GetSnackComboByCodeAsync(string comboCode, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.SnackCombos
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Code == comboCode && x.IsActive, cancellationToken);
+    }
+
     public async Task<int> CountRedemptionsAsync(Guid promotionId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.PromotionRedemptions

@@ -146,6 +146,8 @@ function toUiShowtime(showtime: ShowtimeLiteModel) {
     priceFrom: showtime.priceFrom,
     isBookable: showtime.isBookable,
     bookingUnavailableReason: showtime.bookingUnavailableReason,
+    businessDate: showtime.businessDate,
+    showtimeStartAtUtc: showtime.startAtUtc,
   };
 }
 

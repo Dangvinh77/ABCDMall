@@ -30,7 +30,6 @@ import { moviePaths } from '../routes/moviePaths';
 import {
   createBookingHold,
   fetchMovieDetail,
-  fetchPromotions,
   fetchSeatMap,
   fetchSnackCombos,
   fetchShowtimeDetail,
@@ -308,6 +307,162 @@ function normalizePromotionRuleType(ruleType: string) {
   return ruleType.trim().toLowerCase();
 }
 
+function parseVietnamTimeParts(showtimeStartAtUtc?: string | null) {
+  if (!showtimeStartAtUtc) {
+    return null;
+  }
+
+  const parsed = new Date(showtimeStartAtUtc);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const formatted = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: CINEMA_TIME_ZONE,
+  }).format(parsed);
+
+  const [hourText, minuteText] = formatted.split(':');
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    return null;
+  }
+
+  return { hour, minute };
+}
+
+function parseBusinessDateParts(businessDate?: string | null) {
+  if (!businessDate) {
+    return null;
+  }
+
+  const [yearText, monthText, dayText] = businessDate.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return {
+    year,
+    month,
+    day,
+    dayOfWeek: date.getUTCDay(),
+  };
+}
+
+function tryParseTimeWindow(ruleValue: string) {
+  const [startText, endText] = ruleValue.split('-').map((segment) => segment.trim());
+  if (!startText || !endText) {
+    return null;
+  }
+
+  const [startHourText, startMinuteText = '0'] = startText.split(':');
+  const [endHourText, endMinuteText = '0'] = endText.split(':');
+
+  const startHour = Number(startHourText);
+  const startMinute = Number(startMinuteText);
+  const endHour = Number(endHourText);
+  const endMinute = Number(endMinuteText);
+
+  if (
+    !Number.isFinite(startHour)
+    || !Number.isFinite(startMinute)
+    || !Number.isFinite(endHour)
+    || !Number.isFinite(endMinute)
+  ) {
+    return null;
+  }
+
+  return {
+    startHour,
+    startMinute,
+    endHour,
+    endMinute,
+  };
+}
+
+function isTimeWithinWindow(
+  hour: number,
+  minute: number,
+  startHour: number,
+  startMinute: number,
+  endHour: number,
+  endMinute: number,
+) {
+  const value = hour * 60 + minute;
+  const start = startHour * 60 + startMinute;
+  const end = endHour * 60 + endMinute;
+  return value >= start && value < end;
+}
+
+function matchesShowtimeRule(
+  ruleValue: string,
+  showtimeId?: string | null,
+  showtimeStartAtUtc?: string | null,
+) {
+  const normalizedValue = ruleValue.trim();
+
+  if (
+    showtimeId
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(normalizedValue)
+  ) {
+    return normalizedValue.toLowerCase() === showtimeId.toLowerCase();
+  }
+
+  const timeParts = parseVietnamTimeParts(showtimeStartAtUtc);
+  if (!timeParts) {
+    return false;
+  }
+
+  if (normalizedValue.toLowerCase() === 'morning') {
+    return isTimeWithinWindow(timeParts.hour, timeParts.minute, 9, 0, 11, 0);
+  }
+
+  if (normalizedValue.toLowerCase() === 'afternoon') {
+    return isTimeWithinWindow(timeParts.hour, timeParts.minute, 11, 0, 17, 0);
+  }
+
+  if (normalizedValue.toLowerCase() === 'evening') {
+    return timeParts.hour * 60 + timeParts.minute >= 17 * 60;
+  }
+
+  const parsedWindow = tryParseTimeWindow(normalizedValue);
+  if (!parsedWindow) {
+    return false;
+  }
+
+  return isTimeWithinWindow(
+    timeParts.hour,
+    timeParts.minute,
+    parsedWindow.startHour,
+    parsedWindow.startMinute,
+    parsedWindow.endHour,
+    parsedWindow.endMinute,
+  );
+}
+
+function matchesBusinessDateRule(ruleValue: string, businessDate?: string | null) {
+  const normalizedValue = ruleValue.trim();
+  const businessDateParts = parseBusinessDateParts(businessDate);
+  if (!businessDateParts) {
+    return false;
+  }
+
+  if (normalizedValue.toLowerCase() === 'weekend') {
+    return businessDateParts.dayOfWeek === 0 || businessDateParts.dayOfWeek === 6;
+  }
+
+  return normalizedValue === `${businessDateParts.year.toString().padStart(4, '0')}-${businessDateParts.month.toString().padStart(2, '0')}-${businessDateParts.day.toString().padStart(2, '0')}`;
+}
+
 function isShowtimeSpecificRule(rule: PromotionRuleModel) {
   const normalizedType = normalizePromotionRuleType(rule.ruleType);
   return normalizedType === 'showtime' || normalizedType === 'businessdate';
@@ -368,8 +523,9 @@ function getPromotionApplyState(params: {
   selectedSeats: Seat[];
   selectedSnackCombos: SelectedSnackCombo[];
   comboOptions: ComboOption[];
-  bookingDate: string;
-  showtime: string;
+  businessDate?: string | null;
+  showtimeId?: string | null;
+  showtimeStartAtUtc?: string | null;
   seatSubtotal: number;
   comboSubtotal: number;
 }): PromotionApplyState {
@@ -378,8 +534,9 @@ function getPromotionApplyState(params: {
     selectedSeats,
     selectedSnackCombos,
     comboOptions,
-    bookingDate,
-    showtime,
+    businessDate,
+    showtimeId,
+    showtimeStartAtUtc,
     seatSubtotal,
     comboSubtotal,
   } = params;
@@ -462,7 +619,7 @@ function getPromotionApplyState(params: {
       case 'birthdaymonth':
         if (rule.ruleValue.trim().toLowerCase() !== 'currentmonth') {
           const parsedMonth = Number(rule.ruleValue);
-          const bookingMonth = new Date(`${bookingDate}T00:00:00`).getMonth() + 1;
+          const bookingMonth = parseBusinessDateParts(businessDate)?.month;
           if (Number.isFinite(parsedMonth) && parsedMonth !== bookingMonth) {
             return {
               canApplyNow: false,
@@ -472,19 +629,24 @@ function getPromotionApplyState(params: {
           }
         }
         break;
-      case 'showtime': {
-        if (rule.ruleValue.trim().toLowerCase() === 'morning') {
-          const showtimeHour = Number(showtime.split(':')[0]);
-          if (!Number.isFinite(showtimeHour) || showtimeHour < 9 || showtimeHour >= 11) {
-            return {
-              canApplyNow: false,
-              message: 'This offer is only valid for showtimes between 09:00 and 10:59.',
-              ctaLabel: 'Wrong showtime',
-            };
-          }
+      case 'showtime':
+        if (!matchesShowtimeRule(rule.ruleValue, showtimeId, showtimeStartAtUtc)) {
+          return {
+            canApplyNow: false,
+            message: `This offer is not valid for the selected showtime (${formatPromotionRule(rule)}).`,
+            ctaLabel: 'Wrong showtime',
+          };
         }
         break;
-      }
+      case 'businessdate':
+        if (!matchesBusinessDateRule(rule.ruleValue, businessDate)) {
+          return {
+            canApplyNow: false,
+            message: `This offer is not valid for the selected date (${formatPromotionRule(rule)}).`,
+            ctaLabel: 'Wrong date',
+          };
+        }
+        break;
       default:
         break;
     }
@@ -536,7 +698,6 @@ export function SeatSelectionPage() {
   const [seats, setSeats] = useState<Seat[][]>([]);
   const [comboQuantities, setComboQuantities] = useState<Record<string, number>>({});
   const [apiSnackCombos, setApiSnackCombos] = useState<SnackComboModel[]>([]);
-  const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
   const [seatMapPromotions, setSeatMapPromotions] = useState<PromotionModel[]>([]);
   const [apiMovie, setApiMovie] = useState<MovieDetailModel | null>(null);
   const [apiShowtime, setApiShowtime] = useState<ShowtimeDetailModel | null>(null);
@@ -644,19 +805,14 @@ export function SeatSelectionPage() {
 
     async function loadBookingSeedDataFromApi() {
       try {
-        const [combos, promotions] = await Promise.all([
-          fetchSnackCombos(),
-          fetchPromotions(true),
-        ]);
+        const combos = await fetchSnackCombos();
 
         if (active) {
           setApiSnackCombos(combos);
-          setApiPromotions(promotions);
         }
       } catch (error) {
         if (active) {
           setApiSnackCombos([]);
-          setApiPromotions([]);
         }
         console.warn('Booking seed API failed.', error);
       }
@@ -804,12 +960,14 @@ export function SeatSelectionPage() {
       }),
     [seatMapPromotions],
   );
+  const appliedPromotionApiId = useMemo(
+    () => resolvePromotionApiIdFromUiId(showtimeApplicablePromotions, appliedPromotionId),
+    [appliedPromotionId, showtimeApplicablePromotions],
+  );
   const selectedPromotion = useMemo(() => {
-    const promotionApiId = resolvePromotionApiIdFromUiId(apiPromotions, appliedPromotionId);
-    return showtimeApplicablePromotions.find((promotion) => promotion.id === promotionApiId)
-      ?? apiPromotions.find((promotion) => promotion.id === promotionApiId)
+    return showtimeApplicablePromotions.find((promotion) => promotion.id === appliedPromotionApiId)
       ?? null;
-  }, [apiPromotions, appliedPromotionId, showtimeApplicablePromotions]);
+  }, [appliedPromotionApiId, showtimeApplicablePromotions]);
   const displayMovie = apiMovie;
   const displayMovieTitle = apiMovie?.title ?? apiShowtime?.movieTitle ?? 'Unknown movie';
   const displayPosterUrl = apiMovie?.imageUrl ?? apiShowtime?.moviePosterUrl;
@@ -838,15 +996,22 @@ export function SeatSelectionPage() {
             selectedSeats: selected,
             selectedSnackCombos,
             comboOptions,
-            bookingDate,
-            showtime,
+            businessDate: apiShowtime?.businessDate ?? bookingDate,
+            showtimeId,
+            showtimeStartAtUtc: apiShowtime?.startAtUtc,
             seatSubtotal: subtotal,
             comboSubtotal,
           }),
         ]),
       ) as Record<string, PromotionApplyState>,
-    [bookingDate, comboOptions, comboSubtotal, selected, selectedSnackCombos, showtime, showtimeApplicablePromotions, subtotal],
+    [apiShowtime?.businessDate, apiShowtime?.startAtUtc, bookingDate, comboOptions, comboSubtotal, selected, selectedSnackCombos, showtimeApplicablePromotions, showtimeId, subtotal],
   );
+
+  useEffect(() => {
+    if (!isSeatMapLoading && appliedPromotionId && !appliedPromotionApiId) {
+      setAppliedPromotionId(null);
+    }
+  }, [appliedPromotionApiId, appliedPromotionId, isSeatMapLoading]);
 
   useEffect(() => {
     if (!isShowtimeBookable || !showtimeId || selected.length === 0 || selected.some((seat) => !seat.seatInventoryId)) {
@@ -877,7 +1042,7 @@ export function SeatSelectionPage() {
           showtimeId: currentShowtimeId,
           seatInventoryIds: selected.map((seat) => seat.seatInventoryId as string),
           snackCombos,
-          promotionId: resolvePromotionApiIdFromUiId(apiPromotions, appliedPromotionId),
+          promotionId: appliedPromotionApiId,
         });
 
         if (active) {
@@ -896,11 +1061,16 @@ export function SeatSelectionPage() {
     return () => {
       active = false;
     };
-  }, [apiPromotions, appliedPromotionId, comboOptions, isShowtimeBookable, selected, selectedSnackCombos, showtimeId]);
+  }, [appliedPromotionApiId, comboOptions, isShowtimeBookable, selected, selectedSnackCombos, showtimeId]);
 
   const applyPromotion = useCallback((promotionId: string) => {
+    const nextApplyState = promotionApplyStates[promotionId];
+    if (!nextApplyState?.canApplyNow) {
+      return;
+    }
+
     setAppliedPromotionId(promotionId);
-  }, []);
+  }, [promotionApplyStates]);
 
   const removeAppliedPromotion = useCallback(() => {
     setAppliedPromotionId(null);

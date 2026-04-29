@@ -70,7 +70,7 @@ internal static class PromotionShowtimeRuleMatcher
             return exactDate == businessDate;
         }
 
-        return true;
+        return false;
     }
 
     private static bool TryParseTimeWindow(string value, out TimeOnly start, out TimeOnly end)

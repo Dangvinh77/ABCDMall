@@ -8,6 +8,7 @@ public interface IPromotionRepository
     Task<Promotion?> GetPromotionByIdAsync(Guid promotionId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SnackCombo>> GetSnackCombosAsync(CancellationToken cancellationToken = default);
     Task<SnackCombo?> GetSnackComboByIdAsync(Guid comboId, CancellationToken cancellationToken = default);
+    Task<SnackCombo?> GetSnackComboByCodeAsync(string comboCode, CancellationToken cancellationToken = default);
     Task<int> CountRedemptionsAsync(Guid promotionId, CancellationToken cancellationToken = default);
     Task<int> CountRedemptionsByGuestCustomerAsync(Guid promotionId, Guid guestCustomerId, CancellationToken cancellationToken = default);
 }

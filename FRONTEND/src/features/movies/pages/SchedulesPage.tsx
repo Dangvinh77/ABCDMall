@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -17,6 +17,11 @@ import {
 } from 'lucide-react';
 import { Button } from '../component/ui/button';
 import {
+  fetchPromotions,
+  resolvePromotionApiIdFromUiId,
+  type PromotionModel,
+} from '../api/moviesApi';
+import {
   allCinemas,
   getScheduleDates,
   formatScheduleDateParam,
@@ -28,6 +33,11 @@ import {
 import { vnd } from '../data/booking';
 import { moviePaths } from '../routes/moviePaths';
 import { loadSchedulesUiData } from '../api/movieUiAdapter';
+import {
+  matchesBusinessDateRule,
+  matchesPromotionShowtimeContext,
+  normalizePromotionRuleType,
+} from '../utils/promotionRuleMatcher';
 const HALL_CONFIGS: Record<HallType, { label: string; bg: string; text: string; border: string; glow: string }> = {
   '2D': {
     label: '2D',
@@ -375,6 +385,7 @@ export function SchedulePage() {
   const [activeLanguages, setActiveLanguages] = useState<Set<Language>>(new Set());
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [apiScheduleData, setApiScheduleData] = useState<MovieSchedule[]>([]);
+  const [apiPromotions, setApiPromotions] = useState<PromotionModel[]>([]);
 
   const heroRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -416,6 +427,72 @@ export function SchedulePage() {
     };
   }, [selectedDate, selectedMovieId]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadPromotionsFromApi() {
+      try {
+        const promotions = await fetchPromotions(true);
+        if (active) {
+          setApiPromotions(promotions);
+        }
+      } catch (error) {
+        if (active) {
+          setApiPromotions([]);
+        }
+        console.warn('Promotions API failed on schedules page.', error);
+      }
+    }
+
+    void loadPromotionsFromApi();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const selectedPromotionApiId = useMemo(
+    () => resolvePromotionApiIdFromUiId(apiPromotions, selectedPromoId),
+    [apiPromotions, selectedPromoId],
+  );
+  const selectedPromotion = useMemo(
+    () => apiPromotions.find((promotion) => promotion.id === selectedPromotionApiId) ?? null,
+    [apiPromotions, selectedPromotionApiId],
+  );
+  const requiredBusinessDateRules = useMemo(
+    () =>
+      (selectedPromotion?.rules ?? []).filter(
+        (rule) => normalizePromotionRuleType(rule.ruleType) === 'businessdate' && rule.isRequired,
+      ),
+    [selectedPromotion],
+  );
+
+  useEffect(() => {
+    if (requiredBusinessDateRules.length === 0) {
+      return;
+    }
+
+    const currentDateParam = formatScheduleDateParam(dates[selectedDateIdx].date);
+    const currentDateMatches = requiredBusinessDateRules.every((rule) =>
+      matchesBusinessDateRule(rule.ruleValue, currentDateParam),
+    );
+
+    if (currentDateMatches) {
+      return;
+    }
+
+    const nextMatchingIndex = dates.findIndex((option) => {
+      const optionDateParam = formatScheduleDateParam(option.date);
+      return requiredBusinessDateRules.every((rule) =>
+        matchesBusinessDateRule(rule.ruleValue, optionDateParam),
+      );
+    });
+
+    if (nextMatchingIndex >= 0 && nextMatchingIndex !== selectedDateIdx) {
+      setSelectedDateIdx(nextMatchingIndex);
+    }
+  }, [dates, requiredBusinessDateRules, selectedDateIdx]);
+
   const filteredSchedules = dailyScheduleData
     .map((ms) => ({
       ...ms,
@@ -426,6 +503,16 @@ export function SchedulePage() {
           showtimes: cs.showtimes.filter((st) => {
             if (activeHallTypes.size > 0 && !activeHallTypes.has(st.hallType)) return false;
             if (activeLanguages.size > 0 && !activeLanguages.has(st.language)) return false;
+            if (
+              selectedPromotion
+              && !matchesPromotionShowtimeContext(selectedPromotion, {
+                businessDate: st.businessDate ?? selectedDate,
+                showtimeId: st.id,
+                showtimeStartAtUtc: st.showtimeStartAtUtc,
+              })
+            ) {
+              return false;
+            }
             return true;
           }),
         }))

@@ -284,6 +284,8 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             throw new InvalidOperationException(BuildPromotionCodeConflictMessage(existingPromotion));
         }
 
+        var normalizedRules = await NormalizePromotionRulesAsync(request.Rules, cancellationToken);
+
         var promotion = new Promotion
         {
             Id = Guid.NewGuid(),
@@ -303,7 +305,7 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             MetadataJson = BuildPromotionMetadataJson(request),
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
-            Rules = request.Rules
+            Rules = normalizedRules
                 .OrderBy(rule => rule.SortOrder)
                 .Select(rule => new PromotionRule
                 {
@@ -347,6 +349,8 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             throw new InvalidOperationException(BuildPromotionCodeConflictMessage(existingPromotion));
         }
 
+        var normalizedRules = await NormalizePromotionRulesAsync(request.Rules, cancellationToken);
+
         promotion.Code = normalizedCode;
         promotion.Name = request.Name.Trim();
         promotion.Description = request.Description.Trim();
@@ -368,7 +372,7 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             _bookingDbContext.PromotionRules.RemoveRange(promotion.Rules);
         }
 
-        promotion.Rules = request.Rules
+        promotion.Rules = normalizedRules
             .OrderBy(rule => rule.SortOrder)
             .Select(rule => new PromotionRule
             {
@@ -1466,6 +1470,11 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
             throw new InvalidOperationException("Promotion must define a percentage or flat discount.");
         }
 
+        if (request.PercentageValue.HasValue && request.FlatDiscountValue.HasValue)
+        {
+            throw new InvalidOperationException("Promotion cannot define both a percentage and a flat discount.");
+        }
+
         if (request.PercentageValue.HasValue && (request.PercentageValue <= 0 || request.PercentageValue > 100))
         {
             throw new InvalidOperationException("Percentage discount must be between 0 and 100.");
@@ -1474,6 +1483,31 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         if (request.FlatDiscountValue.HasValue && request.FlatDiscountValue <= 0)
         {
             throw new InvalidOperationException("Flat discount must be greater than 0.");
+        }
+
+        if (request.MaximumDiscountAmount.HasValue && request.MaximumDiscountAmount <= 0)
+        {
+            throw new InvalidOperationException("Maximum discount amount must be greater than 0.");
+        }
+
+        if (request.MaximumDiscountAmount.HasValue && !request.PercentageValue.HasValue)
+        {
+            throw new InvalidOperationException("Maximum discount amount is only supported for percentage promotions.");
+        }
+
+        if (request.MinimumSpendAmount.HasValue && request.MinimumSpendAmount < 0)
+        {
+            throw new InvalidOperationException("Minimum spend amount cannot be negative.");
+        }
+
+        if (request.MaxRedemptions.HasValue && request.MaxRedemptions <= 0)
+        {
+            throw new InvalidOperationException("Max redemptions must be greater than 0.");
+        }
+
+        if (request.MaxRedemptionsPerCustomer.HasValue && request.MaxRedemptionsPerCustomer <= 0)
+        {
+            throw new InvalidOperationException("Max redemptions per customer must be greater than 0.");
         }
 
         if (request.ValidFromUtc.HasValue && request.ValidToUtc.HasValue && request.ValidFromUtc > request.ValidToUtc)
@@ -1495,6 +1529,219 @@ public sealed class MoviesAdminRepository : IMoviesAdminRepository
         }
 
         _ = BuildPromotionMetadataJson(request);
+    }
+
+    private async Task<IReadOnlyList<MoviesAdminPromotionRuleDto>> NormalizePromotionRulesAsync(
+        IReadOnlyList<MoviesAdminPromotionRuleDto> rules,
+        CancellationToken cancellationToken)
+    {
+        if (rules.Count == 0)
+        {
+            return rules;
+        }
+
+        var parsedRules = rules
+            .Select(rule => new
+            {
+                Rule = rule,
+                RuleType = ParsePromotionRuleType(rule.RuleType)
+            })
+            .ToArray();
+
+        var comboCodes = parsedRules
+            .Where(x => x.RuleType == PromotionRuleType.Combo)
+            .Select(x => x.Rule.RuleValue.Trim())
+            .Where(ruleValue => !Guid.TryParse(ruleValue, out _))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        Dictionary<string, Guid> comboIdByCode = new(StringComparer.OrdinalIgnoreCase);
+        if (comboCodes.Length > 0)
+        {
+            comboIdByCode = await _bookingDbContext.SnackCombos
+                .AsNoTracking()
+                .Where(combo => comboCodes.Contains(combo.Code))
+                .ToDictionaryAsync(combo => combo.Code, combo => combo.Id, StringComparer.OrdinalIgnoreCase, cancellationToken);
+
+            var missingComboCodes = comboCodes
+                .Where(code => !comboIdByCode.ContainsKey(code))
+                .ToArray();
+
+            if (missingComboCodes.Length > 0)
+            {
+                throw new InvalidOperationException($"Unknown snack combo code(s): {string.Join(", ", missingComboCodes)}.");
+            }
+        }
+
+        return parsedRules
+            .Select(item =>
+            {
+                var normalizedRuleValue = item.Rule.RuleValue.Trim();
+                var normalizedThresholdValue = item.Rule.ThresholdValue;
+
+                if (item.RuleType == PromotionRuleType.Combo
+                    && !Guid.TryParse(normalizedRuleValue, out _)
+                    && comboIdByCode.TryGetValue(normalizedRuleValue, out var comboId))
+                {
+                    normalizedRuleValue = comboId.ToString();
+                }
+
+                if (item.RuleType is PromotionRuleType.SeatCount or PromotionRuleType.MinimumSpend)
+                {
+                    normalizedThresholdValue = NormalizeNumericThreshold(item.RuleType, normalizedRuleValue, item.Rule.ThresholdValue);
+                    normalizedRuleValue = normalizedThresholdValue.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+
+                if (item.RuleType == PromotionRuleType.PaymentProvider)
+                {
+                    if (!Enum.TryParse<PaymentProvider>(normalizedRuleValue, true, out var paymentProvider)
+                        || paymentProvider == PaymentProvider.Unknown)
+                    {
+                        throw new InvalidOperationException($"Invalid payment provider rule value: {item.Rule.RuleValue}.");
+                    }
+
+                    normalizedRuleValue = paymentProvider.ToString();
+                }
+
+                if (item.RuleType == PromotionRuleType.SeatType)
+                {
+                    normalizedRuleValue = NormalizeSeatTypeRuleValue(normalizedRuleValue);
+                }
+
+                if (item.RuleType == PromotionRuleType.Showtime)
+                {
+                    normalizedRuleValue = NormalizeShowtimeRuleValue(normalizedRuleValue);
+                }
+
+                if (item.RuleType == PromotionRuleType.BusinessDate)
+                {
+                    normalizedRuleValue = NormalizeBusinessDateRuleValue(normalizedRuleValue);
+                }
+
+                if (item.RuleType == PromotionRuleType.BirthdayMonth)
+                {
+                    normalizedRuleValue = NormalizeBirthdayMonthRuleValue(normalizedRuleValue);
+                }
+
+                return new MoviesAdminPromotionRuleDto
+                {
+                    RuleType = item.Rule.RuleType,
+                    RuleValue = normalizedRuleValue,
+                    ThresholdValue = normalizedThresholdValue,
+                    SortOrder = item.Rule.SortOrder,
+                    IsRequired = item.Rule.IsRequired
+                };
+            })
+            .ToArray();
+    }
+
+    private static decimal NormalizeNumericThreshold(
+        PromotionRuleType ruleType,
+        string ruleValue,
+        decimal? thresholdValue)
+    {
+        if (thresholdValue.HasValue)
+        {
+            if (thresholdValue.Value <= 0)
+            {
+                throw new InvalidOperationException($"{ruleType} threshold must be greater than 0.");
+            }
+
+            return thresholdValue.Value;
+        }
+
+        if (!decimal.TryParse(ruleValue, out var parsedThreshold) || parsedThreshold <= 0)
+        {
+            throw new InvalidOperationException($"{ruleType} rule requires a positive numeric value.");
+        }
+
+        return parsedThreshold;
+    }
+
+    private static string NormalizeBirthdayMonthRuleValue(string ruleValue)
+    {
+        if (string.Equals(ruleValue, "CurrentMonth", StringComparison.OrdinalIgnoreCase))
+        {
+            return "CurrentMonth";
+        }
+
+        if (int.TryParse(ruleValue, out var monthNumber) && monthNumber >= 1 && monthNumber <= 12)
+        {
+            return monthNumber.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        throw new InvalidOperationException("Birthday month rule must be 'CurrentMonth' or a month number from 1 to 12.");
+    }
+
+    private static string NormalizeSeatTypeRuleValue(string ruleValue)
+    {
+        if (!Enum.TryParse<SeatType>(ruleValue, true, out var seatType))
+        {
+            throw new InvalidOperationException($"Invalid seat type rule value: {ruleValue}.");
+        }
+
+        return seatType.ToString();
+    }
+
+    private static string NormalizeShowtimeRuleValue(string ruleValue)
+    {
+        if (Guid.TryParse(ruleValue, out var showtimeId))
+        {
+            return showtimeId.ToString();
+        }
+
+        if (string.Equals(ruleValue, "Morning", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Morning";
+        }
+
+        if (string.Equals(ruleValue, "Afternoon", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Afternoon";
+        }
+
+        if (string.Equals(ruleValue, "Evening", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Evening";
+        }
+
+        if (TryParseTimeWindow(ruleValue, out var start, out var end))
+        {
+            if (start >= end)
+            {
+                throw new InvalidOperationException("Showtime rule time window must have an end time after the start time.");
+            }
+
+            return $"{start:HH\\:mm}-{end:HH\\:mm}";
+        }
+
+        throw new InvalidOperationException("Showtime rule must be a showtime id, Morning, Afternoon, Evening, or a time window like 09:00-11:00.");
+    }
+
+    private static string NormalizeBusinessDateRuleValue(string ruleValue)
+    {
+        if (string.Equals(ruleValue, "Weekend", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Weekend";
+        }
+
+        if (DateOnly.TryParse(ruleValue, out var businessDate))
+        {
+            return businessDate.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        throw new InvalidOperationException("Business date rule must be Weekend or an exact date in yyyy-MM-dd format.");
+    }
+
+    private static bool TryParseTimeWindow(string value, out TimeOnly start, out TimeOnly end)
+    {
+        start = default;
+        end = default;
+
+        var segments = value.Split('-', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length == 2
+            && TimeOnly.TryParse(segments[0], out start)
+            && TimeOnly.TryParse(segments[1], out end);
     }
 
     private static string Slugify(string value)

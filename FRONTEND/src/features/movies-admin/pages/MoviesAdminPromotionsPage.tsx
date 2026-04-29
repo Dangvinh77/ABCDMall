@@ -14,9 +14,27 @@ import {
   moviesAdminApi,
 } from "../services/moviesAdminApi";
 
+const promotionRuleTypes = [
+  "MinimumSpend",
+  "SeatCount",
+  "SeatType",
+  "Showtime",
+  "BusinessDate",
+  "PaymentProvider",
+  "Combo",
+  "CouponCode",
+  "BirthdayMonth",
+] as const;
+
+const paymentProviderOptions = ["Momo", "VnPay", "Stripe", "PayPal", "Mock"] as const;
+const seatTypeOptions = ["Regular", "Vip", "Couple"] as const;
+const showtimeOptions = ["Morning", "Afternoon", "Evening"] as const;
+const businessDateOptions = ["Weekend"] as const;
+const birthdayMonthOptions = ["CurrentMonth"] as const;
+
 const emptyRule: MoviesAdminPromotionRule = {
   ruleType: "PaymentProvider",
-  ruleValue: "",
+  ruleValue: paymentProviderOptions[0],
   thresholdValue: undefined,
   sortOrder: 0,
   isRequired: true,
@@ -50,6 +68,68 @@ const emptyForm: MoviesAdminPromotionUpsertRequest = {
 
 function toLocalDateTimeInput(value?: string | null) {
   return formatDateForDisplay(value);
+}
+
+function toNumberInputValue(value?: number | null) {
+  return value ?? "";
+}
+
+function syncRuleForType(
+  ruleType: string,
+  currentRuleValue: string,
+  currentThresholdValue?: number,
+): Pick<MoviesAdminPromotionRule, "ruleValue" | "thresholdValue"> {
+  if (ruleType === "SeatCount" || ruleType === "MinimumSpend") {
+    return {
+      ruleValue:
+        typeof currentThresholdValue === "number" && !Number.isNaN(currentThresholdValue)
+          ? String(currentThresholdValue)
+          : "",
+      thresholdValue:
+        typeof currentThresholdValue === "number" && !Number.isNaN(currentThresholdValue)
+          ? currentThresholdValue
+          : undefined,
+    };
+  }
+
+  return {
+    ruleValue: currentRuleValue,
+    thresholdValue: undefined,
+  };
+}
+
+function getDefaultRuleValue(ruleType: string) {
+  switch (ruleType) {
+    case "PaymentProvider":
+      return paymentProviderOptions[0];
+    case "SeatType":
+      return seatTypeOptions[0];
+    case "Showtime":
+      return showtimeOptions[0];
+    case "BusinessDate":
+      return businessDateOptions[0];
+    case "BirthdayMonth":
+      return birthdayMonthOptions[0];
+    default:
+      return "";
+  }
+}
+
+function getNumericRuleLabel(ruleType: string) {
+  return ruleType === "SeatCount" ? "Minimum booked seats" : "Minimum spend threshold";
+}
+
+function resolveRuleThresholdValue(rule: MoviesAdminPromotionRule) {
+  if (typeof rule.thresholdValue === "number" && !Number.isNaN(rule.thresholdValue)) {
+    return rule.thresholdValue;
+  }
+
+  if ((rule.ruleType === "SeatCount" || rule.ruleType === "MinimumSpend") && rule.ruleValue) {
+    const parsedValue = Number(rule.ruleValue);
+    return Number.isNaN(parsedValue) ? undefined : parsedValue;
+  }
+
+  return undefined;
 }
 
 export function MoviesAdminPromotionsPage() {
@@ -106,6 +186,24 @@ export function MoviesAdminPromotionsPage() {
     }));
   }
 
+  function updateRuleType(index: number, ruleType: string) {
+    setForm((current) => ({
+      ...current,
+      rules: current.rules.map((rule, ruleIndex) => {
+        if (ruleIndex !== index) {
+          return rule;
+        }
+
+        return {
+          ...rule,
+          ruleType,
+          ruleValue: getDefaultRuleValue(ruleType),
+          thresholdValue: undefined,
+        };
+      }),
+    }));
+  }
+
   function removeRule(index: number) {
     setForm((current) => ({
       ...current,
@@ -146,7 +244,7 @@ export function MoviesAdminPromotionsPage() {
         rules: promotion.rules.map((rule) => ({
           ruleType: rule.ruleType,
           ruleValue: rule.ruleValue,
-          thresholdValue: rule.thresholdValue ?? undefined,
+          thresholdValue: resolveRuleThresholdValue(rule),
           sortOrder: rule.sortOrder,
           isRequired: rule.isRequired,
         })),
@@ -173,11 +271,15 @@ export function MoviesAdminPromotionsPage() {
         accentTo: form.accentTo || undefined,
         displayCondition: form.displayCondition || undefined,
         metadataJson: form.metadataJson || undefined,
-        rules: form.rules.map((rule, index) => ({
-          ...rule,
-          sortOrder: index,
-          thresholdValue: rule.thresholdValue ?? undefined,
-        })),
+        rules: form.rules.map((rule, index) => {
+          const normalizedRule = syncRuleForType(rule.ruleType, rule.ruleValue, rule.thresholdValue ?? undefined);
+
+          return {
+            ...rule,
+            ...normalizedRule,
+            sortOrder: index,
+          };
+        }),
       };
 
       if (editingId) {
@@ -377,12 +479,12 @@ export function MoviesAdminPromotionsPage() {
             </div>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <input type="number" value={form.percentageValue ?? ""} onChange={(event) => setForm((current) => ({ ...current, percentageValue: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Percentage discount" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
-            <input type="number" value={form.flatDiscountValue ?? ""} onChange={(event) => setForm((current) => ({ ...current, flatDiscountValue: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Flat discount" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+            <input type="number" value={toNumberInputValue(form.percentageValue)} onChange={(event) => setForm((current) => ({ ...current, percentageValue: event.target.value ? Number(event.target.value) : undefined, ...(event.target.value ? { flatDiscountValue: undefined } : {}) }))} placeholder="Percentage discount" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+            <input type="number" value={toNumberInputValue(form.flatDiscountValue)} onChange={(event) => setForm((current) => ({ ...current, flatDiscountValue: event.target.value ? Number(event.target.value) : undefined, ...(event.target.value ? { percentageValue: undefined, maximumDiscountAmount: undefined } : {}) }))} placeholder="Flat discount" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <input type="number" value={form.maximumDiscountAmount ?? ""} onChange={(event) => setForm((current) => ({ ...current, maximumDiscountAmount: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Max discount amount" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
-            <input type="number" value={form.minimumSpendAmount ?? ""} onChange={(event) => setForm((current) => ({ ...current, minimumSpendAmount: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Minimum spend" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+            <input type="number" value={toNumberInputValue(form.maximumDiscountAmount)} onChange={(event) => setForm((current) => ({ ...current, maximumDiscountAmount: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Max discount amount (% only)" disabled={!form.percentageValue} className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50" />
+            <input type="number" value={toNumberInputValue(form.minimumSpendAmount)} onChange={(event) => setForm((current) => ({ ...current, minimumSpendAmount: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Minimum spend" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <input type="number" value={form.maxRedemptions ?? ""} onChange={(event) => setForm((current) => ({ ...current, maxRedemptions: event.target.value ? Number(event.target.value) : undefined }))} placeholder="Max redemptions" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
@@ -395,25 +497,90 @@ export function MoviesAdminPromotionsPage() {
               <p className="text-sm font-semibold text-white">Rules</p>
               <button type="button" onClick={addRule} className="text-sm text-cyan-200">Add rule</button>
             </div>
-            {form.rules.length === 0 ? <p className="text-sm text-gray-400">No rules yet. Add rules for provider, combo, seat type, coupon code, or business date.</p> : null}
+            {form.rules.length === 0 ? <p className="text-sm text-gray-400">No rules yet. Add only the conditions this promotion really needs. For seat-count promotions, choose `SeatCount` and enter the minimum booked seats.</p> : null}
             {form.rules.map((rule, index) => (
               <div key={`${rule.ruleType}-${index}`} className="space-y-3 rounded-2xl border border-white/8 bg-slate-950/30 p-3">
                 <div className="grid gap-3 md:grid-cols-2">
-                  <select value={rule.ruleType} onChange={(event) => updateRule(index, { ruleType: event.target.value })} className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white">
-                    <option value="MinimumSpend">MinimumSpend</option>
-                    <option value="SeatCount">SeatCount</option>
-                    <option value="SeatType">SeatType</option>
-                    <option value="Showtime">Showtime</option>
-                    <option value="BusinessDate">BusinessDate</option>
-                    <option value="PaymentProvider">PaymentProvider</option>
-                    <option value="Combo">Combo</option>
-                    <option value="CouponCode">CouponCode</option>
-                    <option value="BirthdayMonth">BirthdayMonth</option>
+                  <select value={rule.ruleType} onChange={(event) => updateRuleType(index, event.target.value)} className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white">
+                    {promotionRuleTypes.map((ruleType) => (
+                      <option key={ruleType} value={ruleType}>{ruleType}</option>
+                    ))}
                   </select>
-                  <input value={rule.ruleValue} onChange={(event) => updateRule(index, { ruleValue: event.target.value })} placeholder="Rule value" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+                  {rule.ruleType === "PaymentProvider" ? (
+                    <select
+                      value={rule.ruleValue}
+                      onChange={(event) => updateRule(index, { ruleValue: event.target.value })}
+                      className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white"
+                    >
+                      {paymentProviderOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  ) : null}
+                  {rule.ruleType === "SeatType" ? (
+                    <select
+                      value={rule.ruleValue}
+                      onChange={(event) => updateRule(index, { ruleValue: event.target.value })}
+                      className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white"
+                    >
+                      {seatTypeOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  ) : null}
+                  {rule.ruleType === "Showtime" ? (
+                    <input value={rule.ruleValue} onChange={(event) => updateRule(index, { ruleValue: event.target.value })} placeholder="Morning / Afternoon / Evening / 09:00-11:00 / showtime id" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+                  ) : null}
+                  {rule.ruleType === "BusinessDate" ? (
+                    <input value={rule.ruleValue} onChange={(event) => updateRule(index, { ruleValue: event.target.value })} placeholder="Weekend or yyyy-MM-dd" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+                  ) : null}
+                  {rule.ruleType === "BirthdayMonth" ? (
+                    <input value={rule.ruleValue} onChange={(event) => updateRule(index, { ruleValue: event.target.value })} placeholder="CurrentMonth or month number 1-12" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+                  ) : null}
+                  {rule.ruleType !== "PaymentProvider"
+                    && rule.ruleType !== "SeatType"
+                    && rule.ruleType !== "Showtime"
+                    && rule.ruleType !== "BusinessDate"
+                    && rule.ruleType !== "BirthdayMonth"
+                    && rule.ruleType !== "SeatCount"
+                    && rule.ruleType !== "MinimumSpend" ? (
+                    <input value={rule.ruleValue} onChange={(event) => updateRule(index, { ruleValue: event.target.value })} placeholder="Rule value" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+                  ) : null}
+                  {(rule.ruleType === "SeatCount" || rule.ruleType === "MinimumSpend") ? (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                        {getNumericRuleLabel(rule.ruleType)}
+                      </p>
+                      <input
+                        type="number"
+                        min={1}
+                        value={toNumberInputValue(rule.thresholdValue)}
+                        onChange={(event) =>
+                          updateRule(index, {
+                            thresholdValue: event.target.value ? Number(event.target.value) : undefined,
+                          })
+                        }
+                        placeholder={rule.ruleType === "SeatCount" ? "Example: 5 seats" : "Example: 200000"}
+                        className="w-full rounded-2xl border border-cyan-300/20 bg-cyan-500/5 px-4 py-3 text-sm text-white"
+                      />
+                    </div>
+                  ) : null}
                 </div>
                 <div className="grid gap-3 md:grid-cols-3">
-                  <input type="number" value={rule.thresholdValue ?? ""} onChange={(event) => updateRule(index, { thresholdValue: event.target.value ? Number(event.target.value) : undefined })} placeholder="Threshold" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-3 text-xs leading-6 text-gray-400">
+                    {rule.ruleType === "SeatCount" && "This promotion only applies when the booking reaches the seat count you enter above."}
+                    {rule.ruleType === "MinimumSpend" && "This rule is separate from the promotion-wide minimum spend field and only applies if this specific rule is added."}
+                    {rule.ruleType === "PaymentProvider" && "Customers must finish checkout with the selected provider."}
+                    {rule.ruleType === "Showtime" && "Use Morning/Afternoon/Evening, an exact showtime id, or a time range like 09:00-11:00."}
+                    {rule.ruleType === "BusinessDate" && "Use Weekend or a specific business date in yyyy-MM-dd format."}
+                    {rule.ruleType === "BirthdayMonth" && "Use CurrentMonth for the birthday-month campaign or a fixed month number from 1 to 12."}
+                    {rule.ruleType !== "SeatCount"
+                      && rule.ruleType !== "MinimumSpend"
+                      && rule.ruleType !== "PaymentProvider"
+                      && rule.ruleType !== "Showtime"
+                      && rule.ruleType !== "BusinessDate"
+                      && rule.ruleType !== "BirthdayMonth" && "Fill the exact value this rule should match."}
+                  </div>
                   <input type="number" value={rule.sortOrder} onChange={(event) => updateRule(index, { sortOrder: Number(event.target.value) })} placeholder="Sort order" className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white" />
                   <label className="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white">
                     <input type="checkbox" checked={rule.isRequired} onChange={(event) => updateRule(index, { isRequired: event.target.checked })} />

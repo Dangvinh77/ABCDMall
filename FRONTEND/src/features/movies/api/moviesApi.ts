@@ -70,6 +70,7 @@ export interface ShowtimeLiteModel {
   hallType: string;
   time: string;
   businessDate: string;
+  startAtUtc?: string;
   priceFrom: number;
   status: string;
   language: "sub" | "dub";
@@ -782,6 +783,7 @@ function groupShowtimesByMovieWithLookup(showtimes: ShowtimeListItemDto[], movie
       hallType: item.hallType,
       time: formatTime(item.startAtUtc),
       businessDate: item.businessDate,
+      startAtUtc: item.startAtUtc,
       priceFrom: item.basePrice,
       status: item.status,
       language: mapLanguage(item.language),
@@ -957,6 +959,7 @@ export async function fetchMovieShowtimes(movieId: string, businessDate: string)
             hallType: showtime.hallType,
             time: formatTime(showtime.startAtUtc),
             businessDate: showtime.businessDate,
+            startAtUtc: showtime.startAtUtc,
             priceFrom: showtime.basePrice,
             status: showtime.status,
             language: mapLanguage(showtime.language),
