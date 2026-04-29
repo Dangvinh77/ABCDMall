@@ -1,3 +1,4 @@
+using ABCDMall.Modules.FoodCourt.Application.DTOs.Foods;
 using ABCDMall.Modules.FoodCourt.Domain.Entities;
 
 namespace ABCDMall.Modules.FoodCourt.Application.Services.Foods;
@@ -9,6 +10,12 @@ public interface IFoodRepository
     Task<FoodItem?> GetFoodBySlugAsync(string slug, CancellationToken cancellationToken = default);
     Task<FoodItem?> GetFoodDetailByIdAsync(string id, CancellationToken cancellationToken = default);
     Task<FoodItem?> GetFoodDetailBySlugAsync(string slug, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<FoodItem>> GetManagedFoodStallsAsync(string ownerShopId, CancellationToken cancellationToken = default);
+    Task<FoodItem?> GetManagedFoodStallByIdAsync(string ownerShopId, string id, CancellationToken cancellationToken = default);
+    Task<int> CountFoodCourtRentalsAsync(string ownerShopId, CancellationToken cancellationToken = default);
+    Task<int> CountManagedStallsAsync(string ownerShopId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AvailableFoodCourtLocationDto>> GetAvailableFoodCourtLocationsAsync(string ownerShopId, CancellationToken cancellationToken = default);
+    Task<bool> SlugExistsAsync(string slug, string? excludingFoodId = null, CancellationToken cancellationToken = default);
     Task CreateFoodAsync(FoodItem item, CancellationToken cancellationToken = default);
     Task UpdateFoodAsync(string id, FoodItem item, CancellationToken cancellationToken = default);
     Task DeleteFoodAsync(string id, CancellationToken cancellationToken = default);

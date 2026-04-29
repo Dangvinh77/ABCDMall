@@ -71,6 +71,24 @@ public sealed class FoodCommandServiceTests
         public Task<FoodItem?> GetFoodDetailBySlugAsync(string slug, CancellationToken cancellationToken = default)
             => Task.FromResult(Items.FirstOrDefault(item => item.Slug == slug));
 
+        public Task<IReadOnlyList<FoodItem>> GetManagedFoodStallsAsync(string ownerShopId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<FoodItem>>(Items.Where(item => item.OwnerShopId == ownerShopId).ToList());
+
+        public Task<FoodItem?> GetManagedFoodStallByIdAsync(string ownerShopId, string id, CancellationToken cancellationToken = default)
+            => Task.FromResult(Items.FirstOrDefault(item => item.OwnerShopId == ownerShopId && item.Id == id));
+
+        public Task<int> CountFoodCourtRentalsAsync(string ownerShopId, CancellationToken cancellationToken = default)
+            => Task.FromResult(0);
+
+        public Task<int> CountManagedStallsAsync(string ownerShopId, CancellationToken cancellationToken = default)
+            => Task.FromResult(Items.Count(item => item.OwnerShopId == ownerShopId));
+
+        public Task<IReadOnlyList<AvailableFoodCourtLocationDto>> GetAvailableFoodCourtLocationsAsync(string ownerShopId, CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<AvailableFoodCourtLocationDto>>([]);
+
+        public Task<bool> SlugExistsAsync(string slug, string? excludingFoodId = null, CancellationToken cancellationToken = default)
+            => Task.FromResult(Items.Any(item => item.Slug == slug && item.Id != excludingFoodId));
+
         public Task CreateFoodAsync(FoodItem item, CancellationToken cancellationToken = default)
         {
             Items.Add(item);
