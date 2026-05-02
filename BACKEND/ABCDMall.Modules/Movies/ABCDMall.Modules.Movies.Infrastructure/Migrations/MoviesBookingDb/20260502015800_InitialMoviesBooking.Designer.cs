@@ -9,18 +9,17 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
+namespace ABCDMall.Modules.Movies.Infrastructure.Migrations.MoviesBookingDb
 {
     [DbContext(typeof(MoviesBookingDbContext))]
-    [Migration("20260428052628_InitMovies")]
-    partial class InitMovies
+    [Migration("20260502015800_InitialMoviesBooking")]
+    partial class InitialMoviesBooking
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("movies")
                 .HasAnnotation("ProductVersion", "9.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -61,157 +60,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("EntityName", "EntityId", "CreatedAtUtc");
 
-                    b.ToTable("AuditLogs", "movies");
-                });
-
-            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHold", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ComboSnapshotJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("ComboSubtotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("ExpiresAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("GrandTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("HoldCode")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<Guid?>("PromotionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("PromotionSnapshotJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("SeatSubtotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ServiceFee")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("SessionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<Guid>("ShowtimeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HoldCode")
-                        .IsUnique();
-
-                    b.HasIndex("PromotionId");
-
-                    b.HasIndex("ShowtimeId", "Status", "ExpiresAtUtc");
-
-                    b.ToTable("BookingHolds", "movies");
-                });
-
-            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHoldSeat", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BookingHoldId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("CoupleGroupCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("SeatCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("SeatInventoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("SeatType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SeatInventoryId");
-
-                    b.HasIndex("BookingHoldId", "SeatInventoryId")
-                        .IsUnique();
-
-                    b.ToTable("BookingHoldSeats", "movies");
-                });
-
-            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BookingId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("ItemCode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("ItemType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<decimal>("LineTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("SeatInventoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId");
-
-                    b.HasIndex("SeatInventoryId");
-
-                    b.ToTable("BookingItems", "movies");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Booking", b =>
@@ -297,7 +146,157 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("ShowtimeId");
 
-                    b.ToTable("Bookings", "movies");
+                    b.ToTable("Bookings", (string)null);
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHold", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ComboSnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ComboSubtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("GrandTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("HoldCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PromotionSnapshotJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("SeatSubtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ServiceFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SessionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("ShowtimeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HoldCode")
+                        .IsUnique();
+
+                    b.HasIndex("PromotionId");
+
+                    b.HasIndex("ShowtimeId", "Status", "ExpiresAtUtc");
+
+                    b.ToTable("BookingHolds", (string)null);
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHoldSeat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BookingHoldId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CoupleGroupCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SeatCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("SeatInventoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SeatType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeatInventoryId");
+
+                    b.HasIndex("BookingHoldId", "SeatInventoryId")
+                        .IsUnique();
+
+                    b.ToTable("BookingHoldSeats", (string)null);
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ItemCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<decimal>("LineTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SeatInventoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("SeatInventoryId");
+
+                    b.ToTable("BookingItems", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.GuestCustomer", b =>
@@ -333,7 +332,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("PhoneNumber");
 
-                    b.ToTable("GuestCustomers", "movies");
+                    b.ToTable("GuestCustomers", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedback", b =>
@@ -406,7 +405,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("MovieId", "IsVisible", "ModerationStatus", "CreatedAtUtc");
 
-                    b.ToTable("MovieFeedbacks", "movies");
+                    b.ToTable("MovieFeedbacks", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedbackRequest", b =>
@@ -478,7 +477,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("Status", "AvailableAtUtc");
 
-                    b.ToTable("MovieFeedbackRequests", "movies");
+                    b.ToTable("MovieFeedbackRequests", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.OutboxEvent", b =>
@@ -517,7 +516,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("Status", "OccurredAtUtc");
 
-                    b.ToTable("OutboxEvents", "movies");
+                    b.ToTable("OutboxEvents", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Payment", b =>
@@ -577,7 +576,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Payments", "movies");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Promotion", b =>
@@ -647,7 +646,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("Status", "ValidFromUtc", "ValidToUtc");
 
-                    b.ToTable("Promotions", "movies");
+                    b.ToTable("Promotions", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.PromotionRedemption", b =>
@@ -685,7 +684,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("PromotionId");
 
-                    b.ToTable("PromotionRedemptions", "movies");
+                    b.ToTable("PromotionRedemptions", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.PromotionRule", b =>
@@ -720,7 +719,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("PromotionId", "SortOrder");
 
-                    b.ToTable("PromotionRules", "movies");
+                    b.ToTable("PromotionRules", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.SnackCombo", b =>
@@ -767,7 +766,7 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("SnackCombos", "movies");
+                    b.ToTable("SnackCombos", (string)null);
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Ticket", b =>
@@ -827,7 +826,17 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     b.HasIndex("TicketCode")
                         .IsUnique();
 
-                    b.ToTable("Tickets", "movies");
+                    b.ToTable("Tickets", (string)null);
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Booking", b =>
+                {
+                    b.HasOne("ABCDMall.Modules.Movies.Domain.Entities.GuestCustomer", "GuestCustomer")
+                        .WithMany("Bookings")
+                        .HasForeignKey("GuestCustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("GuestCustomer");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHoldSeat", b =>
@@ -850,16 +859,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
-                });
-
-            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Booking", b =>
-                {
-                    b.HasOne("ABCDMall.Modules.Movies.Domain.Entities.GuestCustomer", "GuestCustomer")
-                        .WithMany("Bookings")
-                        .HasForeignKey("GuestCustomerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("GuestCustomer");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.MovieFeedback", b =>
@@ -934,11 +933,6 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHold", b =>
-                {
-                    b.Navigation("Seats");
-                });
-
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.Booking", b =>
                 {
                     b.Navigation("Items");
@@ -946,6 +940,11 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
                     b.Navigation("Payments");
 
                     b.Navigation("Tickets");
+                });
+
+            modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.BookingHold", b =>
+                {
+                    b.Navigation("Seats");
                 });
 
             modelBuilder.Entity("ABCDMall.Modules.Movies.Domain.Entities.GuestCustomer", b =>

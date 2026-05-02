@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ABCDMall.Modules.Events.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitEvents : Migration
+    public partial class InitialEvents : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -7,100 +7,127 @@ namespace ABCDMall.Modules.Users.Infrastructure.Seed;
 
 public static class BiddingSeed
 {
+    // ──────────────────────────────────────────────────────────────────
+    //  Tuần hiện tại: 7 shop tham gia đấu giá — top 5 cao nhất THẮNG
+    //  (shop-001→shop-005: thắng; shop-006→shop-007: không thắng)
+    // ──────────────────────────────────────────────────────────────────
+    private static readonly BidSlot[] CurrentWeekSlots =
+    [
+        new("bid-current-01", "shop-001", "Nike",           580m, CarouselBidTemplateType.ShopAd),
+        new("bid-current-02", "shop-002", "Adidas",         540m, CarouselBidTemplateType.DiscountAd),
+        new("bid-current-03", "shop-003", "Uniqlo",         500m, CarouselBidTemplateType.ShopAd),
+        new("bid-current-04", "shop-004", "Charles & Keith",460m, CarouselBidTemplateType.EventAd),
+        new("bid-current-05", "shop-005", "Miniso",         420m, CarouselBidTemplateType.ShopAd),
+        new("bid-current-06", "shop-006", "Pop Mart",       260m, CarouselBidTemplateType.DiscountAd),
+        new("bid-current-07", "shop-007", "Levents",        230m, CarouselBidTemplateType.ShopAd),
+    ];
+
+    // ──────────────────────────────────────────────────────────────────
+    //  Tuần sau: 6 shop tham gia đấu giá — top 5 cao nhất THẮNG
+    //  (Pop Mart & Levents dẫn đầu tuần sau; Miniso không thắng)
+    // ──────────────────────────────────────────────────────────────────
+    private static readonly BidSlot[] NextWeekSlots =
+    [
+        new("bid-next-01", "shop-006", "Pop Mart",       620m, CarouselBidTemplateType.ShopAd),
+        new("bid-next-02", "shop-007", "Levents",        590m, CarouselBidTemplateType.DiscountAd),
+        new("bid-next-03", "shop-001", "Nike",           560m, CarouselBidTemplateType.EventAd),
+        new("bid-next-04", "shop-002", "Adidas",         530m, CarouselBidTemplateType.ShopAd),
+        new("bid-next-05", "shop-003", "Uniqlo",         500m, CarouselBidTemplateType.DiscountAd),
+        new("bid-next-06", "shop-005", "Miniso",         310m, CarouselBidTemplateType.ShopAd),
+    ];
+
+    // ──────────────────────────────────────────────────────────────────
+    //  Tuần trước: 5 shop (expired — dữ liệu lịch sử)
+    // ──────────────────────────────────────────────────────────────────
+    private static readonly BidSlot[] PastWeekSlots =
+    [
+        new("bid-past-01", "shop-001", "Nike",           520m, CarouselBidTemplateType.ShopAd),
+        new("bid-past-02", "shop-002", "Adidas",         480m, CarouselBidTemplateType.ShopAd),
+        new("bid-past-03", "shop-003", "Uniqlo",         450m, CarouselBidTemplateType.DiscountAd),
+        new("bid-past-04", "shop-004", "Charles & Keith",400m, CarouselBidTemplateType.EventAd),
+        new("bid-past-05", "shop-005", "Miniso",         350m, CarouselBidTemplateType.ShopAd),
+    ];
+
+    // Map shop → ảnh cover thực tế từ thư mục /img của mall
+    private static readonly Dictionary<string, string> ShopImages = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["shop-001"] = "/img/nike/out.jpg",
+        ["shop-002"] = "/img/adidas/out.webp",
+        ["shop-003"] = "/img/uniqlo/out.jpg",
+        ["shop-004"] = "/img/C&K/out.jpg",
+        ["shop-005"] = "/img/miniso/out.jpg",
+        ["shop-006"] = "/img/popmart/out.webp",
+        ["shop-007"] = "/img/levents/OUT.webp",
+    };
+
     public static async Task SeedAsync(MallDbContext db, CancellationToken ct = default)
     {
-        var managerShopIds = await db.Users
-            .Where(x => x.Role == "Manager" && !string.IsNullOrWhiteSpace(x.ShopId))
-            .OrderBy(x => x.Email)
-            .Select(x => x.ShopId!)
-            .Distinct()
-            .Take(5)
-            .ToArrayAsync(ct);
-
-        if (managerShopIds.Length == 0)
-        {
-            return;
-        }
-
         var currentWeekMonday = BiddingBusinessClock.GetCurrentWeekMonday(DateTime.UtcNow);
-        var pastWeekMonday = currentWeekMonday.AddDays(-7);
-        var nextWeekMonday = currentWeekMonday.AddDays(7);
+        var pastWeekMonday    = currentWeekMonday.AddDays(-7);
+        var nextWeekMonday    = currentWeekMonday.AddDays(7);
 
-        await SeedPastWeekAsync(db, managerShopIds, pastWeekMonday, ct);
-        await SeedCurrentWeekAsync(db, managerShopIds, currentWeekMonday, ct);
-        await SeedNextWeekAsync(db, managerShopIds, nextWeekMonday, ct);
+        // Past week: top-5 won & expired; all 5 slots are winners so loserStatus is irrelevant
+        await SeedWeekAsync(db, PastWeekSlots,    pastWeekMonday,
+            winnerStatus: CarouselBidStatus.Expired,
+            loserStatus:  CarouselBidStatus.Lost,
+            maxWinners: 5, daysBeforeMonday: 3, ct);
+
+        // Current week: top-5 Active (shown on carousel); others Lost
+        await SeedWeekAsync(db, CurrentWeekSlots, currentWeekMonday,
+            winnerStatus: CarouselBidStatus.Active,
+            loserStatus:  CarouselBidStatus.Lost,
+            maxWinners: 5, daysBeforeMonday: 2, ct);
+
+        // Next week: all Pending — resolution hasn't happened yet (demo: click "Simulate Saturday")
+        await SeedWeekAsync(db, NextWeekSlots,    nextWeekMonday,
+            winnerStatus: CarouselBidStatus.Pending,
+            loserStatus:  CarouselBidStatus.Pending,
+            maxWinners: 5, daysBeforeMonday: 2, ct);
+
+        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-past",    pastWeekMonday,    isActive: false), ct);
+        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-current", currentWeekMonday, isActive: true),  ct);
+        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-next",    nextWeekMonday,    isActive: false), ct);
 
         await db.SaveChangesAsync(ct);
     }
 
-    private static async Task SeedPastWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime monday, CancellationToken ct)
-    {
-        var bids = CreateWeeklyBids("past", shopIds, monday, CarouselBidStatus.Expired);
-        await UpsertBidsAsync(db, bids, ct);
-        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-past", monday, isActive: false), ct);
-    }
-
-    private static async Task SeedCurrentWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime monday, CancellationToken ct)
-    {
-        var bids = CreateWeeklyBids("current", shopIds, monday, CarouselBidStatus.Active);
-        await UpsertBidsAsync(db, bids, ct);
-        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-current", monday, isActive: true), ct);
-    }
-
-    private static async Task SeedNextWeekAsync(MallDbContext db, IReadOnlyList<string> shopIds, DateTime monday, CancellationToken ct)
-    {
-        var bidAmounts = new[] { 190m, 275m, 225m, 310m, 255m, 205m, 340m, 295m };
-        var bids = new List<CarouselBid>(8);
-
-        for (var index = 0; index < 8; index++)
-        {
-            var shopId = shopIds[index % shopIds.Count];
-            var templateType = (CarouselBidTemplateType)(index % 3);
-            bids.Add(new CarouselBid
-            {
-                Id = $"bid-next-{index + 1:00}",
-                ShopId = shopId,
-                BidAmount = bidAmounts[index],
-                TemplateType = templateType,
-                TemplateData = BuildTemplateData(templateType, index, monday),
-                Status = CarouselBidStatus.Pending,
-                TargetMondayDate = monday,
-                CreatedAt = monday.AddDays(-2).AddHours(index)
-            });
-        }
-
-        await UpsertBidsAsync(db, bids, ct);
-        await UpsertMovieAdAsync(db, CreateMovieAd("movie-ad-next", monday, isActive: false), ct);
-    }
-
-    private static CarouselBid[] CreateWeeklyBids(
-        string prefix,
-        IReadOnlyList<string> shopIds,
+    private static async Task SeedWeekAsync(
+        MallDbContext db,
+        BidSlot[] slots,
         DateTime monday,
-        CarouselBidStatus status)
+        CarouselBidStatus winnerStatus,
+        CarouselBidStatus loserStatus,
+        int maxWinners,
+        int daysBeforeMonday,
+        CancellationToken ct)
     {
-        return shopIds
-            .Select((shopId, index) =>
+        // Rank by BidAmount descending; ties broken by array order (earlier = earlier CreatedAt = wins tie)
+        var winnerIds = slots
+            .OrderByDescending(s => s.BidAmount)
+            .Take(maxWinners)
+            .Select(s => s.Id)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var bids = slots
+            .Select((slot, index) => new CarouselBid
             {
-                var templateType = (CarouselBidTemplateType)(index % 3);
-                return new CarouselBid
-                {
-                    Id = $"bid-{prefix}-{index + 1:00}",
-                    ShopId = shopId,
-                    BidAmount = 180m + (index * 25m),
-                    TemplateType = templateType,
-                    TemplateData = BuildTemplateData(templateType, index, monday),
-                    Status = status,
-                    TargetMondayDate = monday,
-                    CreatedAt = monday.AddDays(-3).AddHours(index)
-                };
+                Id               = slot.Id,
+                ShopId           = slot.ShopId,
+                BidAmount        = slot.BidAmount,
+                TemplateType     = slot.TemplateType,
+                TemplateData     = BuildTemplateData(slot, index, monday),
+                Status           = winnerIds.Contains(slot.Id) ? winnerStatus : loserStatus,
+                TargetMondayDate = monday,
+                CreatedAt        = monday.AddDays(-daysBeforeMonday).AddHours(index)
             })
             .ToArray();
+
+        await UpsertBidsAsync(db, bids, ct);
     }
 
     private static async Task UpsertBidsAsync(MallDbContext db, IEnumerable<CarouselBid> seeds, CancellationToken ct)
     {
-        var ids = seeds.Select(x => x.Id!).ToArray();
+        var ids      = seeds.Select(x => x.Id!).ToArray();
         var existing = await db.CarouselBids
             .Where(x => ids.Contains(x.Id!))
             .ToDictionaryAsync(x => x.Id!, StringComparer.OrdinalIgnoreCase, ct);
@@ -113,13 +140,13 @@ public static class BiddingSeed
                 await db.CarouselBids.AddAsync(bid, ct);
             }
 
-            bid.ShopId = seed.ShopId;
-            bid.BidAmount = seed.BidAmount;
-            bid.TemplateType = seed.TemplateType;
-            bid.TemplateData = seed.TemplateData;
-            bid.Status = seed.Status;
+            bid.ShopId           = seed.ShopId;
+            bid.BidAmount        = seed.BidAmount;
+            bid.TemplateType     = seed.TemplateType;
+            bid.TemplateData     = seed.TemplateData;
+            bid.Status           = seed.Status;
             bid.TargetMondayDate = seed.TargetMondayDate;
-            bid.CreatedAt = seed.CreatedAt;
+            bid.CreatedAt        = seed.CreatedAt;
         }
     }
 
@@ -132,32 +159,34 @@ public static class BiddingSeed
             await db.MovieCarouselAds.AddAsync(movieAd, ct);
         }
 
-        movieAd.ImageUrl = seed.ImageUrl;
-        movieAd.Description = seed.Description;
+        movieAd.ImageUrl         = seed.ImageUrl;
+        movieAd.Description      = seed.Description;
         movieAd.TargetMondayDate = seed.TargetMondayDate;
-        movieAd.IsActive = seed.IsActive;
+        movieAd.IsActive         = seed.IsActive;
     }
 
-    private static string BuildTemplateData(CarouselBidTemplateType templateType, int index, DateTime monday)
+    private static string BuildTemplateData(BidSlot slot, int index, DateTime monday)
     {
-        return templateType switch
+        var image = ShopImages.TryGetValue(slot.ShopId, out var img) ? img : ShopImages["shop-001"];
+
+        return slot.TemplateType switch
         {
             CarouselBidTemplateType.ShopAd => BiddingTemplateSerializer.Serialize(new ShopAdTemplateData
             {
-                ShopImage = $"https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1400&q=80&sig={index + 10}",
-                Message = $"Featured collection drop #{index + 1} at ABCD Mall."
+                ShopImage = image,
+                Message   = $"Khám phá {slot.ShopName} — ưu đãi đặc biệt chỉ có tại ABCD Mall tuần này!"
             }),
             CarouselBidTemplateType.DiscountAd => BiddingTemplateSerializer.Serialize(new DiscountAdTemplateData
             {
-                ProductImage = $"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1400&q=80&sig={index + 20}",
-                OriginalPrice = 1200m + (index * 50m),
-                DiscountPrice = 850m + (index * 25m)
+                ProductImage   = image,
+                OriginalPrice  = 1500m + (index * 100m),
+                DiscountPrice  = 990m  + (index * 60m)
             }),
             CarouselBidTemplateType.EventAd => BiddingTemplateSerializer.Serialize(new EventAdTemplateData
             {
-                EventImage = $"https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1400&q=80&sig={index + 30}",
-                StartDate = monday.AddDays(4),
-                StartTime = "19:30"
+                EventImage = image,
+                StartDate  = monday.AddDays(4),
+                StartTime  = "19:30"
             }),
             _ => string.Empty
         };
@@ -166,12 +195,19 @@ public static class BiddingSeed
     private static MovieCarouselAd CreateMovieAd(string id, DateTime monday, bool isActive)
         => new()
         {
-            Id = id,
-            ImageUrl = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80",
-            Description = isActive
+            Id               = id,
+            ImageUrl         = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1600&q=80",
+            Description      = isActive
                 ? "Now showing at ABCD Cinema: exclusive premiere experiences on the big screen."
                 : $"Weekly movie spotlight for {monday:dd/MM/yyyy}.",
             TargetMondayDate = monday,
-            IsActive = isActive
+            IsActive         = isActive
         };
+
+    private sealed record BidSlot(
+        string Id,
+        string ShopId,
+        string ShopName,
+        decimal BidAmount,
+        CarouselBidTemplateType TemplateType);
 }

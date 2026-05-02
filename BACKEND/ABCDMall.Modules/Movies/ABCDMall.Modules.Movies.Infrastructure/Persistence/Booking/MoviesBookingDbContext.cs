@@ -13,7 +13,7 @@ public class MoviesBookingDbContext : DbContext
     public DbSet<GuestCustomer> GuestCustomers => Set<GuestCustomer>();
     public DbSet<BookingHold> BookingHolds => Set<BookingHold>();
     public DbSet<BookingHoldSeat> BookingHoldSeats => Set<BookingHoldSeat>();
-    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Domain.Entities.Booking> Bookings => Set<Domain.Entities.Booking>();
     public DbSet<BookingItem> BookingItems => Set<BookingItem>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<Promotion> Promotions => Set<Promotion>();

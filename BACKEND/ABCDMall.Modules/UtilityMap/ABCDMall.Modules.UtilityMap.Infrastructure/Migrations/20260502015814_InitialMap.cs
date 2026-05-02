@@ -5,7 +5,7 @@
 namespace ABCDMall.Modules.UtilityMap.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitMap : Migration
+    public partial class InitialMap : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

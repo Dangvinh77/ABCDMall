@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ABCDMall.Modules.Users.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitUsers : Migration
+    public partial class InitialUsers : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

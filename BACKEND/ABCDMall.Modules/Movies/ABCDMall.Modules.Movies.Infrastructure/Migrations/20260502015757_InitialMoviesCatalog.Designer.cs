@@ -4,16 +4,19 @@ using ABCDMall.Modules.Movies.Infrastructure.Persistence.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ABCDMall.Modules.Movies.Infrastructure.Migrations.MoviesCatalogDb
+namespace ABCDMall.Modules.Movies.Infrastructure.Migrations
 {
     [DbContext(typeof(MoviesCatalogDbContext))]
-    partial class MoviesCatalogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502015757_InitialMoviesCatalog")]
+    partial class InitialMoviesCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
