@@ -20,4 +20,6 @@ public class ShowtimeDetailResponseDto
     public string Language { get; set; } = string.Empty;
     public decimal BasePrice { get; set; }
     public string Status { get; set; } = string.Empty;
+    public bool IsBookable { get; set; }
+    public string? BookingUnavailableReason { get; set; }
 }

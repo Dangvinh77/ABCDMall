@@ -190,7 +190,7 @@ export function MovieHomePage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.2),_transparent_30%),radial-gradient(circle_at_80%_20%,_rgba(6,182,212,0.16),_transparent_24%),linear-gradient(to_bottom,_#030712,_#374151,_#111827)] pt-[76px]">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(139,92,246,0.2),_transparent_30%),radial-gradient(circle_at_80%_20%,_rgba(6,182,212,0.16),_transparent_24%),linear-gradient(to_bottom,_#030712,_#374151,_#111827)]">
       <style>{`
         @keyframes cinema-float {
           0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
@@ -274,7 +274,7 @@ export function MovieHomePage() {
         />
       </div>
       {/* Header */}
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-[#040816]/35 shadow-[0_10px_40px_rgba(3,7,18,0.28)] backdrop-blur-md">
+      <header className="relative z-30 border-b border-white/10 bg-[#040816]/35 shadow-[0_10px_40px_rgba(3,7,18,0.28)] backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 via-fuchsia-600 to-pink-500 shadow-lg shadow-fuchsia-950/35">
@@ -881,72 +881,6 @@ export function MovieHomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative border-t border-white/10 bg-[linear-gradient(180deg,rgba(2,6,23,0.86),rgba(2,6,23,0.98))] py-10">
-        <div className="container mx-auto px-4">
-          <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] shadow-[0_24px_80px_rgba(2,6,23,0.45)] backdrop-blur-md">
-            <div className="h-px bg-gradient-to-r from-transparent via-fuchsia-400/60 to-transparent" />
-            <div className="grid gap-8 px-6 py-8 sm:grid-cols-2 md:grid-cols-4 lg:px-8">
-              <div className="relative">
-                <div className="mb-4 h-1 w-12 rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400" />
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">
-                  About ABCD Cinema
-                </h3>
-                <p className="text-sm leading-7 text-gray-400">
-                  ABCD Mall's online booking platform brings a smooth, stylish,
-                  and convenient movie-going experience.
-                </p>
-              </div>
-              <div className="relative">
-                <div className="mb-4 h-1 w-12 rounded-full bg-white/10 sm:hidden" />
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">
-                  Quick links
-                </h3>
-                <ul className="space-y-3 text-sm text-gray-400">
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenShowtimes()}
-                      className="transition-colors hover:text-gray-200"
-                    >
-                      Showtimes
-                    </button>
-                  </li>
-                  <li>Ticket prices</li>
-                  <li>Promotions</li>
-                  <li>News</li>
-                </ul>
-              </div>
-              <div className="relative">
-                <div className="mb-4 h-1 w-12 rounded-full bg-white/10 sm:hidden" />
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">
-                  Support
-                </h3>
-                <ul className="space-y-3 text-sm text-gray-400">
-                  <li>FAQ</li>
-                  <li>Policies</li>
-                  <li>Terms</li>
-                  <li>Contact</li>
-                </ul>
-              </div>
-              <div className="relative">
-                <div className="mb-4 h-1 w-12 rounded-full bg-white/10 sm:hidden" />
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-white/95">
-                  Contact
-                </h3>
-                <ul className="space-y-3 text-sm text-gray-400">
-                  <li>Email: info@abcdcinema.vn</li>
-                  <li>Hotline: 1900 xxxx</li>
-                  <li>ABCD Mall, Ho Chi Minh City</li>
-                </ul>
-              </div>
-            </div>
-            <div className="border-t border-white/10 px-6 py-5 text-center text-sm text-gray-500 lg:px-8">
-              &copy; 2026 ABCD Cinema. Online movie booking made fast and easy.
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

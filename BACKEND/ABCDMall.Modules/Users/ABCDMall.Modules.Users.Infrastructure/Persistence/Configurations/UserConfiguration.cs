@@ -21,6 +21,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         entity.Property(x => x.Image).HasMaxLength(500);
         entity.Property(x => x.Address).HasMaxLength(500);
         entity.Property(x => x.CCCD).HasMaxLength(50);
+        entity.Property(x => x.IsActive).HasDefaultValue(true);
         entity.Property(x => x.LoginOtpCode).HasMaxLength(10);
     }
 }

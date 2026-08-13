@@ -27,6 +27,9 @@ public sealed class EvaluatePromotionRequestDto
     // BusinessDate giup backend xac dinh booking co nam vao cuoi tuan hay khong.
     public DateOnly? BusinessDate { get; set; }
 
+    // ShowtimeStartAtUtc giup evaluate rule theo khung gio suat chieu, vi du Morning/Early Bird.
+    public DateTime? ShowtimeStartAtUtc { get; set; }
+
     // GuestCustomerId la thong tin toi thieu de enforce MaxRedemptionsPerCustomer.
     public Guid? GuestCustomerId { get; set; }
 }

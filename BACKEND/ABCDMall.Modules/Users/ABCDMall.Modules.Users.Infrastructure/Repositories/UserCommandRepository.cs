@@ -19,6 +19,9 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task<User?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default)
         => _context.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
 
+    public Task<User?> GetUserByPasswordSetupTokenAsync(string token, CancellationToken cancellationToken = default)
+        => _context.Users.FirstOrDefaultAsync(x => x.PasswordSetupToken == token, cancellationToken);
+
     public Task<bool> ExistsUserByEmailAsync(string normalizedEmail, string? excludedUserId = null, CancellationToken cancellationToken = default)
         => _context.Users.AnyAsync(
             x => x.Email.ToLower() == normalizedEmail && (excludedUserId == null || x.Id != excludedUserId),
@@ -37,6 +40,18 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task<ShopInfo?> GetShopInfoByIdAsync(string shopId, CancellationToken cancellationToken = default)
         => _context.ShopInfos.FirstOrDefaultAsync(x => x.Id == shopId, cancellationToken);
 
+    public Task<ShopInfo?> GetShopInfoByCccdAsync(string normalizedCccd, string? excludedShopId = null, CancellationToken cancellationToken = default)
+        => _context.ShopInfos.FirstOrDefaultAsync(
+            x => x.CCCD == normalizedCccd && (excludedShopId == null || x.Id != excludedShopId),
+            cancellationToken);
+
+    public Task<bool> HasActiveRentalAreaAsync(string? shopId, CancellationToken cancellationToken = default)
+        => string.IsNullOrWhiteSpace(shopId)
+            ? Task.FromResult(false)
+            : _context.RentalAreas.AnyAsync(
+                x => x.ShopInfoId == shopId && x.Status != "Available",
+                cancellationToken);
+
     public async Task RemoveUnusedForgotPasswordOtpsAsync(string normalizedEmail, CancellationToken cancellationToken = default)
     {
         var items = await _context.ForgotPasswordOtps
@@ -51,6 +66,12 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task<ForgotPasswordOtp?> GetForgotPasswordOtpAsync(string normalizedEmail, string otp, CancellationToken cancellationToken = default)
         => _context.ForgotPasswordOtps
             .Where(x => x.Email.ToLower() == normalizedEmail && x.Otp == otp && !x.IsUsed)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<ForgotPasswordOtp?> GetLatestForgotPasswordOtpByEmailAsync(string normalizedEmail, CancellationToken cancellationToken = default)
+        => _context.ForgotPasswordOtps
+            .Where(x => x.Email.ToLower() == normalizedEmail && !x.IsUsed)
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -71,8 +92,25 @@ public sealed class UserCommandRepository : IUserCommandRepository
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
+    public Task<PasswordResetOtp?> GetLatestPasswordResetOtpByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+        => _context.PasswordResetOtps
+            .Where(x => x.UserId == userId && !x.IsUsed)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public Task AddProfileUpdateHistoryAsync(ProfileUpdateHistory history, CancellationToken cancellationToken = default)
         => _context.ProfileUpdateHistories.AddAsync(history, cancellationToken).AsTask();
+
+    public Task<bool> HasPendingProfileUpdateRequestAsync(string userId, CancellationToken cancellationToken = default)
+        => _context.ProfileUpdateRequests.AnyAsync(
+            x => x.UserId == userId && x.Status == "Pending",
+            cancellationToken);
+
+    public Task AddProfileUpdateRequestAsync(ProfileUpdateRequest request, CancellationToken cancellationToken = default)
+        => _context.ProfileUpdateRequests.AddAsync(request, cancellationToken).AsTask();
+
+    public Task<ProfileUpdateRequest?> GetProfileUpdateRequestByIdAsync(string requestId, CancellationToken cancellationToken = default)
+        => _context.ProfileUpdateRequests.FirstOrDefaultAsync(x => x.Id == requestId, cancellationToken);
 
     public Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
         => _context.RefreshTokens.AddAsync(refreshToken, cancellationToken).AsTask();
@@ -86,15 +124,14 @@ public sealed class UserCommandRepository : IUserCommandRepository
     public Task AddUserAsync(User user, CancellationToken cancellationToken = default)
         => _context.Users.AddAsync(user, cancellationToken).AsTask();
 
-    public async Task RemoveUserRelatedDataAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task RevokeUserRefreshTokensAsync(string userId, CancellationToken cancellationToken = default)
     {
         var refreshTokens = await _context.RefreshTokens.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
-        var passwordResetOtps = await _context.PasswordResetOtps.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
-        var forgotPasswordOtps = await _context.ForgotPasswordOtps.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
-
-        _context.RefreshTokens.RemoveRange(refreshTokens);
-        _context.PasswordResetOtps.RemoveRange(passwordResetOtps);
-        _context.ForgotPasswordOtps.RemoveRange(forgotPasswordOtps);
+        foreach (var refreshToken in refreshTokens)
+        {
+            refreshToken.IsRevoked = true;
+            refreshToken.RevokedAt = DateTime.UtcNow;
+        }
     }
 
     public Task RemoveUserAsync(User user, CancellationToken cancellationToken = default)

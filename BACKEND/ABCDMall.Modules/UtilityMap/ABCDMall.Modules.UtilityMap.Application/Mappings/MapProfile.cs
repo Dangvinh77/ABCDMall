@@ -9,6 +9,10 @@ public class MapProfile : Profile
     public MapProfile()
     {
         CreateMap<FloorPlan, FloorPlanDto>();
-        CreateMap<MapLocation, MapLocationDto>();
+        CreateMap<MapLocation, MapLocationDto>()
+            .ForMember(dest => dest.ShopName, opt => opt.MapFrom(src => 
+                (src.Status == "Available" && string.IsNullOrWhiteSpace(src.ShopName)) 
+                ? "Available for Rent" 
+                : src.ShopName));
     }
 }

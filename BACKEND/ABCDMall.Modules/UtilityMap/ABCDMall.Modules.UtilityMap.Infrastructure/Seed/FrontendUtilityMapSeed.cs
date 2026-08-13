@@ -7,6 +7,41 @@ namespace ABCDMall.Modules.UtilityMap.Infrastructure.Seed;
 
 public static class FrontendUtilityMapSeed
 {
+    private static readonly IReadOnlyDictionary<string, string> ManagedShopIdsByShopUrl =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["/shops/uniqlo"] = "shop-001",
+            ["/shops/adidas"] = "shop-002",
+            ["/shops/levis"] = "shop-003",
+            ["/shops/chuk"] = "shop-004",
+            ["/shops/beauty-box"] = "shop-005",
+            ["/shops/pnj"] = "shop-006",
+            ["/shops/loc-phuc"] = "shop-007",
+            ["/shops/dong-hai"] = "shop-008",
+            ["/shops/the-gioi-kim-cuong"] = "shop-009",
+            ["/shops/starbucks"] = "shop-010",
+            ["/shops/highlands-coffee"] = "shop-011",
+            ["/shops/public-bank"] = "shop-012",
+            ["/shops/pedro"] = "shop-013",
+            ["/shops/ecco"] = "shop-014",
+            ["/shops/futureworld"] = "shop-015",
+            ["/shops/nike"] = "shop-016",
+            ["/shops/charles-keith"] = "shop-017",
+            ["/shops/aldo"] = "shop-018",
+            ["/shops/vascara"] = "shop-019",
+            ["/shops/mujosh"] = "shop-020",
+            ["/shops/chagee"] = "shop-021",
+            ["/shops/casio"] = "shop-022",
+            ["/shops/phuong-nam"] = "shop-023",
+            ["/shops/trung-nguyen"] = "shop-024",
+            ["/shops/ninomaxx"] = "shop-025",
+            ["/shops/miniso"] = "shop-026",
+            ["/shops/rabity"] = "shop-027",
+            ["/shops/balabala"] = "shop-028",
+            ["/shops/baa-baby"] = "shop-029",
+            ["/shops/pop-mart"] = "shop-030"
+        };
+
     public static async Task SeedAsync(UtilityMapDbContext context)
     {
         if (await context.FloorPlans.AnyAsync())
@@ -137,6 +172,19 @@ public static class FrontendUtilityMapSeed
                 }
             }
         };
+
+        foreach (var location in floors.SelectMany(floor => floor.Locations))
+        {
+            if (location.ShopUrl is not null && ManagedShopIdsByShopUrl.TryGetValue(location.ShopUrl, out var shopInfoId))
+            {
+                location.Status = "Rented";
+                location.ShopInfoId = shopInfoId;
+                continue;
+            }
+
+            location.Status = "Available";
+            location.ShopInfoId = null;
+        }
 
         await context.FloorPlans.AddRangeAsync(floors);
         await context.SaveChangesAsync();

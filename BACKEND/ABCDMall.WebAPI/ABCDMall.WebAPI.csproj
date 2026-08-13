@@ -29,6 +29,7 @@
 	  <ProjectReference Include="..\ABCDMall.Modules\Shops\ABCDMall.Modules.Shops.Infrastructure\ABCDMall.Modules.Shops.Infrastructure.csproj" />
 	  <ProjectReference Include="..\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Application\ABCDMall.Modules.UtilityMap.Application.csproj" />
 	  <ProjectReference Include="..\ABCDMall.Modules\UtilityMap\ABCDMall.Modules.UtilityMap.Infrastructure\ABCDMall.Modules.UtilityMap.Infrastructure.csproj" />
+	  <ProjectReference Include="..\ABCDMall.Modules\Events\ABCDMall.Modules.Events.Infrastructure\ABCDMall.Modules.Events.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

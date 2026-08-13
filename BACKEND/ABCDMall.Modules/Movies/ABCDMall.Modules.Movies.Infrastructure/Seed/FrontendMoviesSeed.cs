@@ -13,7 +13,7 @@ public static class FrontendMoviesSeed
     public static async Task SeedCatalogAsync(MoviesCatalogDbContext db, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = GetVietnamDate(now);
 
         await SeedGenresAsync(db, ct);
         await SeedCinemasAsync(db, now, ct);
@@ -247,7 +247,7 @@ public static class FrontendMoviesSeed
                         var id = Id($"showtime:{movieSeed.Key}:{cinemaCode}:{date:yyyyMMdd}:{cinemaSeed.Showtimes[index]}:{hallType}");
                         if (existingShowtimes.Contains(id)) continue;
 
-                        var start = date.ToDateTime(TimeOnly.Parse(cinemaSeed.Showtimes[index]), DateTimeKind.Utc);
+                        var start = ToUtcShowtimeStart(date, cinemaSeed.Showtimes[index]);
                         showtimes.Add(new Showtime
                         {
                             Id = id,
@@ -488,6 +488,14 @@ public static class FrontendMoviesSeed
 
     private static Guid Id(string value) => new(MD5.HashData(Encoding.UTF8.GetBytes($"abcd-mall-fe:{value}")));
 
+    private static DateOnly GetVietnamDate(DateTime utcNow) => DateOnly.FromDateTime(utcNow.AddHours(7));
+
+    private static DateTime ToUtcShowtimeStart(DateOnly businessDate, string vietnamLocalTime)
+    {
+        var localStart = businessDate.ToDateTime(TimeOnly.Parse(vietnamLocalTime), DateTimeKind.Unspecified);
+        return DateTime.SpecifyKind(localStart.AddHours(-7), DateTimeKind.Utc);
+    }
+
     private static string[] SplitGenres(string value) => value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static HallType ToHallType(string value) => value switch { "3D" => HallType.Standard3D, "IMAX" => HallType.Imax, "4DX" => HallType.FourDx, _ => HallType.Standard2D };
@@ -543,7 +551,7 @@ public static class FrontendMoviesSeed
         new("VCB25", "Vietcombank - 25% Off", "Enjoy 25% off on weekday bookings, up to 50,000 VND.", "bank", 25, null, 50000, 100000, null, false, [new(PromotionRuleType.PaymentProvider, "VnPay", 1)]),
         new("GROUP20", "Group Booking - 20% Off 5 Tickets", "Get 20% off when booking 5 tickets or more in one order.", "ticket", 20, null, null, 0, null, false, [new(PromotionRuleType.SeatCount, "5", 1)]),
         new("COMBOGOLD", "Combo Gold - Special Snack Price", "Add Combo Gold to unlock the special 85,000 VND promotional price.", "combo", null, 57000, null, 0, null, false, [new(PromotionRuleType.Combo, "combo-gold", 1)]),
-        new("BIRTHDAY", "Birthday Special - 1 Free Ticket", "Enter your birthday at checkout to claim a free regular ticket during your birthday month.", "member", null, 85000, null, 0, 1, false, [new(PromotionRuleType.BirthdayMonth, "CurrentMonth", 1)]),
+        new("BIRTHDAY", "Birthday Special - 1 Free Ticket", "Claim a free regular ticket when this birthday-month offer is active for the selected showtime.", "member", null, 85000, null, 0, 1, false, [new(PromotionRuleType.BirthdayMonth, "CurrentMonth", 1)]),
         new("EARLYBIRD", "Early Bird - 35% Off", "Valid for showtimes starting from 09:00 to before 11:00.", "ticket", 35, null, null, 0, null, false, [new(PromotionRuleType.Showtime, "Morning", 1)])
     ];
 }

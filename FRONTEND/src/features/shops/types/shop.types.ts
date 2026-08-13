@@ -21,6 +21,7 @@ export interface ShopDetail {
   id: string;
   slug: string;
   name: string;
+  summary?: string;
   slogan: string;
   locationSlot: string;
   floor: string;
@@ -28,6 +29,11 @@ export interface ShopDetail {
   closeTime: string;
   coverImageUrl: string;
   logoUrl: string;
+  category?: string;
+  location?: string;
+  imageUrl?: string;
+  openHours?: string;
+  tags?: string[];
   description: string;
   vouchers: Voucher[];
   products: Product[];

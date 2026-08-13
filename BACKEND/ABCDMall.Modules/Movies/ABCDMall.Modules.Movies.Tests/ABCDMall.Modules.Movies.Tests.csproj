@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ABCDMall.Modules.Movies.Application\ABCDMall.Modules.Movies.Application.csproj" />
     <ProjectReference Include="..\ABCDMall.Modules.Movies.Infrastructure\ABCDMall.Modules.Movies.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\ABCDMall.WebAPI\ABCDMall.WebAPI.csproj" />
   </ItemGroup>
 
 </Project>

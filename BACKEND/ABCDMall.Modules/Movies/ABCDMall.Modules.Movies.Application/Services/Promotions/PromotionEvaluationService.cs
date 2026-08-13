@@ -53,31 +53,23 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
         // MaxRedemptionsPerCustomer chi co y nghia khi request gui du customer identity.
         if (promotion.MaxRedemptionsPerCustomer.HasValue)
         {
-            if (!request.GuestCustomerId.HasValue)
+            if (request.GuestCustomerId.HasValue)
             {
-                return BuildResult(
+                var customerRedemptionCount = await _promotionRepository.CountRedemptionsByGuestCustomerAsync(
                     promotion.Id,
-                    promotion.Code,
-                    PromotionEvaluationStatus.NotEligible,
-                    false,
-                    0m,
-                    "Customer identity is required for this promotion.");
-            }
+                    request.GuestCustomerId.Value,
+                    cancellationToken);
 
-            var customerRedemptionCount = await _promotionRepository.CountRedemptionsByGuestCustomerAsync(
-                promotion.Id,
-                request.GuestCustomerId.Value,
-                cancellationToken);
-
-            if (customerRedemptionCount >= promotion.MaxRedemptionsPerCustomer.Value)
-            {
-                return BuildResult(
-                    promotion.Id,
-                    promotion.Code,
-                    PromotionEvaluationStatus.UsageLimitExceeded,
-                    false,
-                    0m,
-                    "Customer redemption limit reached.");
+                if (customerRedemptionCount >= promotion.MaxRedemptionsPerCustomer.Value)
+                {
+                    return BuildResult(
+                        promotion.Id,
+                        promotion.Code,
+                        PromotionEvaluationStatus.UsageLimitExceeded,
+                        false,
+                        0m,
+                        "Customer redemption limit reached.");
+                }
             }
         }
 
@@ -149,21 +141,21 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
                     string.Equals(x, rule.RuleValue, StringComparison.OrdinalIgnoreCase));
 
             case PromotionRuleType.Showtime:
-                return Guid.TryParse(rule.RuleValue, out var showtimeId)
-                    && showtimeId == request.ShowtimeId;
+                return request.ShowtimeStartAtUtc.HasValue
+                    && PromotionShowtimeRuleMatcher.MatchesShowtimeContext(
+                        rule,
+                        request.ShowtimeId,
+                        request.BusinessDate ?? DateOnly.FromDateTime(DateTime.UtcNow),
+                        request.ShowtimeStartAtUtc.Value);
 
             case PromotionRuleType.BusinessDate:
-                if (string.Equals(rule.RuleValue, "Weekend", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!request.BusinessDate.HasValue)
-                    {
-                        return false;
-                    }
-
-                    return request.BusinessDate.Value.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-                }
-
-                return true;
+                return request.BusinessDate.HasValue
+                    && request.ShowtimeStartAtUtc.HasValue
+                    && PromotionShowtimeRuleMatcher.MatchesShowtimeContext(
+                        rule,
+                        request.ShowtimeId,
+                        request.BusinessDate.Value,
+                        request.ShowtimeStartAtUtc.Value);
 
             case PromotionRuleType.PaymentProvider:
                 return !string.IsNullOrWhiteSpace(request.PaymentProvider)
@@ -182,12 +174,23 @@ public sealed class PromotionEvaluationService : IPromotionEvaluationService
                     && string.Equals(request.CouponCode, rule.RuleValue, StringComparison.OrdinalIgnoreCase);
 
             case PromotionRuleType.BirthdayMonth:
+                if (string.Equals(rule.RuleValue, "CurrentMonth", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var compareDate = request.BusinessDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+
+                if (int.TryParse(rule.RuleValue, out var monthNumber))
+                {
+                    return monthNumber >= 1 && monthNumber <= 12 && compareDate.Month == monthNumber;
+                }
+
                 if (!request.Birthday.HasValue)
                 {
                     return false;
                 }
 
-                var compareDate = request.BusinessDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
                 return request.Birthday.Value.Month == compareDate.Month;
 
             default:

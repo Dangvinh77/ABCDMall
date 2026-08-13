@@ -66,6 +66,10 @@ namespace ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap.Migr
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ShopInfoId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("ShopName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -75,6 +79,13 @@ namespace ABCDMall.Modules.UtilityMap.Infrastructure.Persistence.UtilityMap.Migr
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Available");
 
                     b.Property<string>("StorefrontImageUrl")
                         .IsRequired()

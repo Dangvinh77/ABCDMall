@@ -34,5 +34,18 @@ namespace ABCDMall.WebAPI.Controllers
             return Ok(bills);
         }
 
+        [HttpGet("rental-information")]
+        public async Task<ActionResult<ShopRentalInfoResponseDto?>> GetRentalInformation()
+        {
+            var role = User.FindFirstValue(ClaimTypes.Role);
+            var shopId = User.FindFirstValue("shopId");
+
+            if (role != "Manager" || string.IsNullOrWhiteSpace(shopId))
+            {
+                return Ok(null);
+            }
+
+            return Ok(await _shopInfoQueryService.GetRentalInfoAsync(shopId, HttpContext.RequestAborted));
+        }
     }
 }

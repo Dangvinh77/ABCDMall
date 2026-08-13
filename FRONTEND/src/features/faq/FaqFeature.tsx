@@ -6,30 +6,30 @@ export const FaqFeature = () => {
   const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
 
   const categories = [
-    { id: 'shopping', name: '🛍️ Mua sắm & Dịch vụ' },
-    { id: 'amenities', name: '🚗 Tiện ích & Gửi xe' },
-    { id: 'cinema', name: '🎬 Rạp chiếu phim' },
-    { id: 'other', name: '💡 Quy định khác' }
+    { id: 'shopping', name: '🛍️ Shopping & Services' },
+    { id: 'amenities', name: '🚗 Amenities & Parking' },
+    { id: 'cinema', name: '🎬 Cinema' },
+    { id: 'other', name: '💡 Other Policies' }
   ];
 
   const faqs: Record<string, { q: string; a: string }[]> = {
     shopping: [
-      { q: 'Giờ mở cửa hoạt động của ABCD Mall là khi nào?', a: 'ABCD Mall mở cửa phục vụ quý khách từ 09:30 đến 22:00 tất cả các ngày trong tuần, bao gồm cả Lễ và Chủ Nhật. Riêng khu vực Rạp chiếu phim CGV và một số nhà hàng có thể đóng cửa muộn hơn.' },
-      { q: 'Làm thế nào để tôi xuất hóa đơn GTGT (VAT)?', a: 'Quý khách vui lòng yêu cầu xuất hóa đơn VAT trực tiếp tại quầy thanh toán của gian hàng ngay tại thời điểm mua sắm. Mall không hỗ trợ xuất hóa đơn gộp cho nhiều gian hàng khác nhau.' },
-      { q: 'Mall có chương trình thẻ thành viên không?', a: 'Có! Quý khách có thể đăng ký thẻ ABCD Member ngay tại Quầy Thông Tin (Tầng 1) hoặc qua ứng dụng di động để tích điểm và nhận các ưu đãi độc quyền từ hơn 200 thương hiệu.' }
+      { q: 'What are the operating hours of ABCD Mall?', a: 'ABCD Mall is open from 09:30 to 22:00 every day of the week, including holidays and Sundays. The cinema area and some restaurants may close later.' },
+      { q: 'How can I request a VAT invoice?', a: 'Please request your VAT invoice directly at the store cashier at the time of purchase. The mall does not issue combined invoices for multiple stores.' },
+      { q: 'Does the mall have a membership program?', a: 'Yes. You can register for the ABCD Member program at the information desk on Floor 1 or through the mobile app to collect points and receive exclusive offers from more than 200 brands.' }
     ],
     amenities: [
-      { q: 'Bãi gửi xe của Mall nằm ở đâu và phí gửi xe là bao nhiêu?', a: 'ABCD Mall có bãi đậu xe máy tại Tầng hầm B1, B2 và bãi đậu xe ô tô tại Tầng 3M, Tầng 5. Phí gửi xe máy là 5,000đ/4h đầu, Ô tô là 30,000đ/4h đầu.' },
-      { q: 'Mall có cung cấp xe lăn cho người lớn tuổi/người khuyết tật không?', a: 'ABCD Mall cung cấp DỊCH VỤ MƯỢN XE LĂN MIỄN PHÍ. Quý khách vui lòng liên hệ Quầy Thông Tin tại Tầng 1 và xuất trình CCCD/CMND để được hỗ trợ.' },
-      { q: 'Mall có phòng chăm sóc trẻ em (Baby Room) không?', a: 'Có. Phòng chăm sóc trẻ em được bố trí tại Tầng 2 và Tầng 3, trang bị đầy đủ bàn thay tã, máy nước nóng lạnh và không gian cho con bú riêng tư.' }
+      { q: 'Where is the parking area and what are the fees?', a: 'ABCD Mall offers motorcycle parking at basement levels B1 and B2, and car parking on levels 3M and 5. Motorcycle parking starts at 5,000 VND for the first 4 hours, while car parking starts at 30,000 VND for the first 4 hours.' },
+      { q: 'Does the mall provide wheelchairs for seniors or guests with disabilities?', a: 'Yes. ABCD Mall offers free wheelchair rental. Please contact the information desk on Floor 1 and present an ID document for assistance.' },
+      { q: 'Does the mall have a baby care room?', a: 'Yes. Baby care rooms are available on Floors 2 and 3, equipped with diaper-changing stations, hot and cold water, and private nursing areas.' }
     ],
     cinema: [
-      { q: 'Tôi có thể mua vé xem phim online qua website này không?', a: 'Hoàn toàn được! Bạn có thể truy cập mục "Rạp Phim" trên thanh menu để chọn phim, chọn suất chiếu, chọn ghế ngồi và thanh toán trực tuyến dễ dàng.' },
-      { q: 'Trẻ em dưới bao nhiêu tuổi thì được miễn phí vé xem phim?', a: 'Theo quy định của rạp chiếu phim, trẻ em có chiều cao dưới 90cm sẽ được miễn phí vé khi ngồi chung ghế với người lớn đi kèm.' }
+      { q: 'Can I buy movie tickets online through this website?', a: 'Yes. You can visit the Cinema section in the navigation bar to choose a movie, select a showtime, pick your seats, and pay online.' },
+      { q: 'At what age do children receive free movie admission?', a: 'According to cinema policy, children under 90 cm in height can enter for free when sharing a seat with an accompanying adult.' }
     ],
     other: [
-      { q: 'Tôi có được mang thú cưng (chó, mèo) vào Mall không?', a: 'Rất tiếc, để đảm bảo an toàn và vệ sinh chung, ABCD Mall hiện chưa cho phép mang thú cưng vào khu vực trung tâm thương mại (ngoại trừ chó dẫn đường cho người khiếm thị).' },
-      { q: 'Tôi để quên đồ tại Mall, tôi cần liên hệ ai?', a: 'Nếu thất lạc tài sản, quý khách vui lòng đến ngay Quầy Thông Tin (Tầng 1) hoặc gọi Hotline 1800-ABCD-MALL để được bộ phận An ninh hỗ trợ kiểm tra và tìm kiếm.' }
+      { q: 'Are pets allowed inside the mall?', a: 'To ensure safety and hygiene for all visitors, ABCD Mall currently does not allow pets inside the mall, except for guide dogs assisting visually impaired guests.' },
+      { q: 'I lost an item at the mall. Who should I contact?', a: 'If you lose personal belongings, please visit the information desk on Floor 1 or call the hotline at 1800-ABCD-MALL for assistance from the security team.' }
     ]
   };
 
@@ -43,9 +43,9 @@ export const FaqFeature = () => {
         
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500 mb-4 tracking-tight">
-            Câu Hỏi Thường Gặp
+            Frequently Asked Questions
           </h1>
-          <p className="text-gray-500 text-lg">Chúng tôi luôn sẵn sàng giải đáp mọi thắc mắc của bạn để mang lại trải nghiệm tuyệt vời nhất tại ABCD Mall.</p>
+          <p className="text-gray-500 text-lg">We are always ready to answer your questions and help deliver the best possible experience at ABCD Mall.</p>
         </div>
 
         {/* Tab Categories */}
@@ -99,9 +99,9 @@ export const FaqFeature = () => {
 
           {/* Call to action */}
           <div className="mt-12 pt-8 border-t border-gray-200 text-center">
-            <p className="text-gray-500 mb-4">Bạn không tìm thấy câu trả lời mình cần?</p>
+            <p className="text-gray-500 mb-4">Couldn&apos;t find the answer you needed?</p>
             <Link to="/feedback" className="inline-block bg-gray-900 text-white font-bold px-8 py-3 rounded-full hover:bg-red-600 transition-colors shadow-md">
-              Gửi Phản Hồi Cho Chúng Tôi
+              Send Us Feedback
             </Link>
           </div>
         </div>

@@ -8,8 +8,14 @@ namespace ABCDMall.Modules.Users.Application.DTOs
 
         public string FullName { get; set; } = string.Empty;
 
-        public string ShopName { get; set; } = string.Empty;
+        public string? Address { get; set; }
 
-        public string CCCD { get; set; } = string.Empty;
+        public string? Role { get; set; }
+
+        public string? ShopName { get; set; }
+
+        public string? CCCD { get; set; }
+
+        public int? MapLocationId { get; set; }
     }
 }

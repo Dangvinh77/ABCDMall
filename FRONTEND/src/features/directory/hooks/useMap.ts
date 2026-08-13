@@ -14,7 +14,7 @@ export function useMap() {
         setFloors(data);
         setActiveFloor(data[0] ?? null);
       })
-      .catch(() => setError('Không thể tải sơ đồ tầng.'))
+      .catch(() => setError('Unable to load floor maps.'))
       .finally(() => setLoading(false));
   }, []);
 

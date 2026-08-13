@@ -1,5 +1,10 @@
 import axios, { AxiosError } from "axios";
 
+type ApiError = Error & {
+  data?: unknown;
+  status?: number;
+};
+
 // API FETCH NOTE:
 // Vite exposes env vars that start with VITE_. If you create FRONTEND/.env with
 // VITE_API_BASE_URL=http://localhost:5184/api, the frontend will call that API.
@@ -77,7 +82,10 @@ function mapApiError(error: unknown): never {
       axiosError.message ??
       "Request failed.";
 
-    throw new Error(message);
+    const mappedError = new Error(message) as ApiError;
+    mappedError.data = axiosError.response?.data;
+    mappedError.status = axiosError.response?.status;
+    throw mappedError;
   }
 
   throw error;
@@ -129,4 +137,4 @@ export const api = {
   },
 };
 
-export default http;
+export default api;

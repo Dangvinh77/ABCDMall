@@ -60,6 +60,52 @@ ABCDMall";
             return true;
         }
 
+        public async Task<bool> SendManagerInitialPasswordEmailAsync(string toEmail, string? fullName, string oneTimePassword, string changePasswordUrl)
+        {
+            var settings = _configuration.GetSection("EmailSettings").Get<EmailSettings>();
+
+            if (settings == null ||
+                string.IsNullOrWhiteSpace(settings.Host) ||
+                string.IsNullOrWhiteSpace(settings.FromEmail))
+            {
+                return false;
+            }
+
+            using var message = new MailMessage();
+            message.From = new MailAddress(settings.FromEmail, settings.FromName);
+            message.To.Add(toEmail);
+            message.Subject = "Initial password setup - ABCDMall";
+            message.Body =
+$@"Hello {(string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName)},
+
+Your ABCDMall manager account has been created.
+
+One-time password: {oneTimePassword}
+Change password link: {changePasswordUrl}
+
+This setup link is valid for 24 hours.
+
+ABCDMall";
+            message.IsBodyHtml = false;
+
+            using var client = new SmtpClient(settings.Host, settings.Port)
+            {
+                EnableSsl = settings.EnableSsl
+            };
+
+            if (!string.IsNullOrWhiteSpace(settings.UserName))
+            {
+                client.Credentials = new NetworkCredential(settings.UserName, settings.Password);
+            }
+            else
+            {
+                client.UseDefaultCredentials = true;
+            }
+
+            await client.SendMailAsync(message);
+            return true;
+        }
+
         public async Task<bool> SendManagerAccountUpdatedEmailAsync(string toEmail, string? fullName, string? shopName)
         {
             var settings = _configuration.GetSection("EmailSettings").Get<EmailSettings>();

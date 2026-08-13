@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../core/api/api";
 
@@ -136,9 +136,9 @@ export default function RevenueStatistics() {
         setLoading(true);
         setError("");
         const res = await api.get("/ShopInfo");
-        setRentalDetails(res.data || []);
+        setRentalDetails(res || []);
       } catch (err) {
-        setError(err.response?.data || "Unable to load revenue statistics.");
+        setError(err.message || "Unable to load revenue statistics.");
       } finally {
         setLoading(false);
       }

@@ -1,4 +1,5 @@
 using ABCDMall.Modules.Movies.Application.DTOs.Bookings;
+using ABCDMall.Modules.Movies.Application.Services.Showtimes;
 using ABCDMall.Modules.Movies.Domain.Entities;
 using ABCDMall.Modules.Movies.Domain.Enums;
 using System.Text.Json;
@@ -8,10 +9,17 @@ namespace ABCDMall.Modules.Movies.Application.Services.Bookings;
 public sealed class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepository;
+    private readonly IShowtimeRepository _showtimeRepository;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
 
-    public BookingService(IBookingRepository bookingRepository)
+    public BookingService(
+        IBookingRepository bookingRepository,
+        IShowtimeRepository showtimeRepository,
+        IShowtimeBookingPolicy showtimeBookingPolicy)
     {
         _bookingRepository = bookingRepository;
+        _showtimeRepository = showtimeRepository;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
     }
 
     public async Task<CreateBookingResponseDto> CreateAsync(
@@ -19,28 +27,56 @@ public sealed class BookingService : IBookingService
         CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
-        var existingBooking = await _bookingRepository.GetByHoldIdAsync(request.HoldId, cancellationToken);
+        var holdIds = request.HoldIds
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .OrderBy(id => id)
+            .ToArray();
+
+        if (holdIds.Length == 0)
+        {
+            throw new InvalidOperationException("At least one booking hold is required.");
+        }
+
+        var existingBooking = await _bookingRepository.GetByCombinedHoldIdsAsync(holdIds, cancellationToken);
 
         if (existingBooking is not null)
         {
-            return MapCreateResponse(existingBooking);
+            return MapCreateResponse(existingBooking, holdIds);
         }
 
-        var hold = await _bookingRepository.GetHoldForBookingAsync(request.HoldId, cancellationToken);
-        if (hold is null)
+        var holds = await _bookingRepository.GetHoldsForBookingAsync(holdIds, cancellationToken);
+        if (holds.Count != holdIds.Length)
         {
-            throw new InvalidOperationException("Booking hold not found.");
+            throw new InvalidOperationException("One or more booking holds were not found.");
         }
 
-        if (hold.Status != BookingHoldStatus.Active)
+        if (holds.Any(hold => hold.Status != BookingHoldStatus.Active))
         {
-            throw new InvalidOperationException($"Booking hold is already {hold.Status}.");
+            throw new InvalidOperationException("One or more booking holds are no longer active.");
         }
 
-        if (hold.ExpiresAtUtc <= now)
+        if (holds.Any(hold => hold.ExpiresAtUtc <= now))
         {
-            throw new InvalidOperationException("Booking hold has expired.");
+            throw new InvalidOperationException("One or more booking holds have expired.");
         }
+
+        var showtimeId = holds
+            .Select(hold => hold.ShowtimeId)
+            .Distinct()
+            .SingleOrDefault();
+
+        if (showtimeId == Guid.Empty)
+        {
+            throw new InvalidOperationException("Booking holds must belong to the same showtime.");
+        }
+
+        var showtime = await _showtimeRepository.GetShowtimeByIdAsync(showtimeId, cancellationToken);
+        if (showtime is null)
+        {
+            throw new InvalidOperationException("Showtime not found.");
+        }
+        _showtimeBookingPolicy.EnsureBookableForUser(showtime, now);
 
         var guestCustomer = await _bookingRepository.FindGuestCustomerAsync(
             request.CustomerEmail,
@@ -63,26 +99,26 @@ public sealed class BookingService : IBookingService
         {
             Id = Guid.NewGuid(),
             BookingCode = GenerateBookingCode(now),
-            ShowtimeId = hold.ShowtimeId,
+            ShowtimeId = showtimeId,
             GuestCustomerId = guestCustomer?.Id ?? newGuestCustomer!.Id,
-            BookingHoldId = hold.Id,
-            PromotionId = hold.PromotionId,
+            BookingHoldId = holdIds[0],
+            PromotionId = holds.Select(hold => hold.PromotionId).FirstOrDefault(id => id.HasValue),
             Status = BookingStatus.PendingPayment,
             CustomerName = request.CustomerName.Trim(),
             CustomerEmail = request.CustomerEmail.Trim(),
             CustomerPhoneNumber = request.CustomerPhoneNumber.Trim(),
-            SeatSubtotal = hold.SeatSubtotal,
-            ComboSubtotal = hold.ComboSubtotal,
-            ServiceFee = hold.ServiceFee,
-            DiscountAmount = hold.DiscountAmount,
-            GrandTotal = hold.GrandTotal,
+            SeatSubtotal = holds.Sum(hold => hold.SeatSubtotal),
+            ComboSubtotal = holds.Sum(hold => hold.ComboSubtotal),
+            ServiceFee = holds.Sum(hold => hold.ServiceFee),
+            DiscountAmount = holds.Sum(hold => hold.DiscountAmount),
+            GrandTotal = holds.Sum(hold => hold.GrandTotal),
             Currency = "VND",
-            PromotionSnapshotJson = hold.PromotionSnapshotJson,
+            PromotionSnapshotJson = holds.Select(hold => hold.PromotionSnapshotJson).FirstOrDefault(snapshot => !string.IsNullOrWhiteSpace(snapshot)),
             CreatedAtUtc = now,
             UpdatedAtUtc = now
         };
 
-        foreach (var seat in hold.Seats.OrderBy(x => x.SeatCode))
+        foreach (var seat in holds.SelectMany(hold => hold.Seats).OrderBy(x => x.SeatCode))
         {
             booking.Items.Add(new BookingItem
             {
@@ -98,7 +134,7 @@ public sealed class BookingService : IBookingService
             });
         }
 
-        foreach (var combo in ReadComboSnapshots(hold.ComboSnapshotJson))
+        foreach (var combo in holds.SelectMany(hold => ReadComboSnapshots(hold.ComboSnapshotJson)))
         {
             booking.Items.Add(new BookingItem
             {
@@ -113,7 +149,8 @@ public sealed class BookingService : IBookingService
             });
         }
 
-        if (hold.ServiceFee > 0)
+        var totalServiceFee = holds.Sum(hold => hold.ServiceFee);
+        if (totalServiceFee > 0)
         {
             booking.Items.Add(new BookingItem
             {
@@ -123,12 +160,13 @@ public sealed class BookingService : IBookingService
                 ItemCode = "SERVICE_FEE",
                 Description = "Service fee",
                 Quantity = 1,
-                UnitPrice = hold.ServiceFee,
-                LineTotal = hold.ServiceFee
+                UnitPrice = totalServiceFee,
+                LineTotal = totalServiceFee
             });
         }
 
-        if (hold.DiscountAmount > 0)
+        var totalDiscount = holds.Sum(hold => hold.DiscountAmount);
+        if (totalDiscount > 0)
         {
             booking.Items.Add(new BookingItem
             {
@@ -138,18 +176,19 @@ public sealed class BookingService : IBookingService
                 ItemCode = "PROMOTION_DISCOUNT",
                 Description = "Promotion discount",
                 Quantity = 1,
-                UnitPrice = -hold.DiscountAmount,
-                LineTotal = -hold.DiscountAmount
+                UnitPrice = -totalDiscount,
+                LineTotal = -totalDiscount
             });
         }
 
         var created = await _bookingRepository.AddPendingBookingAsync(
             booking,
             newGuestCustomer,
+            holdIds,
             now,
             cancellationToken);
 
-        return MapCreateResponse(created);
+        return MapCreateResponse(created, holdIds);
     }
 
     public async Task<BookingDetailResponseDto?> GetByCodeAsync(
@@ -171,14 +210,14 @@ public sealed class BookingService : IBookingService
             ?? Array.Empty<BookingHoldComboSnapshotDto>();
     }
 
-    private static CreateBookingResponseDto MapCreateResponse(Bookingg booking)
+    private static CreateBookingResponseDto MapCreateResponse(Bookingg booking, IReadOnlyCollection<Guid> holdIds)
     {
         return new CreateBookingResponseDto
         {
             BookingId = booking.Id,
             BookingCode = booking.BookingCode,
             ShowtimeId = booking.ShowtimeId,
-            HoldId = booking.BookingHoldId!.Value,
+            HoldIds = holdIds.ToArray(),
             Status = booking.Status.ToString(),
             GrandTotal = booking.GrandTotal,
             Currency = booking.Currency,

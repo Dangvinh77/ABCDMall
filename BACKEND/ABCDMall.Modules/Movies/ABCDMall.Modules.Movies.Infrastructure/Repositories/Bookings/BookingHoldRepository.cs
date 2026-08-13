@@ -101,6 +101,29 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings
             return true;
         }
 
+        public async Task ExtendExpirationAsync(
+            Guid holdId,
+            DateTime expiresAtUtc,
+            CancellationToken cancellationToken = default)
+        {
+            var hold = await _dbContext.BookingHolds
+                .FirstOrDefaultAsync(x => x.Id == holdId, cancellationToken);
+
+            if (hold is null || hold.Status != BookingHoldStatus.Active)
+            {
+                return;
+            }
+
+            if (hold.ExpiresAtUtc >= expiresAtUtc)
+            {
+                return;
+            }
+
+            hold.ExpiresAtUtc = expiresAtUtc;
+            hold.UpdatedAtUtc = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task<int> ExpireAsync(DateTime utcNow, CancellationToken cancellationToken = default)
         {
             //hàm cập nhật những hold Active đã hết hạn thành Expired, trả về số lượng hold đã được cập nhật
@@ -141,6 +164,26 @@ namespace ABCDMall.Modules.Movies.Infrastructure.Repositories.Bookings
                 .ToListAsync(cancellationToken);
 
             return seatInventoryIds.ToHashSet();
+        }
+
+        public async Task<IReadOnlyList<BookingHold>> GetActiveByShowtimeAndSeatInventoryIdsAsync(
+            Guid showtimeId,
+            IReadOnlyCollection<Guid> seatInventoryIds,
+            DateTime utcNow,
+            CancellationToken cancellationToken = default)
+        {
+            if (seatInventoryIds.Count == 0)
+            {
+                return Array.Empty<BookingHold>();
+            }
+
+            return await _dbContext.BookingHolds
+                .Include(x => x.Seats)
+                .Where(hold => hold.ShowtimeId == showtimeId
+                    && hold.Status == BookingHoldStatus.Active
+                    && hold.ExpiresAtUtc > utcNow
+                    && hold.Seats.Any(seat => seatInventoryIds.Contains(seat.SeatInventoryId)))
+                .ToListAsync(cancellationToken);
         }
 
     }

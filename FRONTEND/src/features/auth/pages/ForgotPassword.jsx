@@ -33,7 +33,7 @@ export default function ForgotPassword() {
       setOtpSent(true);
       setSuccess("The OTP has been sent to your email.");
     } catch (err) {
-      setError(err.response?.data || "Unable to send OTP.");
+      setError(err?.message || "Unable to send OTP.");
     } finally {
       setLoading(false);
     }
@@ -53,7 +53,7 @@ export default function ForgotPassword() {
       setSuccess("Your password has been reset successfully. Redirecting to the login page...");
       setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
-      setError(err.response?.data || "Invalid OTP.");
+      setError(err?.message || "Invalid OTP.");
     } finally {
       setLoading(false);
     }

@@ -42,7 +42,7 @@ public sealed class MovieRepository : IMovieRepository
             .AsNoTracking()
             .Include(showtime => showtime.Cinema)
             .Include(showtime => showtime.Hall)
-            .Where(showtime => showtime.MovieId == movieId && showtime.Status == ShowtimeStatus.Open);
+            .Where(showtime => showtime.MovieId == movieId);
 
         if (businessDate.HasValue)
         {

@@ -6,6 +6,10 @@ public sealed class LoginResponseDto
 
     public string? RefreshToken { get; set; }
 
+    public bool RequiresPasswordChange { get; set; }
+
+    public string? PasswordSetupToken { get; set; }
+
     public bool RequiresOtp { get; set; }
 
     public string? Message { get; set; }

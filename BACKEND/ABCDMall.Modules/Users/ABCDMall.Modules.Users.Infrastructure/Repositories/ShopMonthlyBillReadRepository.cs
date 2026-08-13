@@ -26,4 +26,16 @@ public sealed class ShopMonthlyBillReadRepository : IShopMonthlyBillReadReposito
             .OrderByDescending(x => x.BillingMonthKey)
             .ToListAsync(cancellationToken);
     }
+
+    public Task<ShopInfo?> GetRentalInfoAsync(string? shopId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(shopId))
+        {
+            return Task.FromResult<ShopInfo?>(null);
+        }
+
+        return _context.ShopInfos
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == shopId, cancellationToken);
+    }
 }

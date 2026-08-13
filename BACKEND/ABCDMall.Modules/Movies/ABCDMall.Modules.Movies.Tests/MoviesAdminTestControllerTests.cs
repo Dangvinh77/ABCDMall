@@ -1,0 +1,210 @@
+using ABCDMall.Modules.Movies.Application.DTOs.Admin;
+using ABCDMall.Modules.Movies.Application.Services.Admin;
+using ABCDMall.WebAPI.Controllers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using Xunit;
+
+namespace ABCDMall.Modules.Movies.Tests;
+
+public sealed class MoviesAdminTestControllerTests
+{
+    [Fact]
+    public async Task ResolveFeedbackRequest_should_return_not_found_outside_dev_or_test()
+    {
+        var service = new FakeMoviesAdminService();
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment("Production"));
+
+        var result = await controller.ResolveFeedbackRequest(new MoviesAdminResolveFeedbackRequestByTokenRequestDto
+        {
+            Token = "feedback-token"
+        });
+
+        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.Equal(0, service.ResolveFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ResolveFeedbackRequest_should_return_bad_request_when_token_is_blank()
+    {
+        var service = new FakeMoviesAdminService();
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment(Environments.Development));
+
+        var result = await controller.ResolveFeedbackRequest(new MoviesAdminResolveFeedbackRequestByTokenRequestDto());
+
+        var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
+        var problem = Assert.IsType<ProblemDetails>(badRequest.Value);
+        Assert.Equal("Token is required.", problem.Title);
+        Assert.Equal(0, service.ResolveFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ResolveFeedbackRequest_should_return_ok_when_token_matches()
+    {
+        var requestId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        var service = new FakeMoviesAdminService
+        {
+            ResolveFeedbackRequestResponse = new MoviesAdminResolveFeedbackRequestByTokenResponseDto
+            {
+                RequestId = requestId
+            }
+        };
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment(Environments.Development));
+
+        var result = await controller.ResolveFeedbackRequest(new MoviesAdminResolveFeedbackRequestByTokenRequestDto
+        {
+            Token = "feedback-token"
+        });
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var payload = Assert.IsType<MoviesAdminResolveFeedbackRequestByTokenResponseDto>(ok.Value);
+        Assert.Equal(requestId, payload.RequestId);
+        Assert.Equal(1, service.ResolveFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ForceExpireOpenedFeedbackRequest_should_return_not_found_outside_dev_or_test()
+    {
+        var service = new FakeMoviesAdminService();
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment("Production"));
+
+        var result = await controller.ForceExpireOpenedFeedbackRequest(Guid.NewGuid());
+
+        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.Equal(0, service.ForceExpireOpenedFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ForceExpireOpenedFeedbackRequest_should_return_ok_when_environment_is_development()
+    {
+        var response = new MoviesAdminForceExpireOpenedFeedbackRequestResponseDto
+        {
+            RequestId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+            PreviousFirstOpenedAtUtc = DateTime.UtcNow.AddDays(-1),
+            PreviousLastOpenedAtUtc = DateTime.UtcNow.AddDays(-1),
+            NewFirstOpenedAtUtc = DateTime.UtcNow.AddDays(-8),
+            NewLastOpenedAtUtc = DateTime.UtcNow.AddDays(-8),
+            Message = "Feedback request opened timestamps moved to the past for expiry testing."
+        };
+
+        var service = new FakeMoviesAdminService
+        {
+            ForceExpireOpenedResponse = response
+        };
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment(Environments.Development));
+
+        var result = await controller.ForceExpireOpenedFeedbackRequest(response.RequestId);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var payload = Assert.IsType<MoviesAdminForceExpireOpenedFeedbackRequestResponseDto>(ok.Value);
+        Assert.Equal(response.RequestId, payload.RequestId);
+        Assert.Equal(1, service.ForceExpireOpenedFeedbackRequestCallCount);
+    }
+
+    [Fact]
+    public async Task ForceFinishShowtime_should_return_not_found_outside_dev_or_test()
+    {
+        var service = new FakeMoviesAdminService();
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment("Production"));
+
+        var result = await controller.ForceFinishShowtime(Guid.NewGuid());
+
+        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.Equal(0, service.ForceFinishShowtimeCallCount);
+    }
+
+    [Fact]
+    public async Task ForceFinishShowtime_should_return_ok_when_environment_is_development()
+    {
+        var response = new MoviesAdminForceFinishShowtimeResponseDto
+        {
+            ShowtimeId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            PreviousEndAtUtc = DateTime.UtcNow.AddHours(2),
+            NewEndAtUtc = DateTime.UtcNow.AddMinutes(-1),
+            Message = "Showtime end time moved to the past for feedback-email testing."
+        };
+
+        var service = new FakeMoviesAdminService
+        {
+            Response = response
+        };
+        var controller = new MoviesAdminTestController(service, new FakeHostEnvironment(Environments.Development));
+
+        var result = await controller.ForceFinishShowtime(response.ShowtimeId);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var payload = Assert.IsType<MoviesAdminForceFinishShowtimeResponseDto>(ok.Value);
+        Assert.Equal(response.ShowtimeId, payload.ShowtimeId);
+        Assert.Equal(1, service.ForceFinishShowtimeCallCount);
+    }
+
+    private sealed class FakeMoviesAdminService : IMoviesAdminService
+    {
+        public int ForceFinishShowtimeCallCount { get; private set; }
+        public int ForceExpireOpenedFeedbackRequestCallCount { get; private set; }
+        public int ResolveFeedbackRequestCallCount { get; private set; }
+        public MoviesAdminForceFinishShowtimeResponseDto? Response { get; set; }
+        public MoviesAdminForceExpireOpenedFeedbackRequestResponseDto? ForceExpireOpenedResponse { get; set; }
+        public MoviesAdminResolveFeedbackRequestByTokenResponseDto? ResolveFeedbackRequestResponse { get; set; }
+
+        public Task<MoviesAdminForceFinishShowtimeResponseDto?> ForceFinishShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default)
+        {
+            ForceFinishShowtimeCallCount += 1;
+            return Task.FromResult(Response);
+        }
+
+        public Task<MoviesAdminForceExpireOpenedFeedbackRequestResponseDto?> ForceExpireOpenedFeedbackRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
+        {
+            ForceExpireOpenedFeedbackRequestCallCount += 1;
+            return Task.FromResult(ForceExpireOpenedResponse);
+        }
+
+        public Task<MoviesAdminResolveFeedbackRequestByTokenResponseDto?> ResolveFeedbackRequestIdByTokenAsync(string token, CancellationToken cancellationToken = default)
+        {
+            ResolveFeedbackRequestCallCount += 1;
+            return Task.FromResult(ResolveFeedbackRequestResponse);
+        }
+
+        public Task<MoviesAdminDashboardResponseDto> GetDashboardAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminMovieListItemDto>> GetMoviesAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminMovieListItemDto?> GetMovieByIdAsync(Guid movieId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminMovieListItemDto> CreateMovieAsync(MoviesAdminMovieUpsertDto request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminMovieListItemDto?> UpdateMovieAsync(Guid movieId, MoviesAdminMovieUpsertDto request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<bool> DeleteMovieAsync(Guid movieId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminPromotionListItemDto>> GetPromotionsAsync(string? status, string? query, bool activeOnly, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminPromotionDetailDto?> GetPromotionByIdAsync(Guid promotionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminPromotionDetailDto> CreatePromotionAsync(MoviesAdminPromotionUpsertDto request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminPromotionDetailDto?> UpdatePromotionAsync(Guid promotionId, MoviesAdminPromotionUpsertDto request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<bool> DeletePromotionAsync(Guid promotionId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminShowtimeListItemDto>> GetShowtimesAsync(Guid? movieId, DateOnly? businessDate, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminShowtimeListItemDto> CreateShowtimeAsync(MoviesAdminShowtimeUpsertDto request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminShowtimeListItemDto?> UpdateShowtimeAsync(Guid showtimeId, MoviesAdminShowtimeUpsertDto request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<bool> DeleteShowtimeAsync(Guid showtimeId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(string? status, string? paymentStatus, Guid? movieId, Guid? cinemaId, string? query, DateTime? dateFromUtc, DateTime? dateToUtc, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminBookingListItemDto>> GetBookingsAsync(string? status, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminBookingDetailDto?> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminLookupResponseDto> GetLookupsAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminPaymentListItemDto>> GetPaymentsAsync(string? status, string? provider, Guid? movieId, Guid? cinemaId, string? query, DateTime? dateFromUtc, DateTime? dateToUtc, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminPaymentListItemDto>> GetPaymentsAsync(string? status, string? provider, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminPaymentDetailDto?> GetPaymentByIdAsync(Guid paymentId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(string? query, string? deliveryStatus, string? outboxStatus, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<IReadOnlyList<MoviesAdminEmailLogItemDto>> GetEmailLogsAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task ResendTicketEmailAsync(Guid bookingId, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<MoviesAdminRevenueReportDto> GetRevenueReportAsync(DateTime? dateFromUtc, DateTime? dateToUtc, Guid? movieId, Guid? cinemaId, string? provider, string? paymentStatus, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
+
+    private sealed class FakeHostEnvironment : IHostEnvironment
+    {
+        public FakeHostEnvironment(string environmentName)
+        {
+            EnvironmentName = environmentName;
+            ContentRootFileProvider = new NullFileProvider();
+        }
+
+        public string EnvironmentName { get; set; }
+        public string ApplicationName { get; set; } = "Movies.Tests";
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; }
+    }
+}

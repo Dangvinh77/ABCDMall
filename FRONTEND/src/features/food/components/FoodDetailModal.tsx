@@ -84,11 +84,11 @@ export default function FoodDetailModal({ food, onClose }: Props) {
           <div className="md:col-span-2">
 
             <h2 className="text-xl font-bold mb-4">
-              Giới thiệu
+              Overview
             </h2>
 
             <p className="text-gray-600 whitespace-pre-line leading-7">
-              {food.description || "Chưa có mô tả"}
+              {food.description || "No description available"}
             </p>
 
           </div>
@@ -107,7 +107,7 @@ export default function FoodDetailModal({ food, onClose }: Props) {
             <p className="mb-2">⭐ 4.5</p>
 
             <button className="w-full mt-4 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition">
-              Xem menu
+              View Menu
             </button>
 
           </div>

@@ -5,6 +5,7 @@ export const movieAdminPaths = {
   showtimes: () => '/movies/admin/showtimes',
   seats: () => '/movies/admin/seats',
   bookings: () => '/movies/admin/bookings',
+  revenue: () => '/movies/admin/revenue',
   payments: () => '/movies/admin/payments',
   emails: () => '/movies/admin/emails',
   guests: () => '/movies/admin/guests',

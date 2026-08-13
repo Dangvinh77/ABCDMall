@@ -18,16 +18,19 @@ public sealed class PromotionQueryService : IPromotionQueryService
         bool activeOnly,
         CancellationToken cancellationToken = default)
     {
-        // Day 3 list API duoc dung de frontend bo mock promotion list.
-        // category filter duoc support du dung schema hien tai chua co cot Category rieng.
         var promotions = await _promotionRepository.GetPromotionsAsync(activeOnly, cancellationToken);
-        var normalizedCategory = NormalizeCategory(category);
+        return BuildPromotionList(promotions, category);
+    }
 
-        return promotions
-            .Select(MapPromotionListItem)
-            .Where(item => normalizedCategory == "all"
-                || string.Equals(item.Category, normalizedCategory, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+    public async Task<IReadOnlyList<PromotionResponseDto>> GetPromotionsForShowtimeAsync(
+        Guid showtimeId,
+        DateOnly businessDate,
+        DateTime showtimeStartAtUtc,
+        bool activeOnly,
+        CancellationToken cancellationToken = default)
+    {
+        var promotions = await _promotionRepository.GetPromotionsAsync(activeOnly, cancellationToken);
+        return BuildPromotionList(promotions, null, showtimeId, businessDate, showtimeStartAtUtc);
     }
 
     public async Task<PromotionDetailResponseDto?> GetPromotionByIdAsync(
@@ -41,14 +44,23 @@ public sealed class PromotionQueryService : IPromotionQueryService
         }
 
         // Detail API tra ve them rules va category de frontend render dung ngữ cảnh khuyen mai.
+        var metadata = ReadDisplayMetadata(promotion);
+
         return new PromotionDetailResponseDto
         {
             Id = promotion.Id,
             Code = promotion.Code,
             Name = promotion.Name,
             Description = promotion.Description,
-            Category = ResolveCategory(promotion),
+            Category = metadata.Category,
             Status = promotion.Status.ToString(),
+            ImageUrl = metadata.ImageUrl,
+            BadgeText = metadata.BadgeText,
+            AccentFrom = metadata.AccentFrom,
+            AccentTo = metadata.AccentTo,
+            DisplayCondition = metadata.DisplayCondition,
+            IsFeatured = metadata.IsFeatured,
+            DisplayPriority = metadata.DisplayPriority,
             PercentageValue = promotion.PercentageValue,
             FlatDiscountValue = promotion.FlatDiscountValue,
             MaximumDiscountAmount = promotion.MaximumDiscountAmount,
@@ -71,7 +83,7 @@ public sealed class PromotionQueryService : IPromotionQueryService
         };
     }
 
-    private PromotionResponseDto MapPromotionListItem(Promotion promotion)
+    private PromotionResponseDto MapPromotionListItem(Promotion promotion, PromotionDisplayMetadata metadata)
     {
         return new PromotionResponseDto
         {
@@ -79,12 +91,95 @@ public sealed class PromotionQueryService : IPromotionQueryService
             Code = promotion.Code,
             Name = promotion.Name,
             Description = promotion.Description,
-            Category = ResolveCategory(promotion),
+            Category = metadata.Category,
             Status = promotion.Status.ToString(),
             ValidFromUtc = promotion.ValidFromUtc,
             ValidToUtc = promotion.ValidToUtc,
-            IsAutoApplied = promotion.IsAutoApplied
+            IsAutoApplied = promotion.IsAutoApplied,
+            ImageUrl = metadata.ImageUrl,
+            BadgeText = metadata.BadgeText,
+            AccentFrom = metadata.AccentFrom,
+            AccentTo = metadata.AccentTo,
+            DisplayCondition = metadata.DisplayCondition,
+            IsFeatured = metadata.IsFeatured,
+            DisplayPriority = metadata.DisplayPriority,
+            MinimumSpendAmount = promotion.MinimumSpendAmount,
+            Rules = MapRules(promotion)
         };
+    }
+
+    private IReadOnlyList<PromotionResponseDto> BuildPromotionList(
+        IReadOnlyList<Promotion> promotions,
+        string? category,
+        Guid? showtimeId = null,
+        DateOnly? businessDate = null,
+        DateTime? showtimeStartAtUtc = null)
+    {
+        var normalizedCategory = NormalizeCategory(category);
+
+        return promotions
+            .Select(promotion => new
+            {
+                Promotion = promotion,
+                Metadata = ReadDisplayMetadata(promotion)
+            })
+            .Where(x => IsPromotionVisibleForShowtimeContext(
+                x.Promotion,
+                showtimeId,
+                businessDate,
+                showtimeStartAtUtc))
+            .OrderByDescending(x => x.Metadata.IsFeatured)
+            .ThenBy(x => x.Metadata.DisplayPriority)
+            .ThenByDescending(x => x.Promotion.UpdatedAtUtc)
+            .Select(x => MapPromotionListItem(x.Promotion, x.Metadata))
+            .Where(item => normalizedCategory == "all"
+                || string.Equals(item.Category, normalizedCategory, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private static bool IsPromotionVisibleForShowtimeContext(
+        Promotion promotion,
+        Guid? showtimeId,
+        DateOnly? businessDate,
+        DateTime? showtimeStartAtUtc)
+    {
+        if (!showtimeId.HasValue || !businessDate.HasValue || !showtimeStartAtUtc.HasValue)
+        {
+            return true;
+        }
+
+        foreach (var rule in promotion.Rules.Where(rule =>
+                     rule.RuleType is Domain.Enums.PromotionRuleType.Showtime or Domain.Enums.PromotionRuleType.BusinessDate))
+        {
+            var isMatch = PromotionShowtimeRuleMatcher.MatchesShowtimeContext(
+                rule,
+                showtimeId.Value,
+                businessDate.Value,
+                showtimeStartAtUtc.Value);
+
+            if (!isMatch && rule.IsRequired)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static IReadOnlyCollection<PromotionRuleDto> MapRules(Promotion promotion)
+    {
+        return promotion.Rules
+            .OrderBy(rule => rule.SortOrder)
+            .Select(rule => new PromotionRuleDto
+            {
+                Id = rule.Id,
+                RuleType = rule.RuleType.ToString(),
+                RuleValue = rule.RuleValue,
+                ThresholdValue = rule.ThresholdValue,
+                SortOrder = rule.SortOrder,
+                IsRequired = rule.IsRequired
+            })
+            .ToArray();
     }
 
     private static string NormalizeCategory(string? category)
@@ -97,29 +192,44 @@ public sealed class PromotionQueryService : IPromotionQueryService
         return category.Trim().ToLowerInvariant();
     }
 
-    private static string ResolveCategory(Promotion promotion)
+    private static PromotionDisplayMetadata ReadDisplayMetadata(Promotion promotion)
     {
-        // Uu tien metadata seed de category tra ve on dinh.
+        var metadata = new PromotionDisplayMetadata
+        {
+            Category = ResolveCategoryFallback(promotion),
+            BadgeText = promotion.Code,
+            DisplayCondition = promotion.IsAutoApplied
+                ? "Applied automatically when eligible"
+                : "Select this offer before checkout"
+        };
+
         if (!string.IsNullOrWhiteSpace(promotion.MetadataJson))
         {
             try
             {
                 using var document = JsonDocument.Parse(promotion.MetadataJson);
-                if (document.RootElement.TryGetProperty("category", out var categoryElement))
-                {
-                    var categoryFromMetadata = categoryElement.GetString();
-                    if (!string.IsNullOrWhiteSpace(categoryFromMetadata))
-                    {
-                        return NormalizeCategory(categoryFromMetadata);
-                    }
-                }
+                metadata.Category = ReadString(document.RootElement, "category") is { Length: > 0 } categoryFromMetadata
+                    ? NormalizeCategory(categoryFromMetadata)
+                    : metadata.Category;
+                metadata.ImageUrl = ReadString(document.RootElement, "imageUrl");
+                metadata.BadgeText = ReadString(document.RootElement, "badgeText") ?? metadata.BadgeText;
+                metadata.AccentFrom = ReadString(document.RootElement, "accentFrom");
+                metadata.AccentTo = ReadString(document.RootElement, "accentTo");
+                metadata.DisplayCondition = ReadString(document.RootElement, "displayCondition") ?? metadata.DisplayCondition;
+                metadata.IsFeatured = ReadBool(document.RootElement, "isFeatured");
+                metadata.DisplayPriority = ReadInt(document.RootElement, "displayPriority");
             }
             catch (JsonException)
             {
-                // MetadataJson la optional; neu parse fail thi fallback sang infer tu rules/code.
+                return metadata;
             }
         }
 
+        return metadata;
+    }
+
+    private static string ResolveCategoryFallback(Promotion promotion)
+    {
         if (promotion.Rules.Any(rule => rule.RuleType == Domain.Enums.PromotionRuleType.Combo))
         {
             return "combo";
@@ -146,5 +256,52 @@ public sealed class PromotionQueryService : IPromotionQueryService
         }
 
         return "all";
+    }
+
+    private static string? ReadString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return null;
+        }
+
+        return property.ValueKind == JsonValueKind.String ? property.GetString() : null;
+    }
+
+    private static bool ReadBool(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return false;
+        }
+
+        return property.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => false
+        };
+    }
+
+    private static int ReadInt(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return 0;
+        }
+
+        return property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value) ? value : 0;
+    }
+
+    private sealed class PromotionDisplayMetadata
+    {
+        public string Category { get; set; } = "all";
+        public string? ImageUrl { get; set; }
+        public string? BadgeText { get; set; }
+        public string? AccentFrom { get; set; }
+        public string? AccentTo { get; set; }
+        public string? DisplayCondition { get; set; }
+        public bool IsFeatured { get; set; }
+        public int DisplayPriority { get; set; }
     }
 }

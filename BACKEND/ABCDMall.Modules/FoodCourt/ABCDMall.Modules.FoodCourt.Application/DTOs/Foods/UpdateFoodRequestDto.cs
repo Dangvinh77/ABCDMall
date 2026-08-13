@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace ABCDMall.Modules.FoodCourt.Application.DTOs.Foods;
 
 public sealed class UpdateFoodRequestDto
@@ -6,4 +8,5 @@ public sealed class UpdateFoodRequestDto
     public string? Slug { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
+    public IFormFile? ImageFile { get; set; }
 }

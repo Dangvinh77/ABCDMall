@@ -202,6 +202,15 @@ public sealed class BookingsController : ControllerBase
                 Status = StatusCodes.Status400BadRequest
             });
         }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails
+            {
+                Title = "Payment result failed unexpectedly.",
+                Detail = ex.Message,
+                Status = StatusCodes.Status500InternalServerError
+            });
+        }
     }
 
     private static ValidationProblemDetails ToValidationProblemDetails(FluentValidation.Results.ValidationResult validationResult)

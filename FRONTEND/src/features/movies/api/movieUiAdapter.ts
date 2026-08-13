@@ -92,6 +92,7 @@ function normalizedTitle(value: string) {
 function toUiMovie(movie: MovieCardModel | MovieDetailModel): Movie {
   return {
     id: movie.id,
+    apiId: movie.apiId,
     title: movie.title,
     description: 'description' in movie ? movie.description : '',
     genre: movie.genre,
@@ -143,6 +144,8 @@ function toUiShowtime(showtime: ShowtimeLiteModel) {
     availableSeats: isSoldOut ? 0 : 999,
     totalSeats: 999,
     priceFrom: showtime.priceFrom,
+    isBookable: showtime.isBookable,
+    bookingUnavailableReason: showtime.bookingUnavailableReason,
   };
 }
 
@@ -166,7 +169,7 @@ function toHomePromo(promo: PromotionModel): HomePromo {
     id: PROMO_ID_BY_CODE[promo.discountLabel] ?? promo.id,
     title: promo.title,
     description: promo.description,
-    discount: PROMO_BADGE_BY_CODE[promo.discountLabel] ?? promo.discountLabel,
+    discount: promo.discountLabel || PROMO_BADGE_BY_CODE[promo.discountLabel] || promo.title,
     color: HOME_PROMO_COLORS[promo.category] ?? 'bg-gradient-to-br from-purple-600 to-purple-800',
     imageUrl: promo.imageUrl,
   };
@@ -177,7 +180,7 @@ export function toUiPromo(promo: PromotionModel): UiPromo {
     id: PROMO_ID_BY_CODE[promo.discountLabel] ?? promo.id,
     title: promo.title,
     desc: promo.description,
-    badge: PROMO_BADGE_BY_CODE[promo.discountLabel] ?? promo.discountLabel,
+    badge: promo.discountLabel || PROMO_BADGE_BY_CODE[promo.discountLabel] || promo.title,
     badgeColor: PROMO_BADGE_COLORS[promo.category] ?? 'from-purple-500 to-fuchsia-600',
     expiry: promo.expiry,
     condition: promo.condition,
@@ -185,7 +188,7 @@ export function toUiPromo(promo: PromotionModel): UiPromo {
     img: promo.imageUrl,
     accentFrom: promo.accentFrom,
     accentTo: promo.accentTo,
-    hot: ['WEEKEND', 'MOMO30', 'COMBOGOLD'].includes(promo.discountLabel),
+    hot: promo.isFeatured || ['WEEKEND', 'MOMO30', 'COMBOGOLD'].includes(promo.discountLabel),
   };
 }
 
@@ -200,25 +203,43 @@ export async function loadHomeUiData() {
 }
 
 export async function loadMovieDetailUiData(movieId: string, bookingDate: string) {
-  const [movie, showtimes] = await Promise.all([
-    fetchMovieDetail(movieId),
-    fetchMovieShowtimes(movieId, bookingDate),
-  ]);
+  const movie = await fetchMovieDetail(movieId);
+
+  try {
+    const showtimes = await fetchMovieShowtimes(movieId, bookingDate);
+
+    return {
+      movie: toUiMovie(movie),
+      movieSchedule: {
+        movie: toUiMovie(movie),
+        cinemaSchedules: showtimes.cinemas.map((cinema) => {
+          const cinemaCode = cinemaCodeFromName(cinema.cinemaName);
+          return {
+            cinemaId: cinemaCode,
+            cinemaName: cinema.cinemaName,
+            cinemaAddress: cinemaAddressFromCode(cinemaCode, cinema.cinemaAddress),
+            showtimes: cinema.showtimes.map(toUiShowtime),
+          };
+        }),
+      } satisfies MovieSchedule,
+    };
+  } catch {
+    // Keep detail page usable even when the showtimes endpoint is temporarily unavailable.
+    return {
+      movie: toUiMovie(movie),
+      movieSchedule: {
+        movie: toUiMovie(movie),
+        cinemaSchedules: [],
+      } satisfies MovieSchedule,
+    };
+  }
+}
+
+export async function loadMovieDetailOnlyUiData(movieId: string) {
+  const movie = await fetchMovieDetail(movieId);
 
   return {
     movie: toUiMovie(movie),
-    movieSchedule: {
-      movie: toUiMovie(movie),
-      cinemaSchedules: showtimes.cinemas.map((cinema) => {
-        const cinemaCode = cinemaCodeFromName(cinema.cinemaName);
-        return {
-          cinemaId: cinemaCode,
-          cinemaName: cinema.cinemaName,
-          cinemaAddress: cinemaAddressFromCode(cinemaCode, cinema.cinemaAddress),
-          showtimes: cinema.showtimes.map(toUiShowtime),
-        };
-      }),
-    } satisfies MovieSchedule,
   };
 }
 

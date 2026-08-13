@@ -1,4 +1,5 @@
 import { api } from "../../../core/api/api";
+import { getImageUrl } from "../../../core/utils/image";
 
 export type MovieStatus = "NowShowing" | "ComingSoon" | string;
 export type SeatType = "regular" | "vip" | "couple";
@@ -37,6 +38,19 @@ export interface PromotionModel {
   accentTo: string;
   condition: string;
   expiry: string;
+  isFeatured: boolean;
+  displayPriority: number;
+  minimumSpendAmount?: number;
+  rules: PromotionRuleModel[];
+}
+
+export interface PromotionRuleModel {
+  id: string;
+  ruleType: string;
+  ruleValue: string;
+  thresholdValue?: number;
+  sortOrder: number;
+  isRequired: boolean;
 }
 
 export interface SnackComboModel {
@@ -59,6 +73,8 @@ export interface ShowtimeLiteModel {
   priceFrom: number;
   status: string;
   language: "sub" | "dub";
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
 }
 
 export interface CinemaShowtimeGroupModel {
@@ -88,6 +104,8 @@ export interface ShowtimeDetailModel {
   language: "sub" | "dub";
   basePrice: number;
   status: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
 }
 
 export interface SeatMapSeatModel {
@@ -105,6 +123,9 @@ export interface SeatMapModel {
   showtimeId: string;
   hallId: string;
   hallType: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string;
+  promotions: PromotionModel[];
   seats: SeatMapSeatModel[];
 }
 
@@ -156,6 +177,40 @@ export interface BookingHoldModel {
   seats: BookingHoldSeatModel[];
 }
 
+export interface MovieFeedbackModel {
+  id: string;
+  movieId: string;
+  rating: number;
+  comment: string;
+  displayName: string;
+  tags: string[];
+  createdAtUtc: string;
+}
+
+export interface MovieFeedbackListModel {
+  movieId: string;
+  ratingFilter?: number | null;
+  totalCount: number;
+  averageRating: number;
+  ratingBreakdown: Record<number, number>;
+  items: MovieFeedbackModel[];
+}
+
+export interface PublicMovieFeedbackRequestModel {
+  feedbackRequestId: string;
+  movieId: string;
+  showtimeId: string;
+  movieTitle: string;
+  availableAtUtc: string;
+  firstOpenedAtUtc?: string | null;
+  expiresAtUtc?: string | null;
+  status: string;
+  expiredReason?: string | null;
+  remainingSubmissions: number;
+  canSubmit: boolean;
+  message?: string | null;
+}
+
 interface MovieListItemResponseDto {
   movieId: string;
   title: string;
@@ -202,6 +257,8 @@ interface MovieShowtimesResponseDto {
         language: string;
         basePrice: number;
         status: string;
+        isBookable: boolean;
+        bookingUnavailableReason?: string | null;
       }>;
     }>;
   }>;
@@ -221,6 +278,8 @@ interface ShowtimeListItemDto {
   language: string;
   basePrice: number;
   status: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string | null;
 }
 
 interface ShowtimeDetailResponseDto {
@@ -242,12 +301,17 @@ interface ShowtimeDetailResponseDto {
   language: string;
   basePrice: number;
   status: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string | null;
 }
 
 interface SeatMapResponseDto {
   showtimeId: string;
   hallId: string;
   hallType: string;
+  isBookable: boolean;
+  bookingUnavailableReason?: string | null;
+  promotions?: PromotionResponseDto[] | null;
   seats: Array<{
     seatInventoryId: string;
     seatCode: string;
@@ -270,6 +334,22 @@ interface PromotionResponseDto {
   validFromUtc?: string | null;
   validToUtc?: string | null;
   isAutoApplied: boolean;
+  imageUrl?: string | null;
+  badgeText?: string | null;
+  accentFrom?: string | null;
+  accentTo?: string | null;
+  displayCondition?: string | null;
+  isFeatured?: boolean;
+  displayPriority?: number;
+  minimumSpendAmount?: number | null;
+  rules?: Array<{
+    id: string;
+    ruleType: string;
+    ruleValue: string;
+    thresholdValue?: number | null;
+    sortOrder: number;
+    isRequired: boolean;
+  }>;
 }
 
 interface SnackComboResponseDto {
@@ -312,6 +392,93 @@ interface BookingHoldResponseDto {
   }>;
 }
 
+interface CreateBookingResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdIds: string[];
+  status: string;
+  grandTotal: number;
+  currency: string;
+  paymentRequired: boolean;
+}
+
+interface PaymentResponseDto {
+  paymentId: string;
+  bookingId: string;
+  bookingCode: string;
+  provider: string;
+  providerTransactionId?: string | null;
+  status: string;
+  amount: number;
+  currency: string;
+  bookingStatus: string;
+  failureReason?: string | null;
+  completedAtUtc?: string | null;
+}
+
+interface BookingDetailResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId?: string | null;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+  serviceFee: number;
+  discountAmount: number;
+  grandTotal: number;
+  currency: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+interface StripeCheckoutSessionResponseDto {
+  bookingId: string;
+  bookingCode: string;
+  holdId?: string | null;
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
+}
+
+interface MovieFeedbackResponseDto {
+  id: string;
+  movieId: string;
+  rating: number;
+  comment: string;
+  displayName: string;
+  tags: string[];
+  createdAtUtc: string;
+}
+
+interface MovieFeedbackListResponseDto {
+  movieId: string;
+  ratingFilter?: number | null;
+  totalCount: number;
+  averageRating: number;
+  ratingBreakdown: Record<string, number>;
+  items: MovieFeedbackResponseDto[];
+}
+
+interface PublicMovieFeedbackRequestResponseDto {
+  feedbackRequestId: string;
+  movieId: string;
+  showtimeId: string;
+  movieTitle: string;
+  availableAtUtc: string;
+  firstOpenedAtUtc?: string | null;
+  expiresAtUtc?: string | null;
+  status: string;
+  expiredReason?: string | null;
+  remainingSubmissions: number;
+  canSubmit: boolean;
+  message?: string | null;
+}
+
 export interface QuoteRequestPayload {
   showtimeId: string;
   seatInventoryIds: string[];
@@ -329,8 +496,87 @@ export interface CreateBookingHoldPayload extends QuoteRequestPayload {
   guestCustomerId?: string | null;
 }
 
+export interface CreateBookingPayload {
+  holdIds: string[];
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+}
+
+export interface BookingModel {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdIds: string[];
+  status: string;
+  grandTotal: number;
+  currency: string;
+  paymentRequired: boolean;
+}
+
+export interface BookingDetailModel {
+  bookingId: string;
+  bookingCode: string;
+  showtimeId: string;
+  holdId?: string | null;
+  status: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhoneNumber: string;
+  seatSubtotal: number;
+  comboSubtotal: number;
+  serviceFee: number;
+  discountAmount: number;
+  grandTotal: number;
+  currency: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
+export interface StripeCheckoutSessionModel {
+  bookingId: string;
+  bookingCode: string;
+  holdId?: string | null;
+  sessionId: string;
+  checkoutUrl: string;
+  expiresAtUtc: string;
+}
+
+export interface ApplyPaymentResultPayload {
+  provider: string;
+  providerTransactionId: string;
+  status: string;
+  amount: number;
+  currency: string;
+  rawPayload?: string | null;
+  failureReason?: string | null;
+}
+
+export interface PaymentResultModel {
+  paymentId: string;
+  bookingId: string;
+  bookingCode: string;
+  provider: string;
+  providerTransactionId?: string | null;
+  status: string;
+  amount: number;
+  currency: string;
+  bookingStatus: string;
+  failureReason?: string | null;
+  completedAtUtc?: string | null;
+}
+
+export interface CreateMovieFeedbackPayload {
+  rating: number;
+  comment: string;
+  displayName?: string | null;
+  email?: string | null;
+  tags?: string[];
+}
+
 const DEFAULT_POSTER =
   "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
+const CINEMA_TIME_ZONE = "Asia/Ho_Chi_Minh";
 
 const PROMO_IMAGES: Record<string, string> = {
   weekend: "https://images.unsplash.com/photo-1691480213129-106b2c7d1ee8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
@@ -422,6 +668,7 @@ function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: CINEMA_TIME_ZONE,
   });
 }
 
@@ -469,13 +716,24 @@ function mapPromotion(dto: PromotionResponseDto): PromotionModel {
     title: dto.name,
     description: dto.description,
     category,
-    discountLabel: dto.code,
+    discountLabel: dto.badgeText || dto.code,
     status: dto.status,
-    imageUrl: PROMO_IMAGES[category] ?? PROMO_IMAGES.all,
-    accentFrom: accent.from,
-    accentTo: accent.to,
-    condition: dto.isAutoApplied ? "Applied automatically when eligible" : "Select this offer before checkout",
+    imageUrl: getImageUrl(dto.imageUrl || PROMO_IMAGES[category] || PROMO_IMAGES.all),
+    accentFrom: dto.accentFrom || accent.from,
+    accentTo: dto.accentTo || accent.to,
+    condition: dto.displayCondition || (dto.isAutoApplied ? "Applied automatically when eligible" : "Select this offer before checkout"),
     expiry: formatExpiry(dto.validToUtc),
+    isFeatured: dto.isFeatured ?? false,
+    displayPriority: dto.displayPriority ?? 0,
+    minimumSpendAmount: dto.minimumSpendAmount ?? undefined,
+    rules: (dto.rules ?? []).map((rule) => ({
+      id: rule.id,
+      ruleType: rule.ruleType,
+      ruleValue: rule.ruleValue,
+      thresholdValue: rule.thresholdValue ?? undefined,
+      sortOrder: rule.sortOrder,
+      isRequired: rule.isRequired,
+    })),
   };
 }
 
@@ -527,6 +785,8 @@ function groupShowtimesByMovieWithLookup(showtimes: ShowtimeListItemDto[], movie
       priceFrom: item.basePrice,
       status: item.status,
       language: mapLanguage(item.language),
+      isBookable: item.isBookable,
+      bookingUnavailableReason: item.bookingUnavailableReason ?? undefined,
     });
 
     grouped.set(movieKey, movieEntry);
@@ -577,6 +837,89 @@ export async function fetchMovieDetail(movieId: string) {
   } satisfies MovieDetailModel;
 }
 
+function mapMovieFeedback(dto: MovieFeedbackResponseDto): MovieFeedbackModel {
+  return {
+    id: dto.id,
+    movieId: dto.movieId,
+    rating: dto.rating,
+    comment: dto.comment,
+    displayName: dto.displayName,
+    tags: dto.tags ?? [],
+    createdAtUtc: dto.createdAtUtc,
+  };
+}
+
+export async function fetchMovieFeedbacks(movieId: string, rating?: number | null) {
+  const apiMovieId = await resolveMovieApiId(movieId);
+  const response = await api.get<MovieFeedbackListResponseDto>(`/movies/${apiMovieId}/feedbacks`, {
+    rating: rating ?? undefined,
+    page: 1,
+    pageSize: 20,
+  });
+
+  return {
+    movieId: response.movieId,
+    ratingFilter: response.ratingFilter,
+    totalCount: response.totalCount,
+    averageRating: response.averageRating,
+    ratingBreakdown: Object.fromEntries(
+      Object.entries(response.ratingBreakdown ?? {}).map(([star, count]) => [Number(star), count]),
+    ) as Record<number, number>,
+    items: response.items.map(mapMovieFeedback),
+  } satisfies MovieFeedbackListModel;
+}
+
+export async function createMovieFeedback(movieId: string, payload: CreateMovieFeedbackPayload) {
+  const apiMovieId = await resolveMovieApiId(movieId);
+  const response = await api.post<MovieFeedbackResponseDto, CreateMovieFeedbackPayload>(
+    `/movies/${apiMovieId}/feedbacks`,
+    {
+      rating: payload.rating,
+      comment: payload.comment,
+      displayName: payload.displayName ?? undefined,
+      email: payload.email ?? undefined,
+      tags: payload.tags ?? [],
+    },
+  );
+
+  return mapMovieFeedback(response);
+}
+
+export async function fetchPublicMovieFeedbackRequest(token: string) {
+  const response = await api.get<PublicMovieFeedbackRequestResponseDto>(
+    `/movie-feedback/public/${encodeURIComponent(token)}`,
+  );
+
+  return {
+    feedbackRequestId: response.feedbackRequestId,
+    movieId: response.movieId,
+    showtimeId: response.showtimeId,
+    movieTitle: response.movieTitle,
+    availableAtUtc: response.availableAtUtc,
+    firstOpenedAtUtc: response.firstOpenedAtUtc ?? null,
+    expiresAtUtc: response.expiresAtUtc ?? null,
+    status: response.status,
+    expiredReason: response.expiredReason ?? null,
+    remainingSubmissions: response.remainingSubmissions,
+    canSubmit: response.canSubmit,
+    message: response.message ?? null,
+  } satisfies PublicMovieFeedbackRequestModel;
+}
+
+export async function submitMovieFeedbackByToken(token: string, payload: CreateMovieFeedbackPayload) {
+  const response = await api.post<MovieFeedbackResponseDto, CreateMovieFeedbackPayload>(
+    `/movie-feedback/public/${encodeURIComponent(token)}`,
+    {
+      rating: payload.rating,
+      comment: payload.comment,
+      displayName: payload.displayName ?? undefined,
+      tags: payload.tags ?? [],
+    },
+  );
+
+  return mapMovieFeedback(response);
+}
+
 export async function fetchMovieShowtimes(movieId: string, businessDate: string) {
   // API FETCH NOTE:
   // Query params are passed as the second argument; api.get turns this into
@@ -617,6 +960,8 @@ export async function fetchMovieShowtimes(movieId: string, businessDate: string)
             priceFrom: showtime.basePrice,
             status: showtime.status,
             language: mapLanguage(showtime.language),
+            isBookable: showtime.isBookable,
+            bookingUnavailableReason: showtime.bookingUnavailableReason ?? undefined,
           }),
         ),
       }),
@@ -671,6 +1016,7 @@ export async function fetchPromotions(activeOnly = true) {
   // API FETCH NOTE:
   // Promotions are fetched from backend, then mapped to UI colors/images used by the promotions page.
   const response = await api.get<PromotionResponseDto[]>("/movies-promotions", { activeOnly });
+  // Keep backend ordering so newly created promos stay visible at the top.
   return response.map(mapPromotion);
 }
 
@@ -710,6 +1056,8 @@ export async function fetchShowtimeDetail(showtimeId: string) {
     language: mapLanguage(response.language),
     basePrice: response.basePrice,
     status: response.status,
+    isBookable: response.isBookable,
+    bookingUnavailableReason: response.bookingUnavailableReason ?? undefined,
   } satisfies ShowtimeDetailModel;
 }
 
@@ -744,6 +1092,9 @@ export async function fetchSeatMap(showtimeId: string) {
     showtimeId: response.showtimeId,
     hallId: response.hallId,
     hallType: response.hallType,
+    isBookable: response.isBookable,
+    bookingUnavailableReason: response.bookingUnavailableReason ?? undefined,
+    promotions: (response.promotions ?? []).map(mapPromotion),
     seats: mappedSeats,
   } satisfies SeatMapModel;
 }
@@ -812,6 +1163,94 @@ export async function createBookingHold(payload: CreateBookingHoldPayload) {
 export async function fetchBookingHold(holdId: string) {
   const response = await api.get<BookingHoldResponseDto>(`/bookings/holds/${holdId}`);
   return mapBookingHold(response);
+}
+
+export async function createBooking(payload: CreateBookingPayload) {
+  const response = await api.post<CreateBookingResponseDto, CreateBookingPayload>("/bookings", {
+    holdIds: payload.holdIds,
+    customerName: payload.customerName,
+    customerEmail: payload.customerEmail,
+    customerPhoneNumber: payload.customerPhoneNumber,
+  });
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    showtimeId: response.showtimeId,
+    holdIds: response.holdIds,
+    status: response.status,
+    grandTotal: response.grandTotal,
+    currency: response.currency,
+    paymentRequired: response.paymentRequired,
+  } satisfies BookingModel;
+}
+
+export async function fetchBookingDetail(bookingCode: string) {
+  const response = await api.get<BookingDetailResponseDto>(`/bookings/${bookingCode}`);
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    showtimeId: response.showtimeId,
+    holdId: response.holdId ?? undefined,
+    status: response.status,
+    customerName: response.customerName,
+    customerEmail: response.customerEmail,
+    customerPhoneNumber: response.customerPhoneNumber,
+    seatSubtotal: response.seatSubtotal,
+    comboSubtotal: response.comboSubtotal,
+    serviceFee: response.serviceFee,
+    discountAmount: response.discountAmount,
+    grandTotal: response.grandTotal,
+    currency: response.currency,
+    createdAtUtc: response.createdAtUtc,
+    updatedAtUtc: response.updatedAtUtc,
+  } satisfies BookingDetailModel;
+}
+
+export async function createStripeCheckoutSession(bookingId: string) {
+  const response = await api.post<StripeCheckoutSessionResponseDto, { bookingId: string }>(
+    "/payments/checkout-session/stripe",
+    { bookingId },
+  );
+
+  return {
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    holdId: response.holdId ?? undefined,
+    sessionId: response.sessionId,
+    checkoutUrl: response.checkoutUrl,
+    expiresAtUtc: response.expiresAtUtc,
+  } satisfies StripeCheckoutSessionModel;
+}
+
+export async function applyPaymentResult(bookingId: string, payload: ApplyPaymentResultPayload) {
+  const response = await api.post<PaymentResponseDto, ApplyPaymentResultPayload>(
+    `/bookings/${bookingId}/payment-result`,
+    {
+      provider: payload.provider,
+      providerTransactionId: payload.providerTransactionId,
+      status: payload.status,
+      amount: payload.amount,
+      currency: payload.currency,
+      rawPayload: payload.rawPayload ?? undefined,
+      failureReason: payload.failureReason ?? undefined,
+    },
+  );
+
+  return {
+    paymentId: response.paymentId,
+    bookingId: response.bookingId,
+    bookingCode: response.bookingCode,
+    provider: response.provider,
+    providerTransactionId: response.providerTransactionId,
+    status: response.status,
+    amount: response.amount,
+    currency: response.currency,
+    bookingStatus: response.bookingStatus,
+    failureReason: response.failureReason,
+    completedAtUtc: response.completedAtUtc,
+  } satisfies PaymentResultModel;
 }
 
 export async function confirmBookingHold(holdId: string) {

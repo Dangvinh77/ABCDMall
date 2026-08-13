@@ -97,6 +97,14 @@ function LangBadge({ language }: { language: Language }) {
   );
 }
 
+function getUnavailableLabel(reason?: string) {
+  const normalized = reason?.toLowerCase() ?? '';
+  if (normalized.includes('ended')) return 'Ended';
+  if (normalized.includes('started')) return 'Started';
+  if (normalized.includes('closed')) return 'Closed';
+  return 'Unavailable';
+}
+
 interface ShowtimeChipProps {
   showtime: Showtime;
   movieId: string;
@@ -107,21 +115,27 @@ interface ShowtimeChipProps {
 function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipProps) {
   const status = getSeatStatus(st);
   const isFull = status === 'full';
+  const isUnavailable = !st.isBookable;
+  const isDisabled = isFull || isUnavailable;
   const isNearlyFull = status === 'nearly-full';
   const cfg = HALL_CONFIGS[st.hallType];
 
   return (
     <button
-      disabled={isFull}
-      onClick={() => onBook(movieId, cinemaId, st.time, st.hallType, st.id)}
+      disabled={isDisabled}
+      title={st.bookingUnavailableReason}
+      onClick={() => {
+        if (isDisabled) return;
+        onBook(movieId, cinemaId, st.time, st.hallType, st.id);
+      }}
       style={
-        !isFull
+        !isDisabled
           ? { '--chip-glow': cfg.glow } as CSSProperties
           : undefined
       }
       className={[
         'group relative flex min-w-[82px] flex-col items-center rounded-xl border px-3 py-2.5 text-center transition-all duration-200',
-        isFull
+        isDisabled
           ? 'cursor-not-allowed border-gray-700/30 bg-gray-800/20 opacity-40'
           : isNearlyFull
           ? 'cursor-pointer border-amber-600/35 bg-amber-950/20 hover:border-amber-500/60 hover:bg-amber-900/25 hover:shadow-[0_0_16px_rgba(217,119,6,0.18)]'
@@ -130,7 +144,7 @@ function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipP
     >
       <span
         className={`text-base font-black leading-none tracking-tight ${
-          isFull ? 'text-gray-600 line-through' : 'text-white'
+          isDisabled ? 'text-gray-600 line-through' : 'text-white'
         }`}
       >
         {st.time}
@@ -142,7 +156,9 @@ function ShowtimeChip({ showtime: st, movieId, cinemaId, onBook }: ShowtimeChipP
       </div>
 
       <div className="mt-1.5">
-        {isFull ? (
+        {isUnavailable ? (
+          <span className="text-[10px] text-gray-600">{getUnavailableLabel(st.bookingUnavailableReason)}</span>
+        ) : isFull ? (
           <span className="text-[10px] text-gray-600">Sold out</span>
         ) : isNearlyFull ? (
           <span className="text-[10px] font-semibold text-amber-500">Almost full</span>
@@ -197,7 +213,7 @@ function MovieScheduleBlock({ ms, onBook, onMovieClick }: MovieScheduleBlockProp
   const { movie, cinemaSchedules } = ms;
   const totalShowtimes = cinemaSchedules.reduce((acc, cs) => acc + cs.showtimes.length, 0);
   const availableShowtimes = cinemaSchedules.reduce(
-    (acc, cs) => acc + cs.showtimes.filter((st) => getSeatStatus(st) !== 'full').length,
+    (acc, cs) => acc + cs.showtimes.filter((st) => st.isBookable && getSeatStatus(st) !== 'full').length,
     0,
   );
 
@@ -467,7 +483,7 @@ export function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 text-white">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
+      <header className="relative z-40 border-b border-gray-800 bg-gray-950/90 backdrop-blur-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -506,7 +522,7 @@ export function SchedulePage() {
       <div
         className="fixed left-0 right-0 z-40 transition-transform duration-300"
         style={{
-          top: 65,
+          top: 0,
           transform: showStickyBar ? 'translateY(0)' : 'translateY(-110%)',
         }}
       >
@@ -586,7 +602,7 @@ export function SchedulePage() {
           </div>
         </div>
       </section>
-      <section className="sticky top-16 z-30 border-b border-gray-800/70 bg-gray-950/95 backdrop-blur-xl">
+      <section className="relative z-30 border-b border-gray-800/70 bg-gray-950/95 backdrop-blur-xl">
         <div className="container mx-auto px-4">
           <div
             className="flex gap-2 overflow-x-auto py-3 scrollbar-hide"
@@ -754,29 +770,7 @@ export function SchedulePage() {
           </div>
         )}
       </main>
-      <footer className="border-t border-gray-800 bg-gray-950 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-gradient-to-br from-purple-600 to-pink-600 p-1.5">
-                <Film className="size-4 text-white" />
-              </div>
-              <span className="font-bold text-white">ABCD Cinema</span>
-              <span className="text-gray-600">&bull;</span>
-              <span className="text-sm text-gray-600">ABCD Mall</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <button onClick={() => navigate(moviePaths.promotions())} className="transition-colors hover:text-gray-300">
-                Promotions
-              </button>
-              <button onClick={() => navigate(moviePaths.home())} className="transition-colors hover:text-gray-300">
-                Home
-              </button>
-              <span>&copy; 2026 ABCD Cinema</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+
     </div>
   );
 }

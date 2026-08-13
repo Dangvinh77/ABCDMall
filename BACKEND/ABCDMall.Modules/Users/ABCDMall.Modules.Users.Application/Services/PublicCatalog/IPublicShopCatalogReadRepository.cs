@@ -6,5 +6,7 @@ public interface IPublicShopCatalogReadRepository
 {
     Task<IReadOnlyList<ShopInfo>> GetShopInfosAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<RentalArea>> GetRentalAreasAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PublicShopProduct>> GetProductsAsync(IEnumerable<string> shopIds, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<PublicShopVoucher>> GetVouchersAsync(IEnumerable<string> shopIds, CancellationToken cancellationToken = default);
 }
 

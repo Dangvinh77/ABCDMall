@@ -18,7 +18,7 @@ export const HeroBanner = () => {
           Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-mall-accent to-white">ABCD Mall</span>
         </h1>
         <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-          Trải nghiệm không gian mua sắm, ẩm thực và giải trí đẳng cấp bậc nhất với diện tích 250,000 sq ft.
+          Experience world-class shopping, dining, and entertainment across 250,000 sq ft of premium space.
         </p>
       </div>
     </div>

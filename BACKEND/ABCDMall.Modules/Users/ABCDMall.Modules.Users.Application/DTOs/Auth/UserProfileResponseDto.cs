@@ -9,4 +9,6 @@ public sealed class UserProfileResponseDto
     public string? Image { get; set; }
     public string? Address { get; set; }
     public string? CCCD { get; set; }
+    public string? CccdFrontImage { get; set; }
+    public string? CccdBackImage { get; set; }
 }

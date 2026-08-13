@@ -20,4 +20,10 @@ public sealed class ShopInfoQueryService : IShopInfoQueryService
         var bills = await _shopMonthlyBillReadRepository.GetBillsAsync(shopId, cancellationToken);
         return _mapper.Map<IReadOnlyList<ShopMonthlyBillResponseDto>>(bills);
     }
+
+    public async Task<ShopRentalInfoResponseDto?> GetRentalInfoAsync(string? shopId, CancellationToken cancellationToken = default)
+    {
+        var rentalInfo = await _shopMonthlyBillReadRepository.GetRentalInfoAsync(shopId, cancellationToken);
+        return rentalInfo is null ? null : _mapper.Map<ShopRentalInfoResponseDto>(rentalInfo);
+    }
 }

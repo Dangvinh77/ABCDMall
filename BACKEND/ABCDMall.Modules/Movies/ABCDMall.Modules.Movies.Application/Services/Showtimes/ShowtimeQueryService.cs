@@ -1,5 +1,6 @@
 using ABCDMall.Modules.Movies.Application.Contracts;
 using ABCDMall.Modules.Movies.Application.DTOs.Showtimes;
+using ABCDMall.Modules.Movies.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace ABCDMall.Modules.Movies.Application.Services.Showtimes;
@@ -7,13 +8,16 @@ namespace ABCDMall.Modules.Movies.Application.Services.Showtimes;
 public sealed class ShowtimeQueryService : IShowtimeQueryService
 {
     private readonly IShowtimeRepository _showtimeRepository;
+    private readonly IShowtimeBookingPolicy _showtimeBookingPolicy;
     private readonly ILogger<ShowtimeQueryService> _logger;
 
     public ShowtimeQueryService(
         IShowtimeRepository showtimeRepository,
+        IShowtimeBookingPolicy showtimeBookingPolicy,
         ILogger<ShowtimeQueryService> logger)
     {
         _showtimeRepository = showtimeRepository;
+        _showtimeBookingPolicy = showtimeBookingPolicy;
         _logger = logger;
     }
 
@@ -25,13 +29,16 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
         string? language = null,
         CancellationToken cancellationToken = default)
     {
-        var showtimes = await _showtimeRepository.GetShowtimesAsync(
+        var utcNow = DateTime.UtcNow;
+        var showtimes = (await _showtimeRepository.GetShowtimesAsync(
             movieId,
             cinemaId,
             businessDate,
             hallType,
             language,
-            cancellationToken);
+            cancellationToken))
+            .Where(showtime => _showtimeBookingPolicy.IsVisibleForUser(showtime, utcNow))
+            .ToList();
 
         _logger.LogInformation(
             "Fetched {ShowtimeCount} showtimes with filters movieId={MovieId}, cinemaId={CinemaId}, businessDate={BusinessDate}, hallType={HallType}, language={Language}.",
@@ -43,22 +50,7 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
             language ?? "all");
 
         return showtimes
-            .Select(showtime => new ShowtimeListItemDto
-            {
-                ShowtimeId = showtime.Id,
-                MovieId = showtime.MovieId,
-                MovieTitle = showtime.Movie?.Title ?? string.Empty,
-                CinemaId = showtime.CinemaId,
-                CinemaName = showtime.Cinema?.Name ?? string.Empty,
-                HallId = showtime.HallId,
-                HallName = showtime.Hall?.Name ?? string.Empty,
-                HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
-                BusinessDate = showtime.BusinessDate,
-                StartAtUtc = showtime.StartAtUtc,
-                Language = MoviesContractValueMapper.ToContractValue(showtime.Language),
-                BasePrice = showtime.BasePrice,
-                Status = showtime.Status.ToString()
-            })
+            .Select(showtime => MapListItem(showtime, utcNow))
             .ToList();
     }
 
@@ -72,6 +64,8 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
         }
 
         _logger.LogInformation("Fetched showtime detail for showtime {ShowtimeId}.", showtimeId);
+
+        var bookingDecision = _showtimeBookingPolicy.EvaluateForUser(showtime, DateTime.UtcNow);
 
         return new ShowtimeDetailResponseDto
         {
@@ -92,7 +86,33 @@ public sealed class ShowtimeQueryService : IShowtimeQueryService
             EndAtUtc = showtime.EndAtUtc,
             Language = MoviesContractValueMapper.ToContractValue(showtime.Language),
             BasePrice = showtime.BasePrice,
-            Status = showtime.Status.ToString()
+            Status = showtime.Status.ToString(),
+            IsBookable = bookingDecision.IsBookable,
+            BookingUnavailableReason = bookingDecision.UnavailableReason
+        };
+    }
+
+    private ShowtimeListItemDto MapListItem(Showtime showtime, DateTime utcNow)
+    {
+        var bookingDecision = _showtimeBookingPolicy.EvaluateForUser(showtime, utcNow);
+
+        return new ShowtimeListItemDto
+        {
+            ShowtimeId = showtime.Id,
+            MovieId = showtime.MovieId,
+            MovieTitle = showtime.Movie?.Title ?? string.Empty,
+            CinemaId = showtime.CinemaId,
+            CinemaName = showtime.Cinema?.Name ?? string.Empty,
+            HallId = showtime.HallId,
+            HallName = showtime.Hall?.Name ?? string.Empty,
+            HallType = showtime.Hall is null ? string.Empty : MoviesContractValueMapper.ToContractValue(showtime.Hall.HallType),
+            BusinessDate = showtime.BusinessDate,
+            StartAtUtc = showtime.StartAtUtc,
+            Language = MoviesContractValueMapper.ToContractValue(showtime.Language),
+            BasePrice = showtime.BasePrice,
+            Status = showtime.Status.ToString(),
+            IsBookable = bookingDecision.IsBookable,
+            BookingUnavailableReason = bookingDecision.UnavailableReason
         };
     }
 }
